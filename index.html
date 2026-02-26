@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Trip | 智能旅行规划</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Outfit:wght@300;400;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/dark.css">
+</head>
+
+<body class="dark-theme">
+    <header class="navbar">
+        <div class="logo">Smart<span>Trip</span></div>
+        <nav>
+            <ul>
+                <li><a href="#hero">首页</a></li>
+                <li><a href="#" onclick="startPlanning()">我的行程</a></li>
+                <li><a href="https://wanderlog.com" target="_blank">灵感</a></li>
+                <li class="btn-login"><a href="#">登录</a></li>
+                <li class="btn-primary"><a href="#" onclick="startPlanning()">开始规划</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main id="app-container">
+        <!-- Views (Login, Dashboard, Itinerary) will be dynamically injected here by app.js -->
+    </main>
+
+    <!-- Global Modal Container -->
+    <div id="modal-overlay" class="modal-overlay hidden" onmousedown="if(event.target===this) closeModal()">
+        <div class="modal-content">
+            <div class="modal-header" style="border-bottom: none; padding-bottom: 0;">
+                <h3 id="modal-title" style="text-align:center; width:100%; font-size: 1.2rem;">添加标题</h3>
+                <button class="close-btn" onclick="closeModal()"
+                    style="position:absolute; right:1.5rem; top:1.2rem; background: var(--glass-bg); padding:0.2rem 0.5rem; border-radius:50%;">&times;</button>
+            </div>
+            <div id="modal-body" class="modal-body" style="padding-top: 5px;">
+                <!-- Dynamic form will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Sub Modal Container (For Time, Expense, etc.) -->
+    <div id="sub-modal-overlay" class="modal-overlay hidden" style="z-index: 1000;"
+        onmousedown="if(event.target===this) closeSubModal()">
+        <div class="modal-content sub-modal" style="max-width: 400px;">
+            <div class="modal-header" style="border-bottom: none; padding-bottom: 0;">
+                <h3 id="sub-modal-title" style="text-align:center; width:100%; font-size: 1.1rem;">添加时间</h3>
+                <button class="close-btn" onclick="closeSubModal()"
+                    style="position:absolute; right:1.5rem; top:1.2rem; background: var(--glass-bg); padding:0.2rem 0.5rem; border-radius:50%;">&times;</button>
+            </div>
+            <div id="sub-modal-body" class="modal-body" style="padding-top: 5px;">
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/zh.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>

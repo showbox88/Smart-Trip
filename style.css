@@ -1,0 +1,733 @@
+:root {
+    --bg-primary: #0f172a;
+    --bg-secondary: #1e293b;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --accent-primary: #f97316;
+    /* Vibrant Orange */
+    --accent-secondary: #3b82f6;
+    /* Electric Blue */
+    --glass-bg: rgba(30, 41, 59, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --font-main: 'Outfit', 'Noto Sans SC', sans-serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: var(--font-main);
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 5%;
+    background: rgba(15, 23, 42, 0.8);
+    backdrop-filter: blur(10px);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.logo {
+    font-size: 1.8rem;
+    font-weight: 700;
+    letter-spacing: -1px;
+}
+
+.logo span {
+    color: var(--accent-primary);
+}
+
+nav ul {
+    display: flex;
+    list-style: none;
+    align-items: center;
+    gap: 2rem;
+}
+
+nav a {
+    text-decoration: none;
+    color: var(--text-secondary);
+    font-weight: 500;
+    transition: color 0.3s;
+}
+
+nav a:hover {
+    color: var(--text-primary);
+}
+
+.btn-primary a {
+    background: var(--accent-primary);
+    color: white;
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+/* Hero Section */
+.hero {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    min-height: 90vh;
+    align-items: center;
+    padding: 0 10%;
+    gap: 4rem;
+}
+
+.hero-content h1 {
+    font-size: 4.5rem;
+    line-height: 1.1;
+    margin-bottom: 2rem;
+    font-weight: 700;
+}
+
+.hero-content h1 span {
+    background: linear-gradient(135deg, var(--accent-primary), #fbbf24);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.hero-content p {
+    font-size: 1.25rem;
+    color: var(--text-secondary);
+    margin-bottom: 3rem;
+    max-width: 600px;
+}
+
+.hero-actions {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.btn-main {
+    background: linear-gradient(135deg, var(--accent-primary), #ea580c);
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.btn-main:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -5px rgba(249, 115, 22, 0.4);
+}
+
+.btn-secondary {
+    background: transparent;
+    color: var(--text-primary);
+    border: 1px solid var(--glass-border);
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* Visual Mockup */
+.hero-visual {
+    position: relative;
+    height: 500px;
+    background: radial-gradient(circle at center, rgba(59, 130, 246, 0.2) 0%, transparent 70%);
+}
+
+.mock-ui {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+}
+
+.glass-card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(12px);
+    border-radius: 20px;
+    padding: 2rem;
+    width: 320px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    animation: float 6s ease-in-out infinite;
+}
+
+.card-header {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 2rem;
+}
+
+.dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.red {
+    background: #ef4444;
+}
+
+.yellow {
+    background: #f59e0b;
+}
+
+.green {
+    background: #10b981;
+}
+
+.itinerary-item {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.time {
+    color: var(--accent-secondary);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.loc {
+    font-weight: 500;
+}
+
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translate(-50%, -50%);
+    }
+
+    50% {
+        transform: translate(-50%, -55%);
+    }
+}
+
+/* Dashboard Styles (Hidden initially) */
+.dashboard-view {
+    display: flex;
+    height: calc(100vh - 80px);
+    /* Adjust based on navbar height */
+}
+
+.sidebar {
+    width: 280px;
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--glass-border);
+    padding: 2rem 1.5rem;
+}
+
+.main-itinerary {
+    width: 48%;
+    /* Narrowed middle section */
+    max-width: 700px;
+    min-width: 450px;
+    overflow-y: auto;
+    padding: 1rem 1.5rem 3rem 1.5rem;
+    border-right: 1px solid var(--glass-border);
+}
+
+.map-view {
+    flex: 1;
+    /* Map takes remaining space */
+    background: #111;
+    position: relative;
+    min-width: 300px;
+}
+
+.map-placeholder {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1524661135-423995f22d0b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+    background-size: cover;
+}
+
+.map-placeholder span {
+    background: var(--glass-bg);
+    padding: 1rem;
+    border-radius: 12px;
+    border: 1px solid var(--glass-border);
+}
+
+/* Modal System */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    z-index: 2000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s;
+}
+
+
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-content {
+    width: 100%;
+    max-width: 460px;
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 1.5rem 2rem;
+    position: relative;
+
+    /* Glass Effect specific for modal (no animation) */
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(12px);
+    border-radius: 20px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    margin: 0;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.2rem;
+}
+
+.close-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+.itinerary-header {
+    position: sticky;
+    top: 0;
+    /* Adjusted to stick to the very top */
+    z-index: 100;
+
+    background: var(--bg-secondary);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 2rem 2.5rem;
+    /* Increased padding to make it taller */
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+    margin-bottom: 3rem;
+    transition: all 0.3s ease;
+}
+
+.itinerary-header h2 {
+    font-size: 1.8rem;
+    color: var(--text-primary);
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    background: var(--bg-primary);
+    border: 1px solid var(--glass-border);
+    padding: 0.8rem;
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-family: inherit;
+}
+
+.time-row {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.time-row select {
+    flex: 1;
+}
+
+.text-danger {
+    color: #f43f5e !important;
+}
+
+.submit-btn {
+    width: 100%;
+    background: var(--accent-primary);
+    color: white;
+    border: none;
+    padding: 1rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.3s;
+}
+
+.submit-btn:hover {
+    opacity: 0.9;
+}
+
+/* Dashboard Enhancements */
+.sidebar h3 {
+    font-size: 1.2rem;
+    margin-bottom: 1.5rem;
+    letter-spacing: 1px;
+    color: var(--text-primary);
+}
+
+.day-section {
+    margin-bottom: 4rem;
+    scroll-margin-top: 100px;
+}
+
+.day-section h4 {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    border-left: 4px solid var(--accent-primary);
+    padding-left: 1rem;
+}
+
+.stop-card {
+    display: flex;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 0.5rem;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: 1px solid transparent;
+    /* default transparent border */
+}
+
+/* 整行磨砂背景悬停特效 */
+.stop-card:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--glass-border);
+    backdrop-filter: blur(5px);
+}
+
+.stop-note {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-style: italic;
+    margin-top: 0.5rem;
+    display: block;
+}
+
+.stop-price {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    font-weight: 700;
+    color: #10b981;
+    font-size: 0.9rem;
+}
+
+/* Hide Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--glass-border);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
+}
+
+/* Utilities */
+.hidden {
+    display: none !important;
+}
+
+/* --- NEW VIEWS CSS --- */
+/* Login View */
+.login-view {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.login-card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(12px);
+    border-radius: 16px;
+    padding: 3rem;
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+}
+
+.login-card h2 {
+    margin-bottom: 2rem;
+    font-size: 1.8rem;
+}
+
+.login-card .form-group {
+    text-align: left;
+}
+
+/* Trip List Dashboard */
+.trip-dashboard-container {
+    padding: 4rem 10%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 3rem;
+}
+
+.trip-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* Trip Card - List Style */
+.trip-card {
+    display: flex;
+    flex-direction: row;
+    height: 120px;
+    border-radius: 12px;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: 1px solid transparent;
+}
+
+/* Frosted glass hover effect */
+.trip-card:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--glass-border);
+    backdrop-filter: blur(5px);
+}
+
+.trip-thumb {
+    width: 180px;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    border-radius: 10px;
+    margin-right: 1.5rem;
+}
+
+.trip-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.trip-content h4 {
+    font-size: 1.2rem;
+    margin-bottom: 0.8rem;
+    color: var(--text-primary);
+}
+
+.trip-meta {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+/* 3 Dots Menu */
+.menu-dots {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    right: 1rem;
+    color: var(--text-secondary);
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 4px;
+}
+
+.menu-dots:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+.menu-dropdown {
+    position: absolute;
+    top: 50%;
+    right: 3.5rem;
+    transform: translateY(-50%);
+    background: var(--bg-secondary);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    z-index: 100;
+    display: none;
+    flex-direction: row;
+    /* Horizontal layout */
+}
+
+.menu-dropdown.active {
+    display: flex;
+}
+
+.menu-dropdown button {
+    text-align: center;
+    padding: 0.8rem 1.2rem;
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    cursor: pointer;
+    border-right: 1px solid var(--glass-border);
+    /* Vertical separators */
+    white-space: nowrap;
+    /* Prevent horizontal wrapping */
+}
+
+.menu-dropdown button:last-child {
+    border-right: none;
+}
+
+.menu-dropdown button:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.menu-dropdown button.danger {
+    color: #f43f5e;
+}
+
+/* Image Search Grid Thumbnails */
+.image-thumb-option {
+    height: 80px;
+    background-size: cover;
+    background-position: center;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: transform 0.2s, border-color 0.2s;
+}
+
+.image-thumb-option:hover {
+    transform: scale(1.05);
+    z-index: 2;
+}
+
+.image-thumb-option.selected {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 10px rgba(249, 115, 22, 0.5);
+    transform: scale(1.05);
+    z-index: 2;
+}
+
+/* Location Search AutoComplete */
+.location-search-input {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    color: var(--text-primary);
+    font-size: 1rem;
+    transition: all 0.3s;
+}
+
+.location-search-input:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2);
+}
+
+.location-autocomplete-dropdown {
+    position: absolute;
+    top: calc(100% + 5px);
+    left: 0;
+    width: 100%;
+    background: var(--bg-secondary);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.8);
+    z-index: 50;
+    max-height: 250px;
+    overflow-y: auto;
+    display: none;
+    flex-direction: column;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.location-autocomplete-dropdown.active {
+    display: flex;
+}
+
+.location-autocomplete-dropdown li {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--glass-border);
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.location-autocomplete-dropdown li:last-child {
+    border-bottom: none;
+}
+
+.location-autocomplete-dropdown li:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+/* Rich Stop Cards & Timeline styling */
+.rich-stop-card:hover {
+    background: var(--glass-bg) !important;
+    border-color: var(--glass-border) !important;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+}
