@@ -1,0 +1,42 @@
+{
+    "user": {
+        "name": "Test Traveler"
+    },
+    "currentView": "dashboard",
+    "activeTripId": "trip-1",
+    "trips": [
+        {
+            "id": "trip-1",
+            "title": "日本东京之旅 \ud83c\udf38",
+            "startDate": "2026-03-10",
+            "endDate": "2026-03-12",
+            "thumb": "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+            "activeDayId": "day-1",
+            "days": [
+                {
+                    "id": "day-1",
+                    "title": "第 1 天",
+                    "date": "2026年3月10日",
+                    "stops": [
+                        {
+                            "id": "s1",
+                            "time": "10:00",
+                            "period": "AM",
+                            "location": "东京成田机场",
+                            "note": "接机服务已安排",
+                            "price": "0"
+                        },
+                        {
+                            "id": "s2",
+                            "time": "02:00",
+                            "period": "PM",
+                            "location": "酒店入住 (新宿)",
+                            "note": "Park Hyatt Tokyo",
+                            "price": "250"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

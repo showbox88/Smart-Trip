@@ -3,27 +3,7 @@ let state = {
     user: null, // null means not logged in
     currentView: 'login', // 'login' | 'dashboard' | 'trip'
     activeTripId: null,
-    trips: [
-        {
-            id: 'trip-1',
-            title: "日本东京之旅 🌸",
-            startDate: "2026-03-10",
-            endDate: "2026-03-12",
-            thumb: "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-            activeDayId: 'day-1',
-            days: [
-                {
-                    id: 'day-1',
-                    title: '第 1 天',
-                    date: '2026年3月10日',
-                    stops: [
-                        { id: 's1', time: '10:00', period: 'AM', location: '东京成田机场', note: '接机服务已安排', price: '0' },
-                        { id: 's2', time: '02:00', period: 'PM', location: '酒店入住 (新宿)', note: 'Park Hyatt Tokyo', price: '250' }
-                    ]
-                }
-            ]
-        }
-    ]
+    trips: []
 };
 
 // Modal Edit State
@@ -32,8 +12,38 @@ let editingDayId = null;
 
 // --- Entry Point ---
 document.addEventListener('DOMContentLoaded', () => {
-    renderApp();
+    loadData().then(() => {
+        renderApp();
+    });
 });
+
+async function loadData() {
+    try {
+        const response = await fetch('/api/data');
+        if (response.ok) {
+            const data = await response.json();
+            if (data.trips && data.trips.length > 0) {
+                state = data; // replace default state with DB state
+            }
+        }
+    } catch (e) {
+        console.error("Failed to load DB from server. Running with empty defaults.", e);
+    }
+}
+
+async function saveData() {
+    try {
+        await fetch('/api/save', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(state)
+        });
+    } catch (e) {
+        console.error("Failed to save state to server.", e);
+    }
+}
 
 // --- Core Rendering Engine ---
 function renderApp() {
@@ -772,6 +782,7 @@ function selectMockTime(time, period) {
             stop.time = time;
             stop.period = period;
         }
+        saveData();
         renderApp();
         isDirectEdit = false;
     } else {
@@ -845,6 +856,7 @@ function saveMockExpense() {
     }
 
     if (isDirectEdit) {
+        saveData();
         renderApp();
         isDirectEdit = false;
     }
@@ -917,6 +929,7 @@ function saveStop() {
         return parseTime(a.time, a.period) - parseTime(b.time, b.period);
     });
 
+    saveData();
     closeModal();
     renderApp();
 }
@@ -926,6 +939,7 @@ function deleteStop() {
         const trip = state.trips.find(t => t.id === state.activeTripId);
         const day = trip.days.find(d => d.id === editingDayId);
         day.stops = day.stops.filter(s => s.id !== editingStopId);
+        saveData();
         closeModal();
         renderApp();
     }
@@ -1030,6 +1044,7 @@ function autoAddStop(dayId, locationName, mockDescType = '') {
         return parseTime(a.time, a.period) - parseTime(b.time, b.period);
     });
 
+    saveData();
     renderApp();
 }
 
