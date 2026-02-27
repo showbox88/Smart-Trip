@@ -3,226 +3,14 @@
         "name": "Test Traveler"
     },
     "currentView": "trip",
-    "activeTripId": "trip-1",
+    "activeTripId": "trip-1772227951554",
     "trips": [
         {
-            "id": "trip-1",
-            "title": "日本东京之旅 🌸",
-            "startDate": "2026-03-10",
-            "endDate": "2026-03-12",
-            "thumb": "https://loremflickr.com/600/400/dog?lock=309&t=1772224141578",
-            "activeDayId": "day-1772143684042",
-            "days": [
-                {
-                    "id": "day-1",
-                    "title": "第 1 天",
-                    "date": "2026年3月10日",
-                    "stops": [
-                        {
-                            "id": "l1772212022572",
-                            "type": "list",
-                            "title": "",
-                            "items": []
-                        },
-                        {
-                            "id": "l1772212024398",
-                            "type": "list",
-                            "title": "",
-                            "items": [
-                                {
-                                    "text": "jjjj",
-                                    "checked": false
-                                },
-                                {
-                                    "text": "jjjj",
-                                    "checked": false
-                                },
-                                {
-                                    "text": "髁",
-                                    "checked": false
-                                }
-                            ]
-                        },
-                        {
-                            "id": "n1772212025504",
-                            "type": "note",
-                            "content": "",
-                            "checked": false
-                        },
-                        {
-                            "id": "n1772212027226",
-                            "type": "note",
-                            "content": "",
-                            "checked": false
-                        },
-                        {
-                            "id": "s2",
-                            "time": "08:30",
-                            "period": "AM",
-                            "location": "酒店入住 (新宿)",
-                            "note": "Park Hyatt Tokyo",
-                            "price": "400"
-                        },
-                        {
-                            "id": "s1",
-                            "time": "09:30",
-                            "period": "AM",
-                            "location": "东京成田机场",
-                            "note": "接机服务已安排",
-                            "price": "0"
-                        },
-                        {
-                            "id": "s1772222732583",
-                            "location": "Massapequa",
-                            "desc": "",
-                            "address": "Massapequa, NY, USA",
-                            "phone": "",
-                            "time": "11:30",
-                            "period": "AM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 40.6806563,
-                            "lng": -73.4742914,
-                            "photo": "https://maps.googleapis.com/maps/api/place/js/PhotoService.GetPhoto?1sATCDNfV6kg6wm8dwcPIX5u6Xx-WFz3M4TmvxUYIQYurqw4pKKnwcHZuQDy_sSpaW9STJjCOy1l3Id2s8j-x1zFgfO_pVDT1f2YuzZGLt8zx6fYQGLf3oV9q1T4nrb7XiebJLpEWxVUD25-lEyZpLJl8iKSKeirtOTrLPGNPcHB4pMSplIlI68l53pOncYIpxkgxmZzMImnLfu4IwPm_KoF9V7nVzX0HSii2-39LmFDPHCuByOdgdVT-oxd3HpdogNydh5ip-QKf5rXLrfAEpoMZb07HrZJsPIf5Bb_QbI94CjeTEQf6KBgp7JrO3XB7KTw-lO3NpK-IYTdppj4uK2m7SCDwp85jpZI8kKAxkyIuimHr2q_lq9oqnVYJ6FE3XuhwyJKFDTB4XNPdgJWxfvapB2_UNh5D-OzOaai-fBXfvThDZ3Q&3u400&5m1&2e1&callback=none&r_url=http%3A%2F%2Flocalhost%3A8000%2F&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k&token=41365"
-                        },
-                        {
-                            "id": "s1772224162910",
-                            "location": "Castro Urdiales",
-                            "desc": "",
-                            "address": "Castro Urdiales, Cantabria, Spain",
-                            "phone": "",
-                            "time": "01:30",
-                            "period": "PM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 43.3688221,
-                            "lng": -3.2156354,
-                            "photo": "https://maps.googleapis.com/maps/api/place/js/PhotoService.GetPhoto?1sATCDNfWV3BFfEq_OUc6fau_V4zbLUZoB9dZ0v8i3Lnf43R7DiutgD3ByH9ai5PWuR5NPLie9Uohn7mMb6S2iOef9CJF8DqSG77fkdt5LwfxqIm0H27nY31lub3-cIX9Pnlym9XzOfZfPLBoH5twY0bUKZk9xKGSDpQp22o2hEIMYZVPeVw6NFyWniXQf3kmID5oFyQ2G9VgXXKLOOb4JcHxvNKE1SsSekksysL1Y3_7BHIaxq58eFHh0xo7TtYuYLv_SQsGH1sy0LGQr7Ic30m20aVJAgpEXysAsktbqpduSadixqSgRLdn90tblYx2NAo_hoSMuDNnX0RH_0el3zGEWBo1WU1Aflp2W4idZDhK4hug0i4eSDlKOLNQRZP_UZljZUHjAF40SL1vD_krk5kISKM8eveX6Jd9xjZj7FCPC50SuLA&3u400&5m1&2e1&callback=none&r_url=http%3A%2F%2Flocalhost%3A8000%2F&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k&token=91351"
-                        }
-                    ]
-                },
-                {
-                    "id": "day-1772143683042",
-                    "title": "第 2 天",
-                    "date": "2026年3月10日",
-                    "stops": [
-                        {
-                            "id": "s1772220112572",
-                            "location": "Manhattan",
-                            "desc": "",
-                            "address": "Manhattan, New York, NY, USA",
-                            "phone": "",
-                            "time": "09:00",
-                            "period": "AM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 40.7685167,
-                            "lng": -73.98219379999999,
-                            "photo": "https://maps.googleapis.com/maps/api/place/js/PhotoService.GetPhoto?1sATCDNfXK3z28kXCJc1kk-LiQ9yCnT0c7Rnb5eFn5M-M7jjhx9oEdhg5RFqknRgCs9j-RuIjqvXbhRUT9HFkVJ_QNjTRgEHXV8KWWb9XMWJONZZi2wfd87IRidgDLHl68AmPGOf2uPr0CRONJ4I2_kgiaU_94JR0xYHl_AOt9kbxMLfgmbBaguMoWKinvCyf3rVA04zklxqa8pVYYNFN0qumcLpgM0SSMAJsxIB836NpJPN7q3JEsk5C44d03YaAjEQzTJg7qJUqesCKLGm_sUrq2-RJMNEOuiR6zTJfMEI3cWKgf6n7vMjgWdYIWf6eG1w5swGgbsHMK5DHBLlpdjsl-tOBc4sXgciKSaszC0_x3QjkfzAICsad7QyxKIr1iwEuptSSIY2-UtGjZQV0WZDLvP31Be0GuP9WZsRZyWK-1n87wK0dQ&3u400&5m1&2e1&callback=none&r_url=http%3A%2F%2Flocalhost%3A8000%2F&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k&token=117300"
-                        },
-                        {
-                            "id": "s1772223969107",
-                            "location": "Barcelona",
-                            "desc": "",
-                            "address": "Barcelona, Spain",
-                            "phone": "",
-                            "time": "11:00",
-                            "period": "AM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 41.3874374,
-                            "lng": 2.1686496,
-                            "photo": "https://maps.googleapis.com/maps/api/place/js/PhotoService.GetPhoto?1sATCDNfXg3cnxH4agXMNq8BHOq_R1FP1v57x0SLLIidJiVuR7VLdYjo3UKKOUoasTaCx9_xjqAWnR_8IL5uzsZbo088GUIyi-UVVspAMlKIJhGbfnZdBtf58iWeWSORh-slxSJiBzM8Wvo7T61bMpLDIBBWmaXjr9n5RcF3qfpsx4d9mSKCUQiti4LH30Q6XfxL8s3zUF0W5kr4C6uNXoUMJH3wHErvZ8HN31Z4H0n9h-OhsQ5xJLdQBjsOMVFVSPvejrgujBNUeA10Zj9zi2WLCeTBwgaWRFvTJ_FBpBOccyRSUYE2AgXesSbhFm-ZRhXRC7bKnHzYTGUjdjkeR0cf5fpVQ9gk7PnWJLhu0AnLshbKhn2nqxXT8RAgpqxrsmqtF5MFm7XLY1UZTQEETmgE-BD34TIrcwjacv9DyKpPj2tw1zXQ&3u400&5m1&2e1&callback=none&r_url=http%3A%2F%2Flocalhost%3A8000%2F&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k&token=127126"
-                        }
-                    ]
-                },
-                {
-                    "id": "day-1772143684042",
-                    "title": "第 3 天",
-                    "date": "2026年3月11日",
-                    "stops": [
-                        {
-                            "id": "s1772223495227",
-                            "location": "La Grande Boucherie",
-                            "desc": "Polished French restaurant in an expansive art nouveau-style space with an elegant, heated atrium.",
-                            "address": "145 W 53rd St, New York, NY 10019, USA",
-                            "phone": "(212) 510-7714",
-                            "time": "09:00",
-                            "period": "AM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 40.7626274,
-                            "lng": -73.98084109999999,
-                            "photo": "https://maps.googleapis.com/maps/api/place/js/PhotoService.GetPhoto?1sATCDNfWz4s9cynVK-O8QmrVR1uIoSQiQLGphjhXdBP__z-WEqjhrD6vnViil1cMAt7FBErpkejX-bazM6esQrIzyxLUTFXhnpUi91bMWMa6LTIKJL8sCFftXvsitfyOHwjorRa8gVHYRw69d7gOwDeWCqwqmSmnSqxT1hpoMGYmKfs2aeumDgZlkrewIhER6ypjn3yMXoTxkCr79VRZuVhIHJl_IDKdVBWaXJqEdoC_lrD0drsDsOXOUNt5MVDsIdISLv7_xL6Ydsh18AYZC-LpXxPwawDpMAYd0fErgwr0FXhiVgg&3u400&5m1&2e1&callback=none&r_url=http%3A%2F%2Flocalhost%3A8000%2F&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k&token=50621",
-                            "rating": 4.6
-                        },
-                        {
-                            "id": "s1772223541000",
-                            "location": "ICHIRAN Ramen NY Times Square",
-                            "desc": "Informal ramen restaurant with a specialty for tonkotsu ramen in a pork bone broth.",
-                            "address": "152 W 49th St, New York, NY 10020, USA",
-                            "phone": "(646) 964-4294",
-                            "time": "11:00",
-                            "period": "AM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 40.76005749999999,
-                            "lng": -73.9833246,
-                            "photo": "https://maps.googleapis.com/maps/api/place/js/PhotoService.GetPhoto?1sATCDNfVM5hgDp95eX7jaV3__iOyDldKnktlUYlfgKVcezWEmokZ8WckiOtrY_-nOoRmKvMHUjMFdvQvQ7qV_Zta3cW4AGgUzHu2yXGmr1oX2_n5QjBXdFcgl53aCCUqSJytbVmgge4uPWykBY1-02PVT7ePCfAZHL4ZFVyMGyExJZqy3PvTrmUvug8xkRXCJ1J5Zkj7NANA5yOldn4ic33qfy8sDlpGbN7XCB-VE1zRmGl-UWhBvcwcO2PqDDrRf92ybniZ3PHlQlxAHjst_6m9-8ARVBeL7yF65hBo_OY84RlY9NQ&3u400&5m1&2e1&callback=none&r_url=http%3A%2F%2Flocalhost%3A8000%2F&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k&token=23364",
-                            "rating": 4.6
-                        },
-                        {
-                            "id": "s1772224491663",
-                            "location": "ICHIRAN Ramen NY Times Square",
-                            "desc": "Informal ramen restaurant with a specialty for tonkotsu ramen in a pork bone broth.",
-                            "address": "152 W 49th St, New York, NY 10020, USA",
-                            "phone": "(646) 964-4294",
-                            "time": "01:00",
-                            "period": "PM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 40.76005749999999,
-                            "lng": -73.9833246,
-                            "photo": "https://maps.googleapis.com/maps/api/place/js/PhotoService.GetPhoto?1sATCDNfXVjQ_bPpKh_oTBnPiNmjJZ-JUx6Ali-J-9zZzbfEn-TEK3hRLq1tJ2XyekMDxiZtQWnQK9rc58re4kPwQOYVg_432c9vkU22sacEqapyy7BZUacRBvbAymJSTHa9w8SdtcPz3rtuqtVWPEAfNxwbTsJXGy-DmqEJVahQ5A3yX2rtW_cGCWE-8Hai4Oey6tP1_3CQsRgUJCjZI_MQ0qIMWcgtBDn4Rl05eZ5Q2EzhYUWqWWCxiJZ2Nm1F0sye6iAvl_CTTeeXblVaKOg_SjLeGFoilvzk2Q2TIn4c9Jhlv3_g&3u400&5m1&2e1&callback=none&r_url=http%3A%2F%2Flocalhost%3A8000%2F&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k&token=44393",
-                            "rating": 4.6,
-                            "category": "餐饮",
-                            "categoryIcon": "🍴"
-                        },
-                        {
-                            "id": "s1772224500225",
-                            "location": "John F. Kennedy International Airport",
-                            "desc": "New York City hub offering flights from 80+ airlines, plus a variety of shops & eateries.",
-                            "address": "Queens, NY 11430, USA",
-                            "phone": "(718) 244-4444",
-                            "time": "03:00",
-                            "period": "PM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 40.6446124,
-                            "lng": -73.7797278,
-                            "photo": "https://maps.googleapis.com/maps/api/place/js/PhotoService.GetPhoto?1sATCDNfV__5w28xdL2wwdKh-v57ufTDOQGVKbz-UoiXLuSwG1ADOeuSEKFfeeILkhd57JXN1gXOibGVSj8jjweqlhLuVXKkPmEbKMbnY1tyo4AM2-gLjUN5ciFw9Vij3ATLS4gjPWQKx5b3rfnVG6sSJVPckycxHdl90uakPx361JZ2i70LKd0gttguZWc0Y2Znq13vdgqv31XJfM-8mzsNhxBJ0LQN41wd7ucRgqvQC-OYjIzOeQskAFuj9CAD1ks_FpufS3K9pOGMAt-Sp5PN53Yp35TDC2jNDbzNjC_h2fgEXk66gUMl-oHMJ-6yAH6ibQRzODrMr_8330GWypE08oO6Mgo10j4tXkvv3o0001EjFK77TjtkvxOJpgmB_5V9QLqxzP6bS9DsriaY5DnCgfYO5zFn5NwISpvJjI9JvZvwAc4Aw6oMyAUR5bpZYp4KQ7&3u400&5m1&2e1&callback=none&r_url=http%3A%2F%2Flocalhost%3A8000%2F&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k&token=38781",
-                            "rating": 3.8,
-                            "category": "机场",
-                            "categoryIcon": "✈️"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "id": "trip-1772219464735",
+            "id": "trip-1772227951554",
             "title": "新的神秘冒险",
             "startDate": "2026-05-01",
             "endDate": "2026-05-05",
-            "thumb": "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+            "thumb": "https://loremflickr.com/600/400/travel?lock=301&t=1772227958625",
             "activeDayId": "day-1",
             "days": [
                 {
@@ -231,61 +19,70 @@
                     "date": "2026年4月30日",
                     "stops": [
                         {
-                            "id": "s1772219477290",
-                            "location": "Barcelona",
-                            "desc": "",
-                            "address": "Barcelona, Spain",
-                            "phone": "",
-                            "time": "09:00",
-                            "period": "AM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 41.3874374,
-                            "lng": 2.1686496,
-                            "photo": "https://maps.googleapis.com/maps/api/place/js/PhotoService.GetPhoto?1sATCDNfVzNmH2nbkjF79x8GpnKkVei3il5SWFK2oNRniBwl7kfbwTBvyWRKdCvSNEVKeRkvqQoEBsSQIrGWY2jQ8inMVO-59KopP8RN6xgkZr15DkcyMYB2bCwv7SPKId_kpEtZlJrGb7XjbzWmKim4YTgbZFwpxnJ_cyR8VUPGHp77hXhZLNuSrOBE4nUwNC_6GL8J2XoVQwWdKIXZDsFOVchoP9Rz4KjdufG_gdPmlOQCMDDfZtqWvw84enmNr9477haYx9TOglSEttHmqx1MbfBmNVF1vp3Tv1_lRXDhhFGtxQimMJaH0WLpdGxStAkNKcrKWHiS0xDyOhNVOMFvt21ZKaW-EhSJLAKAbX0TU0wfwZDNBDJoiJgUcZgHc2ysKyi3iucpEmNR160o1XBl69X5jHlX9gtKOgNmfhpQNhv8Kytg&3u400&5m1&2e1&callback=none&r_url=http%3A%2F%2Flocalhost%3A8000%2F&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k&token=81670"
-                        },
-                        {
-                            "id": "s1772219504392",
-                            "location": "Madrid",
-                            "desc": "",
-                            "address": "Madrid, Spain",
-                            "phone": "",
-                            "time": "11:00",
-                            "period": "AM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 40.41672790000001,
-                            "lng": -3.7032905,
-                            "photo": "https://maps.googleapis.com/maps/api/place/js/PhotoService.GetPhoto?1sATCDNfVhn3Nzv_GLT-rmNa6IlzcileJ_8LdEa8TFB3YBFpykr3Vr_Url5dyrQ_CfrRYQ2o_yDDMwdgpbs-MA3MzppyZeVvlObKA45gt8akLhRLseqrZymO6Tx2zjHxYj4gb1EdwS4tA4U-Pp1Y2XK8F_Cu53C-b2uQvOttXTTgwmPgkbL8qkDoFnPW4-xe9jLbbmbtvqYVdN83CUr5yFhEG8CKVWMM9NxVfSKcX87-_R1XLCGIdTWJ68ksFIcU9Ychyw3V5aK8eR55Z-trcN1KxjGV72bbzGFU21tk5e-7M_7OAl5KTOedWajlpgYCXXphew6qD4VzpVdJrLo51gCeiREG4dtuxdrV8B7Ar7VM5av74TItu94ZzfgUBX0VuPStlT1DsZOj6NJMb7M77zYrHZmdX5gZ1_-kwuvpRYIxu_oMMBwQ&3u400&5m1&2e1&callback=none&r_url=http%3A%2F%2Flocalhost%3A8000%2F&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k&token=54718"
-                        },
-                        {
-                            "id": "s1772219536899",
-                            "location": "Castro Urdiales",
-                            "desc": "",
-                            "address": "Castro Urdiales, Cantabria, Spain",
-                            "phone": "",
-                            "time": "01:00",
-                            "period": "PM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 43.3688221,
-                            "lng": -3.2156354,
-                            "photo": "https://maps.googleapis.com/maps/api/place/js/PhotoService.GetPhoto?1sATCDNfUTMKQZEuiFm5P2AuWkqh4rZRfHlv7B10y8cbWGDktZtf96LIxUiobWnJXsOq2ntd1r9GF2QLhyYZgS9WUAvT2m2k5hlg_5D0DDYqMAxC6q9mKx__mqJ_TvZq-9XWZ1HN-jgr-ILK2T7WYPjmP7gSpQj8s0cwhPocZRlfz4epbFn69t85k4dTxeaGOC1yFv0SBsD6UyFh2eTGrFphtHH6U6ipb8k7Oo3x2QMCx7K7gobVbDmgotv1C-iLd0zg5JNwluGHrCj3gyBM7qrTTcXDvoVo4Bygh41NIBW-PAh-CGkNpX7WSfxRXjRFbOEIUTl-DgV3yPBZKN10iOWNeKg01-4GbSPZ0UpoWHKA02b9_ZVEz-HB1vN8ei2CDWX87dcPggyfBWBTCrtgW3wds01-tnkTcK271kUgtDhnRoS_wS2Q&3u400&5m1&2e1&callback=none&r_url=http%3A%2F%2Flocalhost%3A8000%2F&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k&token=19152"
-                        },
-                        {
-                            "id": "n1772219573451",
+                            "id": "n1772228138696",
                             "type": "note",
                             "content": "",
                             "checked": false
                         },
                         {
-                            "id": "l1772219575861",
+                            "id": "s1772227973617",
+                            "location": "Casa Catracha",
+                            "desc": "",
+                            "address": "505 Conklin St, Farmingdale, NY 11735, USA",
+                            "phone": "(516) 249-3600",
+                            "time": "09:00",
+                            "period": "AM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 40.7335825,
+                            "lng": -73.442435,
+                            "photo": "https://maps.googleapis.com/maps/api/place/js/PhotoService.GetPhoto?1sATCDNfWDnyaLvaVMOhwHVynG838uQHsZ5n0k8BvDguq2CCO_kJxw8tre_ZXR8ZFsY8RjQqkXCFIBeq_FuLmaflIjdwWXZ7f4JBw8l56AaDxabjSrgtooQLaUj6UbV0WxU9a0G77dwafd8DI0sw39aIlxe6RjGi6JvFq6wa0QUe5O4IL9GShAdaAUdkHxe6TNTRanin_5_Ca9FcRgIabRBA2rxDzC-v8OnRja-yoUOplvZ9Z9kWIjd3l3xUQu1aOn0tIZ2ZMi7PXxcdnERhI1rPjUav4ZkUjGB-msBRISvoPjilUyRKpu6Ad0yIKQFasKkwKX1JP_vX9u2fztROoacpgaJCBslHvJG6UrS1qh3s1eSERkxcd3EPUCrz7dWcthUkm2BsotkpWOLmk7srIbjYdSb6SGinyFVqcg_2JaQIQqnu8&3u400&5m1&2e1&callback=none&r_url=http%3A%2F%2Flocalhost%3A8000%2F&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k&token=67777",
+                            "rating": 3.9,
+                            "category": "餐饮",
+                            "categoryIcon": "🍴"
+                        },
+                        {
+                            "id": "l1772228141194",
                             "type": "list",
                             "title": "",
                             "items": []
+                        },
+                        {
+                            "id": "s1772227982714",
+                            "location": "John F. Kennedy International Airport",
+                            "desc": "New York City hub offering flights from 80+ airlines, plus a variety of shops & eateries.",
+                            "address": "Queens, NY 11430, USA",
+                            "phone": "(718) 244-4444",
+                            "time": "11:00",
+                            "period": "AM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 40.6446124,
+                            "lng": -73.7797278,
+                            "photo": "https://maps.googleapis.com/maps/api/place/js/PhotoService.GetPhoto?1sATCDNfVRm5QY1CdSu5jfdsePjZkbqHdLUQ2waJ5hMKGe_PS2vLsHxBAubArDdqQ81n9-VFRGPHt17S4NeflxsWjCNEWtOrm47k-cjeqD4UdKS26VK-xq1gHippYbC-W7J8M7gzbKS3v7K6_5i9VNmomOBZ4ILZZFS_mNqj8UDdIpuuSODSQ0ayF9H1pHkZfmvr-168hhzJH9qqc2tq8Q4F_ZtDm1AgEa_XXS7c1zvGjjTEc3MPe8amYIfARlkPNiOQKaEPoMrteHeF6hQsOM_a5FD9wq2HrScUwSlg_j9GWwJjXEBc3l-Ay0dFRHYiYmt38wdGdhi7GSln-NsBy1CcoWaG3N0UDMMKaMJnfn0AD84DzTmG0R-H0a_-SIMW30-l6SRyHegnFqM-fJnOw55nFPpA1V4jC6zHxlura3HX4lB8hDUaH3_YtWmknlTlFgiPSz&3u400&5m1&2e1&callback=none&r_url=http%3A%2F%2Flocalhost%3A8000%2F&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k&token=387",
+                            "rating": 3.8,
+                            "category": "机场",
+                            "categoryIcon": "✈️"
+                        },
+                        {
+                            "id": "s1772228302546",
+                            "location": "LaGuardia Airport",
+                            "desc": "Waterfront circa-1939 airport in Queens offers regional flights in the U.S., Canada & the Caribbean.",
+                            "address": "East Elmhurst, NY 11371, USA",
+                            "phone": "(718) 533-3400",
+                            "time": "11:00",
+                            "period": "AM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 40.7766422,
+                            "lng": -73.8742467,
+                            "photo": "https://maps.googleapis.com/maps/api/place/js/PhotoService.GetPhoto?1sATCDNfUk8S9K93V8490KxzZz9zJdrFmn-Na0t5lr2fG_WTeswymV1q1viCMRIqawTxPpzgaULC-IRlWLb8OoPr3F5jRpjEZTcw2_YbI7wAkOphesFNx8zPGiKiJIYRY3maTQb4v7Yb4LjjL3PMRbRBb6aUi91uHK5Umi0cK7PIn9Xv_qjB1GLoUTglG80AT36piCRMbNv1Ub0s4R2mbiVSkKyneDglx7KJFhrPWCc2yGPZ4KZeBEZDbLdv-gOTV8UDm2qPVAt7w3uzHFAy0oNdY5fkg1_V5g4FKTGCWf0Nm6wMXjd52ImPLOFAaWh4I7QMd6fEJAJQOeRJmsVsi9QEuNtLFBmSKX9fSJFf4kNgnELvGTPeAuGV4N7I1vYwqngmN8f4vYmmK_nxhZKrH7U9JUftFQ4FKWz7DuzQ9elrhAyjlIYSp0f7ZWr02VV1RQXw&3u400&5m1&2e1&callback=none&r_url=http%3A%2F%2Flocalhost%3A8000%2F&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k&token=60128",
+                            "rating": 4.1,
+                            "category": "机场",
+                            "categoryIcon": "✈️"
                         }
                     ]
                 }
@@ -295,7 +92,8 @@
     "collapsedDays": {
         "day-1": false,
         "day-1772143722190": true,
-        "day-1772143683042": false,
-        "day-1772143684042": false
+        "day-1772143683042": true,
+        "day-1772143684042": true,
+        "day-1772226201379": true
     }
 }
