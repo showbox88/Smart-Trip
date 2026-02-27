@@ -721,8 +721,10 @@ nav a:hover {
     border-bottom: none;
 }
 
-.location-autocomplete-dropdown li:hover {
-    background: rgba(255, 255, 255, 0.08);
+.location-autocomplete-dropdown li:hover,
+.location-autocomplete-dropdown li.selected {
+    background: rgba(255, 255, 255, 0.12);
+    border-left: 3px solid var(--accent-primary);
 }
 
 /* Rich Stop Cards & Timeline styling */
@@ -730,4 +732,26 @@ nav a:hover {
     background: var(--glass-bg) !important;
     border-color: var(--glass-border) !important;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+}
+
+/* Image Thumbnail Selector in Modal */
+.image-thumb-option {
+    height: 70px;
+    border-radius: 8px;
+    background-size: cover;
+    background-position: center;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.image-thumb-option:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+.image-thumb-option.selected {
+    border-color: var(--accent-primary);
+    transform: scale(1.05);
+    box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.3);
 }

@@ -10,10 +10,76 @@ let state = {
 let editingStopId = null;
 let editingDayId = null;
 
+// --- Category Icons Map ---
+const PLACE_CATEGORY_MAP = {
+    // Dining
+    'restaurant': { icon: '🍴', label: '餐饮' },
+    'cafe': { icon: '☕', label: '咖啡馆' },
+    'bar': { icon: '🍸', label: '酒吧' },
+    'bakery': { icon: '🥐', label: '面包房' },
+    'meal_takeaway': { icon: '🥡', label: '外卖' },
+    // Transportation
+    'airport': { icon: '✈️', label: '机场' },
+    'train_station': { icon: '🚆', label: '火车站' },
+    'transit_station': { icon: '🚉', label: '中转站' },
+    'bus_station': { icon: '🚌', label: '汽车站' },
+    'subway_station': { icon: '🚇', label: '地铁站' },
+    // Lodging
+    'lodging': { icon: '🏨', label: '住宿' },
+    'hotel': { icon: '🏨', label: '酒店' },
+    // Attractions
+    'museum': { icon: '🏛️', label: '博物馆' },
+    'art_gallery': { icon: '🎨', label: '美术馆' },
+    'tourist_attraction': { icon: '🏛️', label: '景点' },
+    'aquarium': { icon: '🐠', label: '水族馆' },
+    'zoo': { icon: '🦁', label: '动物园' },
+    'amusement_park': { icon: '🎡', label: '游乐园' },
+    'park': { icon: '🌳', label: '公园' },
+    // Shopping
+    'shopping_mall': { icon: '🛍️', label: '购物中心' },
+    'store': { icon: '🛍️', label: '商店' },
+    'supermarket': { icon: '🛒', label: '超市' },
+    // Services
+    'gas_station': { icon: '⛽', label: '加油站' },
+    'bank': { icon: '🏦', label: '银行' },
+    'hospital': { icon: '🏥', label: '医院' },
+    'pharmacy': { icon: '💊', label: '药店' },
+    'parking': { icon: '🅿️', label: '停车场' }
+};
+
+function getCategoryFromTypes(types) {
+    if (!types || !types.length) return { icon: '📍', label: '地点' };
+    for (const type of types) {
+        if (PLACE_CATEGORY_MAP[type]) return PLACE_CATEGORY_MAP[type];
+    }
+    return { icon: '📍', label: '地点' };
+}
+
+// --- Error Handling ---
+window.onerror = function (msg, url, line, col, error) {
+    const container = document.getElementById('app-container');
+    if (container) {
+        container.innerHTML = `
+            <div style="padding: 2rem; background: #450a0a; color: #fca5a5; border: 1px solid #ef4444; margin: 2rem; border-radius: 12px; font-family: monospace;">
+                <h3>⚠️ 系统运行错误 (Runtime Error)</h3>
+                <p>${msg}</p>
+                <p style="font-size: 0.8rem; opacity: 0.7;">Line: ${line}, Col: ${col}</p>
+                <button onclick="location.reload()" style="margin-top: 1rem; padding: 0.5rem 1rem; background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer;">刷新页面</button>
+                <button onclick="localStorage.clear(); location.reload();" style="margin-top: 1rem; margin-left:1rem; padding: 0.5rem 1rem; background: transparent; color: white; border: 1px solid white; border-radius: 4px; cursor: pointer;">清除并重置</button>
+            </div>
+        `;
+    }
+    return false;
+};
+
 // --- Entry Point ---
 document.addEventListener('DOMContentLoaded', () => {
     loadData().then(() => {
-        renderApp();
+        try {
+            renderApp();
+        } catch (e) {
+            console.error("Render crash:", e);
+        }
     });
 });
 
@@ -47,23 +113,45 @@ async function saveData() {
 
 // --- Core Rendering Engine ---
 function renderApp() {
-    const container = document.getElementById('app-container');
+    try {
+        const container = document.getElementById('app-container');
+        if (!container) return;
 
-    // Auto-routing based on state
-    if (!state.user && state.currentView !== 'login') {
-        state.currentView = 'login';
-    }
+        // Auto-routing based on state
+        if (!state.user && state.currentView !== 'login') {
+            state.currentView = 'login';
+        }
 
-    if (state.currentView === 'login') {
-        container.innerHTML = getLoginHTML();
-        updateNavLinks();
-    } else if (state.currentView === 'dashboard') {
-        container.innerHTML = getDashboardHTML();
-        updateNavLinks();
-    } else if (state.currentView === 'trip') {
-        const trip = state.trips.find(t => t.id === state.activeTripId);
-        container.innerHTML = getTripHTML(trip);
-        updateNavLinks();
+        if (state.currentView === 'login') {
+            container.innerHTML = getLoginHTML();
+            updateNavLinks();
+        } else if (state.currentView === 'dashboard') {
+            container.innerHTML = getDashboardHTML();
+            updateNavLinks();
+        } else if (state.currentView === 'trip') {
+            const trip = state.trips.find(t => t.id === state.activeTripId);
+            if (!trip) {
+                state.currentView = 'dashboard';
+                renderApp();
+                return;
+            }
+            container.innerHTML = getTripHTML(trip);
+            updateNavLinks();
+            setTimeout(() => {
+                if (window.googleMapsReady) {
+                    initRealMap();
+                }
+            }, 50);
+        }
+    } catch (err) {
+        console.error("Critical Render Error:", err);
+        document.getElementById('app-container').innerHTML = `
+            <div style="padding: 2rem; color: white;">
+                <h2>渲染出错 (Render Error)</h2>
+                <pre>${err.stack}</pre>
+                <button onclick="state.currentView='dashboard'; renderApp()">返回首页</button>
+            </div>
+        `;
     }
 }
 
@@ -191,7 +279,7 @@ function getDayHTML(day, dayIndex, activeDayId) {
             <div class="location-search-container" style="position: relative; margin-top: 1rem; display:flex; gap: 0.5rem;">
                 <div style="flex:1; position:relative;">
                     <span style="position:absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-secondary);">📍</span>
-                    <input type="text" class="location-search-input" style="padding-left: 2.8rem; background: var(--bg-secondary); border: none;" placeholder="添加地点..." oninput="handleSearchInput(event, '${day.id}')" onblur="setTimeout(() => closeSearchDropdown('${day.id}'), 200)">
+                    <input type="text" class="location-search-input" style="padding-left: 2.8rem; background: var(--bg-secondary); border: none;" placeholder="添加地点..." oninput="handleSearchInput(event, '${day.id}')" onkeydown="handleSearchKeyDown(event, '${day.id}')" autocomplete="off">
                     <ul class="location-autocomplete-dropdown" id="search-dropdown-${day.id}"></ul>
                 </div>
                 <button onclick="addTimelineNote('${day.id}')" style="width: 45px; height: 45px; border-radius: 50%; background: var(--bg-secondary); border:none; display:flex; align-items:center; justify-content:center; color: var(--text-primary); cursor:pointer;"><span style="transform:rotate(90deg);">📄</span></button>
@@ -274,12 +362,11 @@ function getTripHTML(trip) {
             </section>
             
             <section class="map-view">
-                <div class="map-placeholder" id="mock-map-container" style="position:relative; overflow:hidden; background-image:url('https://images.unsplash.com/photo-1524661135-423995f22d0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'); background-size:cover; background-position:center;">
-                    <div style="position:absolute; inset:0; background: rgba(0,0,0,0.4);"></div> <!-- Map Dark Overlay -->
-                    ${renderMockMapPins(trip)}
-                    <div class="glass-card" style="position:absolute; bottom: 2rem; right: 2rem; padding: 1rem; text-align: center; border-radius: 12px; background: rgba(30, 30, 30, 0.8);">
-                        <p style="margin-bottom: 0.5rem; font-weight:bold;">地图预览 (Mock)</p>
-                        <small style="color: var(--text-secondary)">当前已标记 ${totalStops} 个地点</small>
+                <div class="map-placeholder" id="mock-map-container" style="position:relative; overflow:hidden; background: #eaebd8;">
+                    <div id="real-map" style="width:100%; height:100%;"></div>
+                    <!-- Debug Overlay (Hidden by default) -->
+                    <div id="map-debug-status" style="position:absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.7); color: white; padding: 5px 10px; border-radius: 4px; font-size: 10px; pointer-events: none; z-index: 1000;">
+                        Map Status: Initializing...
                     </div>
                 </div>
             </section>
@@ -287,31 +374,103 @@ function getTripHTML(trip) {
     `;
 }
 
-function renderMockMapPins(trip) {
-    let pinsHtml = '';
-    let pinCount = 0;
+// --- Google Maps Integration ---
+window.initGoogleMaps = function () {
+    try {
+        window.googleMapsReady = true;
+        console.log("Google Maps API callback triggered (initGoogleMaps)");
+        if (state.currentView === 'trip') {
+            initRealMap();
+        }
+    } catch (e) {
+        console.error("initGoogleMaps failed:", e);
+    }
+};
 
-    // Use stable pseudo-random positions based on string length to mock coordinates
-    trip.days.forEach(day => {
-        day.stops.forEach((stop, i) => {
-            if (stop.type === 'note' || stop.type === 'list' || !stop.location) return;
-            pinCount++;
-            // Generate deterministic but seemingly random x/y positions (10% to 90%)
-            const hash = stop.location.length + i * 13;
-            const x = 10 + (hash % 80);
-            const y = 10 + ((hash * 7) % 80);
+// Fallback in case the script loaded before this function was defined
+if (typeof google !== 'undefined' && google.maps && !window.googleMapsReady) {
+    window.initGoogleMaps();
+}
 
-            pinsHtml += `
-            <div style="position:absolute; top:${y}%; left:${x}%; transform:translate(-50%, -100%); display:flex; flex-direction:column; align-items:center; cursor:pointer;" title="${stop.location}">
-                <div style="background:var(--accent-primary); color:white; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; font-weight:bold; margin-bottom: 2px; box-shadow: 0 2px 5px rgba(0,0,0,0.5);">${pinCount}</div>
-                <div style="width: 20px; height: 28px; background: #ea4335; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display:flex; align-items:center; justify-content:center; box-shadow: -2px 2px 4px rgba(0,0,0,0.4);">
-                    <div style="width: 8px; height: 8px; background: white; border-radius: 50%;"></div>
-                </div>
-            </div>`;
+window.googleMapInstance = null;
+window.googleMapMarkers = [];
+
+function initRealMap() {
+    console.log("initRealMap called. window.googleMapsReady:", window.googleMapsReady);
+    const debugEl = document.getElementById('map-debug-status');
+
+    try {
+        if (!window.googleMapsReady || typeof google === 'undefined') {
+            if (debugEl) debugEl.innerText = "Map Status: Google Maps API Not Loaded";
+            return;
+        }
+        const mapDiv = document.getElementById('real-map');
+        if (!mapDiv) {
+            console.error("real-map div not found");
+            return;
+        }
+        if (debugEl) debugEl.innerText = "Map Status: Initializing Google Map Instance...";
+
+        // Always recreate the map instance because the DOM is recreated by renderApp
+        window.googleMapInstance = new google.maps.Map(mapDiv, {
+            center: { lat: 35.6895, lng: 139.6917 },
+            zoom: 12,
+            mapId: 'DEMO_MAP_ID',
+            disableDefaultUI: true,
+            zoomControl: true
         });
-    });
 
-    return pinsHtml;
+        // clear markers
+        if (window.googleMapMarkers) {
+            window.googleMapMarkers.forEach(m => {
+                if (m && typeof m.setMap === 'function') m.setMap(null);
+            });
+        }
+        window.googleMapMarkers = [];
+
+        const trip = state.trips.find(t => t.id === state.activeTripId);
+        if (!trip) return;
+
+        const bounds = new google.maps.LatLngBounds();
+        let hasValidPins = false;
+        let pinCount = 0;
+
+        trip.days.forEach(day => {
+            if (!day.stops) return;
+            day.stops.forEach((stop) => {
+                if (stop.type !== 'location' || !stop.location) return;
+                pinCount++;
+                if (stop.lat !== undefined && stop.lng !== undefined) {
+                    const pos = { lat: Number(stop.lat), lng: Number(stop.lng) };
+                    if (isNaN(pos.lat) || isNaN(pos.lng)) return;
+
+                    const marker = new google.maps.Marker({
+                        position: pos,
+                        map: window.googleMapInstance,
+                        title: stop.location,
+                        label: { text: String(pinCount), color: 'white', fontSize: '10px' }
+                    });
+                    window.googleMapMarkers.push(marker);
+                    bounds.extend(pos);
+                    hasValidPins = true;
+                }
+            });
+        });
+
+        if (hasValidPins) {
+            window.googleMapInstance.fitBounds(bounds);
+            if (debugEl) debugEl.innerText = `Map Status: Ready (${pinCount} pins)`;
+            // Avoid zooming in too close if only 1 pin
+            if (window.googleMapMarkers.length === 1) {
+                setTimeout(() => { if (window.googleMapInstance) window.googleMapInstance.setZoom(15); }, 200);
+            }
+        } else {
+            if (debugEl) debugEl.innerText = "Map Status: Ready (No locations to show)";
+        }
+    } catch (e) {
+        console.error("initRealMap failed:", e);
+        if (debugEl) debugEl.innerText = "Map Status: ERROR - " + e.message;
+    }
 }
 
 // --- Action Handlers ---
@@ -329,6 +488,16 @@ function handleLogin() {
     state.user = { name: nameInput };
     state.currentView = 'dashboard';
     renderApp();
+}
+
+window.startPlanning = function () {
+    if (!state.user) {
+        state.user = { name: "旅行者" };
+    }
+    state.currentView = 'dashboard';
+    const newTrip = createNewTrip();
+    if (newTrip) openTrip(newTrip.id);
+    saveData();
 }
 
 function goDashboard() {
@@ -363,8 +532,11 @@ function toggleMenu(event, tripId) {
     menu.classList.toggle('active');
 }
 
-document.addEventListener('click', () => {
+document.addEventListener('click', (e) => {
     document.querySelectorAll('.menu-dropdown').forEach(d => d.classList.remove('active'));
+    if (!e.target.closest('.location-search-container')) {
+        document.querySelectorAll('.location-autocomplete-dropdown').forEach(d => d.classList.remove('active'));
+    }
 });
 
 function deleteTrip(event, tripId) {
@@ -401,7 +573,7 @@ function openEditTripModal(tripId) {
         <div class="form-group" style="margin-bottom: 0.5rem;">
             <label>封面图片搜索</label>
             <div style="display:flex; gap:0.5rem; margin-bottom:0.8rem;">
-                <input type="text" id="trip-edit-search" placeholder="输入关键词 (例如: Tokyo, Beach)" style="flex:1; background:var(--bg-primary); border:1px solid var(--glass-border); padding:0.6rem 0.8rem; border-radius:8px; color:var(--text-primary);">
+                <input type="text" id="trip-edit-search" placeholder="输入关键词 (例如: Tokyo, Beach)" style="flex:1; background:var(--bg-primary); border:1px solid var(--glass-border); padding:0.6rem 0.8rem; border-radius:8px; color:var(--text-primary);" onkeydown="if(event.key === 'Enter') searchImages()">
                 <button class="btn-primary" onclick="searchImages()" style="padding:0 1rem; font-size: 0.9rem;">搜索缩略图</button>
             </div>
             <input type="hidden" id="trip-edit-thumb" value="${trip.thumb}">
@@ -435,24 +607,43 @@ function openEditTripModal(tripId) {
     });
 
     // Auto-load some images based on the trip title
-    searchImages(trip.title.replace(/[^a-zA-Z]/g, '') || "travel");
+    const initialQuery = (trip.title || "travel").replace(/[^a-zA-Z\s]/g, '') || "travel";
+    searchImages(initialQuery);
 }
 
-function searchImages(query) {
-    const q = query || document.getElementById('trip-edit-search').value || 'travel';
-    const grid = document.getElementById('image-grid');
-    grid.innerHTML = '<p style="grid-column: span 3; color: var(--text-secondary); text-align:center; padding: 1rem 0;">搜索中 (Mock)...</p>';
+function searchImages(passedQuery) {
+    try {
+        const inputField = document.getElementById('trip-edit-search');
+        let q = (passedQuery || (inputField ? inputField.value.trim() : '') || 'travel').trim();
 
-    setTimeout(() => {
-        let html = '';
-        // Mock search using picsum seeds to generate 9 consistent random images for a keyword
-        for (let i = 1; i <= 9; i++) {
-            const seed = encodeURIComponent(q.trim()) + i;
-            const url = `https://picsum.photos/seed/${seed}/300/200`;
-            html += `<div class="image-thumb-option" onclick="selectImage(event, '${url}')" style="background-image:url('${url}')"></div>`;
+        if (inputField && passedQuery) {
+            inputField.value = q;
         }
-        grid.innerHTML = html;
-    }, 400);
+
+        const grid = document.getElementById('image-grid');
+        if (!grid) return;
+
+        grid.innerHTML = '<p style="grid-column: span 3; color: var(--text-secondary); text-align:center; padding: 1rem 0;">搜索高质图片中...</p>';
+
+        // Use comma-separated tags for better results in LoremFlickr (Unsplash source)
+        const tags = q.split(/\s+/).join(',');
+
+        let html = '';
+        const timestamp = Date.now();
+        for (let i = 1; i <= 9; i++) {
+            const url = `https://loremflickr.com/600/400/${encodeURIComponent(tags)}?lock=${i + 300}&t=${timestamp}`;
+            html += `<div class="image-thumb-option" onclick="selectImage(event, '${url}')" ondblclick="selectImage(event, '${url}'); saveTripMetadata()" style="background-image:url('${url}')"></div>`;
+        }
+
+        setTimeout(() => {
+            const freshGrid = document.getElementById('image-grid');
+            if (freshGrid) {
+                freshGrid.innerHTML = html;
+            }
+        }, 400);
+    } catch (e) {
+        console.error("SearchImages failed:", e);
+    }
 }
 
 function selectImage(event, url) {
@@ -483,7 +674,7 @@ function createNewTrip() {
     let d = new Date(startStr);
     let displayDate = !isNaN(d) ? `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日` : "2026年5月1日";
 
-    state.trips.push({
+    const newTrip = {
         id: newId,
         title: "新的神秘冒险",
         startDate: startStr,
@@ -493,8 +684,10 @@ function createNewTrip() {
         days: [
             { id: 'day-1', title: '第 1 天', date: displayDate, stops: [] }
         ]
-    });
+    };
+    state.trips.push(newTrip);
     renderApp();
+    return newTrip;
 }
 
 // Details View Actions
@@ -708,9 +901,10 @@ function getTimelineItemHTML(day, stop, index, locationIdx, showTransit) {
             </div>
         `;
     } else {
+        const categoryInfo = stop.categoryIcon ? { icon: stop.categoryIcon } : { icon: (locationIdx === 0 ? '✔' : locationIdx + 1) };
         circleHtml = `
-            <div style="position: absolute; left: -1.8rem; top: 1.2rem; width: 1.8rem; height: 1.8rem; border-radius: 50%; background: ${locationIdx === 0 ? 'var(--text-secondary)' : 'var(--accent-secondary)'}; color: #FFF; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.95rem; z-index: 2; border: 2px solid var(--bg-primary);">
-                ${locationIdx === 0 ? '✔' : locationIdx + 1}
+            <div style="position: absolute; left: -1.8rem; top: 1.2rem; width: 1.8rem; height: 1.8rem; border-radius: 50%; background: ${locationIdx === 0 ? 'var(--text-secondary)' : 'var(--accent-secondary)'}; color: #FFF; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1rem; z-index: 2; border: 2px solid var(--bg-primary);">
+                ${categoryInfo.icon}
             </div>
         `;
         contentHtml = `
@@ -718,7 +912,7 @@ function getTimelineItemHTML(day, stop, index, locationIdx, showTransit) {
                 <div style="flex:1;">
                     <h4 style="font-size: 1.15rem; margin-bottom: 0.5rem;">${stop.location}</h4>
                     ${stop.desc ? `<p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 0.5rem; line-height: 1.4;">来自网络：${stop.desc}</p>` : ''}
-                    ${stop.address ? `<p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.5rem; display:flex; align-items:center; gap:5px;"><span style="font-size:1rem;">📍</span>${stop.address}</p>` : ''}
+                    ${stop.address ? `<p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.5rem; display:flex; align-items:center; gap:5px;"><span style="font-size:1rem;">${stop.categoryIcon || '📍'}</span>${stop.address}</p>` : ''}
                     ${stop.phone ? `<p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.5rem; display:flex; align-items:center; gap:5px;"><span style="font-size:1rem;">📞</span>${stop.phone}</p>` : ''}
                     ${stop.note ? `<p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 1rem; line-height: 1.4;">${stop.note}</p>` : `<p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 1rem; opacity: 0.6;">在此添加备注、链接等</p>`}
                     
@@ -727,9 +921,8 @@ function getTimelineItemHTML(day, stop, index, locationIdx, showTransit) {
                         ${stop.price !== "0" && stop.price !== "" ? `<span onclick="openExpenseDirectly(event, '${day.id}', '${stop.id}')" style="background: rgba(167, 139, 250, 0.1); color: var(--accent-secondary); padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600; cursor:pointer;" title="编辑费用">$${stop.price}</span>` : ''}
                     </div>
                 </div>
-                
-                <!-- Thumb for Stop (Mocked) -->
-                <div style="width: 140px; height: 95px; border-radius: 8px; background-image: url('https://picsum.photos/seed/${stop.id}/300/200'); background-size: cover; background-position: center; flex-shrink: 0; box-shadow: 0 4px 10px rgba(0,0,0,0.3);"></div>
+                <!-- Thumb for Stop -->
+                <div style="width: 140px; height: 95px; border-radius: 8px; background-image: url('${stop.photo || 'https://picsum.photos/seed/' + stop.id + '/300/200'}'); background-size: cover; background-position: center; flex-shrink: 0; box-shadow: 0 4px 10px rgba(0,0,0,0.3);"></div>
             </div>
             ${showTransit ? `
                 <div style="padding: 0.5rem 0 0.5rem 0.5rem; font-size: 0.85rem; color: var(--text-secondary); display:flex; align-items:center; gap: 0.5rem; position:relative; z-index:2;">
@@ -1455,8 +1648,47 @@ function closeModal() {
     setTimeout(() => overlay.classList.add('hidden'), 300);
 }
 
-// --- Autocomplete Auto-Add Search ---
 let searchTimeout = null;
+window.placesAutocompleteService = null;
+window.placesDetailsService = null;
+let currentSearchFocusIdx = -1;
+let currentSearchPredictions = [];
+
+function handleSearchKeyDown(e, dayId) {
+    const dropdown = document.getElementById(`search-dropdown-${dayId}`);
+    if (!dropdown || !dropdown.classList.contains('active')) return;
+
+    const items = dropdown.querySelectorAll('li');
+    if (!items.length) return;
+
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        currentSearchFocusIdx++;
+        if (currentSearchFocusIdx >= items.length) currentSearchFocusIdx = 0;
+        updateSearchFocus(items);
+    } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        currentSearchFocusIdx--;
+        if (currentSearchFocusIdx < 0) currentSearchFocusIdx = items.length - 1;
+        updateSearchFocus(items);
+    } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (currentSearchFocusIdx >= 0 && currentSearchFocusIdx < currentSearchPredictions.length) {
+            handleDropdownClick(dayId, currentSearchPredictions[currentSearchFocusIdx].place_id);
+        }
+    }
+}
+
+function updateSearchFocus(items) {
+    items.forEach((item, idx) => {
+        if (idx === currentSearchFocusIdx) {
+            item.classList.add('selected');
+            item.scrollIntoView({ block: 'nearest' });
+        } else {
+            item.classList.remove('selected');
+        }
+    });
+}
 
 function handleSearchInput(event, dayId) {
     const query = event.target.value.trim();
@@ -1466,31 +1698,48 @@ function handleSearchInput(event, dayId) {
 
     if (!query) {
         dropdown.classList.remove('active');
+        currentSearchFocusIdx = -1;
+        currentSearchPredictions = [];
         return;
     }
 
+    if (!window.googleMapsReady || typeof google === 'undefined') {
+        // Fallback or just do nothing if API not loaded
+        return;
+    }
+
+    if (!window.placesAutocompleteService) {
+        window.placesAutocompleteService = new google.maps.places.AutocompleteService();
+    }
+
     searchTimeout = setTimeout(() => {
-        // Mock Google Maps autocomplete results
-        const mockResults = [
-            { name: query, type: '旅游景点', desc: '热门搜索推荐' },
-            { name: query + ' 附近酒店', type: '住宿', desc: '热门点评' },
-            { name: query + ' 中央火车站', type: '交通枢纽', desc: '市区核心交通' }
-        ];
+        window.placesAutocompleteService.getPlacePredictions({ input: query }, (predictions, status) => {
+            if (status !== google.maps.places.PlacesServiceStatus.OK || !predictions) {
+                // If it's zero results, or an API error like REQUEST_DENIED, show it to the user
+                let errorMsg = '未找到结果';
+                if (status === 'REQUEST_DENIED') errorMsg = 'Google Maps API 权限错误，请检查 API Key 和是否启用了 Places API。';
+                if (status === 'OVER_QUERY_LIMIT') errorMsg = 'Google Maps API 额度超限。';
+                dropdown.innerHTML = `<li style="color:var(--text-secondary); padding: 1rem; text-align:center;">${errorMsg} (${status})</li>`;
+                dropdown.classList.add('active');
+                return;
+            }
 
-        dropdown.innerHTML = mockResults.map(r => `
-            <li onmousedown="autoAddStop('${dayId}', '${r.name}', '${r.desc}')">
-                <div style="display:flex; flex-direction:column; gap:4px;">
-                    <span style="font-weight:600; color:var(--text-primary); font-size:1.1rem;">
-                        <span style="color:var(--text-secondary); margin-right:8px;">📍</span>${r.name}
-                    </span>
-                    <span style="font-size:0.85rem; color:var(--text-secondary); padding-left:26px;">
-                        ${r.desc} · ${r.type}
-                    </span>
-                </div>
-            </li>
-        `).join('');
-
-        dropdown.classList.add('active');
+            currentSearchPredictions = predictions;
+            currentSearchFocusIdx = -1;
+            dropdown.innerHTML = predictions.map((p, idx) => `
+                <li onmousedown="handleDropdownClick('${dayId}', '${p.place_id}')">
+                    <div style="display:flex; flex-direction:column; gap:4px;">
+                        <span style="font-weight:600; color:var(--text-primary); font-size:1.1rem;">
+                            <span style="color:var(--text-secondary); margin-right:8px;">📍</span>${p.structured_formatting.main_text}
+                        </span>
+                        <span style="font-size:0.85rem; color:var(--text-secondary); padding-left:26px;">
+                            ${p.structured_formatting.secondary_text || ''}
+                        </span>
+                    </div>
+                </li>
+            `).join('');
+            dropdown.classList.add('active');
+        });
     }, 250);
 }
 
@@ -1499,83 +1748,130 @@ function closeSearchDropdown(dayId) {
     if (dropdown) dropdown.classList.remove('active');
 }
 
-function autoAddStop(dayId, locationName, mockDescType = '') {
-    const trip = state.trips.find(t => t.id === state.activeTripId);
-    const day = trip.days.find(d => d.id === dayId);
+window.handleDropdownClick = function (dayId, placeId) {
+    const dropdown = document.getElementById(`search-dropdown-${dayId}`);
+    if (dropdown) dropdown.classList.remove('active');
 
-    // Auto calculate a realistic time (+2 hours from last stop)
-    let timeStr = '09:00';
-    let period = 'AM';
-
-    if (day.stops.length > 0) {
-        const lastStop = day.stops[day.stops.length - 1];
-        let [h, m] = lastStop.time.split(':').map(Number);
-        if (lastStop.period === 'PM' && h !== 12) h += 12;
-        if (lastStop.period === 'AM' && h === 12) h = 0;
-
-        h += 2; // +2 hours
-        if (h >= 24) h -= 24;
-
-        period = h >= 12 ? 'PM' : 'AM';
-        let displayH = h % 12;
-        if (displayH === 0) displayH = 12;
-
-        timeStr = `${displayH.toString().padStart(2, '0')}:${lastStop.time.split(':')[1]}`;
+    // Provide immediate visual feedback that it's loading
+    const container = dropdown ? dropdown.closest('.location-search-container') : null;
+    if (container) {
+        const input = container.querySelector('.location-search-input');
+        if (input) {
+            input.value = '加载中 (Loading)...';
+            input.disabled = true;
+        }
     }
 
-    // Generate some fake descriptive text based on the mock type
-    const fakeDesc = `${locationName} is a wonderful destination known for its outstanding architecture and vibrant local culture. ${mockDescType ? 'Highly recommended for any traveler.' : ''}`;
+    autoAddStop(dayId, placeId);
+};
 
-    const newStop = {
-        id: 's' + Date.now(),
-        location: locationName,
-        desc: fakeDesc,
-        address: '123 Fake Street, Mock City 00100',
-        phone: '+1 800 555 1234',
-        time: timeStr,
-        period: period,
-        note: '',
-        price: '0',
-        type: 'location' // strictly a location
-    };
+function autoAddStop(dayId, placeId) {
+    if (!window.placesDetailsService) {
+        const dummy = document.createElement('div');
+        window.placesDetailsService = new google.maps.places.PlacesService(dummy);
+    }
 
-    day.stops.push(newStop);
+    window.placesDetailsService.getDetails({
+        placeId: placeId,
+        fields: ['name', 'formatted_address', 'formatted_phone_number', 'geometry', 'photos', 'rating', 'editorial_summary', 'types']
+    }, (place, status) => {
+        if (status !== google.maps.places.PlacesServiceStatus.OK) {
+            alert('Failed to get place details');
+            return;
+        }
 
-    // Keep sorting for data consistency, though practically it's the newest time
-    day.stops.sort((a, b) => {
-        const parseTime = (time, p) => {
-            if (!time) return 0;
-            let [hh, mm] = time.split(':').map(Number);
-            if (p === 'PM' && hh !== 12) hh += 12;
-            if (p === 'AM' && hh === 12) hh = 0;
-            return hh * 60 + mm;
+        const trip = state.trips.find(t => t.id === state.activeTripId);
+        const day = trip.days.find(d => d.id === dayId);
+
+        let timeStr = '09:00';
+        let period = 'AM';
+
+        const locationStops = day.stops.filter(s => s.type === 'location' || !s.type);
+        if (locationStops.length > 0) {
+            const lastStop = locationStops[locationStops.length - 1];
+            if (lastStop.time) {
+                let [h, m] = lastStop.time.split(':').map(Number);
+                if (lastStop.period === 'PM' && h !== 12) h += 12;
+                if (lastStop.period === 'AM' && h === 12) h = 0;
+
+                h += 2;
+                if (h >= 24) h -= 24;
+
+                period = h >= 12 ? 'PM' : 'AM';
+                let displayH = h % 12;
+                if (displayH === 0) displayH = 12;
+
+                timeStr = `${displayH.toString().padStart(2, '0')}:${lastStop.time.split(':')[1] || '00'}`;
+            }
+        }
+
+        const photoUrl = place.photos && place.photos.length > 0 ? place.photos[0].getUrl({ maxWidth: 400 }) : '';
+        const desc = place.editorial_summary ? place.editorial_summary.overview : '';
+        const categoryInfo = getCategoryFromTypes(place.types);
+
+        const newStop = {
+            id: 's' + Date.now(),
+            location: place.name,
+            desc: desc,
+            address: place.formatted_address || '',
+            phone: place.formatted_phone_number || '',
+            time: timeStr,
+            period: period,
+            note: '',
+            price: '0',
+            type: 'location',
+            lat: place.geometry && place.geometry.location ? place.geometry.location.lat() : 0,
+            lng: place.geometry && place.geometry.location ? place.geometry.location.lng() : 0,
+            photo: photoUrl,
+            rating: place.rating,
+            category: categoryInfo.label,
+            categoryIcon: categoryInfo.icon
         };
-        return parseTime(a.time, a.period) - parseTime(b.time, b.period);
+
+        day.stops.push(newStop);
+
+        day.stops.sort((a, b) => {
+            const parseTime = (time, p) => {
+                if (!time) return 0;
+                let [hh, mm] = time.split(':').map(Number);
+                if (p === 'PM' && hh !== 12) hh += 12;
+                if (p === 'AM' && hh === 12) hh = 0;
+                return hh * 60 + mm;
+            };
+            return parseTime(a.time, a.period) - parseTime(b.time, b.period);
+        });
+
+        saveData();
+
+        const timeline = document.querySelector('.itinerary-timeline');
+        const daySection = document.getElementById(dayId);
+        if (timeline && daySection) {
+            const dayIndex = trip.days.findIndex(d => d.id === dayId);
+            const temp = document.createElement('div');
+            temp.innerHTML = getDayHTML(day, dayIndex, state.activeTripId);
+            timeline.replaceChild(temp.firstElementChild, daySection);
+        } else {
+            renderApp();
+        }
+
+        // Update map markers
+        if (window.googleMapsReady) {
+            initRealMap();
+        }
     });
-
-    saveData();
-
-    // Re-render just this day's HTML to avoid full app flash
-    const timeline = document.querySelector('.itinerary-timeline');
-    const daySection = document.getElementById(dayId);
-    if (timeline && daySection) {
-        // Find index of day
-        const dayIndex = trip.days.findIndex(d => d.id === dayId);
-        const temp = document.createElement('div');
-        temp.innerHTML = getDayHTML(day, dayIndex, state.activeTripId);
-        timeline.replaceChild(temp.firstElementChild, daySection);
-    } else {
-        renderApp();
-    }
 }
 
-// Fade in animation helper class injected by CSS
-const style = document.createElement('style');
-style.textContent = `
+// Remove animation elements if they exist globally
+const existingStyle = document.getElementById('dynamic-styles');
+if (existingStyle) existingStyle.remove();
+
+const styleEl = document.createElement('style');
+styleEl.id = 'dynamic-styles';
+styleEl.textContent = `
     .fade-in { animation: fadeIn 0.4s forwards ease-in-out; }
     @keyframes fadeIn {
         from { opacity: 0; transform: translateY(5px); }
         to { opacity: 1; transform: translateY(0); }
     }
 `;
-document.head.appendChild(style);
+document.head.appendChild(styleEl);
