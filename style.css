@@ -232,7 +232,7 @@ nav a:hover {
 }
 
 .sidebar {
-    width: 280px;
+    width: 220px;
     background: var(--bg-secondary);
     border-right: 1px solid var(--glass-border);
     padding: 2rem 1.5rem;
@@ -613,8 +613,9 @@ nav a:hover {
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
     z-index: 100;
     display: none;
-    flex-direction: row;
-    /* Horizontal layout */
+    flex-direction: column;
+    /* Vertical layout */
+    min-width: 120px;
 }
 
 .menu-dropdown.active {
@@ -622,20 +623,19 @@ nav a:hover {
 }
 
 .menu-dropdown button {
-    text-align: center;
+    text-align: left;
     padding: 0.8rem 1.2rem;
     background: none;
     border: none;
     color: var(--text-primary);
     cursor: pointer;
-    border-right: 1px solid var(--glass-border);
-    /* Vertical separators */
+    border-bottom: 1px solid var(--glass-border);
+    /* Horizontal separators */
     white-space: nowrap;
-    /* Prevent horizontal wrapping */
 }
 
 .menu-dropdown button:last-child {
-    border-right: none;
+    border-bottom: none;
 }
 
 .menu-dropdown button:hover {

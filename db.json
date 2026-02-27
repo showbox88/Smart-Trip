@@ -2,16 +2,16 @@
     "user": {
         "name": "Test Traveler"
     },
-    "currentView": "dashboard",
+    "currentView": "trip",
     "activeTripId": "trip-1",
     "trips": [
         {
             "id": "trip-1",
-            "title": "日本东京之旅 \ud83c\udf38",
+            "title": "日本东京之旅 🌸",
             "startDate": "2026-03-10",
             "endDate": "2026-03-12",
             "thumb": "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-            "activeDayId": "day-1",
+            "activeDayId": "day-1772143684042",
             "days": [
                 {
                     "id": "day-1",
@@ -19,24 +19,79 @@
                     "date": "2026年3月10日",
                     "stops": [
                         {
+                            "id": "l1772212022572",
+                            "type": "list",
+                            "title": "",
+                            "items": []
+                        },
+                        {
+                            "id": "s2",
+                            "time": "08:30",
+                            "period": "AM",
+                            "location": "酒店入住 (新宿)",
+                            "note": "Park Hyatt Tokyo",
+                            "price": "400"
+                        },
+                        {
                             "id": "s1",
-                            "time": "10:00",
+                            "time": "09:30",
                             "period": "AM",
                             "location": "东京成田机场",
                             "note": "接机服务已安排",
                             "price": "0"
                         },
                         {
-                            "id": "s2",
-                            "time": "02:00",
-                            "period": "PM",
-                            "location": "酒店入住 (新宿)",
-                            "note": "Park Hyatt Tokyo",
-                            "price": "250"
+                            "id": "l1772212024398",
+                            "type": "list",
+                            "title": "",
+                            "items": [
+                                {
+                                    "text": "jjjj",
+                                    "checked": false
+                                },
+                                {
+                                    "text": "jjjj",
+                                    "checked": false
+                                },
+                                {
+                                    "text": "髁",
+                                    "checked": false
+                                }
+                            ]
+                        },
+                        {
+                            "id": "n1772212025504",
+                            "type": "note",
+                            "content": "",
+                            "checked": false
+                        },
+                        {
+                            "id": "n1772212027226",
+                            "type": "note",
+                            "content": "",
+                            "checked": false
                         }
                     ]
+                },
+                {
+                    "id": "day-1772143683042",
+                    "title": "第 2 天",
+                    "date": "2026年3月10日",
+                    "stops": []
+                },
+                {
+                    "id": "day-1772143684042",
+                    "title": "第 3 天",
+                    "date": "2026年3月11日",
+                    "stops": []
                 }
             ]
         }
-    ]
+    ],
+    "collapsedDays": {
+        "day-1": false,
+        "day-1772143722190": true,
+        "day-1772143683042": false,
+        "day-1772143684042": false
+    }
 }

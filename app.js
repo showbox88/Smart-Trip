@@ -140,6 +140,71 @@ function getDashboardHTML() {
     `;
 }
 
+function getDayHTML(day, dayIndex, activeDayId) {
+    const dObj = new Date(day.date);
+    const daysOfWeek = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+    const dayName = isNaN(dObj.getTime()) ? day.date : `${daysOfWeek[dObj.getDay()]}, ${dObj.getMonth() + 1}月 ${dObj.getDate()}日`;
+
+    return `
+        <div class="day-section" id="${day.id}" style="margin-bottom: 3rem;">
+            <!-- Day Header -->
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.5rem;">
+                <h3 style="font-size: 1.5rem; margin:0;">${dayName}</h3>
+                <div style="position:relative;">
+                    <button class="menu-dots" style="position:static; transform:none; padding: 0 5px;" onclick="toggleMenu(event, 'day-${day.id}')">⋮</button>
+                    <div class="menu-dropdown" id="menu-day-${day.id}" style="top:2rem; right:0;">
+                        <button onclick="editDay('${day.id}')">编辑日期</button>
+                        <button onclick="shareDay(event, '${day.id}')">好友分享</button>
+                        <button class="danger" onclick="deleteDay(event, '${day.id}')">删除日期</button>
+                    </div>
+                </div>
+            </div>
+            <div style="color: var(--text-secondary); cursor: pointer; padding-left: 2px; margin-bottom: 0.8rem; font-size: 0.95rem; display:flex; align-items:center;">
+                <span id="collapse-arrow-${day.id}" onclick="toggleDayCollapse('${day.id}')" style="display:inline-block; transform:${state.collapsedDays && state.collapsedDays[day.id] ? 'rotate(-90deg)' : 'rotate(0deg)'}; margin-right:4px; transition: transform 0.2s;">▼</span>
+                <span id="day-subtitle-${day.id}" onclick="editDaySubtitle('${day.id}')">${day.subtitle || '添加副标题'}</span>
+            </div>
+            
+            <div id="day-content-${day.id}" style="${state.collapsedDays && state.collapsedDays[day.id] ? 'display:none;' : 'display:block;'}">
+                <div style="display:flex; gap: 15px; align-items:center; margin-bottom: 0.8rem; font-size: 0.85rem; color: var(--text-secondary);">
+                    <button style="background:none; border:none; color: var(--accent-primary); cursor:pointer; font-weight:600; display:flex; align-items:center; gap:5px;">
+                        <span style="font-size:1.1rem;">🪄</span> 自动填充日程
+                    </button>
+                    <button style="background:none; border:none; color: var(--accent-primary); cursor:pointer; font-weight:600; display:flex; align-items:center; gap:5px;">
+                        <span style="font-size:1.1rem;">📍</span> 优化路线 <span style="background:var(--accent-primary); color:#FFF; font-size:0.65rem; padding: 1px 4px; border-radius:4px;">PRO</span>
+                    </button>
+                    <span>·</span>
+                    <span>3 小时 49 分钟, 251英里</span>
+                </div>
+
+            <div class="timeline-container" style="position: relative; padding-left: 1.8rem;">
+                <!-- Vertical continuous dashed line for the whole day -->
+                <div style="position: absolute; top: 0; bottom: 0; left: 0.9rem; width: 0; border-left: 2px dashed var(--glass-border); z-index: 0; transform: translateX(-1px);"></div>
+                
+                ${day.stops.length === 0 ? '<p style="color:var(--text-secondary); margin-bottom:1rem; position:relative; z-index:2; padding-left:1rem;">还没有安排地点。</p>' : ''}
+                ${day.stops.map((stop, index) => {
+        let locationIdx = day.stops.slice(0, index).filter(s => s.type !== 'note' && s.type !== 'list').length;
+        let isLast = index === day.stops.length - 1;
+        return getTimelineItemHTML(day, stop, index, locationIdx, !isLast && day.stops[index + 1] && (day.stops[index + 1].type === 'location' || !day.stops[index + 1].type));
+    }).join('')}
+            
+            <!-- Dedicated Location Search Bar at bottom of Day -->
+            <div class="location-search-container" style="position: relative; margin-top: 1rem; display:flex; gap: 0.5rem;">
+                <div style="flex:1; position:relative;">
+                    <span style="position:absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-secondary);">📍</span>
+                    <input type="text" class="location-search-input" style="padding-left: 2.8rem; background: var(--bg-secondary); border: none;" placeholder="添加地点..." oninput="handleSearchInput(event, '${day.id}')" onblur="setTimeout(() => closeSearchDropdown('${day.id}'), 200)">
+                    <ul class="location-autocomplete-dropdown" id="search-dropdown-${day.id}"></ul>
+                </div>
+                <button onclick="addTimelineNote('${day.id}')" style="width: 45px; height: 45px; border-radius: 50%; background: var(--bg-secondary); border:none; display:flex; align-items:center; justify-content:center; color: var(--text-primary); cursor:pointer;"><span style="transform:rotate(90deg);">📄</span></button>
+                <button onclick="addTimelineList('${day.id}')" style="width: 45px; height: 45px; border-radius: 50%; background: var(--bg-secondary); border:none; display:flex; align-items:center; justify-content:center; color: var(--text-primary); cursor:pointer;"><span>≡</span></button>
+            </div>
+            
+            </div> <!-- End timeline container -->
+            </div> <!-- End collapsible wrapper -->
+            
+        </div>
+    `;
+}
+
 function getTripHTML(trip) {
     if (!trip) return `<h2>行程未找到</h2>`;
     const totalStops = trip.days.reduce((acc, d) => acc + d.stops.length, 0);
@@ -175,20 +240,20 @@ function getTripHTML(trip) {
                 <button class="btn-secondary" style="width:100%; border:none; text-align:left; padding-left:0; margin-top:0.5rem;" onclick="addDay()">+ 添加新日期</button>
             </aside>
             
-            <section class="main-itinerary" id="itinerary-scroll-container">
-                <div class="itinerary-header">
+            <section class="main-itinerary" id="itinerary-scroll-container" style="padding-top: 0; padding-left: 0; padding-right: 0;">
+                <div class="itinerary-header" style="padding: 1.5rem 1.5rem 2rem 1.5rem; background: var(--bg-secondary); border-bottom: 1px solid var(--glass-border); margin-bottom: 2rem;">
                     <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                         <div style="display:flex; align-items:center; gap: 2rem;">
                             <!-- Trip Thumbnail on the left -->
                             <div style="width: 160px; height: 110px; border-radius: 12px; background-image: url('${trip.thumb}'); background-size: cover; background-position: center; border: 1px solid var(--glass-border); box-shadow: 0 5px 15px rgba(0,0,0,0.4);"></div>
                             <div>
-                                <h2 style="margin-bottom:0.4rem; font-size: 2rem;">${trip.title}</h2>
+                                <h2 style="margin-bottom:0.4rem; font-size: 2.2rem; margin-top:0;">${trip.title}</h2>
                                 <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.95rem; font-weight: 500;">
                                     ${trip.startDate} 至 ${trip.endDate}
                                 </p>
                                 <div class="badges">
-                                    <span class="badge">${calculateDays(trip.startDate, trip.endDate)} 天</span>
-                                    <span class="badge">1 人</span>
+                                    <span class="badge" style="background: rgba(167, 139, 250, 0.15); color: var(--accent-secondary); border: 1px solid var(--accent-secondary); padding: 5px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">${calculateDays(trip.startDate, trip.endDate)} 天</span>
+                                    <span class="badge" style="background: rgba(167, 139, 250, 0.15); color: var(--accent-secondary); border: 1px solid var(--accent-secondary); padding: 5px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">1 人</span>
                                 </div>
                             </div>
                         </div>
@@ -196,109 +261,15 @@ function getTripHTML(trip) {
                             <button class="menu-dots" style="position:static; transform:none;" onclick="toggleMenu(event, 'header-${trip.id}')">⋮</button>
                             <div class="menu-dropdown" id="menu-header-${trip.id}" style="top:2rem; right:0;">
                                 <button onclick="openEditTripModal('${trip.id}')">编辑行程</button>
-                                <button onclick="shareTrip(event, '${trip.id}')">分享给好友</button>
+                                <button onclick="shareTrip(event, '${trip.id}')">好友分享</button>
                                 <button class="danger" onclick="deleteTrip(event, '${trip.id}')">删除行程</button>
                             </div>
                         </div>
                     </div>
                 </div>
                 
-                <div class="itinerary-timeline" style="padding: 0 1rem; max-width: 900px; margin: 0 auto;">
-                    ${trip.days.map((day, dayIndex) => {
-        // Determine the day of week and formatted date
-        const dObj = new Date(day.date);
-        const daysOfWeek = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
-        const dayName = isNaN(dObj.getTime()) ? day.date : `${daysOfWeek[dObj.getDay()]}, ${dObj.getMonth() + 1}月 ${dObj.getDate()}日`;
-
-        return `
-                        <div class="day-section" id="${day.id}" style="margin-bottom: 3rem;">
-                            <!-- Day Header -->
-                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.5rem;">
-                                <h3 style="font-size: 1.5rem; margin:0;">${dayName}</h3>
-                                <button class="menu-dots" style="position:static; transform:none; padding: 0 5px;">⋮</button>
-                            </div>
-                            <div style="color: var(--text-secondary); cursor: pointer; padding-left: 2px; margin-bottom: 0.8rem; font-size: 0.95rem;">
-                                <span><span style="display:inline-block; transform:rotate(-90deg); margin-right:4px;">▼</span> 添加副标题</span>
-                            </div>
-                            <div style="display:flex; gap: 15px; align-items:center; margin-bottom: 0.8rem; font-size: 0.85rem; color: var(--text-secondary);">
-                                <button style="background:none; border:none; color: var(--accent-primary); cursor:pointer; font-weight:600; display:flex; align-items:center; gap:5px;">
-                                    <span style="font-size:1.1rem;">🪄</span> 自动填充日程
-                                </button>
-                                <button style="background:none; border:none; color: var(--accent-primary); cursor:pointer; font-weight:600; display:flex; align-items:center; gap:5px;">
-                                    <span style="font-size:1.1rem;">📍</span> 优化路线 <span style="background:var(--accent-primary); color:#FFF; font-size:0.65rem; padding: 1px 4px; border-radius:4px;">PRO</span>
-                                </button>
-                                <span>·</span>
-                                <span>3 小时 49 分钟, 251英里</span>
-                            </div>
-
-                            <div class="timeline-container" style="position: relative; padding-left: 1.8rem;">
-                                <!-- Vertical continuous dashed line for the whole day -->
-                                <div style="position: absolute; top: 0; bottom: 0; left: 0.9rem; width: 0; border-left: 2px dashed var(--glass-border); z-index: 0; transform: translateX(-1px);"></div>
-                                
-                                ${day.stops.length === 0 ? '<p style="color:var(--text-secondary); margin-bottom:1rem; position:relative; z-index:2; padding-left:1rem;">还没有安排地点。</p>' : ''}
-                                ${day.stops.map((stop, index) => `
-                                    <!-- Stop Sequence Node -->
-                                    <div style="position:relative; margin-bottom: 0;">
-                                        <!-- Timeline Circle -->
-                                        <div style="position: absolute; left: -1.8rem; top: 1.2rem; width: 1.8rem; height: 1.8rem; border-radius: 50%; background: ${index === 0 ? 'var(--text-secondary)' : 'var(--accent-secondary)'}; color: #FFF; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.95rem; z-index: 2; border: 2px solid var(--bg-primary);">
-                                            ${index === 0 ? '✔' : index + 1}
-                                        </div>
-                                        
-                                        <!-- Rich Stop Card -->
-                                        <div class="rich-stop-card" onclick="openEditModal('${day.id}', '${stop.id}')" style="background: var(--bg-secondary); border-radius: 12px; padding: 1.2rem; display:flex; gap: 1.5rem; transition: background 0.2s; cursor: pointer; border: 1px solid transparent;">
-                                            <div style="flex:1;">
-                                                <h4 style="font-size: 1.15rem; margin-bottom: 0.5rem;">${stop.location}</h4>
-                                                ${stop.desc ? `<p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 0.5rem; line-height: 1.4;">来自网络：${stop.desc}</p>` : ''}
-                                                ${stop.address ? `<p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.5rem; display:flex; align-items:center; gap:5px;"><span style="font-size:1rem;">📍</span>${stop.address}</p>` : ''}
-                                                ${stop.phone ? `<p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.5rem; display:flex; align-items:center; gap:5px;"><span style="font-size:1rem;">📞</span>${stop.phone}</p>` : ''}
-                                                ${stop.note ? `<p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 1rem; line-height: 1.4;">${stop.note}</p>` : `<p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 1rem; opacity: 0.6;">在此添加备注、链接等</p>`}
-                                                
-                                                <div style="display:flex; gap: 0.8rem; margin-top: auto;">
-                                                    <span onclick="openTimePickerDirectly(event, '${day.id}', '${stop.id}')" style="background: rgba(167, 139, 250, 0.1); color: var(--accent-secondary); padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600; cursor:pointer;" title="编辑时间">${stop.time} ${stop.period === 'AM' ? '上午' : '下午'}</span>
-                                                    ${stop.price !== "0" && stop.price !== "" ? `<span onclick="openExpenseDirectly(event, '${day.id}', '${stop.id}')" style="background: rgba(167, 139, 250, 0.1); color: var(--accent-secondary); padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600; cursor:pointer;" title="编辑费用">$${stop.price}</span>` : ''}
-                                                </div>
-                                            </div>
-                                            
-                                            <!-- Thumb for Stop (Mocked) -->
-                                            <div style="width: 140px; height: 95px; border-radius: 8px; background-image: url('https://picsum.photos/seed/${stop.id}/300/200'); background-size: cover; background-position: center; flex-shrink: 0; box-shadow: 0 4px 10px rgba(0,0,0,0.3);"></div>
-                                        </div>
-                                        
-                                        <!-- Transit Info (Only if not last stop) -->
-                                        ${index < day.stops.length - 1 ? `
-                                            <div style="padding: 0.5rem 0 0.5rem 0.5rem; font-size: 0.85rem; color: var(--text-secondary); display:flex; align-items:center; gap: 0.5rem; position:relative; z-index:2;">
-                                                <span>🚗 1 小时 15 分钟 · 45英里 ▼ 路线</span>
-                                            </div>
-                                        ` : ''}
-                                    </div>
-                                `).join('')}
-                            </div>
-                            
-                            <!-- Wanderlog Style Empty Add Card -->
-                            <div style="background: var(--bg-secondary); border-radius: 12px; margin-top: 2rem; padding: 1.2rem; cursor: pointer;">
-                                <h4 style="color: var(--text-primary); margin-bottom: 0.8rem; font-size: 1.05rem;">添加标题</h4>
-                                <div style="display:flex; align-items:center; gap:0.5rem; color: var(--text-secondary); margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--glass-border);">
-                                    <div style="width: 16px; height: 16px; border: 2px solid var(--text-secondary); border-radius: 50%;"></div>
-                                    <span>添加一些项目</span>
-                                </div>
-                                <div style="color: var(--text-primary); font-weight: 600; display:flex; align-items:center; gap:0.5rem;">
-                                    <span>🧳</span> 预制列表
-                                </div>
-                            </div>
-                            
-                            <!-- Dedicated Location Search Bar at bottom of Day -->
-                            <div class="location-search-container" style="position: relative; margin-top: 1rem; display:flex; gap: 0.5rem;">
-                                <div style="flex:1; position:relative;">
-                                    <span style="position:absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-secondary);">📍</span>
-                                    <input type="text" class="location-search-input" style="padding-left: 2.8rem; background: var(--bg-secondary); border: none;" placeholder="添加地点..." oninput="handleSearchInput(event, '${day.id}')" onblur="setTimeout(() => closeSearchDropdown('${day.id}'), 200)">
-                                    <ul class="location-autocomplete-dropdown" id="search-dropdown-${day.id}"></ul>
-                                </div>
-                                <button style="width: 45px; height: 45px; border-radius: 50%; background: var(--bg-secondary); border:none; display:flex; align-items:center; justify-content:center; color: var(--text-primary); cursor:pointer;"><span style="transform:rotate(90deg);">📄</span></button>
-                                <button style="width: 45px; height: 45px; border-radius: 50%; background: var(--bg-secondary); border:none; display:flex; align-items:center; justify-content:center; color: var(--text-primary); cursor:pointer;"><span>≡</span></button>
-                            </div>
-                            
-                        </div>
-                    `;
-    }).join('')}
+                <div class="itinerary-timeline" style="padding: 0 1rem 0 3.5rem; max-width: 900px; margin: 0 auto;">
+                    ${trip.days.map((day, dayIndex) => getDayHTML(day, dayIndex, trip.activeDayId)).join('')}
                 </div>
             </section>
             
@@ -323,6 +294,7 @@ function renderMockMapPins(trip) {
     // Use stable pseudo-random positions based on string length to mock coordinates
     trip.days.forEach(day => {
         day.stops.forEach((stop, i) => {
+            if (stop.type === 'note' || stop.type === 'list' || !stop.location) return;
             pinCount++;
             // Generate deterministic but seemingly random x/y positions (10% to 90%)
             const hash = stop.location.length + i * 13;
@@ -548,6 +520,27 @@ function scrollToDay(id) {
     }
 }
 
+function editDay(dayId) {
+    alert(`编辑日期: ${dayId}`);
+}
+
+function shareDay(event, dayId) {
+    event.stopPropagation();
+    alert(`分享日期: ${dayId}`);
+}
+
+function deleteDay(event, dayId) {
+    event.stopPropagation();
+    if (confirm('确定要删除这一天的行程吗？')) {
+        const trip = state.trips.find(t => t.id === state.activeTripId);
+        if (trip) {
+            trip.days = trip.days.filter(d => d.id !== dayId);
+            saveData();
+            renderApp();
+        }
+    }
+}
+
 function addDay() {
     const trip = state.trips.find(t => t.id === state.activeTripId);
     const newDayNum = trip.days.length + 1;
@@ -563,14 +556,513 @@ function addDay() {
         }
     }
 
-    trip.days.push({
+    const newDay = {
         id: newDayId,
         title: `第 ${newDayNum} 天`,
         date: newDateStr,
         stops: []
+    };
+    trip.days.push(newDay);
+    saveData();
+
+    // Inject day to Sidebar
+    const sidebarNav = document.getElementById('sidebar-nav');
+    if (sidebarNav) {
+        // Find existing list items to remove "active" class from them before appending
+        Array.from(sidebarNav.children).forEach(li => li.classList.remove('active'));
+
+        const newLi = document.createElement('li');
+        newLi.className = 'active'; // newly added is active
+        newLi.innerHTML = newDay.title;
+        newLi.onclick = () => scrollToDay(newDayId);
+        sidebarNav.appendChild(newLi);
+    }
+
+    // Inject day HTML to Timeline
+    const timeline = document.querySelector('.itinerary-timeline');
+    if (timeline) {
+        const temp = document.createElement('div');
+        temp.innerHTML = getDayHTML(newDay, trip.days.length - 1, state.activeTripId);
+        timeline.appendChild(temp.firstElementChild);
+    }
+
+    trip.activeDayId = newDayId; // Update state without calling renderApp
+
+    // Smooth scroll manually instead of calling scrollToDay which calls renderApp
+    setTimeout(() => {
+        const element = document.getElementById(newDayId);
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, 50);
+}
+
+function toggleDayCollapse(dayId) {
+    state.collapsedDays = state.collapsedDays || {};
+    state.collapsedDays[dayId] = !state.collapsedDays[dayId];
+
+    // DOM update to avoid flashing
+    const content = document.getElementById(`day-content-${dayId}`);
+    if (content) {
+        content.style.display = state.collapsedDays[dayId] ? 'none' : 'block';
+    }
+
+    const arrow = document.getElementById(`collapse-arrow-${dayId}`);
+    if (arrow) {
+        arrow.style.transform = state.collapsedDays[dayId] ? 'rotate(-90deg)' : 'rotate(0deg)';
+    }
+}
+
+function editDaySubtitle(dayId) {
+    const trip = state.trips.find(t => t.id === state.activeTripId);
+    if (!trip) return;
+    const day = trip.days.find(d => d.id === dayId);
+    if (!day) return;
+
+    const newSub = prompt("请输入副标题：", day.subtitle || "");
+    if (newSub !== null) {
+        day.subtitle = newSub.trim();
+        saveData();
+
+        // DOM update to avoid flashing
+        const subSpan = document.getElementById(`day-subtitle-${dayId}`);
+        if (subSpan) {
+            subSpan.innerText = day.subtitle || '添加副标题';
+        }
+    }
+}
+
+// --- Timeline Items Helpers (Notes & Lists & Standardized Rendering) ---
+
+function toggleItemSelect(dayId, itemId, element) {
+    const day = getDay(dayId);
+    if (!day) return;
+    const item = day.stops.find(s => s.id === itemId);
+    if (item) {
+        item.selected = !item.selected;
+        saveData();
+        if (element) {
+            const box = element.querySelector('div');
+            if (box) {
+                box.style.border = `2px solid ${item.selected ? 'var(--accent-primary)' : 'var(--text-secondary)'}`;
+                box.style.background = item.selected ? 'var(--accent-primary)' : 'transparent';
+                box.innerText = item.selected ? '✓' : '';
+            }
+        }
+    }
+}
+
+function getTimelineItemHTML(day, stop, index, locationIdx, showTransit) {
+    let circleHtml = '';
+    let contentHtml = '';
+    let isLocation = stop.type !== 'note' && stop.type !== 'list';
+
+    const styleBlock = index === 0 ? `
+        <style>
+            .timeline-item-wrapper:hover .item-hover-action { opacity: 1 !important; pointer-events: auto !important; }
+            .li-item-hover:hover .delete-btn-hover { opacity: 1 !important; }
+        </style>
+    ` : '';
+
+    if (stop.type === 'note') {
+        circleHtml = `
+            <div style="position: absolute; left: -1.8rem; top: 1.2rem; width: 1.8rem; height: 1.8rem; border-radius: 50%; background: var(--bg-secondary); z-index: 2; border: 2px solid var(--glass-border); display:flex; align-items:center; justify-content:center; font-size: 0.85rem;">
+                📄
+            </div>
+        `;
+        contentHtml = `
+            <div style="background: var(--bg-secondary); border-radius: 12px; padding: 0.8rem 1.2rem; display:flex; align-items:center; border: 1px solid var(--glass-border);">
+                <input type="text" value="${stop.content || ''}" onchange="updateNoteContent('${day.id}', '${stop.id}', this.value)" style="flex:1; background:transparent; border:none; outline:none; color:var(--text-primary); font-size:1rem; padding: 0.2rem;" placeholder="在此处书写或粘贴笔记">
+            </div>
+        `;
+    } else if (stop.type === 'list') {
+        circleHtml = `
+            <div style="position: absolute; left: -1.8rem; top: 1.2rem; width: 1.8rem; height: 1.8rem; border-radius: 50%; background: var(--bg-secondary); z-index: 2; border: 2px solid var(--glass-border); display:flex; align-items:center; justify-content:center; font-size: 0.85rem;">
+                ≡
+            </div>
+        `;
+        contentHtml = `
+            <div style="background: var(--bg-secondary); border-radius: 12px; padding: 1.2rem; border: 1px solid var(--glass-border);">
+                <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom: 0.8rem;">
+                    <div style="width:4px; height:18px; background:#f59e0b; border-radius:2px;"></div>
+                    <input type="text" value="${stop.title || ''}" onchange="updateListTitle('${day.id}', '${stop.id}', this.value)" style="flex:1; background:transparent; border:none; outline:none; color:var(--text-primary); font-size:1.1rem; font-weight:bold;" placeholder="添加标题">
+                </div>
+                
+                <div id="list-items-${stop.id}" style="display:flex; flex-direction:column; gap:0.5rem; padding-left:0.8rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 1rem; margin-bottom: 1rem;">
+                    ${(stop.items || []).map((li, i) => `
+                        <div style="display:flex; align-items:center; gap:0.6rem; color:var(--text-primary); margin-bottom: 0.3rem;" class="li-item-hover">
+                            <div style="width: 16px; height: 16px; border: 2px solid ${li.checked ? 'var(--text-secondary)' : 'var(--text-secondary)'}; border-radius: 50%; background:${li.checked ? 'var(--text-secondary)' : 'transparent'}; display:flex; align-items:center; justify-content:center; cursor:pointer;" onclick="toggleListItemCheck('${day.id}', '${stop.id}', ${i}, this)"></div>
+                            <input type="text" value="${li.text || ''}" onchange="updateListItemText('${day.id}', '${stop.id}', ${i}, this.value)" style="flex:1; background:transparent; border:none; outline:none; color:var(--text-primary); font-size:0.95rem; text-decoration:${li.checked ? 'line-through' : 'none'}; opacity:${li.checked ? '0.5' : '1'};">
+                            <button class="delete-btn-hover" onclick="deleteListItem('${day.id}', '${stop.id}', ${i})" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:0.9rem; opacity:0; transition:opacity 0.2s;">✕</button>
+                        </div>
+                    `).join('')}
+                    <div style="display:flex; align-items:center; gap:0.6rem; color:var(--text-secondary); margin-top:0.3rem;">
+                        <div style="width: 16px; height: 16px; border: 2px solid var(--text-secondary); border-radius: 50%;"></div>
+                        <input type="text" placeholder="添加一些项目..." onkeypress="handleNewListItem(event, '${day.id}', '${stop.id}')" style="flex:1; background:transparent; border:none; outline:none; color:var(--text-primary); font-size:0.95rem;">
+                    </div>
+                </div>
+                
+                <div style="color: var(--text-primary); font-weight: 600; display:flex; align-items:center; gap:0.5rem; cursor:pointer; font-size:0.95rem;" onclick="alert('预制列表模版 (Mock)')">
+                    <span>🧳</span> 预制列表
+                </div>
+            </div>
+        `;
+    } else {
+        circleHtml = `
+            <div style="position: absolute; left: -1.8rem; top: 1.2rem; width: 1.8rem; height: 1.8rem; border-radius: 50%; background: ${locationIdx === 0 ? 'var(--text-secondary)' : 'var(--accent-secondary)'}; color: #FFF; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.95rem; z-index: 2; border: 2px solid var(--bg-primary);">
+                ${locationIdx === 0 ? '✔' : locationIdx + 1}
+            </div>
+        `;
+        contentHtml = `
+            <div class="rich-stop-card" onclick="openEditModal('${day.id}', '${stop.id}')" style="background: var(--bg-secondary); border-radius: 12px; padding: 1.2rem; display:flex; gap: 1.5rem; transition: background 0.2s; cursor: pointer; border: 1px solid transparent;">
+                <div style="flex:1;">
+                    <h4 style="font-size: 1.15rem; margin-bottom: 0.5rem;">${stop.location}</h4>
+                    ${stop.desc ? `<p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 0.5rem; line-height: 1.4;">来自网络：${stop.desc}</p>` : ''}
+                    ${stop.address ? `<p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.5rem; display:flex; align-items:center; gap:5px;"><span style="font-size:1rem;">📍</span>${stop.address}</p>` : ''}
+                    ${stop.phone ? `<p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.5rem; display:flex; align-items:center; gap:5px;"><span style="font-size:1rem;">📞</span>${stop.phone}</p>` : ''}
+                    ${stop.note ? `<p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 1rem; line-height: 1.4;">${stop.note}</p>` : `<p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 1rem; opacity: 0.6;">在此添加备注、链接等</p>`}
+                    
+                    <div style="display:flex; gap: 0.8rem; margin-top: auto;">
+                        <span onclick="openTimePickerDirectly(event, '${day.id}', '${stop.id}')" style="background: rgba(167, 139, 250, 0.1); color: var(--accent-secondary); padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600; cursor:pointer;" title="编辑时间">${stop.time} ${stop.period === 'AM' ? '上午' : '下午'}</span>
+                        ${stop.price !== "0" && stop.price !== "" ? `<span onclick="openExpenseDirectly(event, '${day.id}', '${stop.id}')" style="background: rgba(167, 139, 250, 0.1); color: var(--accent-secondary); padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600; cursor:pointer;" title="编辑费用">$${stop.price}</span>` : ''}
+                    </div>
+                </div>
+                
+                <!-- Thumb for Stop (Mocked) -->
+                <div style="width: 140px; height: 95px; border-radius: 8px; background-image: url('https://picsum.photos/seed/${stop.id}/300/200'); background-size: cover; background-position: center; flex-shrink: 0; box-shadow: 0 4px 10px rgba(0,0,0,0.3);"></div>
+            </div>
+            ${showTransit ? `
+                <div style="padding: 0.5rem 0 0.5rem 0.5rem; font-size: 0.85rem; color: var(--text-secondary); display:flex; align-items:center; gap: 0.5rem; position:relative; z-index:2;">
+                    <span>🚗 1 小时 15 分钟 · 45英里 ▼ 路线</span>
+                </div>
+            ` : ''}
+        `;
+    }
+
+    return `
+        ${styleBlock}
+        <!-- Timeline Item Wrapper -->
+        <!-- Added left padding and reduced left margin to expand the hover area to include left actions -->
+        <!-- Added right padding to expand hover area to include right actions -->
+        <div class="timeline-item-wrapper id-${stop.id}" style="position:relative; margin-bottom: ${isLocation ? '0.5rem' : '1.5rem'}; margin-left: -3rem; padding-left: 3rem; padding-right: 2.5rem; display:flex; align-items:flex-start; gap: 0.5rem;" 
+            draggable="true" 
+            ondragstart="handleDragStart(event, '${day.id}', '${stop.id}')" 
+            ondragover="handleDragOver(event)" 
+            ondrop="handleDrop(event, '${day.id}', '${stop.id}')" 
+            ondragenter="handleDragEnter(event)" 
+            ondragleave="handleDragLeave(event)" 
+            ondragend="handleDragEnd(event)">
+            <!-- Left Actions (Drag & Select) -->
+            <div class="item-hover-action" style="position:absolute; left: 0; top: 1.2rem; width: 2rem; display:flex; flex-direction:column; align-items:center; gap: 0.8rem; opacity:0; pointer-events:none; transition:opacity 0.2s;">
+                <div style="cursor:grab; display:flex; flex-direction:column; gap:2px; color:var(--text-secondary); padding: 5px;">
+                    <div style="display:flex; gap:2px;"><div style="width:4px;height:4px;border-radius:50%;background:currentColor;"></div><div style="width:4px;height:4px;border-radius:50%;background:currentColor;"></div></div>
+                    <div style="display:flex; gap:2px;"><div style="width:4px;height:4px;border-radius:50%;background:currentColor;"></div><div style="width:4px;height:4px;border-radius:50%;background:currentColor;"></div></div>
+                    <div style="display:flex; gap:2px;"><div style="width:4px;height:4px;border-radius:50%;background:currentColor;"></div><div style="width:4px;height:4px;border-radius:50%;background:currentColor;"></div></div>
+                </div>
+                <div style="cursor:pointer;" onclick="toggleItemSelect('${day.id}', '${stop.id}', this)">
+                    <div style="width:18px; height:18px; border:2px solid ${stop.selected ? 'var(--accent-primary)' : 'var(--text-secondary)'}; border-radius:4px; background:${stop.selected ? 'var(--accent-primary)' : 'transparent'}; display:flex; align-items:center; justify-content:center; color:white; font-size:0.8rem; transition: background 0.2s;">
+                        ${stop.selected ? '✓' : ''}
+                    </div>
+                </div>
+            </div>
+            
+            ${circleHtml}
+            
+            <!-- Main Content -->
+            <div style="flex:1; min-width: 0;">
+                ${contentHtml}
+            </div>
+
+            <!-- Right Action (Trash) -->
+            <div class="item-hover-action" style="position:absolute; right: 0; top: 1.2rem; cursor:pointer; color:var(--text-secondary); opacity:0; pointer-events:none; transition:opacity 0.2s; font-size: 1.1rem; padding: 0.2rem;" onclick="deleteTimelineItem('${day.id}', '${stop.id}')" title="删除">
+                🗑️
+            </div>
+        </div>
+    `;
+}
+
+function getDay(dayId) {
+    const trip = state.trips.find(t => t.id === state.activeTripId);
+    return trip ? trip.days.find(d => d.id === dayId) : null;
+}
+
+function injectNewStopToDOM(dayId, stopHtml) {
+    const daySection = document.getElementById(dayId);
+    if (!daySection) return;
+    const timelineContainer = daySection.querySelector('.timeline-container');
+    if (!timelineContainer) return;
+
+    // Create temp container, parse HTML, append
+    const temp = document.createElement('div');
+    temp.innerHTML = stopHtml;
+    // We append just before the end of timeline (which holds the empty message if any)
+    const emptyMsg = timelineContainer.querySelector('p');
+    if (emptyMsg && emptyMsg.innerText.includes('还没有安排地点')) {
+        emptyMsg.remove();
+    }
+
+    const searchContainer = timelineContainer.querySelector('.location-search-container');
+    if (searchContainer) {
+        timelineContainer.insertBefore(temp.firstElementChild, searchContainer);
+    } else {
+        timelineContainer.appendChild(temp.firstElementChild);
+    }
+}
+
+function addTimelineNote(dayId) {
+    const day = getDay(dayId);
+    if (!day) return;
+
+    const newStop = {
+        id: 'n' + Date.now(),
+        type: 'note',
+        content: '',
+        checked: false
+    };
+    day.stops.push(newStop);
+    saveData();
+
+    const html = getTimelineItemHTML(day, newStop, day.stops.length - 1, 0, false);
+    injectNewStopToDOM(dayId, html);
+}
+
+function addTimelineList(dayId) {
+    const day = getDay(dayId);
+    if (!day) return;
+
+    const newStop = {
+        id: 'l' + Date.now(),
+        type: 'list',
+        title: '',
+        items: []
+    };
+    day.stops.push(newStop);
+    saveData();
+
+    const html = getTimelineItemHTML(day, newStop, day.stops.length - 1, 0, false);
+    injectNewStopToDOM(dayId, html);
+}
+
+function toggleNoteCheck(dayId, itemId, element) {
+    const day = getDay(dayId);
+    if (!day) return;
+    const item = day.stops.find(s => s.id === itemId);
+    if (item) {
+        item.checked = !item.checked;
+        saveData();
+
+        // DOM update
+        if (element) {
+            const box = element.querySelector('div');
+            if (box) {
+                box.style.border = `2px solid ${item.checked ? 'var(--accent-primary)' : 'var(--text-secondary)'}`;
+                box.style.background = item.checked ? 'var(--accent-primary)' : 'transparent';
+                box.innerText = item.checked ? '✓' : '';
+            }
+        }
+    }
+}
+
+function updateNoteContent(dayId, itemId, value) {
+    const day = getDay(dayId);
+    if (!day) return;
+    const item = day.stops.find(s => s.id === itemId);
+    if (item) {
+        item.content = value;
+        saveData();
+    }
+}
+
+function updateListTitle(dayId, itemId, value) {
+    const day = getDay(dayId);
+    if (!day) return;
+    const item = day.stops.find(s => s.id === itemId);
+    if (item) {
+        item.title = value;
+        saveData();
+    }
+}
+
+function handleNewListItem(event, dayId, itemId) {
+    if (event.key === 'Enter') {
+        const val = event.target.value.trim();
+        if (val) {
+            const day = getDay(dayId);
+            if (!day) return;
+            const item = day.stops.find(s => s.id === itemId);
+            if (item) {
+                item.items = item.items || [];
+                const newIndex = item.items.length;
+                item.items.push({ text: val, checked: false });
+                saveData();
+
+                // DOM injection to avoid renderApp
+                const listContainer = document.getElementById(`list-items-${itemId}`);
+                if (listContainer) {
+                    const newItemHtml = `
+                        <div style="display:flex; align-items:center; gap:0.6rem; color:var(--text-primary); margin-bottom: 0.3rem;" class="li-item-hover">
+                            <div style="width: 16px; height: 16px; border: 2px solid var(--text-secondary); border-radius: 50%; background:transparent; display:flex; align-items:center; justify-content:center; cursor:pointer;" onclick="toggleListItemCheck('${day.id}', '${item.id}', ${newIndex}, this)"></div>
+                            <input type="text" value="${val}" onchange="updateListItemText('${day.id}', '${item.id}', ${newIndex}, this.value)" style="flex:1; background:transparent; border:none; outline:none; color:var(--text-primary); font-size:0.95rem; text-decoration:none; opacity:1;">
+                            <button class="delete-btn-hover" onclick="deleteListItem('${day.id}', '${item.id}', ${newIndex})" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:0.9rem; opacity:0; transition:opacity 0.2s;">✕</button>
+                        </div>
+                    `;
+                    const temp = document.createElement('div');
+                    temp.innerHTML = newItemHtml;
+                    const inputsRow = listContainer.lastElementChild; // The "+ Add item..." row is always the last child
+                    listContainer.insertBefore(temp.firstElementChild, inputsRow);
+                    event.target.value = ''; // clear input
+                } else {
+                    renderApp(); // Fallback if container not found
+                }
+            }
+        }
+    }
+}
+
+function toggleListItemCheck(dayId, itemId, index, element) {
+    const day = getDay(dayId);
+    if (!day) return;
+    const item = day.stops.find(s => s.id === itemId);
+    if (item && item.items && item.items[index]) {
+        item.items[index].checked = !item.items[index].checked;
+        saveData();
+
+        // DOM update
+        if (element) {
+            const isChecked = item.items[index].checked;
+            element.style.border = `2px solid ${isChecked ? 'var(--text-secondary)' : 'var(--text-secondary)'}`;
+            element.style.background = isChecked ? 'var(--text-secondary)' : 'transparent';
+            const input = element.nextElementSibling;
+            if (input && input.tagName === 'INPUT') {
+                input.style.textDecoration = isChecked ? 'line-through' : 'none';
+                input.style.opacity = isChecked ? '0.5' : '1';
+            }
+        }
+    }
+}
+
+function updateListItemText(dayId, itemId, index, value) {
+    const day = getDay(dayId);
+    if (!day) return;
+    const item = day.stops.find(s => s.id === itemId);
+    if (item && item.items && item.items[index]) {
+        item.items[index].text = value;
+        saveData();
+    }
+}
+
+function deleteListItem(dayId, itemId, index) {
+    const day = getDay(dayId);
+    if (!day) return;
+    const item = day.stops.find(s => s.id === itemId);
+    if (item && item.items) {
+        item.items.splice(index, 1);
+        saveData();
+        renderApp();
+    }
+}
+
+function deleteTimelineItem(dayId, itemId) {
+    if (confirm("确定要删除这项内容吗？")) {
+        const day = getDay(dayId);
+        if (!day) return;
+        day.stops = day.stops.filter(s => s.id !== itemId);
+        saveData();
+        renderApp();
+    }
+}
+
+// --- Drag and Drop Handlers ---
+let draggedItem = null;
+let draggedDayId = null;
+
+function handleDragStart(e, dayId, stopId) {
+    draggedItem = stopId;
+    draggedDayId = dayId;
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', stopId);
+    e.target.style.opacity = '0.4';
+}
+
+function handleDragOver(e) {
+    e.preventDefault(); // Necessary to allow dropping
+    e.dataTransfer.dropEffect = 'move';
+    return false;
+}
+
+function handleDragEnter(e) {
+    e.preventDefault();
+    const wrapper = e.target.closest('.timeline-item-wrapper');
+    if (wrapper) {
+        wrapper.style.borderTop = '2px dashed var(--accent-primary)';
+        wrapper.style.paddingTop = '10px';
+    }
+}
+
+function handleDragLeave(e) {
+    const wrapper = e.target.closest('.timeline-item-wrapper');
+    if (wrapper) {
+        wrapper.style.borderTop = 'none';
+        wrapper.style.paddingTop = '0';
+    }
+}
+
+function handleDrop(e, targetDayId, targetStopId) {
+    e.stopPropagation();
+    e.preventDefault();
+
+    const wrapper = e.target.closest('.timeline-item-wrapper');
+    if (wrapper) {
+        wrapper.style.borderTop = 'none';
+        wrapper.style.paddingTop = '0';
+    }
+
+    if (!draggedItem || !draggedDayId) return;
+    if (draggedItem === targetStopId) return; // Dropped on itself
+
+    const trip = state.trips.find(t => t.id === state.activeTripId);
+    const sourceDay = trip.days.find(d => d.id === draggedDayId);
+    const targetDay = trip.days.find(d => d.id === targetDayId);
+
+    if (!sourceDay || !targetDay) return;
+
+    let sourceIndex = sourceDay.stops.findIndex(s => s.id === draggedItem);
+    let targetIndex = targetDay.stops.findIndex(s => s.id === targetStopId);
+
+    if (sourceIndex >= 0 && targetIndex >= 0) {
+        const [movedStop] = sourceDay.stops.splice(sourceIndex, 1);
+        targetDay.stops.splice(targetIndex, 0, movedStop);
+
+        saveData();
+
+        // Re-render specific days to avoid full app flash
+        if (draggedDayId !== targetDayId) {
+            const sDayIndex = trip.days.findIndex(d => d.id === draggedDayId);
+            const temp1 = document.createElement('div');
+            temp1.innerHTML = getDayHTML(sourceDay, sDayIndex, state.activeTripId);
+            document.getElementById(draggedDayId).replaceWith(temp1.firstElementChild);
+        }
+
+        const tDayIndex = trip.days.findIndex(d => d.id === targetDayId);
+        const temp2 = document.createElement('div');
+        temp2.innerHTML = getDayHTML(targetDay, tDayIndex, state.activeTripId);
+        document.getElementById(targetDayId).replaceWith(temp2.firstElementChild);
+    }
+
+    draggedItem = null;
+    draggedDayId = null;
+    return false;
+}
+
+function handleDragEnd(e) {
+    if (e.target.style) e.target.style.opacity = '1';
+    const wrappers = document.querySelectorAll('.timeline-item-wrapper');
+    wrappers.forEach(w => {
+        w.style.borderTop = 'none';
+        w.style.paddingTop = '0';
     });
-    renderApp();
-    scrollToDay(newDayId);
+    draggedItem = null;
+    draggedDayId = null;
 }
 
 // --- Modals (Add / Edit Stop) ---
@@ -921,6 +1413,7 @@ function saveStop() {
     // Sort stops by time
     day.stops.sort((a, b) => {
         const parseTime = (time, period) => {
+            if (!time) return 0;
             let [h, m] = time.split(':').map(Number);
             if (period === 'PM' && h !== 12) h += 12;
             if (period === 'AM' && h === 12) h = 0;
@@ -931,7 +1424,18 @@ function saveStop() {
 
     saveData();
     closeModal();
-    renderApp();
+
+    // Re-render just this day's HTML to avoid full app flash
+    const timeline = document.querySelector('.itinerary-timeline');
+    const daySection = document.getElementById(editingDayId);
+    if (timeline && daySection) {
+        const dayIndex = trip.days.findIndex(d => d.id === editingDayId);
+        const temp = document.createElement('div');
+        temp.innerHTML = getDayHTML(day, dayIndex, state.activeTripId);
+        timeline.replaceChild(temp.firstElementChild, daySection);
+    } else {
+        renderApp();
+    }
 }
 
 function deleteStop() {
@@ -1022,7 +1526,7 @@ function autoAddStop(dayId, locationName, mockDescType = '') {
     // Generate some fake descriptive text based on the mock type
     const fakeDesc = `${locationName} is a wonderful destination known for its outstanding architecture and vibrant local culture. ${mockDescType ? 'Highly recommended for any traveler.' : ''}`;
 
-    day.stops.push({
+    const newStop = {
         id: 's' + Date.now(),
         location: locationName,
         desc: fakeDesc,
@@ -1031,11 +1535,16 @@ function autoAddStop(dayId, locationName, mockDescType = '') {
         time: timeStr,
         period: period,
         note: '',
-        price: '0'
-    });
+        price: '0',
+        type: 'location' // strictly a location
+    };
 
+    day.stops.push(newStop);
+
+    // Keep sorting for data consistency, though practically it's the newest time
     day.stops.sort((a, b) => {
         const parseTime = (time, p) => {
+            if (!time) return 0;
             let [hh, mm] = time.split(':').map(Number);
             if (p === 'PM' && hh !== 12) hh += 12;
             if (p === 'AM' && hh === 12) hh = 0;
@@ -1045,7 +1554,19 @@ function autoAddStop(dayId, locationName, mockDescType = '') {
     });
 
     saveData();
-    renderApp();
+
+    // Re-render just this day's HTML to avoid full app flash
+    const timeline = document.querySelector('.itinerary-timeline');
+    const daySection = document.getElementById(dayId);
+    if (timeline && daySection) {
+        // Find index of day
+        const dayIndex = trip.days.findIndex(d => d.id === dayId);
+        const temp = document.createElement('div');
+        temp.innerHTML = getDayHTML(day, dayIndex, state.activeTripId);
+        timeline.replaceChild(temp.firstElementChild, daySection);
+    } else {
+        renderApp();
+    }
 }
 
 // Fade in animation helper class injected by CSS
