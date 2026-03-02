@@ -88,10 +88,7 @@ export function getTimelineItemHTML(day, stop, index, locationIdx, showTransit) 
         const activeColor = day.color || '#5b7a99';
         const pinNumber = locationIdx + 1;
 
-        // Small dot for the timeline to keep it anchored
-        circleHtml = `
-            <div style="position: absolute; left: -1.75rem; top: 1.5rem; z-index: 2; width: 8px; height: 8px; border-radius: 50%; background: ${activeColor}; border: 1.5px solid var(--bg-primary); transform: translateX(-50%);"></div>
-        `;
+        circleHtml = '';
 
         contentHtml = `
             <div class="rich-stop-card" onclick="openEditModal('${day.id}', '${stop.id}')" style="background: var(--bg-primary); border-radius: 8px; padding: 1rem; display:flex; gap: 1rem; transition: background 0.2s; cursor: pointer; border: 1px solid var(--glass-border); box-shadow: 0 2px 8px rgba(0,0,0,0.05); align-items: flex-start;">
@@ -280,11 +277,24 @@ export function getTripHTML(trip) {
                 </div>
 
                 <ul class="trip-navigation" id="sidebar-nav">
-                    ${trip.days.map(day => `
-                        <li class="${day.id === trip.activeDayId ? 'active' : ''}" onclick="scrollToDay('${day.id}')">
-                            ${day.title}
+                    ${trip.days.map(day => {
+        const activeColor = day.color || '#5b7a99';
+        let dateStr = day.date || '';
+        if (dateStr.includes('年')) {
+            dateStr = dateStr.split('年')[1];
+        }
+        const stopsCount = day.stops ? day.stops.length : 0;
+        return `
+                        <li class="${day.id === trip.activeDayId ? 'active' : ''}" onclick="scrollToDay('${day.id}')" style="display:flex; justify-content:space-between; align-items:center; padding-right:10px;">
+                            <div style="display:flex; align-items:center; gap: 8px; min-width:0;">
+                                <div style="width:10px; height:10px; border-radius:50%; background:${activeColor}; flex-shrink:0;"></div>
+                                <span style="white-space:nowrap;">${day.title}</span>
+                                <span style="font-size:0.85rem; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${dateStr}</span>
+                            </div>
+                            <span id="sidebar-count-${day.id}" style="font-size:0.8rem; color:var(--text-secondary); white-space:nowrap; flex-shrink:0; margin-left:10px;">共 ${stopsCount} 站行程</span>
                         </li>
-                    `).join('')}
+                        `;
+    }).join('')}
                 </ul>
                 <button class="btn-secondary" style="width:100%; border:none; text-align:left; padding-left:0; margin-top:0.5rem;" onclick="addDay()">+ 添加新日期</button>
             </aside>

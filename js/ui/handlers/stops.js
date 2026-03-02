@@ -39,11 +39,15 @@ export function addDay() {
         }
     }
 
+    const defaultColors = ['#5b7a99', '#ef4444', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899'];
+    const newColor = defaultColors[(newDayNum - 1) % defaultColors.length];
+
     const newDay = {
         id: newDayId,
         title: `第 ${newDayNum} 天`,
         date: newDateStr,
-        stops: []
+        stops: [],
+        color: newColor
     };
     trip.days.push(newDay);
     trip.activeDayId = newDayId;
@@ -62,7 +66,16 @@ export function addDay() {
         Array.from(sidebarNav.children).forEach(li => li.classList.remove('active'));
         const newLi = document.createElement('li');
         newLi.className = 'active';
-        newLi.innerHTML = newDay.title;
+        newLi.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding-right:10px;";
+        let dateStr = newDateStr.includes('年') ? newDateStr.split('年')[1] : newDateStr;
+        newLi.innerHTML = `
+            <div style="display:flex; align-items:center; gap: 8px; min-width:0;">
+                <div style="width:10px; height:10px; border-radius:50%; background:${newColor}; flex-shrink:0;"></div>
+                <span style="white-space:nowrap;">${newDay.title}</span>
+                <span style="font-size:0.85rem; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${dateStr}</span>
+            </div>
+            <span id="sidebar-count-${newDayId}" style="font-size:0.8rem; color:var(--text-secondary); white-space:nowrap; flex-shrink:0; margin-left:10px;">共 0 站行程</span>
+        `;
         newLi.onclick = () => scrollToDay(newDayId);
         sidebarNav.appendChild(newLi);
     }
@@ -485,6 +498,9 @@ export async function autoAddStop(dayId, placeId) {
             } else {
                 renderApp();
             }
+
+            const countSpan = document.getElementById(`sidebar-count-${dayId}`);
+            if (countSpan) countSpan.innerText = `共 ${day.stops.length} 站行程`;
         };
         renderDay();
 
