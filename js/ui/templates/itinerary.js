@@ -103,9 +103,9 @@ export function getTimelineItemHTML(day, stop, index, locationIdx, showTransit) 
                     ${stop.phone ? `<p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.5rem; display:flex; align-items:center; gap:5px;"><span style="font-size:1rem;">📞</span>${stop.phone}</p>` : ''}
                     ${stop.note ? `<p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 1rem; line-height: 1.4;">${stop.note}</p>` : `<p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 1rem; opacity: 0.6;">在此添加备注、链接等</p>`}
                     
-                    <div style="display:flex; gap: 0.8rem; margin-top: auto;">
-                        <span onclick="openTimePickerDirectly(event, '${day.id}', '${stop.id}')" style="background: rgba(167, 139, 250, 0.1); color: var(--accent-secondary); padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600; cursor:pointer;" title="编辑时间">${stop.time} ${stop.period === 'AM' ? '上午' : '下午'}</span>
-                        ${stop.price !== "0" && stop.price !== "" ? `<span onclick="openExpenseDirectly(event, '${day.id}', '${stop.id}')" style="background: rgba(167, 139, 250, 0.1); color: var(--accent-secondary); padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600; cursor:pointer;" title="编辑费用">$${stop.price}</span>` : ''}
+                    <div style="display:flex; gap: 0.6rem; margin-top: auto; flex-wrap: wrap; align-items:center;">
+                        <span onclick="openTimePickerDirectly(event, '${day.id}', '${stop.id}')" style="background: rgba(59, 130, 246, 0.1); color: var(--accent-secondary); padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600; cursor:pointer;" title="编辑时间">${stop.time} ${stop.period === 'AM' ? '上午' : '下午'}</span>
+                        <span onclick="openExpenseDirectly(event, '${day.id}', '${stop.id}')" style="background: ${stop.price && stop.price !== '0' ? 'rgba(34, 197, 94, 0.1)' : 'transparent'}; color: ${stop.price && stop.price !== '0' ? '#22c55e' : 'var(--text-secondary)'}; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600; cursor:pointer;" title="编辑费用">${stop.price && stop.price !== '0' ? '$' + parseFloat(stop.price).toFixed(2) : '$ 添加费用'}</span>
                     </div>
                 </div>
                 <!-- Thumb for Stop -->

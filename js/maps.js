@@ -78,12 +78,19 @@ export function initRealMap() {
         }
         googleMapMarkers = [];
 
+        // Clear existing route
+        if (window._mapRouteRenderer) {
+            window._mapRouteRenderer.setMap(null);
+            window._mapRouteRenderer = null;
+        }
+
         const trip = state.trips.find(t => t.id === state.activeTripId);
         if (!trip) return;
 
         const bounds = new google.maps.LatLngBounds();
         let hasValidPins = false;
         let pinCount = 0;
+        const routePath = []; // collect ordered positions for polyline
 
         trip.days.forEach(day => {
             if (!day.stops) return;
@@ -102,10 +109,51 @@ export function initRealMap() {
                     });
                     googleMapMarkers.push(marker);
                     bounds.extend(pos);
+                    routePath.push(pos);
                     hasValidPins = true;
                 }
             });
         });
+
+        // Draw driving route between stops using Directions API
+        if (routePath.length >= 2) {
+            const directionsService = new google.maps.DirectionsService();
+
+            // Directions API supports max 25 waypoints (origin + destination + 23 waypoints)
+            const origin = routePath[0];
+            const destination = routePath[routePath.length - 1];
+            const waypoints = routePath.slice(1, -1).map(pos => ({
+                location: pos,
+                stopover: true
+            }));
+
+            directionsService.route({
+                origin: origin,
+                destination: destination,
+                waypoints: waypoints.slice(0, 23), // API limit
+                travelMode: google.maps.TravelMode.DRIVING,
+                optimizeWaypoints: false // keep user's order
+            }, (result, status) => {
+                if (status === google.maps.DirectionsStatus.OK) {
+                    // Clear previous renderer
+                    if (window._mapRouteRenderer) {
+                        window._mapRouteRenderer.setMap(null);
+                    }
+                    window._mapRouteRenderer = new google.maps.DirectionsRenderer({
+                        map: googleMapInstance,
+                        directions: result,
+                        suppressMarkers: true, // we have our own numbered markers
+                        polylineOptions: {
+                            strokeColor: '#f97316',
+                            strokeOpacity: 0.85,
+                            strokeWeight: 4
+                        }
+                    });
+                } else {
+                    console.warn("Directions request failed:", status);
+                }
+            });
+        }
 
         if (hasValidPins) {
             googleMapInstance.fitBounds(bounds);

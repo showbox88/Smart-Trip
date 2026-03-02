@@ -10,7 +10,7 @@
             "title": "新的神秘冒险",
             "startDate": "2026-05-01",
             "endDate": "2026-05-05",
-            "thumb": "https://loremflickr.com/600/400/travel?lock=301&t=1772227958625",
+            "thumb": "https://loremflickr.com/600/400/travel?lock=305&t=1772464772907",
             "activeDayId": "day-1",
             "days": [
                 {
@@ -25,6 +25,12 @@
                             "checked": false
                         },
                         {
+                            "id": "l1772228141194",
+                            "type": "list",
+                            "title": "",
+                            "items": []
+                        },
+                        {
                             "id": "s1772227973617",
                             "location": "Casa Catracha",
                             "desc": "",
@@ -33,7 +39,7 @@
                             "time": "09:00",
                             "period": "AM",
                             "note": "",
-                            "price": "0",
+                            "price": "120",
                             "type": "location",
                             "lat": 40.7335825,
                             "lng": -73.442435,
@@ -41,12 +47,6 @@
                             "rating": 3.9,
                             "category": "餐饮",
                             "categoryIcon": "🍴"
-                        },
-                        {
-                            "id": "l1772228141194",
-                            "type": "list",
-                            "title": "",
-                            "items": []
                         },
                         {
                             "id": "s1772227982714",
@@ -83,8 +83,42 @@
                             "rating": 4.1,
                             "category": "机场",
                             "categoryIcon": "✈️"
+                        },
+                        {
+                            "id": "s1772229692221",
+                            "location": "IHOP",
+                            "desc": "Long-standing chain serving a wide variety of pancakes & other American breakfast & diner fare.",
+                            "address": "201 Airport Plaza Blvd, Farmingdale, NY 11735, USA",
+                            "phone": "(631) 393-6750",
+                            "time": "01:00",
+                            "period": "PM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 40.7387686,
+                            "lng": -73.41921049999999,
+                            "photo": "https://maps.googleapis.com/maps/api/place/js/PhotoService.GetPhoto?1sATCDNfVHl6zdZQqu7zjpaz8Shdew21-MWV3i8qs_42r2yh_ruK1dV8Ls-fj6-2BqhmtgP129ce68vfV9edXCJeAfU_SB91rWDGonexoEhkFFRGHfd4L7gxMGIiHoB8gGHsJJvmQuuRg_lVUd1Vy_rI_sl_qnwnvGtr9-pJulVm4vM4NFTWi503KNVEKb-KbXJ8BFylKMxeILTyL1pGprlsuJRSr0AxL8qhWbukciq-Rrdhq2yWKbOgpJzUHHbweXtjSfuP5egw26uH1eG9hmSq9KQkxH4Tl0oBgFt3cHjFVSRGoBNfTBX18_hIDxv6b4ZYECYqiHNkWYe5VMbJY71IOcv_aeLvx0BsDjuGAJiBoHTDJhncPwXBpBOxmbu1KtSfLV2rpwcAlQywMNoRL4Q_Vj1YynKjaqf8MXK6Pfzr5VF7kYug&3u400&5m1&2e1&callback=none&r_url=http%3A%2F%2Flocalhost%3A8000%2F&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k&token=79766",
+                            "rating": 4.3,
+                            "category": "餐饮",
+                            "categoryIcon": "🍴"
                         }
                     ]
+                }
+            ]
+        },
+        {
+            "id": "trip-1772229042035",
+            "title": "01111111",
+            "startDate": "2026-05-01",
+            "endDate": "2026-05-28",
+            "thumb": "https://loremflickr.com/600/400/travel?lock=302&t=1772229047677",
+            "activeDayId": "day-1",
+            "days": [
+                {
+                    "id": "day-1",
+                    "title": "第 1 天",
+                    "date": "2026年4月30日",
+                    "stops": []
                 }
             ]
         }
