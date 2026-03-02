@@ -318,10 +318,10 @@ async function showMapInfoPanel(place, placeId) {
         }).join('');
 
         dropdownHtml = `
-            <div style="margin-top: 1rem; position:relative;">
+            <div style="margin-top: 1rem; position:relative;" class="map-dropdown-container">
                 <label style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 8px; display:block;">选择日期:</label>
                 
-                <div id="map-custom-select" style="width:100%; padding: 0.8rem 1rem; background: transparent; border: 1px solid var(--glass-border); border-radius: 8px; font-size: 1rem; cursor:pointer; display:flex; align-items:center; justify-content:space-between;" onclick="document.getElementById('map-custom-dropdown').style.display = document.getElementById('map-custom-dropdown').style.display === 'none' ? 'block' : 'none'">
+                <div class="map-custom-select" style="width:100%; padding: 0.8rem 1rem; background: transparent; border: 1px solid var(--glass-border); border-radius: 8px; font-size: 1rem; cursor:pointer; display:flex; align-items:center; justify-content:space-between;" onclick="const dp = this.nextElementSibling; dp.style.display = dp.style.display === 'none' ? 'block' : 'none'; event.stopPropagation();">
                     
                     <div style="display:flex; align-items:center;">
                         <div id="map-select-color" style="width: 14px; height: 14px; border-radius: 50%; background: ${selectedColor}; flex-shrink:0; margin-right: 1.2rem; transform: translateY(1px);"></div>
@@ -337,7 +337,7 @@ async function showMapInfoPanel(place, placeId) {
 
                 </div>
 
-                <div id="map-custom-dropdown" style="display:none; position:absolute; bottom: 100%; left:0; right:0; margin-bottom: 0.4rem; background: var(--bg-secondary, #1e2535); border: 1px solid var(--glass-border); border-radius: 8px; box-shadow: 0 -4px 15px rgba(0,0,0,0.5); z-index: 501; max-height: 200px; overflow-y:auto;">
+                <div class="map-custom-dropdown" style="display:none; position:absolute; bottom: 100%; left:0; right:0; margin-bottom: 0.4rem; background: var(--bg-secondary, #1e2535); border: 1px solid var(--glass-border); border-radius: 8px; box-shadow: 0 -4px 15px rgba(0,0,0,0.5); z-index: 501; max-height: 200px; overflow-y:auto;">
                     ${optionsHtml}
                 </div>
             </div>
@@ -388,7 +388,8 @@ async function showMapInfoPanel(place, placeId) {
                 `;
             }
 
-            panel.querySelector('#map-custom-dropdown').style.display = 'none';
+            const dp = opt.closest('.map-custom-dropdown');
+            if (dp) dp.style.display = 'none';
         });
     });
 
@@ -396,13 +397,16 @@ async function showMapInfoPanel(place, placeId) {
     // We bind to 'window' rather than 'document' to avoid stale references,
     // and we name the handler so it can be removed if needed, but a cleaner way is:
     function handleOutsideClick(e) {
-        const dp = document.getElementById('map-custom-dropdown');
-        const selectBox = document.getElementById('map-custom-select');
-        if (dp && dp.style.display === 'block') {
-            if (!dp.contains(e.target) && selectBox && !selectBox.contains(e.target)) {
-                dp.style.display = 'none';
+        const containers = document.querySelectorAll('.map-dropdown-container');
+        containers.forEach(container => {
+            const dp = container.querySelector('.map-custom-dropdown');
+            const selectBox = container.querySelector('.map-custom-select');
+            if (dp && dp.style.display === 'block') {
+                if (!dp.contains(e.target) && selectBox && !selectBox.contains(e.target)) {
+                    dp.style.display = 'none';
+                }
             }
-        }
+        });
     }
     document.removeEventListener('click', window._mapDropdownCloseHandler);
     window._mapDropdownCloseHandler = handleOutsideClick;
