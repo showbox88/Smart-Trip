@@ -2,6 +2,7 @@ import { state, editState, setEditingContext } from '../../state.js';
 import { renderApp } from '../render.js';
 import { saveData } from '../../api.js';
 import { getCategoryFromTypes } from '../../constants.js';
+import { calculateDays } from '../../utils.js';
 import { getDay, getDayHTML, getTimelineItemHTML, injectNewStopToDOM } from '../templates/itinerary.js';
 import { closeModal } from './ux.js';
 
@@ -46,9 +47,33 @@ export function addDay() {
     };
     trip.days.push(newDay);
     trip.activeDayId = newDayId;
-
     saveData();
-    renderApp();
+
+    // 1. Update Header
+    const datesSpan = document.getElementById('trip-header-dates');
+    if (datesSpan) datesSpan.innerText = `${trip.startDate} 至 ${trip.endDate}`;
+
+    const durationSpan = document.getElementById('trip-header-duration');
+    if (durationSpan) durationSpan.innerText = `${calculateDays(trip.startDate, trip.endDate)} 天`;
+
+    // 2. Inject day to Sidebar
+    const sidebarNav = document.getElementById('sidebar-nav');
+    if (sidebarNav) {
+        Array.from(sidebarNav.children).forEach(li => li.classList.remove('active'));
+        const newLi = document.createElement('li');
+        newLi.className = 'active';
+        newLi.innerHTML = newDay.title;
+        newLi.onclick = () => scrollToDay(newDayId);
+        sidebarNav.appendChild(newLi);
+    }
+
+    // 3. Inject day HTML to Timeline
+    const timeline = document.querySelector('.itinerary-timeline');
+    if (timeline) {
+        const temp = document.createElement('div');
+        temp.innerHTML = getDayHTML(newDay, trip.days.length - 1, state.activeTripId);
+        timeline.appendChild(temp.firstElementChild);
+    }
 
     setTimeout(() => {
         const element = document.getElementById(newDayId);

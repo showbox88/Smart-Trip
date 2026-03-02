@@ -298,8 +298,8 @@ export function getTripHTML(trip) {
                             <div>
                                 <h2 style="margin:0; font-size:1.25rem; line-height:1.2;">${trip.title}</h2>
                                 <div style="display:flex; align-items:center; gap:0.6rem; margin-top:0.3rem; flex-wrap:wrap;">
-                                    <span style="color:var(--text-secondary); font-size:0.82rem;">${trip.startDate} 至 ${trip.endDate}</span>
-                                    <span style="background:rgba(167,139,250,0.15); color:var(--accent-secondary); border:1px solid var(--accent-secondary); padding:2px 8px; border-radius:20px; font-size:0.75rem; font-weight:bold;">${calculateDays(trip.startDate, trip.endDate)} 天</span>
+                                    <span id="trip-header-dates" style="color:var(--text-secondary); font-size:0.82rem;">${trip.startDate} 至 ${trip.endDate}</span>
+                                    <span id="trip-header-duration" style="background:rgba(167,139,250,0.15); color:var(--accent-secondary); border:1px solid var(--accent-secondary); padding:2px 8px; border-radius:20px; font-size:0.75rem; font-weight:bold;">${calculateDays(trip.startDate, trip.endDate)} 天</span>
                                     <span style="background:rgba(167,139,250,0.15); color:var(--accent-secondary); border:1px solid var(--accent-secondary); padding:2px 8px; border-radius:20px; font-size:0.75rem; font-weight:bold;">1 人</span>
                                 </div>
                             </div>
