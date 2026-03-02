@@ -34,7 +34,7 @@ export function openTrip(tripId) {
 
 export function deleteTrip(event, tripId) {
     if (event) event.stopPropagation();
-    if (confirm("确定要删除这个行程吗？")) {
+    window.openConfirmModal("确定要删除这个行程吗？", () => {
         state.trips = state.trips.filter(t => t.id !== tripId);
         saveData();
         if (state.activeTripId === tripId) {
@@ -43,7 +43,7 @@ export function deleteTrip(event, tripId) {
         } else {
             renderApp();
         }
-    }
+    });
 }
 
 export function shareTrip(event, tripId) {

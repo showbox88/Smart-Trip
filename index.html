@@ -63,9 +63,19 @@
 
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://npmcdn.com/flatpickr/dist/l10n/zh.js"></script>
+    <!-- Stub: must be defined before Maps API loads (ES modules are deferred) -->
+    <script>
+        window.initGoogleMaps = function () {
+            // Module not ready yet — queue the call
+            window._mapsApiReady = true;
+            if (typeof window._realInitGoogleMaps === 'function') {
+                window._realInitGoogleMaps();
+            }
+        };
+    </script>
     <script type="module" src="js/main.js"></script>
     <script
-        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k&libraries=places&callback=initGoogleMaps&loading=async"
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k&libraries=places,geometry,marker&callback=initGoogleMaps&loading=async"
         async defer></script>
 </body>
 

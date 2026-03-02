@@ -11,6 +11,32 @@ function closeModal() {
     setTimeout(() => overlay.classList.add('hidden'), 300);
 }
 
+// --- Custom Confirm Modal ---
+function openConfirmModal(message, onConfirm) {
+    const overlay = document.getElementById('modal-overlay');
+    const title = document.getElementById('modal-title');
+    const body = document.getElementById('modal-body');
+
+    title.innerText = "确认操作";
+    body.innerHTML = `
+        <div style="padding: 1rem 0; font-size: 1.1rem; color: var(--text-primary); text-align: center;">
+            ${message}
+        </div>
+        <div style="display:flex; justify-content:center; gap:15px; margin-top:1.5rem;">
+            <button class="submit-btn" style="background:var(--bg-secondary); border:1px solid var(--glass-border); color:var(--text-primary); min-width:100px;" onclick="closeModal()">取消</button>
+            <button class="submit-btn danger" style="background:#ef4444; color:white; border:none; min-width:100px;" id="confirm-yes-btn">确定</button>
+        </div>
+    `;
+
+    overlay.classList.add('active');
+    overlay.classList.remove('hidden');
+
+    document.getElementById('confirm-yes-btn').onclick = () => {
+        closeModal();
+        if (onConfirm) onConfirm();
+    };
+}
+
 function closeSubModal() {
     const overlay = document.getElementById('sub-modal-overlay');
     overlay.classList.remove('active');
@@ -220,12 +246,50 @@ function toggleDayCollapse(dayId) {
 let draggedItem = null;
 let draggedDayId = null;
 
+
+
+let _autoScrollRaf = null;
+let _globalDragOverHandler = null;
+
+function _getScrollContainer() {
+    return document.getElementById('itinerary-scroll-container') || document.documentElement;
+}
+
+function _startAutoScroll(clientY) {
+    const EDGE = 80;
+    const MAX_SPEED = 14;
+    const vh = window.innerHeight;
+    if (_autoScrollRaf) cancelAnimationFrame(_autoScrollRaf);
+
+    // Use bottom of the sticky trip header as the scroll-up trigger boundary
+    const headerEl = document.getElementById('trip-header-bar');
+    const headerBottom = headerEl ? headerEl.getBoundingClientRect().bottom : 0;
+    const upThreshold = headerBottom + EDGE;
+
+    let speed = 0;
+    if (clientY < upThreshold) speed = -MAX_SPEED * (1 - Math.max(0, clientY - headerBottom) / EDGE);
+    else if (clientY > vh - EDGE) speed = MAX_SPEED * ((clientY - (vh - EDGE)) / EDGE);
+
+    if (speed !== 0) {
+        const container = _getScrollContainer();
+        const loop = () => {
+            container.scrollTop += speed;
+            _autoScrollRaf = requestAnimationFrame(loop);
+        };
+        _autoScrollRaf = requestAnimationFrame(loop);
+    }
+}
+
 function handleDragStart(e, dayId, stopId) {
     draggedItem = stopId;
     draggedDayId = dayId;
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', stopId);
     e.target.style.opacity = '0.4';
+
+    // Global listener so auto-scroll works everywhere, including above all droppable elements
+    _globalDragOverHandler = (ev) => _startAutoScroll(ev.clientY);
+    document.addEventListener('dragover', _globalDragOverHandler);
 }
 
 function handleDragOver(e) {
@@ -293,6 +357,17 @@ function handleDrop(e, targetDayId, targetStopId) {
         temp2.innerHTML = getDayHTML(targetDay, tDayIndex, state.activeTripId);
         const tgtEl = document.getElementById(targetDayId);
         if (tgtEl) tgtEl.replaceWith(temp2.firstElementChild);
+
+        // Refresh map markers + route + transit data for affected days
+        if (window.googleMapsReady) {
+            import('../../maps.js').then(m => {
+                m.initRealMap();  // update markers & route line
+                m.computeTransitData(targetDayId);
+                if (draggedDayId !== targetDayId) {
+                    m.computeTransitData(draggedDayId);
+                }
+            });
+        }
     }
 
     draggedItem = null;
@@ -301,6 +376,11 @@ function handleDrop(e, targetDayId, targetStopId) {
 }
 
 function handleDragEnd(e) {
+    if (_autoScrollRaf) { cancelAnimationFrame(_autoScrollRaf); _autoScrollRaf = null; }
+    if (_globalDragOverHandler) {
+        document.removeEventListener('dragover', _globalDragOverHandler);
+        _globalDragOverHandler = null;
+    }
     if (e.target.style) e.target.style.opacity = '1';
     const wrappers = document.querySelectorAll('.timeline-item-wrapper');
     wrappers.forEach(w => {
@@ -456,7 +536,7 @@ function saveMockExpense() {
 
 // --- Exports ---
 export {
-    closeModal, closeSubModal, openModal,
+    closeModal, closeSubModal, openModal, openConfirmModal,
     openEditTripModal, openEditModal,
     scrollToDay, editDaySubtitle, toggleOverview, toggleDayCollapse,
     handleDragStart, handleDragOver, handleDragEnter, handleDragLeave, handleDrop, handleDragEnd,

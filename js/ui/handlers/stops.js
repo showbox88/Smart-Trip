@@ -60,14 +60,14 @@ export function addDay() {
 
 export function deleteDay(event, dayId) {
     event.stopPropagation();
-    if (confirm('确定要删除这一天的行程吗？')) {
+    window.openConfirmModal('确定要删除这一天的行程吗？', () => {
         const trip = state.trips.find(t => t.id === state.activeTripId);
         if (trip) {
             trip.days = trip.days.filter(d => d.id !== dayId);
             saveData();
             renderApp();
         }
-    }
+    });
 }
 
 // --- Stop Management ---
@@ -76,34 +76,35 @@ export function deleteStop(event, dayId, stopId) {
     // or from edit modal delete button (no args, uses editState)
     if (event && dayId && stopId) {
         if (event) event.stopPropagation();
-        if (!confirm("确定要删除这项内容吗？")) return;
-        const trip = state.trips.find(t => t.id === state.activeTripId);
-        const day = trip.days.find(d => d.id === dayId);
-        day.stops = day.stops.filter(s => s.id !== stopId);
-        saveData();
-        renderApp();
+        window.openConfirmModal("确定要删除这项内容吗？", () => {
+            const trip = state.trips.find(t => t.id === state.activeTripId);
+            const day = trip.days.find(d => d.id === dayId);
+            day.stops = day.stops.filter(s => s.id !== stopId);
+            saveData();
+            renderApp();
+        });
     } else {
         // Called from modal
-        if (confirm("确定删除这个目的地吗？")) {
+        window.openConfirmModal("确定删除这个目的地吗？", () => {
             const trip = state.trips.find(t => t.id === state.activeTripId);
             const day = trip.days.find(d => d.id === editState.editingDayId);
             day.stops = day.stops.filter(s => s.id !== editState.editingStopId);
             saveData();
             closeModal();
             renderApp();
-        }
+        });
     }
 }
 
 // deleteTimelineItem is the trash icon on the timeline
 export function deleteTimelineItem(dayId, itemId) {
-    if (confirm("确定要删除这项内容吗？")) {
+    window.openConfirmModal("确定要删除这项内容吗？", () => {
         const day = getDay(dayId);
         if (!day) return;
         day.stops = day.stops.filter(s => s.id !== itemId);
         saveData();
         renderApp();
-    }
+    });
 }
 
 export function saveStop() {
@@ -339,20 +340,14 @@ export function addTimelineList(dayId) {
     injectNewStopToDOM(dayId, html);
 }
 
-export function autoAddStop(dayId, placeId) {
-    if (!window.placesDetailsService) {
-        const dummy = document.createElement('div');
-        window.placesDetailsService = new google.maps.places.PlacesService(dummy);
-    }
+export async function autoAddStop(dayId, placeId) {
+    try {
+        const { Place } = await google.maps.importLibrary('places');
+        const place = new Place({ id: placeId });
 
-    window.placesDetailsService.getDetails({
-        placeId: placeId,
-        fields: ['name', 'formatted_address', 'formatted_phone_number', 'geometry', 'photos', 'rating', 'editorial_summary', 'types']
-    }, (place, status) => {
-        if (status !== google.maps.places.PlacesServiceStatus.OK) {
-            alert('Failed to get place details');
-            return;
-        }
+        await place.fetchFields({
+            fields: ['displayName', 'formattedAddress', 'nationalPhoneNumber', 'location', 'photos', 'rating', 'editorialSummary', 'types']
+        });
 
         const trip = state.trips.find(t => t.id === state.activeTripId);
         const day = trip.days.find(d => d.id === dayId);
@@ -376,24 +371,26 @@ export function autoAddStop(dayId, placeId) {
             }
         }
 
-        const remotePhotoUrl = place.photos && place.photos.length > 0 ? place.photos[0].getUrl({ maxWidth: 400 }) : '';
-        const desc = place.editorial_summary ? place.editorial_summary.overview : '';
-        const categoryInfo = getCategoryFromTypes(place.types);
+        const remotePhotoUrl = place.photos && place.photos.length > 0
+            ? place.photos[0].getURI({ maxWidth: 400 })
+            : '';
+        const desc = place.editorialSummary || '';
+        const categoryInfo = getCategoryFromTypes(place.types || []);
 
         const newStop = {
             id: 's' + Date.now(),
-            location: place.name,
+            location: place.displayName,
             desc: desc,
-            address: place.formatted_address || '',
-            phone: place.formatted_phone_number || '',
+            address: place.formattedAddress || '',
+            phone: place.nationalPhoneNumber || '',
             time: timeStr,
             period: period,
             note: '',
             price: '0',
             type: 'location',
-            lat: place.geometry && place.geometry.location ? place.geometry.location.lat() : 0,
-            lng: place.geometry && place.geometry.location ? place.geometry.location.lng() : 0,
-            photo: remotePhotoUrl, // will be replaced with local URL after upload
+            lat: place.location ? place.location.lat() : 0,
+            lng: place.location ? place.location.lng() : 0,
+            photo: remotePhotoUrl,
             rating: place.rating,
             category: categoryInfo.label,
             categoryIcon: categoryInfo.icon
@@ -414,9 +411,6 @@ export function autoAddStop(dayId, placeId) {
 
         saveData();
 
-        // Render immediately with remote URL so UI doesn't wait
-        const timeline = document.querySelector('.itinerary-timeline');
-        const daySection = document.getElementById(dayId);
         const renderDay = () => {
             const ds = document.getElementById(dayId);
             const tl = document.querySelector('.itinerary-timeline');
@@ -431,12 +425,13 @@ export function autoAddStop(dayId, placeId) {
         };
         renderDay();
 
-        // Update map markers
         if (window.googleMapsReady) {
-            import('../../maps.js').then(m => m.initRealMap());
+            import('../../maps.js').then(m => {
+                m.initRealMap();
+                m.computeTransitData(dayId);
+            });
         }
 
-        // Background: cache the photo locally so it doesn't expire
         if (remotePhotoUrl) {
             fetch('/api/upload-image', {
                 method: 'POST',
@@ -446,20 +441,23 @@ export function autoAddStop(dayId, placeId) {
                 .then(r => r.json())
                 .then(result => {
                     if (result.status === 'success' && result.localUrl) {
-                        // Update the stop with the local URL
                         newStop.photo = result.localUrl;
                         saveData();
-                        // Re-render the day card with local image
                         renderDay();
                         console.log('[image-cache] Saved locally:', result.localUrl);
                     }
                 })
                 .catch(err => {
-                    console.warn('[image-cache] Failed to cache image, keeping remote URL:', err);
+                    console.warn('[image-cache] Failed to cache image:', err);
                 });
         }
-    });
+
+    } catch (err) {
+        console.error('[autoAddStop] Place.fetchFields failed:', err);
+        alert('无法获取地点信息，请重试');
+    }
 }
+
 
 function scrollToDay(id) {
     // local reference used by addDay

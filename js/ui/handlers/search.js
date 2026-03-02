@@ -29,37 +29,43 @@ export function handleSearchInput(event, dayId) {
         return;
     }
 
-    if (!autocompleteService) {
-        autocompleteService = new google.maps.places.AutocompleteService();
-    }
+    searchTimeout = setTimeout(async () => {
+        try {
+            const { AutocompleteSuggestion } = await google.maps.importLibrary('places');
+            const { suggestions } = await AutocompleteSuggestion.fetchAutocompleteSuggestions({ input: query });
 
-    searchTimeout = setTimeout(() => {
-        autocompleteService.getPlacePredictions({ input: query }, (predictions, status) => {
-            if (status !== google.maps.places.PlacesServiceStatus.OK || !predictions) {
-                let errorMsg = '未找到结果';
-                if (status === 'REQUEST_DENIED') errorMsg = 'Google Maps API 权限错误';
-                if (status === 'OVER_QUERY_LIMIT') errorMsg = 'Google Maps API 额度超限';
-                dropdown.innerHTML = `<li style="color:var(--text-secondary); padding: 1rem; text-align:center;">${errorMsg} (${status})</li>`;
+            if (!suggestions || suggestions.length === 0) {
+                dropdown.innerHTML = `<li style="color:var(--text-secondary); padding: 1rem; text-align:center;">未找到结果</li>`;
                 dropdown.classList.add('active');
                 return;
             }
 
-            currentSearchPredictions = predictions;
+            // Map to a compatible format for the rest of the code
+            currentSearchPredictions = suggestions.map(s => ({
+                place_id: s.placePrediction.placeId,
+                main_text: s.placePrediction.mainText?.text || s.placePrediction.text.text,
+                secondary_text: s.placePrediction.secondaryText?.text || ''
+            }));
             currentSearchFocusIdx = -1;
-            dropdown.innerHTML = predictions.map((p, idx) => `
+
+            dropdown.innerHTML = currentSearchPredictions.map((p, idx) => `
                 <li onmousedown="handleDropdownClick('${dayId}', '${p.place_id}')">
                     <div style="display:flex; flex-direction:column; gap:4px;">
                         <span style="font-weight:600; color:var(--text-primary); font-size:1.1rem;">
-                            <span style="color:var(--text-secondary); margin-right:8px;">📍</span>${p.structured_formatting.main_text}
+                            <span style="color:var(--text-secondary); margin-right:8px;">📍</span>${p.main_text}
                         </span>
                         <span style="font-size:0.85rem; color:var(--text-secondary); padding-left:26px;">
-                            ${p.structured_formatting.secondary_text || ''}
+                            ${p.secondary_text}
                         </span>
                     </div>
                 </li>
             `).join('');
             dropdown.classList.add('active');
-        });
+        } catch (err) {
+            console.error('[search] AutocompleteSuggestion failed:', err);
+            dropdown.innerHTML = `<li style="color:var(--text-secondary); padding: 1rem; text-align:center;">搜索失败，请重试</li>`;
+            dropdown.classList.add('active');
+        }
     }, 250);
 }
 
@@ -156,13 +162,29 @@ export function selectImage(event, url) {
     if (event) event.stopPropagation();
     const trip = state.trips.find(t => t.id === state.activeTripId);
     if (trip) {
-        trip.thumb = url;
+        trip.thumb = url; // set immediately so UI feels instant
     }
 
-    // Also update hidden input if it exists (for original modal style)
     const hiddenInput = document.getElementById('trip-edit-thumb');
     if (hiddenInput) hiddenInput.value = url;
 
     document.querySelectorAll('.image-thumb-option').forEach(el => el.classList.remove('selected'));
     if (event && event.target) event.target.classList.add('selected');
+
+    // Background: cache the image locally so it doesn't change between sessions
+    fetch('/api/upload-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url })
+    })
+        .then(r => r.json())
+        .then(async result => {
+            if (result.status === 'success' && result.localUrl && trip) {
+                trip.thumb = result.localUrl;
+                const { saveData } = await import('../../api.js');
+                saveData(); // persist local URL so it survives browser restarts
+                console.log('[image-cache] Trip cover saved locally:', result.localUrl);
+            }
+        })
+        .catch(err => console.warn('[image-cache] Trip cover cache failed:', err));
 }

@@ -113,7 +113,10 @@ export function getTimelineItemHTML(day, stop, index, locationIdx, showTransit) 
             </div>
             ${showTransit ? `
                 <div style="padding: 0.5rem 0 0.5rem 0.5rem; font-size: 0.85rem; color: var(--text-secondary); display:flex; align-items:center; gap: 0.5rem; position:relative; z-index:2;">
-                    <span>🚗 1 小时 15 分钟 · 45英里 ▼ 路线</span>
+                    ${stop.transitToNext
+                    ? `<span>🚗 ${stop.transitToNext.duration} · ${stop.transitToNext.distance}</span>`
+                    : `<span style="opacity:0.5;">🚗 计算路程中...</span>`
+                }
                 </div>
             ` : ''}
         `;
@@ -151,7 +154,7 @@ export function getTimelineItemHTML(day, stop, index, locationIdx, showTransit) 
             </div>
 
             <!-- Right Action (Trash) -->
-            <div class="item-hover-action" style="position:absolute; right: 0; top: 1.2rem; cursor:pointer; color:var(--text-secondary); opacity:0; pointer-events:none; transition:opacity 0.2s; font-size: 1.1rem; padding: 0.2rem;" onclick="deleteTimelineItem('${day.id}', '${stop.id}')" title="删除">
+            <div class="item-hover-action" style="position:absolute; right: 0; top: 1.2rem; cursor:pointer; color:var(--text-secondary); z-index: 10; opacity:0; pointer-events:none; transition:opacity 0.2s; font-size: 1.1rem; padding: 0.2rem;" onmousedown="deleteTimelineItem('${day.id}', '${stop.id}')" title="删除">
                 🗑️
             </div>
         </div>
@@ -201,9 +204,14 @@ export function getDayHTML(day, dayIndex, activeDayId) {
                 
                 ${day.stops.length === 0 ? '<p style="color:var(--text-secondary); margin-bottom:1rem; position:relative; z-index:2; padding-left:1rem;">还没有安排地点。</p>' : ''}
                 ${day.stops.map((stop, index) => {
-        let locationIdx = day.stops.slice(0, index).filter(s => s.type !== 'note' && s.type !== 'list').length;
-        let isLast = index === day.stops.length - 1;
-        return getTimelineItemHTML(day, stop, index, locationIdx, !isLast && day.stops[index + 1] && (day.stops[index + 1].type === 'location' || !day.stops[index + 1].type));
+        // showTransit: true if current stop is a location AND there's any location stop after it
+        // (notes/lists in between should NOT hide transit time)
+        const locationIdx = day.stops.slice(0, index).filter(s => s.type !== 'note' && s.type !== 'list').length;
+        const isLocationStop = stop.type === 'location' || !stop.type;
+        const hasNextLocationStop = isLocationStop && day.stops.slice(index + 1).some(
+            s => s.type === 'location' || !s.type
+        );
+        return getTimelineItemHTML(day, stop, index, locationIdx, hasNextLocationStop);
     }).join('')}
             
             <!-- Dedicated Location Search Bar at bottom of Day -->
@@ -261,19 +269,17 @@ export function getTripHTML(trip) {
             </aside>
             
             <section class="main-itinerary" id="itinerary-scroll-container" style="padding-top: 0; padding-left: 0; padding-right: 0;">
-                <div class="itinerary-header" style="padding: 1.5rem 1.5rem 2rem 1.5rem; background: var(--bg-secondary); border-bottom: 1px solid var(--glass-border); margin-bottom: 2rem;">
-                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                        <div style="display:flex; align-items:center; gap: 2rem;">
-                            <!-- Trip Thumbnail on the left -->
-                            <div style="width: 160px; height: 110px; border-radius: 12px; background-image: url('${trip.thumb}'); background-size: cover; background-position: center; border: 1px solid var(--glass-border); box-shadow: 0 5px 15px rgba(0,0,0,0.4);"></div>
+                <div class="itinerary-header" id="trip-header-bar" style="padding: 0.75rem 1.5rem; background: var(--bg-secondary); border-bottom: 1px solid var(--glass-border); margin-bottom: 1.5rem; position: sticky; top: 0; z-index: 100;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div style="display:flex; align-items:center; gap: 1rem;">
+                            <!-- Compact thumbnail -->
+                            <div style="width:56px; height:56px; border-radius:10px; background-image:url('${trip.thumb}'); background-size:cover; background-position:center; border:1px solid var(--glass-border); flex-shrink:0;"></div>
                             <div>
-                                <h2 style="margin-bottom:0.4rem; font-size: 2.2rem; margin-top:0;">${trip.title}</h2>
-                                <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.95rem; font-weight: 500;">
-                                    ${trip.startDate} 至 ${trip.endDate}
-                                </p>
-                                <div class="badges">
-                                    <span class="badge" style="background: rgba(167, 139, 250, 0.15); color: var(--accent-secondary); border: 1px solid var(--accent-secondary); padding: 5px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">${calculateDays(trip.startDate, trip.endDate)} 天</span>
-                                    <span class="badge" style="background: rgba(167, 139, 250, 0.15); color: var(--accent-secondary); border: 1px solid var(--accent-secondary); padding: 5px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">1 人</span>
+                                <h2 style="margin:0; font-size:1.25rem; line-height:1.2;">${trip.title}</h2>
+                                <div style="display:flex; align-items:center; gap:0.6rem; margin-top:0.3rem; flex-wrap:wrap;">
+                                    <span style="color:var(--text-secondary); font-size:0.82rem;">${trip.startDate} 至 ${trip.endDate}</span>
+                                    <span style="background:rgba(167,139,250,0.15); color:var(--accent-secondary); border:1px solid var(--accent-secondary); padding:2px 8px; border-radius:20px; font-size:0.75rem; font-weight:bold;">${calculateDays(trip.startDate, trip.endDate)} 天</span>
+                                    <span style="background:rgba(167,139,250,0.15); color:var(--accent-secondary); border:1px solid var(--accent-secondary); padding:2px 8px; border-radius:20px; font-size:0.75rem; font-weight:bold;">1 人</span>
                                 </div>
                             </div>
                         </div>

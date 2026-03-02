@@ -68,6 +68,7 @@ window.selectImage = SearchHandlers.selectImage;
 // UX / Modals
 window.closeModal = UXHandlers.closeModal;
 window.closeSubModal = UXHandlers.closeSubModal;
+window.openConfirmModal = UXHandlers.openConfirmModal;
 window.openEditTripModal = UXHandlers.openEditTripModal;
 window.openEditModal = UXHandlers.openEditModal;
 window.scrollToDay = UXHandlers.scrollToDay;
@@ -96,18 +97,24 @@ window.toggleMapDarkMode = toggleMapDarkMode;
 window.editDay = function (dayId) { alert(`编辑日期: ${dayId}`); };
 window.shareDay = function (event, dayId) { if (event) event.stopPropagation(); alert(`分享日期: ${dayId}`); };
 
-// Maps Bridge
-window.initGoogleMaps = function () {
+// Maps Bridge — register as _realInitGoogleMaps so the inline stub in index.html can call it
+// (ES modules are deferred, so window.initGoogleMaps may fire before this module runs)
+window._realInitGoogleMaps = function () {
     try {
         setGoogleMapsReady(true);
-        console.log("Google Maps API callback triggered (initGoogleMaps)");
+        console.log("Google Maps API ready and initialised");
         if (state.currentView === 'trip') {
             initRealMap();
         }
     } catch (e) {
-        console.error("initGoogleMaps failed:", e);
+        console.error("_realInitGoogleMaps failed:", e);
     }
 };
+
+// If Maps API already fired before this module loaded, run immediately
+if (window._mapsApiReady) {
+    window._realInitGoogleMaps();
+}
 
 // --- Global Click Listener (close menus & search dropdowns) ---
 document.addEventListener('click', (e) => {
@@ -128,7 +135,4 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// Fallback in case the script loaded before this function was defined
-if (typeof google !== 'undefined' && google.maps && !window.googleMapsReady) {
-    window.initGoogleMaps();
-}
+
