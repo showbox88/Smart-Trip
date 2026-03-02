@@ -9,15 +9,37 @@
             "id": "trip-1772489475916",
             "title": "新的神秘冒险",
             "startDate": "2026-05-01",
-            "endDate": "2026-05-11",
+            "endDate": "2026-05-12",
             "thumb": "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-            "activeDayId": "day-1772492963583",
+            "activeDayId": "day-1772494804393",
             "days": [
                 {
                     "id": "day-1772489475916-0",
                     "title": "第 1 天",
-                    "date": "2026年4月30日",
+                    "date": "2026年5月1日",
                     "stops": [
+                        {
+                            "id": "s1772494485710",
+                            "location": "小金井キャンパス多目的グラウンド",
+                            "desc": "",
+                            "address": "3 Chome-7 Kajinocho, Koganei, Tokyo 184-0002, Japan",
+                            "phone": "",
+                            "time": "03:00",
+                            "period": "PM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 35.7111849,
+                            "lng": 139.5239016,
+                            "photo": "",
+                            "rating": null,
+                            "category": "地点",
+                            "categoryIcon": "📍",
+                            "transitToNext": {
+                                "duration": "5 分钟",
+                                "distance": "1.6 公里"
+                            }
+                        },
                         {
                             "id": "s1772493952465",
                             "location": "Starbucks Coffee - Nishitokyo Shimmachi",
@@ -36,8 +58,30 @@
                             "category": "咖啡馆",
                             "categoryIcon": "☕",
                             "transitToNext": {
-                                "duration": "2 分钟",
-                                "distance": "1.0 公里"
+                                "duration": "4 分钟",
+                                "distance": "1.8 公里"
+                            }
+                        },
+                        {
+                            "id": "s1772494564863",
+                            "location": "Domino's Pizza Higashikoganei Midoricho",
+                            "desc": "Delivery/carryout chain offering a wide range of pizzas & a variety of other dishes & sides.",
+                            "address": "2-chōme-7-25 Midorichō, Koganei, Tokyo 184-0003, Japan",
+                            "phone": "042-380-1655",
+                            "time": "11:00",
+                            "period": "AM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 35.7064473,
+                            "lng": 139.52158,
+                            "photo": "/uploads/5352975dad196886634db06e92ed9722.jpg",
+                            "rating": 2.6,
+                            "category": "餐饮",
+                            "categoryIcon": "🍴",
+                            "transitToNext": {
+                                "duration": "1 分钟",
+                                "distance": "0.7 公里"
                             }
                         },
                         {
@@ -87,40 +131,40 @@
                 {
                     "id": "day-1772489475916-1",
                     "title": "第 2 天",
-                    "date": "2026年5月1日",
+                    "date": "2026年5月2日",
                     "stops": [],
                     "color": "#ef4444"
                 },
                 {
                     "id": "day-1772489475916-2",
                     "title": "第 3 天",
-                    "date": "2026年5月2日",
+                    "date": "2026年5月3日",
                     "stops": [],
                     "color": "#10b981"
                 },
                 {
                     "id": "day-1772489475916-3",
                     "title": "第 4 天",
-                    "date": "2026年5月3日",
+                    "date": "2026年5月4日",
                     "stops": [],
                     "color": "#f59e0b"
                 },
                 {
                     "id": "day-1772489475916-4",
                     "title": "第 5 天",
-                    "date": "2026年5月4日",
+                    "date": "2026年5月5日",
                     "stops": []
                 },
                 {
                     "id": "day-1772489479401",
                     "title": "第 6 天",
-                    "date": "2026年5月5日",
+                    "date": "2026年5月6日",
                     "stops": []
                 },
                 {
                     "id": "day-1772489480835",
                     "title": "第 7 天",
-                    "date": "2026年5月6日",
+                    "date": "2026年5月7日",
                     "stops": []
                 },
                 {
@@ -146,6 +190,12 @@
                     "title": "第 11 天",
                     "date": "2026年5月11日",
                     "stops": []
+                },
+                {
+                    "id": "day-1772494804393",
+                    "title": "第 12 天",
+                    "date": "2026年5月12日",
+                    "stops": []
                 }
             ]
         }
@@ -154,13 +204,14 @@
         "day-1772489475916-0": false,
         "day-1772489475916-1": true,
         "day-1772489475916-2": true,
-        "day-1772489475916-3": true,
+        "day-1772489475916-3": false,
         "day-1772489475916-4": true,
         "day-1772489479401": true,
         "day-1772489480835": true,
         "day-1772492777973": true,
         "day-1772492781573": true,
         "day-1772492805470": true,
-        "day-1772492963583": true
+        "day-1772492963583": true,
+        "day-1772494804393": true
     }
 }

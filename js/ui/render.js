@@ -29,7 +29,7 @@ function updateNavLinks() {
     } else {
         nav.innerHTML = `
             <li><a href="#" onclick="goDashboard()">我的行程</a></li>
-            <li><a href="https://wanderlog.com" target="_blank">灵感</a></li>
+            <li><a href="https://google.com/travel" target="_blank">灵感</a></li>
             <li class="btn-login"><a href="#">${state.user.name}</a></li>
             <li class="btn-primary"><a href="#" onclick="goDashboard()">开始规划</a></li>
         `;

@@ -116,7 +116,7 @@ function openEditTripModal(tripId) {
     searchImages(initialQuery);
 }
 
-// --- Edit Stop Modal (Wanderlog-style) ---
+// --- Edit Stop Modal ---
 function openEditModal(dayId, stopId) {
     setEditingContext(dayId, stopId, state.activeTripId);
 
