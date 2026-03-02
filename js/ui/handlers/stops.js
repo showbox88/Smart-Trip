@@ -105,7 +105,31 @@ export function setDayColor(dayId, colorHex) {
     if (day) {
         day.color = colorHex;
         saveData();
-        renderApp();
+
+        // 1. Update the color picker bubble
+        const colorBubbles = document.querySelectorAll(`[onclick="toggleMenu(event, 'color-${dayId}')"]`);
+        colorBubbles.forEach(el => el.style.background = colorHex);
+
+        // 2. Update all timeline line segments for this day
+        const lineSegments = document.querySelectorAll(`.day-section#${dayId} .timeline-line`);
+        lineSegments.forEach(el => el.style.background = colorHex);
+
+        // 3. Update the dropdown selection borders
+        const menuDropdown = document.getElementById(`menu-color-${dayId}`);
+        if (menuDropdown) {
+            Array.from(menuDropdown.children).forEach(child => {
+                if (child.style.background === colorHex || child.style.backgroundColor === colorHex) {
+                    child.style.borderColor = 'var(--text-primary)';
+                } else {
+                    child.style.borderColor = 'transparent';
+                }
+            });
+        }
+
+        // 4. Update the Google Map to repaint the markers
+        if (window._realInitGoogleMaps) {
+            window._realInitGoogleMaps();
+        }
     }
 }
 
