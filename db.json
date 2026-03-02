@@ -2,7 +2,138 @@
     "user": {
         "name": "Test Traveler"
     },
-    "currentView": "dashboard",
-    "activeTripId": null,
-    "trips": []
+    "currentView": "trip",
+    "activeTripId": "trip-1772489091222",
+    "trips": [
+        {
+            "id": "trip-1772489091222",
+            "title": "新的神秘冒险",
+            "startDate": "2026-05-01",
+            "endDate": "2026-05-05",
+            "thumb": "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+            "activeDayId": "day-1772489127338",
+            "days": [
+                {
+                    "id": "day-1772489091223-0",
+                    "title": "第 1 天",
+                    "date": "2026年4月30日",
+                    "stops": [
+                        {
+                            "id": "s1772489114626",
+                            "location": "John F. Kennedy International Airport",
+                            "desc": "New York City hub offering flights from 80+ airlines, plus a variety of shops & eateries.",
+                            "address": "Queens, NY 11430, USA",
+                            "phone": "(718) 244-4444",
+                            "time": "09:00",
+                            "period": "AM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 40.6446124,
+                            "lng": -73.7797278,
+                            "photo": "/uploads/2e9653790ea7209399928c7957994fc7.jpg",
+                            "rating": 3.8,
+                            "category": "机场",
+                            "categoryIcon": "✈️",
+                            "transitToNext": {
+                                "duration": "26 分钟",
+                                "distance": "17.0 公里"
+                            }
+                        },
+                        {
+                            "id": "s1772489122023",
+                            "location": "Queens Center",
+                            "desc": "This coliseum-like indoor shopping mall houses dozens of retail stores plus a food court.",
+                            "address": "90-15 Queens Blvd, Elmhurst, NY 11373, USA",
+                            "phone": "(718) 592-3900",
+                            "time": "11:00",
+                            "period": "AM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 40.7347872,
+                            "lng": -73.8688409,
+                            "photo": "/uploads/4abfdac8ca124e6f0c075abbf57c500c.jpg",
+                            "rating": 4.4,
+                            "category": "购物中心",
+                            "categoryIcon": "🛍️",
+                            "transitToNext": null
+                        }
+                    ]
+                },
+                {
+                    "id": "day-1772489091223-1",
+                    "title": "第 2 天",
+                    "date": "2026年5月1日",
+                    "stops": []
+                },
+                {
+                    "id": "day-1772489091223-2",
+                    "title": "第 3 天",
+                    "date": "2026年5月2日",
+                    "stops": [
+                        {
+                            "id": "s1772489183426",
+                            "location": "Gateway Center",
+                            "desc": "Shopping destination hosting a mix of national megastores & familiar restaurant chains.",
+                            "address": "579 Gateway Dr, Brooklyn, NY 11239, USA",
+                            "phone": "(718) 235-0467",
+                            "time": "09:00",
+                            "period": "AM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 40.6530035,
+                            "lng": -73.87025469999999,
+                            "photo": "/uploads/b3dc14f25cc28fe2dd932e4a3c016c97.jpg",
+                            "rating": 4.4,
+                            "category": "购物中心",
+                            "categoryIcon": "🛍️",
+                            "transitToNext": {
+                                "duration": "23 分钟",
+                                "distance": "6.8 公里"
+                            }
+                        },
+                        {
+                            "id": "s1772489190777",
+                            "location": "Lincoln Terrace / Arthur S. Somers Park",
+                            "desc": "Community park offering basketball, tennis & handball courts, football fields & playgrounds.",
+                            "address": "E New York Ave, Brooklyn, NY 11213, USA",
+                            "phone": "(212) 639-9675",
+                            "time": "11:00",
+                            "period": "AM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 40.6668637,
+                            "lng": -73.92720530000001,
+                            "photo": "/uploads/0adbe51fbd5892788327eb4c93aa5e10.jpg",
+                            "rating": 4.3,
+                            "category": "公园",
+                            "categoryIcon": "🌳",
+                            "transitToNext": null
+                        }
+                    ]
+                },
+                {
+                    "id": "day-1772489091223-3",
+                    "title": "第 4 天",
+                    "date": "2026年5月3日",
+                    "stops": []
+                },
+                {
+                    "id": "day-1772489091223-4",
+                    "title": "第 5 天",
+                    "date": "2026年5月4日",
+                    "stops": []
+                },
+                {
+                    "id": "day-1772489127338",
+                    "title": "第 6 天",
+                    "date": "2026年5月5日",
+                    "stops": []
+                }
+            ]
+        }
+    ]
 }

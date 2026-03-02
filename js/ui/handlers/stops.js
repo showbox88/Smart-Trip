@@ -39,28 +39,10 @@ export function addDay() {
         stops: []
     };
     trip.days.push(newDay);
-    saveData();
-
-    // Inject day to Sidebar
-    const sidebarNav = document.getElementById('sidebar-nav');
-    if (sidebarNav) {
-        Array.from(sidebarNav.children).forEach(li => li.classList.remove('active'));
-        const newLi = document.createElement('li');
-        newLi.className = 'active';
-        newLi.innerHTML = newDay.title;
-        newLi.onclick = () => scrollToDay(newDayId);
-        sidebarNav.appendChild(newLi);
-    }
-
-    // Inject day HTML to Timeline
-    const timeline = document.querySelector('.itinerary-timeline');
-    if (timeline) {
-        const temp = document.createElement('div');
-        temp.innerHTML = getDayHTML(newDay, trip.days.length - 1, state.activeTripId);
-        timeline.appendChild(temp.firstElementChild);
-    }
-
     trip.activeDayId = newDayId;
+
+    saveData();
+    renderApp();
 
     setTimeout(() => {
         const element = document.getElementById(newDayId);
