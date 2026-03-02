@@ -196,6 +196,61 @@ function scrollToDay(id) {
         element.scrollIntoView({ behavior: 'smooth' });
     }
 }
+function editDay(dayId) {
+    const trip = state.trips.find(t => t.id === state.activeTripId);
+    if (!trip) return;
+    const day = trip.days.find(d => d.id === dayId);
+    if (!day) return;
+
+    const title = document.getElementById('sub-modal-title');
+    const body = document.getElementById('sub-modal-body');
+    title.innerText = '修改日期';
+
+    // Parse date for flatpickr
+    let defaultDate = "today";
+    if (day.date) {
+        defaultDate = day.date.replace(/[年月日]/g, '-').replace(/-$/, '');
+    }
+
+    body.innerHTML = `
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+            <label style="font-size:0.95rem; font-weight:bold; margin-bottom:0.8rem; display:block;">选择新日期</label>
+            <input type="text" id="edit-day-date" class="date-picker-input" value="${defaultDate}" placeholder="选择日期" style="width:100%; padding:0.8rem; background:var(--bg-primary); border:1px solid var(--glass-border); border-radius:8px; color:var(--text-primary); outline:none;">
+        </div>
+        <button class="submit-btn" style="background: var(--accent-primary); color: white; width: 100%; border-radius: 8px; padding: 0.8rem; margin-bottom: 1.5rem; font-size:1rem; font-weight:bold; border:none; cursor:pointer;" onclick="saveEditDay('${dayId}')">保存修改</button>
+    `;
+
+    const overlay = document.getElementById('sub-modal-overlay');
+    overlay.classList.add('active');
+    overlay.classList.remove('hidden');
+
+    if (typeof flatpickr !== 'undefined') {
+        flatpickr("#edit-day-date", {
+            dateFormat: "Y-m-d",
+            defaultDate: defaultDate,
+            locale: "zh",
+            theme: "dark"
+        });
+    }
+}
+
+function saveEditDay(dayId) {
+    const dp = document.getElementById('edit-day-date');
+    if (!dp || !dp.value) return;
+
+    const trip = state.trips.find(t => t.id === state.activeTripId);
+    if (!trip) return;
+    const day = trip.days.find(d => d.id === dayId);
+    if (!day) return;
+
+    const dObj = new Date(dp.value);
+    if (!isNaN(dObj.getTime())) {
+        day.date = `${dObj.getFullYear()}年${dObj.getMonth() + 1}月${dObj.getDate()}日`;
+        saveData();
+        renderApp();
+    }
+    closeSubModal();
+}
 
 function editDaySubtitle(dayId) {
     const trip = state.trips.find(t => t.id === state.activeTripId);
@@ -544,7 +599,7 @@ function saveMockExpense() {
 export {
     closeModal, closeSubModal, openModal, openConfirmModal,
     openEditTripModal, openEditModal,
-    scrollToDay, editDaySubtitle, toggleOverview, toggleDayCollapse,
+    scrollToDay, editDay, saveEditDay, editDaySubtitle, toggleOverview, toggleDayCollapse,
     handleDragStart, handleDragOver, handleDragEnter, handleDragLeave, handleDrop, handleDragEnd,
     openTimePickerDirectly, openExpenseDirectly,
     openTimePickerModal, openExpenseModal,

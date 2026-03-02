@@ -96,7 +96,8 @@ window.handleDragLeave = UXHandlers.handleDragLeave;
 window.toggleMapDarkMode = toggleMapDarkMode;
 
 // Placeholder handlers referenced in template but not critical
-window.editDay = function (dayId) { alert(`编辑日期: ${dayId}`); };
+window.editDay = UXHandlers.editDay;
+window.saveEditDay = UXHandlers.saveEditDay;
 window.shareDay = function (event, dayId) { if (event) event.stopPropagation(); alert(`分享日期: ${dayId}`); };
 
 // Maps Bridge — register as _realInitGoogleMaps so the inline stub in index.html can call it
