@@ -1,0 +1,10 @@
+# Local image cache - don't push to git (can be large)
+uploads/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# OS files
+.DS_Store
+Thumbs.db

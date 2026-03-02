@@ -376,7 +376,7 @@ export function autoAddStop(dayId, placeId) {
             }
         }
 
-        const photoUrl = place.photos && place.photos.length > 0 ? place.photos[0].getUrl({ maxWidth: 400 }) : '';
+        const remotePhotoUrl = place.photos && place.photos.length > 0 ? place.photos[0].getUrl({ maxWidth: 400 }) : '';
         const desc = place.editorial_summary ? place.editorial_summary.overview : '';
         const categoryInfo = getCategoryFromTypes(place.types);
 
@@ -393,7 +393,7 @@ export function autoAddStop(dayId, placeId) {
             type: 'location',
             lat: place.geometry && place.geometry.location ? place.geometry.location.lat() : 0,
             lng: place.geometry && place.geometry.location ? place.geometry.location.lng() : 0,
-            photo: photoUrl,
+            photo: remotePhotoUrl, // will be replaced with local URL after upload
             rating: place.rating,
             category: categoryInfo.label,
             categoryIcon: categoryInfo.icon
@@ -414,20 +414,49 @@ export function autoAddStop(dayId, placeId) {
 
         saveData();
 
+        // Render immediately with remote URL so UI doesn't wait
         const timeline = document.querySelector('.itinerary-timeline');
         const daySection = document.getElementById(dayId);
-        if (timeline && daySection) {
-            const dayIndex = trip.days.findIndex(d => d.id === dayId);
-            const temp = document.createElement('div');
-            temp.innerHTML = getDayHTML(day, dayIndex, state.activeTripId);
-            timeline.replaceChild(temp.firstElementChild, daySection);
-        } else {
-            renderApp();
-        }
+        const renderDay = () => {
+            const ds = document.getElementById(dayId);
+            const tl = document.querySelector('.itinerary-timeline');
+            if (tl && ds) {
+                const dayIndex = trip.days.findIndex(d => d.id === dayId);
+                const temp = document.createElement('div');
+                temp.innerHTML = getDayHTML(day, dayIndex, state.activeTripId);
+                tl.replaceChild(temp.firstElementChild, ds);
+            } else {
+                renderApp();
+            }
+        };
+        renderDay();
 
         // Update map markers
         if (window.googleMapsReady) {
             import('../../maps.js').then(m => m.initRealMap());
+        }
+
+        // Background: cache the photo locally so it doesn't expire
+        if (remotePhotoUrl) {
+            fetch('/api/upload-image', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url: remotePhotoUrl })
+            })
+                .then(r => r.json())
+                .then(result => {
+                    if (result.status === 'success' && result.localUrl) {
+                        // Update the stop with the local URL
+                        newStop.photo = result.localUrl;
+                        saveData();
+                        // Re-render the day card with local image
+                        renderDay();
+                        console.log('[image-cache] Saved locally:', result.localUrl);
+                    }
+                })
+                .catch(err => {
+                    console.warn('[image-cache] Failed to cache image, keeping remote URL:', err);
+                });
         }
     });
 }
