@@ -87,18 +87,21 @@ export function getTimelineItemHTML(day, stop, index, locationIdx, showTransit) 
     } else {
         const activeColor = day.color || '#5b7a99';
         const pinNumber = locationIdx + 1;
+
+        // Small dot for the timeline to keep it anchored
         circleHtml = `
-            <div style="position: absolute; left: -2rem; top: 0.8rem; z-index: 2; display:flex; flex-direction:column; align-items:center;">
-                <div style="width: 24px; height: 24px; background: ${activeColor}; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display:flex; align-items:center; justify-content:center; box-shadow: 0 2px 6px rgba(0,0,0,0.35);">
-                    <span style="transform: rotate(45deg); color: #fff; font-size: 0.7rem; font-weight: 700; line-height: 1;">${pinNumber}</span>
-                </div>
-                <div style="width: 2px; height: 6px; background: ${activeColor}; opacity: 0.4; margin-top: -1px;"></div>
-            </div>
+            <div style="position: absolute; left: -1.75rem; top: 1.5rem; z-index: 2; width: 8px; height: 8px; border-radius: 50%; background: ${activeColor}; border: 1.5px solid var(--bg-primary); transform: translateX(-50%);"></div>
         `;
+
         contentHtml = `
             <div class="rich-stop-card" onclick="openEditModal('${day.id}', '${stop.id}')" style="background: var(--bg-primary); border-radius: 8px; padding: 1rem; display:flex; gap: 1rem; transition: background 0.2s; cursor: pointer; border: 1px solid var(--glass-border); box-shadow: 0 2px 8px rgba(0,0,0,0.05); align-items: flex-start;">
                 <div style="flex:1;">
-                    <h4 style="font-size: 1.05rem; margin: 0 0 0.3rem 0; color: var(--text-primary); font-weight: 600;">${stop.location}</h4>
+                    <div style="display:flex; align-items:center; gap: 10px; margin-bottom: 0.3rem;">
+                        <div style="width: 24px; height: 24px; background: ${activeColor}; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display:flex; align-items:center; justify-content:center; box-shadow: 0 2px 6px rgba(0,0,0,0.35); flex-shrink:0;">
+                            <span style="transform: rotate(45deg); color: #fff; font-size: 0.75rem; font-weight: 700; line-height: 1;">${pinNumber}</span>
+                        </div>
+                        <h4 style="font-size: 1.1rem; margin: 0; color: var(--text-primary); font-weight: 600; border-left: none !important; padding-left: 0 !important;">${stop.location}</h4>
+                    </div>
                     ${stop.desc ? `<p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0 0 0.4rem 0; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">来自网络：${stop.desc}</p>` : ''}
                     ${stop.note ? `<p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0 0 0.4rem 0; line-height: 1.3;">${stop.note}</p>` : `<p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0 0 0.4rem 0; opacity: 0.6;">添加备注、链接等</p>`}
                     

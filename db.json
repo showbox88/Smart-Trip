@@ -19,28 +19,6 @@
                     "date": "2026年4月30日",
                     "stops": [
                         {
-                            "id": "s1772480083136",
-                            "location": "Onigiri Bongo",
-                            "desc": "Street food shop specializing in onigiri, or seaweed-wrapped rice balls, with fillings like cod roe.",
-                            "address": "2-chōme-27-5 Kitaōtsuka, Toshima City, Tokyo 170-0004, Japan",
-                            "phone": "03-3910-5617",
-                            "time": "09:00",
-                            "period": "AM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 35.7327209,
-                            "lng": 139.72968369999998,
-                            "photo": "/uploads/d7a20a25c6721191beebe93c7e2861ec.jpg",
-                            "rating": 4.1,
-                            "category": "餐饮",
-                            "categoryIcon": "🍴",
-                            "transitToNext": {
-                                "duration": "7 分钟",
-                                "distance": "1.5 公里"
-                            }
-                        },
-                        {
                             "id": "s1772480090058",
                             "location": "French Pound House",
                             "desc": "French-style cakes & desserts in a cozy cafe with patterned tablecloths, plus a shady terrace.",
@@ -80,8 +58,8 @@
                             "category": "餐饮",
                             "categoryIcon": "🍴",
                             "transitToNext": {
-                                "duration": "25 分钟",
-                                "distance": "13.0 公里"
+                                "duration": "12 分钟",
+                                "distance": "7.1 公里"
                             }
                         },
                         {
@@ -101,6 +79,28 @@
                             "rating": 4.1,
                             "category": "购物中心",
                             "categoryIcon": "🛍️",
+                            "transitToNext": {
+                                "duration": "6 分钟",
+                                "distance": "1.3 公里"
+                            }
+                        },
+                        {
+                            "id": "s1772480083136",
+                            "location": "Onigiri Bongo",
+                            "desc": "Street food shop specializing in onigiri, or seaweed-wrapped rice balls, with fillings like cod roe.",
+                            "address": "2-chōme-27-5 Kitaōtsuka, Toshima City, Tokyo 170-0004, Japan",
+                            "phone": "03-3910-5617",
+                            "time": "09:00",
+                            "period": "AM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 35.7327209,
+                            "lng": 139.72968369999998,
+                            "photo": "/uploads/d7a20a25c6721191beebe93c7e2861ec.jpg",
+                            "rating": 4.1,
+                            "category": "餐饮",
+                            "categoryIcon": "🍴",
                             "transitToNext": null
                         }
                     ],
@@ -305,7 +305,7 @@
         }
     ],
     "collapsedDays": {
-        "day-1": true,
+        "day-1": false,
         "day-1772143722190": true,
         "day-1772143683042": true,
         "day-1772143684042": true,
@@ -313,7 +313,7 @@
         "day-1772469562714": false,
         "day-1772473981149": false,
         "day-1772480016034": true,
-        "day-1772480103854": false,
+        "day-1772480103854": true,
         "day-1772483355277": true,
         "day-1772483356143": true
     }
