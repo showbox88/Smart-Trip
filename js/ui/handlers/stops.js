@@ -541,8 +541,20 @@ export async function autoAddStop(dayId, placeId) {
 function scrollToDay(id) {
     // local reference used by addDay
     const trip = state.trips.find(t => t.id === state.activeTripId);
+    if (!trip) return;
     trip.activeDayId = id;
-    renderApp();
+
+    // Update the active state in the sidebar directly without a full render
+    const sidebarNav = document.getElementById('sidebar-nav');
+    if (sidebarNav) {
+        Array.from(sidebarNav.children).forEach(li => {
+            li.classList.remove('active');
+            if (li.getAttribute('onclick') && li.getAttribute('onclick').includes(id)) {
+                li.classList.add('active');
+            }
+        });
+    }
+
     const element = document.getElementById(id);
     if (element) element.scrollIntoView({ behavior: 'smooth' });
 }
