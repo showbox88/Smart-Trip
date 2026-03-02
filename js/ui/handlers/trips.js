@@ -21,7 +21,7 @@ export function createNewTrip() {
 
     const numDays = calculateDays(startStr, endStr);
     for (let i = 0; i < numDays; i++) {
-        let d = new Date(startStr);
+        let d = new Date(startStr.replace(/-/g, '/'));
         d.setDate(d.getDate() + i);
         let displayDate = !isNaN(d) ? `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日` : `Unknown`;
         newTrip.days.push({
@@ -98,7 +98,7 @@ export function saveTripMetadata() {
         // Handle extending days
         if (numDays > trip.days.length) {
             for (let i = trip.days.length; i < numDays; i++) {
-                let d = new Date(trip.startDate);
+                let d = new Date(trip.startDate.replace(/-/g, '/'));
                 d.setDate(d.getDate() + i);
                 let displayDate = !isNaN(d) ? `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日` : `Unknown`;
                 trip.days.push({
@@ -118,7 +118,7 @@ export function saveTripMetadata() {
 
         // Re-align all dates based on new startDate
         for (let i = 0; i < trip.days.length; i++) {
-            let d = new Date(trip.startDate);
+            let d = new Date(trip.startDate.replace(/-/g, '/'));
             d.setDate(d.getDate() + i);
             if (!isNaN(d)) {
                 trip.days[i].date = `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;

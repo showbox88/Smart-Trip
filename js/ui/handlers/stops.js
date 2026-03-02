@@ -11,7 +11,7 @@ export function addDay() {
 
     // Extend the trip's endDate by 1 day logically
     if (trip.endDate) {
-        let currentEnd = new Date(trip.endDate);
+        let currentEnd = new Date(trip.endDate.replace(/-/g, '/'));
         if (!isNaN(currentEnd.getTime())) {
             currentEnd.setDate(currentEnd.getDate() + 1);
             let month = currentEnd.getMonth() + 1;
@@ -25,7 +25,7 @@ export function addDay() {
 
     let newDateStr = '未知日期';
     if (trip.startDate) {
-        let d = new Date(trip.startDate);
+        let d = new Date(trip.startDate.replace(/-/g, '/'));
         d.setDate(d.getDate() + trip.days.length);
         if (!isNaN(d)) {
             newDateStr = `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;

@@ -13,12 +13,12 @@ export function generateId(prefix = 'id') {
 }
 
 export function formatDate(dateStr) {
-    const d = new Date(dateStr);
+    const d = new Date(dateStr.replace(/-/g, '/'));
     return !isNaN(d) ? `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日` : dateStr;
 }
 export function calculateDays(start, end) {
-    const d1 = new Date(start);
-    const d2 = new Date(end);
+    const d1 = new Date(start.replace(/-/g, '/'));
+    const d2 = new Date(end.replace(/-/g, '/'));
     if (isNaN(d1) || isNaN(d2)) return 0;
     const diffTime = Math.abs(d2 - d1);
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;

@@ -243,7 +243,7 @@ function saveEditDay(dayId) {
     const day = trip.days.find(d => d.id === dayId);
     if (!day) return;
 
-    const dObj = new Date(dp.value);
+    const dObj = new Date(dp.value.replace(/-/g, '/'));
     if (!isNaN(dObj.getTime())) {
         day.date = `${dObj.getFullYear()}年${dObj.getMonth() + 1}月${dObj.getDate()}日`;
         saveData();
