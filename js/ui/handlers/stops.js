@@ -8,6 +8,18 @@ import { closeModal } from './ux.js';
 // --- Day Management ---
 export function addDay() {
     const trip = state.trips.find(t => t.id === state.activeTripId);
+
+    // Extend the trip's endDate by 1 day logically
+    if (trip.endDate) {
+        let currentEnd = new Date(trip.endDate);
+        if (!isNaN(currentEnd.getTime())) {
+            currentEnd.setDate(currentEnd.getDate() + 1);
+            let month = currentEnd.getMonth() + 1;
+            let date = currentEnd.getDate();
+            trip.endDate = `${currentEnd.getFullYear()}-${month < 10 ? '0' + month : month}-${date < 10 ? '0' + date : date}`;
+        }
+    }
+
     const newDayNum = trip.days.length + 1;
     const newDayId = `day-${Date.now()}`;
 
@@ -60,12 +72,15 @@ export function addDay() {
 
 export function deleteDay(event, dayId) {
     event.stopPropagation();
-    window.openConfirmModal('确定要删除这一天的行程吗？', () => {
+    window.openConfirmModal('确定要清空这一天所有的行程安排吗？', () => {
         const trip = state.trips.find(t => t.id === state.activeTripId);
         if (trip) {
-            trip.days = trip.days.filter(d => d.id !== dayId);
-            saveData();
-            renderApp();
+            const day = trip.days.find(d => d.id === dayId);
+            if (day) {
+                day.stops = [];
+                saveData();
+                renderApp();
+            }
         }
     });
 }

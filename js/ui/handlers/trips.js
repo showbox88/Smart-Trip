@@ -7,20 +7,35 @@ import { closeModal } from './ux.js';
 export function createNewTrip() {
     const newId = 'trip-' + Date.now();
     const startStr = "2026-05-01";
-    let d = new Date(startStr);
-    let displayDate = !isNaN(d) ? `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日` : "2026年5月1日";
+    const endStr = "2026-05-05";
 
     const newTrip = {
         id: newId,
         title: "新的神秘冒险",
         startDate: startStr,
-        endDate: "2026-05-05",
+        endDate: endStr,
         thumb: "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
         activeDayId: 'day-1',
-        days: [
-            { id: 'day-1', title: '第 1 天', date: displayDate, stops: [] }
-        ]
+        days: []
     };
+
+    const numDays = calculateDays(startStr, endStr);
+    for (let i = 0; i < numDays; i++) {
+        let d = new Date(startStr);
+        d.setDate(d.getDate() + i);
+        let displayDate = !isNaN(d) ? `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日` : `Unknown`;
+        newTrip.days.push({
+            id: `day-${Date.now()}-${i}`,
+            title: `第 ${i + 1} 天`,
+            date: displayDate,
+            stops: []
+        });
+    }
+
+    if (newTrip.days.length > 0) {
+        newTrip.activeDayId = newTrip.days[0].id;
+    }
+
     state.trips.push(newTrip);
     renderApp();
     return newTrip;
@@ -72,8 +87,45 @@ export function saveTripMetadata() {
     const trip = state.trips.find(t => t.id === state.activeTripId);
     if (title) trip.title = title;
     if (thumb) trip.thumb = thumb;
-    if (start) trip.startDate = start;
-    if (end) trip.endDate = end;
+
+    let datesChanged = false;
+    if (start && start !== trip.startDate) { trip.startDate = start; datesChanged = true; }
+    if (end && end !== trip.endDate) { trip.endDate = end; datesChanged = true; }
+
+    if (datesChanged && trip.startDate && trip.endDate) {
+        const numDays = calculateDays(trip.startDate, trip.endDate);
+
+        // Handle extending days
+        if (numDays > trip.days.length) {
+            for (let i = trip.days.length; i < numDays; i++) {
+                let d = new Date(trip.startDate);
+                d.setDate(d.getDate() + i);
+                let displayDate = !isNaN(d) ? `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日` : `Unknown`;
+                trip.days.push({
+                    id: `day-${Date.now()}-${i}`,
+                    title: `第 ${i + 1} 天`,
+                    date: displayDate,
+                    stops: []
+                });
+            }
+        }
+        // Handle shortening days
+        else if (numDays < trip.days.length) {
+            if (confirm(`行程天数缩短为 ${numDays} 天，多出的日期及行程将被删除。确认吗？`)) {
+                trip.days.length = numDays;
+            }
+        }
+
+        // Re-align all dates based on new startDate
+        for (let i = 0; i < trip.days.length; i++) {
+            let d = new Date(trip.startDate);
+            d.setDate(d.getDate() + i);
+            if (!isNaN(d)) {
+                trip.days[i].date = `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
+            }
+            trip.days[i].title = `第 ${i + 1} 天`;
+        }
+    }
 
     closeModal();
     saveData();

@@ -218,7 +218,12 @@ export function getDayHTML(day, dayIndex, activeDayId) {
                 <!-- Vertical continuous dashed line for the whole day -->
                 <div style="position: absolute; top: 0; bottom: 0; left: 0.9rem; width: 0; border-left: 2px dashed var(--glass-border); z-index: 0; transform: translateX(-1px);"></div>
                 
-                ${day.stops.length === 0 ? '<p style="color:var(--text-secondary); margin-bottom:1rem; position:relative; z-index:2; padding-left:1rem;">还没有安排地点。</p>' : ''}
+                ${day.stops.length === 0 ? `
+                <div style="padding: 1.5rem 1rem; margin-bottom: 1.5rem; text-align: center; border: 1px dashed var(--glass-border); border-radius: 8px; background: rgba(255,255,255,0.02); position:relative; z-index:2;">
+                    <span style="font-size: 2rem; opacity: 0.5;">📅</span>
+                    <p style="color:var(--text-secondary); margin: 0.5rem 0 0 0; font-weight: 500;">（暂无行程安排）</p>
+                </div>
+                ` : ''}
                 ${day.stops.map((stop, index) => {
         // showTransit: true if current stop is a location AND there's any location stop after it
         // (notes/lists in between should NOT hide transit time)
