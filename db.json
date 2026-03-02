@@ -9,9 +9,9 @@
             "id": "trip-1772489475916",
             "title": "新的神秘冒险",
             "startDate": "2026-05-01",
-            "endDate": "2026-05-10",
+            "endDate": "2026-05-11",
             "thumb": "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-            "activeDayId": "day-1772492805470",
+            "activeDayId": "day-1772492963583",
             "days": [
                 {
                     "id": "day-1772489475916-0",
@@ -72,6 +72,12 @@
                     "title": "第 10 天",
                     "date": "2026年5月10日",
                     "stops": []
+                },
+                {
+                    "id": "day-1772492963583",
+                    "title": "第 11 天",
+                    "date": "2026年5月11日",
+                    "stops": []
                 }
             ]
         }
@@ -86,6 +92,7 @@
         "day-1772489480835": true,
         "day-1772492777973": true,
         "day-1772492781573": true,
-        "day-1772492805470": true
+        "day-1772492805470": true,
+        "day-1772492963583": true
     }
 }

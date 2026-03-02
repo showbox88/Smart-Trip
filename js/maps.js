@@ -125,13 +125,21 @@ export function initRealMap() {
         }
         if (debugEl) debugEl.innerText = "Map Status: Initializing Google Map Instance...";
 
-        googleMapInstance = new google.maps.Map(mapDiv, {
-            center: { lat: 35.6895, lng: 139.6917 },
-            zoom: 12,
-            mapId: 'DEMO_MAP_ID',          // Required for AdvancedMarkerElement
-            disableDefaultUI: true,
-            zoomControl: true
-        });
+        // If real-map is a freshly rendered empty div (has no Google Maps panes injected yet), 
+        // the old instance is detached. We must recreate it.
+        if (googleMapInstance && mapDiv.childElementCount === 0) {
+            googleMapInstance = null;
+        }
+
+        if (!googleMapInstance) {
+            googleMapInstance = new google.maps.Map(mapDiv, {
+                center: { lat: 35.6895, lng: 139.6917 },
+                zoom: 12,
+                mapId: 'DEMO_MAP_ID',          // Required for AdvancedMarkerElement
+                disableDefaultUI: true,
+                zoomControl: true
+            });
+        }
 
         // Apply dark mode overlay via CSS since styles[] is incompatible with mapId
         if (mapDarkMode) {
