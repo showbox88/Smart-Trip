@@ -433,7 +433,10 @@ async function showMapInfoPanel(place, placeId) {
             const { autoAddStop } = await import('./ui/handlers/stops.js');
             await autoAddStop(dayId, placeId);
             btn.textContent = '✓ 已添加';
-            setTimeout(() => closeMapInfoPanel(), 1200);
+            setTimeout(() => {
+                panel.remove();
+                if (window.closeMapInfoPanel) window.closeMapInfoPanel();
+            }, 1200);
         } catch (err) {
             console.error('[map-add] failed:', err);
             btn.textContent = '失败，请重试';
@@ -443,8 +446,8 @@ async function showMapInfoPanel(place, placeId) {
 }
 
 export function closeMapInfoPanel() {
-    const panel = document.getElementById('map-info-panel');
-    if (panel) panel.remove();
+    const panels = document.querySelectorAll('#map-info-panel');
+    panels.forEach(p => p.remove());
 }
 
 // Expose globally so onclick="closeMapInfoPanel()" in HTML works

@@ -19,44 +19,66 @@
                     "date": "2026年4月30日",
                     "stops": [
                         {
-                            "id": "s1772493320957",
-                            "location": "John F. Kennedy International Airport",
-                            "desc": "New York City hub offering flights from 80+ airlines, plus a variety of shops & eateries.",
-                            "address": "Queens, NY 11430, USA",
-                            "phone": "(718) 244-4444",
+                            "id": "s1772493952465",
+                            "location": "Starbucks Coffee - Nishitokyo Shimmachi",
+                            "desc": "Welcoming coffeehouse with handcrafted coffee, espresso & tea, plus breakfast, lunch & pastries.",
+                            "address": "5-chōme-19-10 Shinmachi, Nishitokyo, Tokyo 202-0023, Japan",
+                            "phone": "0422-39-8750",
                             "time": "09:00",
                             "period": "AM",
                             "note": "",
                             "price": "0",
                             "type": "location",
-                            "lat": 40.6446124,
-                            "lng": -73.7797278,
-                            "photo": "/uploads/65c3d546c9afaee2061d45b6b2bc780e.jpg",
-                            "rating": 3.8,
-                            "category": "机场",
-                            "categoryIcon": "✈️",
+                            "lat": 35.712151,
+                            "lng": 139.5333891,
+                            "photo": "/uploads/9ae02fd08af62e0f8589c7ca7dd0b362.jpg",
+                            "rating": 4.1,
+                            "category": "咖啡馆",
+                            "categoryIcon": "☕",
                             "transitToNext": {
-                                "duration": "26 分钟",
-                                "distance": "17.0 公里"
+                                "duration": "2 分钟",
+                                "distance": "1.0 公里"
                             }
                         },
                         {
-                            "id": "s1772493334645",
-                            "location": "Queens Center",
-                            "desc": "This coliseum-like indoor shopping mall houses dozens of retail stores plus a food court.",
-                            "address": "90-15 Queens Blvd, Elmhurst, NY 11373, USA",
-                            "phone": "(718) 592-3900",
+                            "id": "s1772493973141",
+                            "location": "Mansei Koganei",
+                            "desc": "",
+                            "address": "1-chōme-3-4 Sekinochō, Koganei, Tokyo 184-0001, Japan",
+                            "phone": "042-401-2990",
                             "time": "11:00",
                             "period": "AM",
                             "note": "",
                             "price": "0",
                             "type": "location",
-                            "lat": 40.7347872,
-                            "lng": -73.8688409,
-                            "photo": "/uploads/c6726348cf5db9003025af3b232e2789.jpg",
-                            "rating": 4.4,
-                            "category": "购物中心",
-                            "categoryIcon": "🛍️",
+                            "lat": 35.7128844,
+                            "lng": 139.5221532,
+                            "photo": "/uploads/b3613daa7f287d346fb120c3265f4389.jpg",
+                            "rating": 4,
+                            "category": "餐饮",
+                            "categoryIcon": "🍴",
+                            "transitToNext": {
+                                "duration": "0 分钟",
+                                "distance": "0.2 公里"
+                            }
+                        },
+                        {
+                            "id": "s1772493989683",
+                            "location": "Ippei Soba",
+                            "desc": "Unpretentious restaurant offering classic noodle dishes, ramen & dumplings, plus open-air dining.",
+                            "address": "3-chōme-17-12 Kajinochō, Koganei, Tokyo 184-0002, Japan",
+                            "phone": "0422-88-8888",
+                            "time": "01:00",
+                            "period": "PM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 35.7112076,
+                            "lng": 139.5218026,
+                            "photo": "/uploads/e6028d6f7c095e71b2d34f74a9b6fd21.jpg",
+                            "rating": 4.3,
+                            "category": "餐饮",
+                            "categoryIcon": "🍴",
                             "transitToNext": null
                         }
                     ],
@@ -67,14 +89,14 @@
                     "title": "第 2 天",
                     "date": "2026年5月1日",
                     "stops": [],
-                    "color": "#10b981"
+                    "color": "#ef4444"
                 },
                 {
                     "id": "day-1772489475916-2",
                     "title": "第 3 天",
                     "date": "2026年5月2日",
                     "stops": [],
-                    "color": "#ec4899"
+                    "color": "#10b981"
                 },
                 {
                     "id": "day-1772489475916-3",
