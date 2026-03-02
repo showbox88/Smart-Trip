@@ -58,6 +58,8 @@ window.toggleItemSelect = StopHandlers.toggleItemSelect;
 window.addTimelineNote = StopHandlers.addTimelineNote;
 window.addTimelineList = StopHandlers.addTimelineList;
 
+window.setDayColor = StopHandlers.setDayColor;
+
 // Search
 window.handleSearchInput = SearchHandlers.handleSearchInput;
 window.handleSearchKeyDown = SearchHandlers.handleSearchKeyDown;

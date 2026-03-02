@@ -148,25 +148,34 @@ export function initRealMap() {
         }
         googleMapMarkers = [];
 
-        // Clear existing route
-        if (window._mapRouteRenderer) {
-            window._mapRouteRenderer.setMap(null);
-            window._mapRouteRenderer = null;
+        // Clear existing routes
+        if (window._mapRouteRenderers) {
+            window._mapRouteRenderers.forEach(r => {
+                if (r) r.setMap(null);
+            });
         }
+        window._mapRouteRenderers = [];
 
         const trip = state.trips.find(t => t.id === state.activeTripId);
         if (!trip) return;
 
         const bounds = new google.maps.LatLngBounds();
         let hasValidPins = false;
-        let pinCount = 0;
-        const routePath = []; // collect ordered positions for polyline
+        let totalPins = 0;
 
         trip.days.forEach(day => {
+            // Skip collapsed days
+            if (state.collapsedDays && state.collapsedDays[day.id]) return;
             if (!day.stops) return;
+
+            let pinCount = 0;
+            const dayColor = day.color || '#5b7a99';
+            const routePath = []; // collect ordered positions for this day's polyline
+
             day.stops.forEach((stop) => {
                 if (stop.type !== 'location' || !stop.location) return;
                 pinCount++;
+                totalPins++;
                 if (stop.lat !== undefined && stop.lng !== undefined) {
                     const pos = { lat: Number(stop.lat), lng: Number(stop.lng) };
                     if (isNaN(pos.lat) || isNaN(pos.lng)) return;
@@ -175,7 +184,7 @@ export function initRealMap() {
                     const pinEl = document.createElement('div');
                     pinEl.style.cssText = `
                         width:26px; height:26px; border-radius:50% 50% 50% 0;
-                        transform:rotate(-45deg); background:#5b7a99;
+                        transform:rotate(-45deg); background:${dayColor};
                         display:flex; align-items:center; justify-content:center;
                         box-shadow:0 2px 6px rgba(0,0,0,0.4);
                     `;
@@ -196,28 +205,37 @@ export function initRealMap() {
                     hasValidPins = true;
                 }
             });
-        });
 
-        // Draw driving route via Routes REST API (replaces deprecated DirectionsService)
-        if (routePath.length >= 2) {
-            fetchRoutePolyline(routePath).then(path => {
-                if (!path) return;
-                if (window._mapRouteRenderer) {
-                    window._mapRouteRenderer.setMap(null);
-                }
-                window._mapRouteRenderer = new google.maps.Polyline({
-                    path,
-                    strokeColor: '#f97316',
-                    strokeOpacity: 0.85,
-                    strokeWeight: 4,
-                    map: googleMapInstance
+            // Draw driving route via Routes REST API specifically for this day
+            if (routePath.length >= 2) {
+                console.log(`[maps] Fetching route for day ${day.id} with ${routePath.length} points.`);
+                fetchRoutePolyline(routePath).then(path => {
+                    if (!path) {
+                        console.warn(`[maps] No path returned for day ${day.id}`);
+                        return;
+                    }
+                    console.log(`[maps] Rendering polyline for day ${day.id}, color: ${dayColor}`);
+                    const polyline = new google.maps.Polyline({
+                        path: path,
+                        strokeColor: dayColor,
+                        strokeOpacity: 0.85,
+                        strokeWeight: 4,
+                        map: googleMapInstance
+                    });
+
+                    if (!window._mapRouteRenderers) window._mapRouteRenderers = [];
+                    window._mapRouteRenderers.push(polyline);
+                }).catch(err => {
+                    console.error(`[maps] Route fetch error for day ${day.id}:`, err);
                 });
-            });
-        }
+            } else {
+                console.log(`[maps] Day ${day.id} has ${routePath.length} points, skipping route (needs >= 2).`);
+            }
+        });
 
         if (hasValidPins) {
             googleMapInstance.fitBounds(bounds);
-            if (debugEl) debugEl.innerText = `Map Status: Ready (${pinCount} pins)`;
+            if (debugEl) debugEl.innerText = `Map Status: Ready (${totalPins} pins)`;
             if (googleMapMarkers.length === 1) {
                 setTimeout(() => { if (googleMapInstance) googleMapInstance.setZoom(15); }, 200);
             }
@@ -234,7 +252,7 @@ export function initRealMap() {
                 const { Place } = await google.maps.importLibrary('places');
                 const place = new Place({ id: e.placeId });
                 await place.fetchFields({ fields: ['displayName', 'formattedAddress', 'rating', 'types', 'photos'] });
-                showMapInfoPanel(place, e.placeId);
+                await showMapInfoPanel(place, e.placeId);
             } catch (err) {
                 console.warn('[map-click] fetchFields failed:', err);
             }
@@ -247,13 +265,13 @@ export function initRealMap() {
 }
 
 // --- Map Info Panel ---
-function showMapInfoPanel(place, placeId) {
+async function showMapInfoPanel(place, placeId) {
     closeMapInfoPanel();
     const mapDiv = document.getElementById('real-map');
     const containerDiv = document.getElementById('mock-map-container');
     if (!mapDiv || !containerDiv) return;
 
-    const { state } = { state: window._appState };
+    const { state } = await import('./state.js');
 
     const panel = document.createElement('div');
     panel.id = 'map-info-panel';
@@ -268,12 +286,60 @@ function showMapInfoPanel(place, placeId) {
     const stars = place.rating ? '⭐ ' + place.rating.toFixed(1) : '';
     const photo = place.photos?.[0]?.getURI({ maxWidth: 300 }) || '';
 
+    // Build day options for custom dropdown
+    const activeTrip = state.trips.find(t => t.id === state.activeTripId);
+    let selectedDayId = activeTrip?.activeDayId || (activeTrip?.days?.[0]?.id);
+    let selectedDay = activeTrip?.days?.find(d => d.id === selectedDayId);
+
+    let dropdownHtml = '';
+    if (activeTrip && activeTrip.days && activeTrip.days.length > 0) {
+        if (!selectedDay) selectedDay = activeTrip.days[0];
+        const selectedColor = selectedDay.color || '#5b7a99';
+
+        let optionsHtml = activeTrip.days.map(d => {
+            const dColor = d.color || '#5b7a99';
+            return `
+                <div class="map-day-option" data-value="${d.id}" style="padding: 0.8rem 1rem; display:flex; align-items:center; justify-content:flex-start; cursor:pointer; border-bottom: 1px solid var(--glass-border); border-radius:0;" onmouseover="this.style.background='var(--bg-hover, rgba(255,255,255,0.05))'" onmouseout="this.style.background='transparent'">
+                    <div style="width: 14px; height: 14px; border-radius: 50%; background: ${dColor}; flex-shrink:0; margin-right: 1.2rem; transform: translateY(1px);"></div>
+                    <div style="flex-grow:1; display:flex; align-items:center;">
+                        <span style="color:var(--text-primary); font-size:1rem; font-weight:700; margin-right:1rem; border:none !important; background:none !important; padding:0 !important; box-shadow:none !important;">${d.title || d.id}</span>
+                        <span style="color:var(--text-secondary); font-size:1rem; border:none !important; background:none !important; padding:0 !important; box-shadow:none !important;">${d.date}</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        dropdownHtml = `
+            <div style="margin-top: 1rem; position:relative;">
+                <label style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 8px; display:block;">选择日期:</label>
+                
+                <div id="map-custom-select" style="width:100%; padding: 0.8rem 1rem; background: transparent; border: 1px solid var(--glass-border); border-radius: 8px; font-size: 1rem; cursor:pointer; display:flex; align-items:center; justify-content:space-between;" onclick="document.getElementById('map-custom-dropdown').style.display = document.getElementById('map-custom-dropdown').style.display === 'none' ? 'block' : 'none'">
+                    
+                    <div style="display:flex; align-items:center;">
+                        <div id="map-select-color" style="width: 14px; height: 14px; border-radius: 50%; background: ${selectedColor}; flex-shrink:0; margin-right: 1.2rem; transform: translateY(1px);"></div>
+                        <div id="map-select-text-container" style="display:flex; align-items:center;">
+                            <span id="map-select-title" style="color:var(--text-primary); font-size:1rem; font-weight:700; margin-right:1rem; border:none !important; background:none !important; padding:0 !important; box-shadow:none !important;">${selectedDay.title}</span>
+                            <span id="map-select-date" style="color:var(--text-secondary); font-size:1rem; border:none !important; background:none !important; padding:0 !important; box-shadow:none !important;">${selectedDay.date}</span>
+                        </div>
+                    </div>
+
+                    <div style="display:flex; align-items:center; justify-content:center; width: 32px; height: 32px; border:none; background:transparent;">
+                        <span style="font-size:0.8rem; color:var(--text-secondary);">▼</span>
+                    </div>
+
+                </div>
+
+                <div id="map-custom-dropdown" style="display:none; position:absolute; bottom: 100%; left:0; right:0; margin-bottom: 0.4rem; background: var(--bg-secondary, #1e2535); border: 1px solid var(--glass-border); border-radius: 8px; box-shadow: 0 -4px 15px rgba(0,0,0,0.5); z-index: 501; max-height: 200px; overflow-y:auto;">
+                    ${optionsHtml}
+                </div>
+            </div>
+        `;
+    }
+
     panel.innerHTML = `
-        <button onclick="closeMapInfoPanel()" style="position:absolute;top:8px;right:10px;background:none;border:none;color:var(--text-secondary, #aaa);font-size:1.1rem;cursor:pointer;line-height:1;">✕</button>
-        ${photo ? `<img src="${photo}" style="width:100%;height:100px;object-fit:cover;border-radius:8px;margin-bottom:0.7rem;" onerror="this.style.display='none'">` : ''}
-        <div style="font-weight:700;font-size:1rem;margin-bottom:0.3rem;padding-right:1.5rem;">${place.displayName || '未知地点'}</div>
-        ${stars ? `<div style="font-size:0.82rem;color:#f4b942;margin-bottom:0.3rem;">${stars}</div>` : ''}
-        <div style="font-size:0.8rem;color:var(--text-secondary, #aaa);" >${place.formattedAddress || ''}</div>
+        <button onclick="closeMapInfoPanel()" style="position:absolute;top:8px;right:10px;background:none;border:none;color:var(--text-secondary, #aaa);font-size:1.1rem;cursor:pointer;line-height:1;z-index:10;">✕</button>
+        ${dropdownHtml}
+        
         <button id="map-add-btn" style="
             margin-top:0.8rem; width:100%; padding:0.55rem 0;
             background:#f97316; color:#fff; border:none; border-radius:8px;
@@ -281,10 +347,58 @@ function showMapInfoPanel(place, placeId) {
         " onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
             + 添加到行程
         </button>
+
+        <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--glass-border);">
+            ${photo ? `<img src="${photo}" style="width:100%;height:100px;object-fit:cover;border-radius:8px;margin-bottom:0.7rem;" onerror="this.style.display='none'">` : ''}
+            <div style="font-weight:700;font-size:1rem;margin-bottom:0.3rem;padding-right:1.5rem;">${place.displayName || '未知地点'}</div>
+            ${stars ? `<div style="font-size:0.82rem;color:#f4b942;margin-bottom:0.3rem;">${stars}</div>` : ''}
+            <div style="font-size:0.8rem;color:var(--text-secondary, #aaa);" >${place.formattedAddress || ''}</div>
+        </div>
     `;
 
     containerDiv.style.position = 'relative';
     containerDiv.appendChild(panel);
+
+    // Dropdown selection logic
+    let currentSelectedDayId = selectedDayId;
+    const options = panel.querySelectorAll('.map-day-option');
+    options.forEach(opt => {
+        opt.addEventListener('click', (e) => {
+            currentSelectedDayId = opt.getAttribute('data-value');
+            const colorDiv = opt.querySelector('div').style.background;
+
+            // Get the text elements directly since we changed strong to span
+            const spans = opt.querySelectorAll('div:nth-child(2) span');
+            if (spans && spans.length >= 2) {
+                const titleText = spans[0].innerText;
+                const dateText = spans[1].innerText;
+
+                panel.querySelector('#map-select-color').style.background = colorDiv;
+                panel.querySelector('#map-select-text-container').innerHTML = `
+                    <span id="map-select-title" style="color:var(--text-primary); font-size:1rem; font-weight:700; margin-right:1rem; border:none !important; background:none !important; padding:0 !important; box-shadow:none !important;">${titleText}</span>
+                    <span id="map-select-date" style="color:var(--text-secondary); font-size:1rem; border:none !important; background:none !important; padding:0 !important; box-shadow:none !important;">${dateText}</span>
+                `;
+            }
+
+            panel.querySelector('#map-custom-dropdown').style.display = 'none';
+        });
+    });
+
+    // Close dropdown on outside click
+    // We bind to 'window' rather than 'document' to avoid stale references,
+    // and we name the handler so it can be removed if needed, but a cleaner way is:
+    function handleOutsideClick(e) {
+        const dp = document.getElementById('map-custom-dropdown');
+        const selectBox = document.getElementById('map-custom-select');
+        if (dp && dp.style.display === 'block') {
+            if (!dp.contains(e.target) && selectBox && !selectBox.contains(e.target)) {
+                dp.style.display = 'none';
+            }
+        }
+    }
+    document.removeEventListener('click', window._mapDropdownCloseHandler);
+    window._mapDropdownCloseHandler = handleOutsideClick;
+    document.addEventListener('click', window._mapDropdownCloseHandler);
 
     // Add button handler
     panel.querySelector('#map-add-btn').addEventListener('click', async () => {
@@ -300,8 +414,10 @@ function showMapInfoPanel(place, placeId) {
                 btn.disabled = false;
                 return;
             }
-            // Use active day, or first day
-            const dayId = trip.activeDayId || trip.days[0].id;
+
+            // Use user-selected day from custom dropdown
+            const dayId = currentSelectedDayId || trip.days[0].id;
+
             const { autoAddStop } = await import('./ui/handlers/stops.js');
             await autoAddStop(dayId, placeId);
             btn.textContent = '✓ 已添加';

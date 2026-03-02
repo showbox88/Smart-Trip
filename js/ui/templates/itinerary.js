@@ -85,31 +85,30 @@ export function getTimelineItemHTML(day, stop, index, locationIdx, showTransit) 
             </div>
         `;
     } else {
+        const activeColor = day.color || '#5b7a99';
         const pinNumber = locationIdx + 1;
         circleHtml = `
             <div style="position: absolute; left: -2rem; top: 0.8rem; z-index: 2; display:flex; flex-direction:column; align-items:center;">
-                <div style="width: 24px; height: 24px; background: #5b7a99; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display:flex; align-items:center; justify-content:center; box-shadow: 0 2px 6px rgba(0,0,0,0.35);">
+                <div style="width: 24px; height: 24px; background: ${activeColor}; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display:flex; align-items:center; justify-content:center; box-shadow: 0 2px 6px rgba(0,0,0,0.35);">
                     <span style="transform: rotate(45deg); color: #fff; font-size: 0.7rem; font-weight: 700; line-height: 1;">${pinNumber}</span>
                 </div>
-                <div style="width: 2px; height: 6px; background: #5b7a99; opacity: 0.4; margin-top: -1px;"></div>
+                <div style="width: 2px; height: 6px; background: ${activeColor}; opacity: 0.4; margin-top: -1px;"></div>
             </div>
         `;
         contentHtml = `
-            <div class="rich-stop-card" onclick="openEditModal('${day.id}', '${stop.id}')" style="background: var(--bg-secondary); border-radius: 12px; padding: 1.2rem; display:flex; gap: 1.5rem; transition: background 0.2s; cursor: pointer; border: 1px solid transparent;">
+            <div class="rich-stop-card" onclick="openEditModal('${day.id}', '${stop.id}')" style="background: var(--bg-primary); border-radius: 8px; padding: 1rem; display:flex; gap: 1rem; transition: background 0.2s; cursor: pointer; border: 1px solid var(--glass-border); box-shadow: 0 2px 8px rgba(0,0,0,0.05); align-items: flex-start;">
                 <div style="flex:1;">
-                    <h4 style="font-size: 1.15rem; margin-bottom: 0.5rem;">${stop.location}</h4>
-                    ${stop.desc ? `<p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 0.5rem; line-height: 1.4;">来自网络：${stop.desc}</p>` : ''}
-                    ${stop.address ? `<p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.5rem; display:flex; align-items:center; gap:5px;"><span style="font-size:1rem;">${stop.categoryIcon || '📍'}</span>${stop.address}</p>` : ''}
-                    ${stop.phone ? `<p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.5rem; display:flex; align-items:center; gap:5px;"><span style="font-size:1rem;">📞</span>${stop.phone}</p>` : ''}
-                    ${stop.note ? `<p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 1rem; line-height: 1.4;">${stop.note}</p>` : `<p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 1rem; opacity: 0.6;">在此添加备注、链接等</p>`}
+                    <h4 style="font-size: 1.05rem; margin: 0 0 0.3rem 0; color: var(--text-primary); font-weight: 600;">${stop.location}</h4>
+                    ${stop.desc ? `<p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0 0 0.4rem 0; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">来自网络：${stop.desc}</p>` : ''}
+                    ${stop.note ? `<p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0 0 0.4rem 0; line-height: 1.3;">${stop.note}</p>` : `<p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0 0 0.4rem 0; opacity: 0.6;">添加备注、链接等</p>`}
                     
-                    <div style="display:flex; gap: 0.6rem; margin-top: auto; flex-wrap: wrap; align-items:center;">
-                        <span onclick="openTimePickerDirectly(event, '${day.id}', '${stop.id}')" style="background: rgba(59, 130, 246, 0.1); color: var(--accent-secondary); padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600; cursor:pointer;" title="编辑时间">${stop.time} ${stop.period === 'AM' ? '上午' : '下午'}</span>
-                        <span onclick="openExpenseDirectly(event, '${day.id}', '${stop.id}')" style="background: ${stop.price && stop.price !== '0' ? 'rgba(34, 197, 94, 0.1)' : 'transparent'}; color: ${stop.price && stop.price !== '0' ? '#22c55e' : 'var(--text-secondary)'}; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600; cursor:pointer;" title="编辑费用">${stop.price && stop.price !== '0' ? '$' + parseFloat(stop.price).toFixed(2) : '$ 添加费用'}</span>
+                    <div style="display:flex; gap: 0.8rem; margin-top: 0.6rem; align-items:center;">
+                        <span onclick="openTimePickerDirectly(event, '${day.id}', '${stop.id}')" style="color: #4f46e5; background: rgba(79, 70, 229, 0.1); padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; cursor:pointer;" title="编辑时间">${stop.time} ${stop.period === 'AM' ? '上午' : '下午'}</span>
+                        <span onclick="openExpenseDirectly(event, '${day.id}', '${stop.id}')" style="color: ${stop.price && stop.price !== '0' ? '#22c55e' : 'var(--text-secondary)'}; background: ${stop.price && stop.price !== '0' ? 'rgba(34, 197, 94, 0.1)' : 'var(--bg-secondary)'}; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; cursor:pointer;" title="编辑费用">${stop.price && stop.price !== '0' ? '$' + parseFloat(stop.price).toFixed(2) : '$ 添加费用'}</span>
                     </div>
                 </div>
                 <!-- Thumb for Stop -->
-                <div style="width: 140px; height: 95px; border-radius: 8px; background-image: url('${stop.photo || 'https://picsum.photos/seed/' + stop.id + '/300/200'}'); background-size: cover; background-position: center; flex-shrink: 0; box-shadow: 0 4px 10px rgba(0,0,0,0.3);"></div>
+                <div style="width: 100px; height: 75px; border-radius: 6px; background-image: url('${stop.photo || 'https://picsum.photos/seed/' + stop.id + '/300/200'}'); background-size: cover; background-position: center; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.2);"></div>
             </div>
             ${showTransit ? `
                 <div style="padding: 0.5rem 0 0.5rem 0.5rem; font-size: 0.85rem; color: var(--text-secondary); display:flex; align-items:center; gap: 0.5rem; position:relative; z-index:2;">
@@ -167,11 +166,25 @@ export function getDayHTML(day, dayIndex, activeDayId) {
     const daysOfWeek = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
     const dayName = isNaN(dObj.getTime()) ? day.date : `${daysOfWeek[dObj.getDay()]}, ${dObj.getMonth() + 1}月 ${dObj.getDate()}日`;
 
+    const colors = ['#5b7a99', '#ef4444', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899'];
+    const activeColor = day.color || '#5b7a99';
+    const colorPickerHtml = `
+        <div style="position:relative; margin-left: auto; margin-right: 15px; display:flex; align-items:center;">
+            <div style="width: 14px; height: 14px; border-radius: 50%; background: ${activeColor}; cursor:pointer; border: 2px solid var(--glass-border); box-shadow: 0 1px 3px rgba(0,0,0,0.3); transition: transform 0.1s;" onclick="toggleMenu(event, 'color-${day.id}')" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'" title="更改路线颜色"></div>
+            <div class="menu-dropdown" id="menu-color-${day.id}" style="top:1.5rem; right:-0.5rem; flex-direction:row; padding:0.4rem; gap:6px; min-width:auto; border-radius:30px;">
+                ${colors.map(c => `
+                    <div style="width: 18px; height: 18px; border-radius: 50%; background: ${c}; cursor:pointer; border: 2px solid ${activeColor === c ? 'var(--text-primary)' : 'transparent'}; box-shadow: 0 2px 5px rgba(0,0,0,0.3); transition: transform 0.1s;" onclick="setDayColor('${day.id}', '${c}')" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'"></div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+
     return `
         <div class="day-section" id="${day.id}" style="margin-bottom: 3rem;">
             <!-- Day Header -->
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.5rem;">
+            <div style="display:flex; align-items:center; margin-bottom: 0.5rem;">
                 <h3 style="font-size: 1.5rem; margin:0;">${dayName}</h3>
+                ${colorPickerHtml}
                 <div style="position:relative;">
                     <button class="menu-dots" style="position:static; transform:none; padding: 0 5px;" onclick="toggleMenu(event, 'day-${day.id}')">⋮</button>
                     <div class="menu-dropdown" id="menu-day-${day.id}" style="top:2rem; right:0;">

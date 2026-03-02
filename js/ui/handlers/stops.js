@@ -70,6 +70,17 @@ export function deleteDay(event, dayId) {
     });
 }
 
+export function setDayColor(dayId, colorHex) {
+    const trip = state.trips.find(t => t.id === state.activeTripId);
+    if (!trip) return;
+    const day = trip.days.find(d => d.id === dayId);
+    if (day) {
+        day.color = colorHex;
+        saveData();
+        renderApp();
+    }
+}
+
 // --- Stop Management ---
 export function deleteStop(event, dayId, stopId) {
     // Called from timeline trash icon (with event, dayId, stopId)

@@ -3,15 +3,15 @@
         "name": "Test Traveler"
     },
     "currentView": "trip",
-    "activeTripId": "trip-1772227951554",
+    "activeTripId": "trip-1772480069683",
     "trips": [
         {
-            "id": "trip-1772227951554",
+            "id": "trip-1772480069683",
             "title": "新的神秘冒险",
             "startDate": "2026-05-01",
             "endDate": "2026-05-05",
-            "thumb": "https://loremflickr.com/600/400/travel?lock=301&t=1772466547207",
-            "activeDayId": "day-1772473981149",
+            "thumb": "/uploads/bb0e666a4d9e3a8ef0c5d337241c19c5.jpg",
+            "activeDayId": "day-1772483356143",
             "days": [
                 {
                     "id": "day-1",
@@ -19,264 +19,302 @@
                     "date": "2026年4月30日",
                     "stops": [
                         {
-                            "id": "l1772469213698",
-                            "type": "list",
-                            "title": "",
-                            "items": []
-                        },
-                        {
-                            "id": "l1772228141194",
-                            "type": "list",
-                            "title": "",
-                            "items": []
-                        },
-                        {
-                            "id": "n1772228138696",
-                            "type": "note",
-                            "content": "jfk",
-                            "checked": false
-                        },
-                        {
-                            "id": "n1772470552361",
-                            "type": "note",
-                            "content": "",
-                            "checked": false
-                        },
-                        {
-                            "id": "s1772467214640",
-                            "location": "John F. Kennedy International Airport",
-                            "desc": "New York City hub offering flights from 80+ airlines, plus a variety of shops & eateries.",
-                            "address": "Queens, NY 11430, USA",
-                            "phone": "(718) 244-4444",
+                            "id": "s1772480083136",
+                            "location": "Onigiri Bongo",
+                            "desc": "Street food shop specializing in onigiri, or seaweed-wrapped rice balls, with fillings like cod roe.",
+                            "address": "2-chōme-27-5 Kitaōtsuka, Toshima City, Tokyo 170-0004, Japan",
+                            "phone": "03-3910-5617",
                             "time": "09:00",
                             "period": "AM",
                             "note": "",
                             "price": "0",
                             "type": "location",
-                            "lat": 40.6446124,
-                            "lng": -73.7797278,
-                            "photo": "/uploads/ec8c23ddd8527f3fe9402364ba87074f.jpg",
-                            "rating": 3.8,
-                            "category": "机场",
-                            "categoryIcon": "✈️",
+                            "lat": 35.7327209,
+                            "lng": 139.72968369999998,
+                            "photo": "/uploads/d7a20a25c6721191beebe93c7e2861ec.jpg",
+                            "rating": 4.1,
+                            "category": "餐饮",
+                            "categoryIcon": "🍴",
                             "transitToNext": {
-                                "duration": "41 分钟",
-                                "distance": "28.1 公里"
+                                "duration": "7 分钟",
+                                "distance": "1.5 公里"
                             }
                         },
                         {
-                            "id": "s1772467222593",
-                            "location": "Macy's",
-                            "desc": "Department store chain providing brand-name clothing, accessories, home furnishings & housewares.",
-                            "address": "151 W 34th St., New York, NY 10001, USA",
-                            "phone": "(212) 695-4400",
+                            "id": "s1772480090058",
+                            "location": "French Pound House",
+                            "desc": "French-style cakes & desserts in a cozy cafe with patterned tablecloths, plus a shady terrace.",
+                            "address": "1-chōme-4-4 Sugamo, Toshima City, Tokyo 170-0002, Japan",
+                            "phone": "03-3944-2108",
                             "time": "11:00",
                             "period": "AM",
                             "note": "",
                             "price": "0",
                             "type": "location",
-                            "lat": 40.7504817,
-                            "lng": -73.9882938,
-                            "photo": "/uploads/16d99e21475a726351996a670dd636eb.jpg",
-                            "rating": 4.4,
+                            "lat": 35.732959199999996,
+                            "lng": 139.74190579999998,
+                            "photo": "/uploads/ab0e3da7d38e96772e91c02eabdb1f0d.jpg",
+                            "rating": 4.1,
                             "category": "商店",
                             "categoryIcon": "🛍️",
                             "transitToNext": {
-                                "duration": "27 分钟",
-                                "distance": "14.8 公里"
+                                "duration": "3 分钟",
+                                "distance": "0.7 公里"
                             }
                         },
                         {
-                            "id": "n1772469168394",
-                            "type": "note",
-                            "content": "",
-                            "checked": false
-                        },
-                        {
-                            "id": "s1772468412628",
-                            "location": "LaGuardia Airport",
-                            "desc": "Waterfront circa-1939 airport in Queens offers regional flights in the U.S., Canada & the Caribbean.",
-                            "address": "East Elmhurst, NY 11371, USA",
-                            "phone": "(718) 533-3400",
+                            "id": "s1772482514456",
+                            "location": "Shilingol",
+                            "desc": "Traditional Mongolian dishes like dumplings & roast meats in a cozy venue with books & artifacts.",
+                            "address": "4-chōme-11-9 Sengoku, Bunkyo City, Tokyo 112-0011, Japan",
+                            "phone": "03-5978-3837",
                             "time": "01:00",
                             "period": "PM",
                             "note": "",
                             "price": "0",
                             "type": "location",
-                            "lat": 40.7766422,
-                            "lng": -73.8742467,
-                            "photo": "/uploads/18c4b89c922b314d004ad73ffdb9d790.jpg",
-                            "rating": 4.1,
-                            "category": "机场",
-                            "categoryIcon": "✈️",
-                            "transitToNext": {
-                                "duration": "27 分钟",
-                                "distance": "14.7 公里"
-                            }
-                        },
-                        {
-                            "id": "s1772467274355",
-                            "location": "ICHIRAN Ramen NY Times Square",
-                            "desc": "Informal ramen restaurant with a specialty for tonkotsu ramen in a pork bone broth.",
-                            "address": "152 W 49th St, New York, NY 10020, USA",
-                            "phone": "(646) 964-4294",
-                            "time": "01:00",
-                            "period": "PM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 40.76005749999999,
-                            "lng": -73.9833246,
-                            "photo": "/uploads/a2a4c06c3df53cdf14845c68eef5b154.jpg",
-                            "rating": 4.6,
+                            "lat": 35.72936,
+                            "lng": 139.73781499999998,
+                            "photo": "/uploads/8658c05f91ac4bf023bdca2dd50226f0.jpg",
+                            "rating": 4.4,
                             "category": "餐饮",
                             "categoryIcon": "🍴",
                             "transitToNext": {
-                                "duration": "31 分钟",
-                                "distance": "14.8 公里"
+                                "duration": "25 分钟",
+                                "distance": "13.0 公里"
                             }
                         },
                         {
-                            "id": "s1772471677317",
-                            "location": "Chili's Grill & Bar",
-                            "desc": "Family-friendly chain serving classic Tex-Mex & American fare in a Southwestern-style setting.",
-                            "address": "80-16 Cooper Ave, Glendale, NY 11385, USA",
-                            "phone": "(718) 366-4272",
-                            "time": "03:00",
-                            "period": "PM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 40.709202999999995,
-                            "lng": -73.869669,
-                            "photo": "/uploads/3f1eb0004f3270e8fb5f237230eb9878.jpg",
-                            "rating": 3.9,
-                            "category": "餐饮",
-                            "categoryIcon": "🍴",
-                            "transitToNext": {
-                                "duration": "15 分钟",
-                                "distance": "11.0 公里"
-                            }
-                        },
-                        {
-                            "id": "s1772471747309",
-                            "location": "New York Hall of Science",
-                            "desc": "This former 1964 World's Fair pavilion now houses more than 450 interactive science & tech exhibits.",
-                            "address": "47-01 111th St, Corona, NY 11368, USA",
-                            "phone": "(718) 699-0005",
+                            "id": "s1772482783752",
+                            "location": "Sunshine City",
+                            "desc": "Multibuilding mall with shops, eateries, an observation deck, aquarium, museum & indoor theme parks.",
+                            "address": "3-chōme-1-2 Higashiikebukuro, Toshima City, Tokyo 170-8630, Japan",
+                            "phone": "03-3989-3331",
                             "time": "05:00",
                             "period": "PM",
                             "note": "",
                             "price": "0",
                             "type": "location",
-                            "lat": 40.7472583,
-                            "lng": -73.8516925,
-                            "photo": "/uploads/3609c96ae5ff833ce19c3ebdb5d9fd0b.jpg",
-                            "rating": 4.5,
-                            "category": "景点",
-                            "categoryIcon": "🏛️",
+                            "lat": 35.7289709,
+                            "lng": 139.7195415,
+                            "photo": "/uploads/ae3da5db9dd3f523f03d585d9aa110ae.jpg",
+                            "rating": 4.1,
+                            "category": "购物中心",
+                            "categoryIcon": "🛍️",
                             "transitToNext": null
                         }
-                    ]
+                    ],
+                    "color": "#10b981"
                 },
                 {
-                    "id": "day-1772469562714",
+                    "id": "day-1772480103854",
                     "title": "第 2 天",
                     "date": "2026年5月1日",
                     "stops": [
                         {
-                            "id": "s1772472548520",
-                            "location": "Costco Wholesale",
-                            "desc": "Members-only warehouse selling a huge variety of items including bulk groceries, electronics & more.",
-                            "address": "517 E 117th St, New York, NY 10035, USA",
-                            "phone": "(212) 896-5875",
+                            "id": "s1772480119538",
+                            "location": "Barikote",
+                            "desc": "Rich tonkotsu ramen, made only with pork bones simmered for many hours, in a small, low-key shop.",
+                            "address": "1-chōme-30-15 Kōenjiminami, Suginami City, Tokyo 166-0003, Japan",
+                            "phone": "03-5378-0326",
                             "time": "09:00",
                             "period": "AM",
                             "note": "",
                             "price": "0",
                             "type": "location",
-                            "lat": 40.795386,
-                            "lng": -73.9310222,
-                            "photo": "/uploads/9e367fba05126f0eb9ae9c19832846f4.jpg",
-                            "rating": 4.4,
-                            "category": "商店",
-                            "categoryIcon": "🛍️",
+                            "lat": 35.700507099999996,
+                            "lng": 139.65969239999998,
+                            "photo": "/uploads/6e4292b5b1e1ab1b12c2e64654df22bb.jpg",
+                            "rating": 4.2,
+                            "category": "餐饮",
+                            "categoryIcon": "🍴",
                             "transitToNext": {
-                                "duration": "20 分钟",
-                                "distance": "7.9 公里"
+                                "duration": "2 分钟",
+                                "distance": "0.5 公里"
                             }
                         },
                         {
-                            "id": "s1772473972017",
-                            "location": "Prime No 7",
+                            "id": "s1772480126566",
+                            "location": "Yuei",
                             "desc": "",
-                            "address": "34-19 Steinway St, Astoria, NY 11101, USA",
-                            "phone": "(718) 350-8665",
+                            "address": "104 1-chōme-6-5 Kōenjiminami, Suginami City, Tokyo 166-0002, Japan",
+                            "phone": "",
                             "time": "11:00",
                             "period": "AM",
                             "note": "",
                             "price": "0",
                             "type": "location",
-                            "lat": 40.7559914,
-                            "lng": -73.9210825,
-                            "photo": "/uploads/92ac254942a4eca403c32881128177c4.jpg",
-                            "rating": 4.8,
+                            "lat": 35.6981985,
+                            "lng": 139.6585402,
+                            "photo": "/uploads/4dbfad5e9fd4f58c9610b6bb10e19d95.jpg",
+                            "rating": 4.2,
                             "category": "餐饮",
                             "categoryIcon": "🍴",
-                            "transitToNext": null
-                        }
-                    ]
-                },
-                {
-                    "id": "day-1772473981149",
-                    "title": "第 3 天",
-                    "date": "2026年5月2日",
-                    "stops": [
+                            "transitToNext": {
+                                "duration": "2 分钟",
+                                "distance": "0.7 公里"
+                            }
+                        },
                         {
-                            "id": "s1772473991651",
-                            "location": "Eyval",
+                            "id": "s1772480158182",
+                            "location": "Soi meme",
                             "desc": "",
-                            "address": "25 Bogart St, Brooklyn, NY 11206, USA",
-                            "phone": "",
-                            "time": "09:00",
-                            "period": "AM",
+                            "address": "Japan, 〒164-0011 Tokyo, Nakano City, Chūō, 5-chōme−24−７ フリーダム２１ 1F",
+                            "phone": "03-5385-4822",
+                            "time": "01:00",
+                            "period": "PM",
                             "note": "",
                             "price": "0",
                             "type": "location",
-                            "lat": 40.704142399999995,
-                            "lng": -73.9331596,
-                            "photo": "/uploads/9d6a9acbf5beba6934bf31f58f569926.jpg",
-                            "rating": 4.6,
-                            "category": "餐饮",
-                            "categoryIcon": "🍴"
+                            "lat": 35.7002315,
+                            "lng": 139.66292099999998,
+                            "photo": "/uploads/0858fc11038798c1e820c8246eef47b4.jpg",
+                            "rating": 4.3,
+                            "category": "咖啡馆",
+                            "categoryIcon": "☕",
+                            "transitToNext": {
+                                "duration": "13 分钟",
+                                "distance": "4.0 公里"
+                            }
+                        },
+                        {
+                            "id": "s1772482762463",
+                            "location": "The Globe Tokyo",
+                            "desc": "Straightforward, round theater showcasing plays, concerts & musicals, plus talks.",
+                            "address": "3-chōme-1-2 Hyakuninchō, 新宿区 Shinjuku City, Tokyo 169-0073, Japan",
+                            "phone": "03-3366-4020",
+                            "time": "03:00",
+                            "period": "PM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 35.704766,
+                            "lng": 139.70035500000003,
+                            "photo": "/uploads/449aa22e37abc8d3614cfbefe09f2434.jpg",
+                            "rating": 4.2,
+                            "category": "地点",
+                            "categoryIcon": "📍",
+                            "transitToNext": {
+                                "duration": "10 分钟",
+                                "distance": "2.5 公里"
+                            }
+                        },
+                        {
+                            "id": "s1772482771130",
+                            "location": "Hilton Tokyo",
+                            "desc": "Polished quarters in a contemporary lodging offering dining & bars, plus an indoor pool.",
+                            "address": "6-chōme-6-2 Nishishinjuku, Shinjuku City, Tokyo 160-0023, Japan",
+                            "phone": "03-3344-5111",
+                            "time": "05:00",
+                            "period": "PM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 35.6925835,
+                            "lng": 139.6911889,
+                            "photo": "/uploads/f6d48186ea6a2c13fbd0c53ba392bd7e.jpg",
+                            "rating": 4.3,
+                            "category": "酒店",
+                            "categoryIcon": "🏨",
+                            "transitToNext": {
+                                "duration": "8 分钟",
+                                "distance": "2.0 公里"
+                            }
+                        },
+                        {
+                            "id": "s1772484263994",
+                            "location": "Don Quijote Shinjuku",
+                            "desc": "Convenience store selling groceries, toys, footwear & other household items.",
+                            "address": "1-chōme-12-6 Ōkubo, Shinjuku City, Tokyo 169-0072, Japan",
+                            "phone": "0570-005-921",
+                            "time": "07:00",
+                            "period": "PM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 35.6987325,
+                            "lng": 139.70310899999998,
+                            "photo": "/uploads/6295b6c15a5abe7a85ed61b4bd4ff660.jpg",
+                            "rating": 3.9,
+                            "category": "商店",
+                            "categoryIcon": "🛍️",
+                            "transitToNext": {
+                                "duration": "15 分钟",
+                                "distance": "5.3 公里"
+                            }
+                        },
+                        {
+                            "id": "s1772484384001",
+                            "location": "Kisoji",
+                            "desc": "",
+                            "address": "2-chōme-27-6 Kamiochiai, Shinjuku City, Tokyo 161-0034, Japan",
+                            "phone": "03-5338-1671",
+                            "time": "09:00",
+                            "period": "PM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 35.712151,
+                            "lng": 139.6859451,
+                            "photo": "/uploads/aefaebc713bfe83fed75db946c455d34.jpg",
+                            "rating": 3.9,
+                            "category": "外卖",
+                            "categoryIcon": "🥡",
+                            "transitToNext": {
+                                "duration": "14 分钟",
+                                "distance": "4.4 公里"
+                            }
+                        },
+                        {
+                            "id": "s1772484421599",
+                            "location": "Gyomu Super Higashi-shinjuku",
+                            "desc": "",
+                            "address": "6-15 Yochōmachi, Shinjuku City, Tokyo 162-0055, Japan",
+                            "phone": "03-5362-7488",
+                            "time": "11:00",
+                            "period": "PM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 35.6968143,
+                            "lng": 139.7132771,
+                            "photo": "/uploads/3f1d435260db24bde9ec7a561ac448eb.jpg",
+                            "rating": 3.9,
+                            "category": "超市",
+                            "categoryIcon": "🛒",
+                            "transitToNext": null
                         }
-                    ]
-                }
-            ]
-        },
-        {
-            "id": "trip-1772229042035",
-            "title": "01111111",
-            "startDate": "2026-05-01",
-            "endDate": "2026-05-28",
-            "thumb": "https://loremflickr.com/600/400/travel?lock=302&t=1772229047677",
-            "activeDayId": "day-1",
-            "days": [
+                    ],
+                    "color": "#ef4444"
+                },
                 {
-                    "id": "day-1",
-                    "title": "第 1 天",
-                    "date": "2026年4月30日",
-                    "stops": []
+                    "id": "day-1772483355277",
+                    "title": "第 3 天",
+                    "date": "2026年5月2日",
+                    "stops": [],
+                    "color": "#ec4899"
+                },
+                {
+                    "id": "day-1772483356143",
+                    "title": "第 4 天",
+                    "date": "2026年5月3日",
+                    "stops": [],
+                    "color": "#f59e0b"
                 }
             ]
         }
     ],
     "collapsedDays": {
-        "day-1": false,
+        "day-1": true,
         "day-1772143722190": true,
         "day-1772143683042": true,
         "day-1772143684042": true,
         "day-1772226201379": true,
-        "day-1772469562714": true
+        "day-1772469562714": false,
+        "day-1772473981149": false,
+        "day-1772480016034": true,
+        "day-1772480103854": false,
+        "day-1772483355277": true,
+        "day-1772483356143": true
     }
 }

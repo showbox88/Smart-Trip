@@ -240,6 +240,12 @@ function toggleDayCollapse(dayId) {
     if (arrow) {
         arrow.style.transform = state.collapsedDays[dayId] ? 'rotate(-90deg)' : 'rotate(0deg)';
     }
+
+    // Save collapse state and trigger map re-render
+    saveData();
+    if (window._realInitGoogleMaps) {
+        window._realInitGoogleMaps();
+    }
 }
 
 // --- Drag & Drop ---
