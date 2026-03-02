@@ -59,6 +59,17 @@ export function renderApp() {
                 renderApp();
                 return;
             }
+            // --- Auto-sync endDate if days array was manually edited or mismatched ---
+            if (trip.startDate && trip.days.length > 0) {
+                let d = new Date(trip.startDate.replace(/-/g, '/'));
+                d.setDate(d.getDate() + trip.days.length - 1);
+                if (!isNaN(d.getTime())) {
+                    let m = String(d.getMonth() + 1).padStart(2, '0');
+                    let dt = String(d.getDate()).padStart(2, '0');
+                    trip.endDate = `${d.getFullYear()}-${m}-${dt}`;
+                }
+            }
+
             container.innerHTML = getTripHTML(trip);
             updateNavLinks();
             setTimeout(() => {

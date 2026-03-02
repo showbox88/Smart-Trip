@@ -10,13 +10,19 @@ export function addDay() {
     const trip = state.trips.find(t => t.id === state.activeTripId);
 
     // Extend the trip's endDate by 1 day logically
-    if (trip.endDate) {
+    if (trip.endDate && trip.startDate) {
         let currentEnd = new Date(trip.endDate.replace(/-/g, '/'));
-        if (!isNaN(currentEnd.getTime())) {
-            currentEnd.setDate(currentEnd.getDate() + 1);
-            let month = currentEnd.getMonth() + 1;
-            let date = currentEnd.getDate();
-            trip.endDate = `${currentEnd.getFullYear()}-${month < 10 ? '0' + month : month}-${date < 10 ? '0' + date : date}`;
+
+        // As a fallback to ensure we don't drift due to month end edge cases,
+        // we can perfectly derive the requested endDate from startDate + new length
+        let newEnd = new Date(trip.startDate.replace(/-/g, '/'));
+        newEnd.setDate(newEnd.getDate() + trip.days.length);
+
+        if (!isNaN(newEnd.getTime())) {
+            let year = newEnd.getFullYear();
+            let month = String(newEnd.getMonth() + 1).padStart(2, '0');
+            let date = String(newEnd.getDate()).padStart(2, '0');
+            trip.endDate = `${year}-${month}-${date}`;
         }
     }
 
