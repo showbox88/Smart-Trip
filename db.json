@@ -3,268 +3,133 @@
         "name": "Test Traveler"
     },
     "currentView": "trip",
-    "activeTripId": "trip-1772496865628",
+    "activeTripId": "trip-1772497344770",
     "trips": [
         {
-            "id": "trip-1772489475916",
+            "id": "trip-1772497344770",
             "title": "新的神秘冒险",
             "startDate": "2026-05-01",
-            "endDate": "2026-05-12",
+            "endDate": "2026-05-05",
             "thumb": "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-            "activeDayId": "day-1772489475916-0",
+            "activeDayId": "day-1772497344770-0",
             "days": [
                 {
-                    "id": "day-1772489475916-0",
+                    "id": "day-1772497344770-0",
                     "title": "第 1 天",
                     "date": "2026年5月1日",
                     "stops": [
                         {
-                            "id": "n1772495823862",
-                            "type": "note",
-                            "content": "",
-                            "checked": false
-                        },
-                        {
-                            "id": "s1772493973141",
-                            "location": "Mansei Koganei",
-                            "desc": "",
-                            "address": "1-chōme-3-4 Sekinochō, Koganei, Tokyo 184-0001, Japan",
-                            "phone": "042-401-2990",
-                            "time": "11:00",
-                            "period": "AM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 35.7128844,
-                            "lng": 139.5221532,
-                            "photo": "/uploads/b3613daa7f287d346fb120c3265f4389.jpg",
-                            "rating": 4,
-                            "category": "餐饮",
-                            "categoryIcon": "🍴",
-                            "transitToNext": {
-                                "duration": "3 分钟",
-                                "distance": "1.0 公里"
-                            }
-                        },
-                        {
-                            "id": "s1772493952465",
-                            "location": "Starbucks Coffee - Nishitokyo Shimmachi",
-                            "desc": "Welcoming coffeehouse with handcrafted coffee, espresso & tea, plus breakfast, lunch & pastries.",
-                            "address": "5-chōme-19-10 Shinmachi, Nishitokyo, Tokyo 202-0023, Japan",
-                            "phone": "0422-39-8750",
+                            "id": "s1772497354549",
+                            "location": "John F. Kennedy International Airport",
+                            "desc": "New York City hub offering flights from 80+ airlines, plus a variety of shops & eateries.",
+                            "address": "Queens, NY 11430, USA",
+                            "phone": "(718) 244-4444",
                             "time": "09:00",
                             "period": "AM",
                             "note": "",
                             "price": "0",
                             "type": "location",
-                            "lat": 35.712151,
-                            "lng": 139.5333891,
-                            "photo": "/uploads/9ae02fd08af62e0f8589c7ca7dd0b362.jpg",
-                            "rating": 4.1,
-                            "category": "咖啡馆",
-                            "categoryIcon": "☕",
+                            "lat": 40.6446124,
+                            "lng": -73.7797278,
+                            "photo": "/uploads/6552a69b05fa930e0b3bc2ffbde99982.jpg",
+                            "rating": 3.8,
+                            "category": "机场",
+                            "categoryIcon": "✈️",
                             "transitToNext": {
-                                "duration": "3 分钟",
-                                "distance": "1.2 公里"
+                                "duration": "26 分钟",
+                                "distance": "17.0 公里"
                             }
-                        },
+                        }
+                    ],
+                    "color": "#5b7a99"
+                },
+                {
+                    "id": "day-1772497344770-1",
+                    "title": "第 2 天",
+                    "date": "2026年5月2日",
+                    "stops": [
                         {
-                            "id": "s1772493989683",
-                            "location": "Ippei Soba",
-                            "desc": "Unpretentious restaurant offering classic noodle dishes, ramen & dumplings, plus open-air dining.",
-                            "address": "3-chōme-17-12 Kajinochō, Koganei, Tokyo 184-0002, Japan",
-                            "phone": "0422-88-8888",
-                            "time": "01:00",
-                            "period": "PM",
+                            "id": "s1772497373421",
+                            "location": "John F. Kennedy International Airport",
+                            "desc": "New York City hub offering flights from 80+ airlines, plus a variety of shops & eateries.",
+                            "address": "Queens, NY 11430, USA",
+                            "phone": "(718) 244-4444",
+                            "time": "09:00",
+                            "period": "AM",
                             "note": "",
                             "price": "0",
                             "type": "location",
-                            "lat": 35.7112076,
-                            "lng": 139.5218026,
-                            "photo": "/uploads/e6028d6f7c095e71b2d34f74a9b6fd21.jpg",
-                            "rating": 4.3,
-                            "category": "餐饮",
-                            "categoryIcon": "🍴",
+                            "lat": 40.6446124,
+                            "lng": -73.7797278,
+                            "photo": "/uploads/e10eeaf2f6f133d98ddd1cd46695cd7b.jpg",
+                            "rating": 3.8,
+                            "category": "机场",
+                            "categoryIcon": "✈️",
                             "transitToNext": {
-                                "duration": "1 分钟",
-                                "distance": "0.5 公里"
+                                "duration": "26 分钟",
+                                "distance": "17.0 公里"
                             }
                         },
                         {
-                            "id": "s1772494564863",
-                            "location": "Domino's Pizza Higashikoganei Midoricho",
-                            "desc": "Delivery/carryout chain offering a wide range of pizzas & a variety of other dishes & sides.",
-                            "address": "2-chōme-7-25 Midorichō, Koganei, Tokyo 184-0003, Japan",
-                            "phone": "042-380-1655",
+                            "id": "s1772497363325",
+                            "location": "Queens Center",
+                            "desc": "This coliseum-like indoor shopping mall houses dozens of retail stores plus a food court.",
+                            "address": "90-15 Queens Blvd, Elmhurst, NY 11373, USA",
+                            "phone": "(718) 592-3900",
                             "time": "11:00",
                             "period": "AM",
                             "note": "",
                             "price": "0",
                             "type": "location",
-                            "lat": 35.7064473,
-                            "lng": 139.52158,
-                            "photo": "/uploads/5352975dad196886634db06e92ed9722.jpg",
-                            "rating": 2.6,
-                            "category": "餐饮",
-                            "categoryIcon": "🍴",
+                            "lat": 40.7347872,
+                            "lng": -73.8688409,
+                            "photo": "/uploads/6f5a13eb9aa2c980e7951741fcf8eef9.jpg",
+                            "rating": 4.4,
+                            "category": "购物中心",
+                            "categoryIcon": "🛍️",
                             "transitToNext": {
-                                "duration": "2 分钟",
-                                "distance": "0.7 公里"
+                                "duration": "0 分钟",
+                                "distance": "NaN 公里"
                             }
                         },
                         {
-                            "id": "s1772494485710",
-                            "location": "小金井キャンパス多目的グラウンド",
-                            "desc": "",
-                            "address": "3 Chome-7 Kajinocho, Koganei, Tokyo 184-0002, Japan",
-                            "phone": "",
-                            "time": "03:00",
-                            "period": "PM",
+                            "id": "s1772497382329",
+                            "location": "Queens Center",
+                            "desc": "This coliseum-like indoor shopping mall houses dozens of retail stores plus a food court.",
+                            "address": "90-15 Queens Blvd, Elmhurst, NY 11373, USA",
+                            "phone": "(718) 592-3900",
+                            "time": "11:00",
+                            "period": "AM",
                             "note": "",
                             "price": "0",
                             "type": "location",
-                            "lat": 35.7111849,
-                            "lng": 139.5239016,
-                            "photo": "",
-                            "rating": null,
-                            "category": "地点",
-                            "categoryIcon": "📍",
-                            "transitToNext": {
-                                "duration": "7 分钟",
-                                "distance": "2.0 公里"
-                            }
-                        },
-                        {
-                            "id": "s1772496319485",
-                            "location": "ドーミー東小金井2",
-                            "desc": "",
-                            "address": "2-chōme-6-30 Kajinochō, Koganei, Tokyo 184-0002, Japan",
-                            "phone": "0120-881-030",
-                            "time": "05:00",
-                            "period": "PM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 35.707727,
-                            "lng": 139.52966809999998,
-                            "photo": "/uploads/ec889df245c9b374a8c25bb8e9e36593.jpg",
-                            "rating": 3.4,
-                            "category": "地点",
-                            "categoryIcon": "📍",
+                            "lat": 40.7347872,
+                            "lng": -73.8688409,
+                            "photo": "/uploads/f775d24be8e745c3b8c31b25bd0d4fe7.jpg",
+                            "rating": 4.4,
+                            "category": "购物中心",
+                            "categoryIcon": "🛍️",
                             "transitToNext": null
                         }
                     ],
-                    "color": "#f59e0b"
-                },
-                {
-                    "id": "day-1772489475916-1",
-                    "title": "第 2 天",
-                    "date": "2026年5月2日",
-                    "stops": [],
                     "color": "#ef4444"
                 },
                 {
-                    "id": "day-1772489475916-2",
-                    "title": "第 3 天",
-                    "date": "2026年5月3日",
-                    "stops": [],
-                    "color": "#10b981"
-                },
-                {
-                    "id": "day-1772489475916-3",
-                    "title": "第 4 天",
-                    "date": "2026年5月4日",
-                    "stops": [],
-                    "color": "#f59e0b"
-                },
-                {
-                    "id": "day-1772489475916-4",
-                    "title": "第 5 天",
-                    "date": "2026年5月5日",
-                    "stops": []
-                },
-                {
-                    "id": "day-1772489479401",
-                    "title": "第 6 天",
-                    "date": "2026年5月6日",
-                    "stops": []
-                },
-                {
-                    "id": "day-1772489480835",
-                    "title": "第 7 天",
-                    "date": "2026年5月7日",
-                    "stops": []
-                },
-                {
-                    "id": "day-1772492777973",
-                    "title": "第 8 天",
-                    "date": "2026年5月8日",
-                    "stops": []
-                },
-                {
-                    "id": "day-1772492781573",
-                    "title": "第 9 天",
-                    "date": "2026年5月9日",
-                    "stops": []
-                },
-                {
-                    "id": "day-1772492805470",
-                    "title": "第 10 天",
-                    "date": "2026年5月10日",
-                    "stops": []
-                },
-                {
-                    "id": "day-1772492963583",
-                    "title": "第 11 天",
-                    "date": "2026年5月11日",
-                    "stops": []
-                },
-                {
-                    "id": "day-1772494804393",
-                    "title": "第 12 天",
-                    "date": "2026年5月12日",
-                    "stops": []
-                }
-            ]
-        },
-        {
-            "id": "trip-1772496865628",
-            "title": "新的神秘冒险",
-            "startDate": "2026-05-01",
-            "endDate": "2026-05-05",
-            "thumb": "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-            "activeDayId": "day-1772496865628-1",
-            "days": [
-                {
-                    "id": "day-1772496865628-0",
-                    "title": "第 1 天",
-                    "date": "2026年5月1日",
-                    "stops": [],
-                    "color": "#5b7a99"
-                },
-                {
-                    "id": "day-1772496865628-1",
-                    "title": "第 2 天",
-                    "date": "2026年5月2日",
-                    "stops": [],
-                    "color": "#ef4444"
-                },
-                {
-                    "id": "day-1772496865628-2",
+                    "id": "day-1772497344770-2",
                     "title": "第 3 天",
                     "date": "2026年5月3日",
                     "stops": [],
                     "color": "#f59e0b"
                 },
                 {
-                    "id": "day-1772496865628-3",
+                    "id": "day-1772497344770-3",
                     "title": "第 4 天",
                     "date": "2026年5月4日",
                     "stops": [],
                     "color": "#10b981"
                 },
                 {
-                    "id": "day-1772496865628-4",
+                    "id": "day-1772497344770-4",
                     "title": "第 5 天",
                     "date": "2026年5月5日",
                     "stops": [],
@@ -275,7 +140,7 @@
     ],
     "collapsedDays": {
         "day-1772489475916-0": false,
-        "day-1772489475916-1": true,
+        "day-1772489475916-1": false,
         "day-1772489475916-2": true,
         "day-1772489475916-3": true,
         "day-1772489475916-4": true,
@@ -286,10 +151,14 @@
         "day-1772492805470": true,
         "day-1772492963583": true,
         "day-1772494804393": true,
-        "day-1772496865628-0": true,
-        "day-1772496865628-1": false,
+        "day-1772496865628-0": false,
+        "day-1772496865628-1": true,
         "day-1772496865628-2": true,
         "day-1772496865628-3": true,
-        "day-1772496865628-4": true
+        "day-1772496865628-4": true,
+        "day-1772497106347": true,
+        "day-1772497108414": true,
+        "day-1772497110063": true,
+        "day-1772497111784": true
     }
 }

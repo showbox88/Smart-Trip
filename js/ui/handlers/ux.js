@@ -451,6 +451,13 @@ function handleDrop(e, targetDayId, targetStopId) {
         targetDay.stops.splice(targetIndex, 0, movedStop);
         saveData();
 
+        // Update stop counts in the sidebar
+        const srcCountSpan = document.getElementById(`sidebar-count-${draggedDayId}`);
+        if (srcCountSpan) srcCountSpan.innerText = `共 ${sourceDay.stops.length} 站行程`;
+
+        const tgtCountSpan = document.getElementById(`sidebar-count-${targetDayId}`);
+        if (tgtCountSpan) tgtCountSpan.innerText = `共 ${targetDay.stops.length} 站行程`;
+
         // Re-render only affected days to avoid full page flash
 
         if (draggedDayId !== targetDayId) {
