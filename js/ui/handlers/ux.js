@@ -204,8 +204,14 @@ function scrollToDay(id) {
     }
 
     const element = document.getElementById(id);
-    if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
+    const container = document.getElementById('itinerary-scroll-container');
+    if (element && container) {
+        // Manually scroll only the itinerary container to avoid shifting the whole page
+        const headerOffset = 100;
+        container.scrollTo({
+            top: element.offsetTop - headerOffset,
+            behavior: 'smooth'
+        });
     }
 }
 function editDay(dayId) {
