@@ -203,6 +203,36 @@ function scrollToDay(id) {
         });
     }
 
+    // Auto-expand clicked day, collapse all others
+    state.collapsedDays = state.collapsedDays || {};
+    let needsMapRender = false;
+
+    trip.days.forEach(d => {
+        const isTarget = d.id === id;
+        const willCollapse = !isTarget;
+
+        if (state.collapsedDays[d.id] !== willCollapse) {
+            state.collapsedDays[d.id] = willCollapse;
+            needsMapRender = true;
+
+            const content = document.getElementById(`day-content-${d.id}`);
+            if (content) {
+                content.style.display = willCollapse ? 'none' : 'block';
+            }
+            const arrow = document.getElementById(`collapse-arrow-${d.id}`);
+            if (arrow) {
+                arrow.style.transform = willCollapse ? 'rotate(-90deg)' : 'rotate(0deg)';
+            }
+        }
+    });
+
+    if (needsMapRender) {
+        saveData();
+        if (window._realInitGoogleMaps) {
+            window._realInitGoogleMaps();
+        }
+    }
+
     const element = document.getElementById(id);
     const container = document.getElementById('itinerary-scroll-container');
     if (element && container) {
