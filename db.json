@@ -11,7 +11,7 @@
             "startDate": "2026-05-01",
             "endDate": "2026-05-06",
             "thumb": "/uploads/9f33b97b0e4356e29f559a883253f0bc.jpg",
-            "activeDayId": "day-1772562082853-0",
+            "activeDayId": "day-1772562082853-1",
             "days": [
                 {
                     "id": "day-1772562082853-0",
@@ -51,6 +51,32 @@
                             "type": "list",
                             "title": "",
                             "items": []
+                        }
+                    ],
+                    "color": "#5b7a99"
+                },
+                {
+                    "id": "day-1772562082853-1",
+                    "title": "第 2 天",
+                    "date": "2026年5月2日",
+                    "stops": [
+                        {
+                            "id": "l1772567222248",
+                            "type": "list",
+                            "title": "",
+                            "items": []
+                        },
+                        {
+                            "id": "n1772563804261",
+                            "type": "note",
+                            "content": "",
+                            "checked": false
+                        },
+                        {
+                            "id": "n1772563805798",
+                            "type": "note",
+                            "content": "",
+                            "checked": false
                         },
                         {
                             "id": "s1772563157111",
@@ -70,15 +96,14 @@
                             "category": "购物中心",
                             "categoryIcon": "🛍️",
                             "transitToNext": null
+                        },
+                        {
+                            "id": "n1772563807440",
+                            "type": "note",
+                            "content": "",
+                            "checked": false
                         }
                     ],
-                    "color": "#5b7a99"
-                },
-                {
-                    "id": "day-1772562082853-1",
-                    "title": "第 2 天",
-                    "date": "2026年5月2日",
-                    "stops": [],
                     "color": "#ef4444"
                 },
                 {
@@ -140,8 +165,8 @@
         "day-1772497344770-3": true,
         "day-1772497344770-4": true,
         "day-1772498168701": true,
-        "day-1772562082853-0": false,
-        "day-1772562082853-1": true,
+        "day-1772562082853-0": true,
+        "day-1772562082853-1": false,
         "day-1772562082853-2": true,
         "day-1772562082853-3": true,
         "day-1772562082853-4": true,
