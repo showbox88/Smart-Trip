@@ -3,7 +3,7 @@
         "name": "Test Traveler"
     },
     "currentView": "trip",
-    "activeTripId": "trip-1772489475916",
+    "activeTripId": "trip-1772496865628",
     "trips": [
         {
             "id": "trip-1772489475916",
@@ -226,6 +226,51 @@
                     "stops": []
                 }
             ]
+        },
+        {
+            "id": "trip-1772496865628",
+            "title": "新的神秘冒险",
+            "startDate": "2026-05-01",
+            "endDate": "2026-05-05",
+            "thumb": "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+            "activeDayId": "day-1772496865628-1",
+            "days": [
+                {
+                    "id": "day-1772496865628-0",
+                    "title": "第 1 天",
+                    "date": "2026年5月1日",
+                    "stops": [],
+                    "color": "#5b7a99"
+                },
+                {
+                    "id": "day-1772496865628-1",
+                    "title": "第 2 天",
+                    "date": "2026年5月2日",
+                    "stops": [],
+                    "color": "#ef4444"
+                },
+                {
+                    "id": "day-1772496865628-2",
+                    "title": "第 3 天",
+                    "date": "2026年5月3日",
+                    "stops": [],
+                    "color": "#f59e0b"
+                },
+                {
+                    "id": "day-1772496865628-3",
+                    "title": "第 4 天",
+                    "date": "2026年5月4日",
+                    "stops": [],
+                    "color": "#10b981"
+                },
+                {
+                    "id": "day-1772496865628-4",
+                    "title": "第 5 天",
+                    "date": "2026年5月5日",
+                    "stops": [],
+                    "color": "#8b5cf6"
+                }
+            ]
         }
     ],
     "collapsedDays": {
@@ -240,6 +285,11 @@
         "day-1772492781573": true,
         "day-1772492805470": true,
         "day-1772492963583": true,
-        "day-1772494804393": true
+        "day-1772494804393": true,
+        "day-1772496865628-0": true,
+        "day-1772496865628-1": false,
+        "day-1772496865628-2": true,
+        "day-1772496865628-3": true,
+        "day-1772496865628-4": true
     }
 }

@@ -242,10 +242,17 @@ nav a:hover {
     transition: background-color 0.2s ease, color 0.2s ease;
     border-radius: 6px;
     cursor: pointer;
+    padding: 0.6rem 0.5rem;
+    margin-bottom: 0.2rem;
 }
 
 .trip-navigation li:hover {
-    background-color: var(--glass-bg);
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.trip-navigation li.active {
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--glass-border);
 }
 
 .main-itinerary {
