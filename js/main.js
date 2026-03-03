@@ -106,7 +106,7 @@ window.showInlineSearchAt = function (dayId, afterStopId) {
 
     const container = document.createElement('div');
     container.className = 'inline-search-row';
-    container.style.cssText = 'position:relative; margin-bottom:0.5rem; margin-left:-3rem; padding-left:3rem; padding-right:2.5rem; display:flex; align-items:center; gap:0.5rem; z-index:20;';
+    container.style.cssText = 'position:relative; margin-bottom:0.5rem; margin-left:-3rem; padding-left:1.7rem; padding-right:2.5rem; display:flex; align-items:center; gap:0.5rem; z-index:20;';
     container.innerHTML = `
         <div style="flex:1; position:relative;">
             <span style="position:absolute; left:1rem; top:50%; transform:translateY(-50%); color:var(--text-secondary); pointer-events:none;">📍</span>

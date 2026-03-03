@@ -244,7 +244,7 @@ export function getDayHTML(day, dayIndex, activeDayId) {
     }).join('')}
             
             <!-- Dedicated Location Search Bar at bottom of Day -->
-            <div class="location-search-container" style="position: relative; margin-top: 1rem; display:flex; gap: 0.5rem;">
+            <div class="location-search-container" style="position: relative; margin-top: 1rem; margin-left: -0.9rem; display:flex; gap: 0.5rem;">
                 <div style="flex:1; position:relative;">
                     <span style="position:absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-secondary);">📍</span>
                     <input type="text" class="location-search-input" style="padding-left: 2.8rem; background: var(--bg-secondary); border: none;" placeholder="添加地点..." oninput="handleSearchInput(event, '${day.id}')" onkeydown="handleSearchKeyDown(event, '${day.id}')" autocomplete="off">

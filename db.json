@@ -11,7 +11,7 @@
             "startDate": "2026-05-01",
             "endDate": "2026-05-06",
             "thumb": "/uploads/9f33b97b0e4356e29f559a883253f0bc.jpg",
-            "activeDayId": "day-1772562341660",
+            "activeDayId": "day-1772562082853-1",
             "days": [
                 {
                     "id": "day-1772562082853-0",
@@ -42,6 +42,18 @@
                         },
                         {
                             "id": "n1772562125250",
+                            "type": "note",
+                            "content": "",
+                            "checked": false
+                        },
+                        {
+                            "id": "l1772562811280",
+                            "type": "list",
+                            "title": "",
+                            "items": []
+                        },
+                        {
+                            "id": "n1772562807499",
                             "type": "note",
                             "content": "",
                             "checked": false
@@ -134,10 +146,11 @@
         "day-1772497344770-3": true,
         "day-1772497344770-4": true,
         "day-1772498168701": true,
-        "day-1772562082853-0": false,
-        "day-1772562082853-1": true,
+        "day-1772562082853-0": true,
+        "day-1772562082853-1": false,
         "day-1772562082853-2": true,
         "day-1772562082853-3": true,
-        "day-1772562082853-4": true
+        "day-1772562082853-4": true,
+        "day-1772562341660": true
     }
 }
