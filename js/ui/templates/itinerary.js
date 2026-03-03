@@ -123,14 +123,14 @@ export function getTimelineItemHTML(day, stop, index, locationIdx, showTransit, 
             ondragleave="handleDragLeave(event)" 
             ondragend="handleDragEnd(event)">
             <!-- Left Actions (Drag & Select) -->
-            <div class="item-hover-action" style="position:absolute; left: -1.5rem; top: 1.2rem; width: 2rem; display:flex; flex-direction:column; align-items:center; gap: 0.8rem; opacity:0; pointer-events:none; transition:opacity 0.2s;">
-                <div style="cursor:grab; display:flex; flex-direction:column; gap:2px; color:var(--text-secondary); padding: 5px;">
-                    <div style="display:flex; gap:2px;"><div style="width:4px;height:4px;border-radius:50%;background:currentColor;"></div><div style="width:4px;height:4px;border-radius:50%;background:currentColor;"></div></div>
-                    <div style="display:flex; gap:2px;"><div style="width:4px;height:4px;border-radius:50%;background:currentColor;"></div><div style="width:4px;height:4px;border-radius:50%;background:currentColor;"></div></div>
-                    <div style="display:flex; gap:2px;"><div style="width:4px;height:4px;border-radius:50%;background:currentColor;"></div><div style="width:4px;height:4px;border-radius:50%;background:currentColor;"></div></div>
+            <div class="item-hover-action" style="position:absolute; left: -1.5rem; top: 0.3rem; width: 1.5rem; display:flex; flex-direction:column; align-items:center; gap: 0.5rem; opacity:0; pointer-events:none; transition:opacity 0.2s;">
+                <div style="cursor:grab; display:flex; flex-direction:column; gap:2px; color:var(--text-secondary); padding: 2px;">
+                    <div style="display:flex; gap:2px;"><div style="width:3px;height:3px;border-radius:50%;background:currentColor;"></div><div style="width:3px;height:3px;border-radius:50%;background:currentColor;"></div></div>
+                    <div style="display:flex; gap:2px;"><div style="width:3px;height:3px;border-radius:50%;background:currentColor;"></div><div style="width:3px;height:3px;border-radius:50%;background:currentColor;"></div></div>
+                    <div style="display:flex; gap:2px;"><div style="width:3px;height:3px;border-radius:50%;background:currentColor;"></div><div style="width:3px;height:3px;border-radius:50%;background:currentColor;"></div></div>
                 </div>
                 <div style="cursor:pointer;" onclick="toggleItemSelect('${day.id}', '${stop.id}', this)">
-                    <div style="width:18px; height:18px; border:2px solid ${stop.selected ? 'var(--accent-primary)' : 'var(--text-secondary)'}; border-radius:4px; background:${stop.selected ? 'var(--accent-primary)' : 'transparent'}; display:flex; align-items:center; justify-content:center; color:white; font-size:0.8rem; transition: background 0.2s;">
+                    <div style="width:14px; height:14px; border:1.5px solid ${stop.selected ? 'var(--accent-primary)' : 'var(--text-secondary)'}; border-radius:3px; background:${stop.selected ? 'var(--accent-primary)' : 'transparent'}; display:flex; align-items:center; justify-content:center; color:white; font-size:0.75rem; transition: background 0.2s;">
                         ${stop.selected ? '✓' : ''}
                     </div>
                 </div>
@@ -144,7 +144,7 @@ export function getTimelineItemHTML(day, stop, index, locationIdx, showTransit, 
             </div>
 
             <!-- Right Action (Trash) -->
-            <div class="item-hover-action" style="position:absolute; right: 0; top: 1.2rem; cursor:pointer; color:var(--text-secondary); z-index: 10; opacity:0; pointer-events:none; transition:opacity 0.2s; font-size: 1.1rem; padding: 0.2rem;" onmousedown="deleteTimelineItem('${day.id}', '${stop.id}')" title="删除">
+            <div class="item-hover-action" style="position:absolute; right: 0; top: 0.3rem; cursor:pointer; color:var(--text-secondary); z-index: 10; opacity:0; pointer-events:none; transition:opacity 0.2s; font-size: 0.95rem; padding: 0.2rem;" onmousedown="deleteTimelineItem('${day.id}', '${stop.id}')" title="删除">
                 🗑️
             </div>
         </div>
