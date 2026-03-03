@@ -3,23 +3,23 @@
         "name": "Test Traveler"
     },
     "currentView": "trip",
-    "activeTripId": "trip-1772497344770",
+    "activeTripId": "trip-1772562082853",
     "trips": [
         {
-            "id": "trip-1772497344770",
+            "id": "trip-1772562082853",
             "title": "新的神秘冒险",
             "startDate": "2026-05-01",
             "endDate": "2026-05-06",
-            "thumb": "/uploads/02e99a4ba157340cc3fb9cbef92ae14c.jpg",
-            "activeDayId": "day-1772497344770-0",
+            "thumb": "/uploads/9f33b97b0e4356e29f559a883253f0bc.jpg",
+            "activeDayId": "day-1772562341660",
             "days": [
                 {
-                    "id": "day-1772497344770-0",
+                    "id": "day-1772562082853-0",
                     "title": "第 1 天",
                     "date": "2026年5月1日",
                     "stops": [
                         {
-                            "id": "s1772497373421",
+                            "id": "s1772562093029",
                             "location": "John F. Kennedy International Airport",
                             "desc": "New York City hub offering flights from 80+ airlines, plus a variety of shops & eateries.",
                             "address": "Queens, NY 11430, USA",
@@ -31,29 +31,7 @@
                             "type": "location",
                             "lat": 40.6446124,
                             "lng": -73.7797278,
-                            "photo": "/uploads/e10eeaf2f6f133d98ddd1cd46695cd7b.jpg",
-                            "rating": 3.8,
-                            "category": "机场",
-                            "categoryIcon": "✈️",
-                            "transitToNext": {
-                                "duration": "0 分钟",
-                                "distance": "NaN 公里"
-                            }
-                        },
-                        {
-                            "id": "s1772497354549",
-                            "location": "John F. Kennedy International Airport",
-                            "desc": "New York City hub offering flights from 80+ airlines, plus a variety of shops & eateries.",
-                            "address": "Queens, NY 11430, USA",
-                            "phone": "(718) 244-4444",
-                            "time": "09:00",
-                            "period": "AM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 40.6446124,
-                            "lng": -73.7797278,
-                            "photo": "/uploads/6552a69b05fa930e0b3bc2ffbde99982.jpg",
+                            "photo": "/uploads/ae8992d69588f6ad0d1be15bf57ad515.jpg",
                             "rating": 3.8,
                             "category": "机场",
                             "categoryIcon": "✈️",
@@ -63,7 +41,13 @@
                             }
                         },
                         {
-                            "id": "s1772497382329",
+                            "id": "n1772562125250",
+                            "type": "note",
+                            "content": "",
+                            "checked": false
+                        },
+                        {
+                            "id": "s1772562102687",
                             "location": "Queens Center",
                             "desc": "This coliseum-like indoor shopping mall houses dozens of retail stores plus a food court.",
                             "address": "90-15 Queens Blvd, Elmhurst, NY 11373, USA",
@@ -75,156 +59,45 @@
                             "type": "location",
                             "lat": 40.7347872,
                             "lng": -73.8688409,
-                            "photo": "/uploads/f775d24be8e745c3b8c31b25bd0d4fe7.jpg",
+                            "photo": "/uploads/c83206d5a08a9365dfce67c734799acb.jpg",
                             "rating": 4.4,
                             "category": "购物中心",
                             "categoryIcon": "🛍️",
-                            "transitToNext": {
-                                "duration": "19 分钟",
-                                "distance": "10.0 公里"
-                            }
-                        },
-                        {
-                            "id": "s1772498749356",
-                            "location": "Sybil's",
-                            "desc": "Counter-serve joint supplying Caribbean & Guyanese meals, traditional savory baked goods & sweets.",
-                            "address": "132-17 Liberty Ave, South Richmond Hill, NY 11419, USA",
-                            "phone": "(718) 835-9235",
-                            "time": "01:00",
-                            "period": "PM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 40.6910029,
-                            "lng": -73.8136887,
-                            "photo": "/uploads/61f2b5da1dbd9bd799eb1f8ea2a6400c.jpg",
-                            "rating": 4.3,
-                            "category": "面包房",
-                            "categoryIcon": "🥐",
                             "transitToNext": null
-                        },
-                        {
-                            "id": "n1772498851010",
-                            "type": "note",
-                            "content": "",
-                            "checked": false
                         }
                     ],
-                    "color": "#f59e0b"
+                    "color": "#5b7a99"
                 },
                 {
-                    "id": "day-1772497344770-1",
+                    "id": "day-1772562082853-1",
                     "title": "第 2 天",
                     "date": "2026年5月2日",
-                    "stops": [
-                        {
-                            "id": "s1772497790322",
-                            "location": "Charcoal Grill & Modern Buffet",
-                            "desc": "",
-                            "address": "133-40 79th St, Howard Beach, NY 11414, USA",
-                            "phone": "(718) 799-6898",
-                            "time": "03:00",
-                            "period": "PM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 40.6726114,
-                            "lng": -73.8574016,
-                            "photo": "/uploads/3063217f4b71c0747d14fab71dbb5ef9.jpg",
-                            "rating": 4.7,
-                            "category": "餐饮",
-                            "categoryIcon": "🍴",
-                            "transitToNext": {
-                                "duration": "12 分钟",
-                                "distance": "9.0 公里"
-                            }
-                        },
-                        {
-                            "id": "s1772497757861",
-                            "location": "John F. Kennedy International Airport",
-                            "desc": "New York City hub offering flights from 80+ airlines, plus a variety of shops & eateries.",
-                            "address": "Queens, NY 11430, USA",
-                            "phone": "(718) 244-4444",
-                            "time": "01:00",
-                            "period": "PM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 40.6446124,
-                            "lng": -73.7797278,
-                            "photo": "/uploads/25c6a474552b74022911e04b8896a908.jpg",
-                            "rating": 3.8,
-                            "category": "机场",
-                            "categoryIcon": "✈️",
-                            "transitToNext": {
-                                "duration": "21 分钟",
-                                "distance": "16.9 公里"
-                            }
-                        },
-                        {
-                            "id": "s1772497780397",
-                            "location": "King Umberto",
-                            "desc": "Pizza & Italian food served in a relaxed setting with upscale touches & a lengthy wine list.",
-                            "address": "1343 Hempstead Turnpike, Elmont, NY 11003, USA",
-                            "phone": "(516) 352-8391",
-                            "time": "11:00",
-                            "period": "AM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 40.70792,
-                            "lng": -73.69009489999999,
-                            "photo": "/uploads/05ecbb807d4e885b21fd5c2a34e057b7.jpg",
-                            "rating": 4.6,
-                            "category": "外卖",
-                            "categoryIcon": "🥡",
-                            "transitToNext": null
-                        }
-                    ],
+                    "stops": [],
                     "color": "#ef4444"
                 },
                 {
-                    "id": "day-1772497344770-2",
+                    "id": "day-1772562082853-2",
                     "title": "第 3 天",
                     "date": "2026年5月3日",
-                    "stops": [
-                        {
-                            "id": "s1772498743696",
-                            "location": "IHOP",
-                            "desc": "Long-standing chain serving a wide variety of pancakes & other American breakfast & diner fare.",
-                            "address": "170-19 Hillside Ave., Jamaica, NY 11432, USA",
-                            "phone": "(718) 523-4561",
-                            "time": "09:00",
-                            "period": "AM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 40.7114952,
-                            "lng": -73.7915144,
-                            "photo": "/uploads/80bf3f53f053291c0e5de7f5ae0c3770.jpg",
-                            "rating": 3.9,
-                            "category": "餐饮",
-                            "categoryIcon": "🍴"
-                        }
-                    ],
+                    "stops": [],
                     "color": "#f59e0b"
                 },
                 {
-                    "id": "day-1772497344770-3",
+                    "id": "day-1772562082853-3",
                     "title": "第 4 天",
                     "date": "2026年5月4日",
                     "stops": [],
                     "color": "#10b981"
                 },
                 {
-                    "id": "day-1772497344770-4",
+                    "id": "day-1772562082853-4",
                     "title": "第 5 天",
                     "date": "2026年5月5日",
                     "stops": [],
                     "color": "#8b5cf6"
                 },
                 {
-                    "id": "day-1772498168701",
+                    "id": "day-1772562341660",
                     "title": "第 6 天",
                     "date": "2026年5月6日",
                     "stops": [],
@@ -260,6 +133,11 @@
         "day-1772497344770-2": true,
         "day-1772497344770-3": true,
         "day-1772497344770-4": true,
-        "day-1772498168701": true
+        "day-1772498168701": true,
+        "day-1772562082853-0": false,
+        "day-1772562082853-1": true,
+        "day-1772562082853-2": true,
+        "day-1772562082853-3": true,
+        "day-1772562082853-4": true
     }
 }

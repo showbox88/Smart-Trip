@@ -110,9 +110,12 @@ export function handleDropdownClick(dayId, placeId) {
     if (dropdown) dropdown.classList.remove('active');
 
     const container = dropdown ? dropdown.closest('.location-search-container') : null;
+    let afterStopId = null;
     if (container) {
         const input = container.querySelector('.location-search-input');
         if (input) {
+            afterStopId = input.dataset.insertAfter || null;
+            delete input.dataset.insertAfter; // clear after reading
             input.value = '加载中 (Loading)...';
             input.disabled = true;
         }
@@ -121,7 +124,7 @@ export function handleDropdownClick(dayId, placeId) {
     currentSearchFocusIdx = -1;
     currentSearchPredictions = [];
 
-    autoAddStop(dayId, placeId);
+    autoAddStop(dayId, placeId, afterStopId);
 }
 
 // Image Search

@@ -29,7 +29,7 @@ export function injectNewStopToDOM(dayId, stopHtml) {
 }
 
 // --- Timeline Item HTML ---
-export function getTimelineItemHTML(day, stop, index, locationIdx, showTransit) {
+export function getTimelineItemHTML(day, stop, index, locationIdx, showTransit, showAddRow) {
     let circleHtml = '';
     let contentHtml = '';
     let isLocation = stop.type !== 'note' && stop.type !== 'list';
@@ -42,45 +42,44 @@ export function getTimelineItemHTML(day, stop, index, locationIdx, showTransit) 
     ` : '';
 
     if (stop.type === 'note') {
-        circleHtml = `
-            <div style="position: absolute; left: -1.8rem; top: 1.2rem; width: 1.8rem; height: 1.8rem; border-radius: 50%; background: var(--bg-secondary); z-index: 2; border: 2px solid var(--glass-border); display:flex; align-items:center; justify-content:center; font-size: 0.85rem;">
-                📄
-            </div>
-        `;
+        circleHtml = '';
         contentHtml = `
-            <div style="background: var(--bg-secondary); border-radius: 12px; padding: 0.8rem 1.2rem; display:flex; align-items:center; border: 1px solid var(--glass-border);">
+            <div style="background: var(--bg-secondary); border-radius: 12px; padding: 0.8rem 1.2rem; display:flex; align-items:center; gap: 1rem; border: 1px solid var(--glass-border);">
+                <div style="width: 24px; height: 24px; border-radius: 50%; background: var(--glass-bg); border: 2px solid var(--glass-border); display:flex; align-items:center; justify-content:center; font-size: 0.85rem; color: var(--text-secondary); flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    📄
+                </div>
                 <textarea rows="1" oninput="this.style.height='';this.style.height=this.scrollHeight+'px'" onchange="updateNoteContent('${day.id}', '${stop.id}', this.value)" style="flex:1; background:transparent; border:none; outline:none; color:var(--text-primary); font-size:1rem; padding: 0.2rem; resize:none; overflow:hidden;" placeholder="在此处书写或粘贴笔记">${stop.content || ''}</textarea>
             </div>
         `;
     } else if (stop.type === 'list') {
-        circleHtml = `
-            <div style="position: absolute; left: -1.8rem; top: 1.2rem; width: 1.8rem; height: 1.8rem; border-radius: 50%; background: var(--bg-secondary); z-index: 2; border: 2px solid var(--glass-border); display:flex; align-items:center; justify-content:center; font-size: 0.85rem;">
-                ≡
-            </div>
-        `;
+        circleHtml = '';
         contentHtml = `
-            <div style="background: var(--bg-secondary); border-radius: 12px; padding: 1.2rem; border: 1px solid var(--glass-border);">
-                <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom: 0.8rem;">
-                    <div style="width:4px; height:18px; background:#f59e0b; border-radius:2px;"></div>
-                    <input type="text" value="${stop.title || ''}" onchange="updateListTitle('${day.id}', '${stop.id}', this.value)" style="flex:1; background:transparent; border:none; outline:none; color:var(--text-primary); font-size:1.1rem; font-weight:bold;" placeholder="添加标题">
+            <div style="background: var(--bg-secondary); border-radius: 12px; padding: 1.2rem; border: 1px solid var(--glass-border); display:flex; align-items:flex-start; gap: 1rem;">
+                <div style="width: 24px; height: 24px; border-radius: 50%; background: var(--glass-bg); border: 2px solid var(--glass-border); display:flex; align-items:center; justify-content:center; font-size: 0.85rem; color: var(--text-secondary); flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-top: 2px;">
+                    ≡
                 </div>
-                
-                <div id="list-items-${stop.id}" style="display:flex; flex-direction:column; gap:0.5rem; padding-left:0.8rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 1rem; margin-bottom: 1rem;">
-                    ${(stop.items || []).map((li, i) => `
-                        <div style="display:flex; align-items:center; gap:0.6rem; color:var(--text-primary); margin-bottom: 0.3rem;" class="li-item-hover">
-                            <div style="width: 16px; height: 16px; border: 2px solid var(--text-secondary); border-radius: 50%; background:${li.checked ? 'var(--text-secondary)' : 'transparent'}; display:flex; align-items:center; justify-content:center; cursor:pointer;" onclick="toggleListItemCheck('${day.id}', '${stop.id}', ${i}, this)"></div>
-                            <textarea rows="1" oninput="this.style.height='';this.style.height=this.scrollHeight+'px'" onchange="updateListItemText('${day.id}', '${stop.id}', ${i}, this.value)" style="flex:1; background:transparent; border:none; outline:none; color:var(--text-primary); font-size:0.95rem; text-decoration:${li.checked ? 'line-through' : 'none'}; opacity:${li.checked ? '0.5' : '1'}; resize:none; overflow:hidden;">${li.text || ''}</textarea>
-                            <button class="delete-btn-hover" onclick="deleteListItem('${day.id}', '${stop.id}', ${i})" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:0.9rem; opacity:0; transition:opacity 0.2s;">✕</button>
-                        </div>
-                    `).join('')}
-                    <div style="display:flex; align-items:center; gap:0.6rem; color:var(--text-secondary); margin-top:0.3rem;">
-                        <div style="width: 16px; height: 16px; border: 2px solid var(--text-secondary); border-radius: 50%;"></div>
-                        <textarea rows="1" oninput="this.style.height='';this.style.height=this.scrollHeight+'px'" placeholder="添加一些项目..." onkeypress="if(event.key==='Enter'){event.preventDefault(); handleNewListItem(event, '${day.id}', '${stop.id}');}" style="flex:1; background:transparent; border:none; outline:none; color:var(--text-primary); font-size:0.95rem; resize:none; overflow:hidden;"></textarea>
+                <div style="flex:1;">
+                    <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom: 0.8rem;">
+                        <input type="text" value="${stop.title || ''}" onchange="updateListTitle('${day.id}', '${stop.id}', this.value)" style="flex:1; background:transparent; border:none; outline:none; color:var(--text-primary); font-size:1.1rem; font-weight:bold; margin-left:-4px;" placeholder="添加标题">
                     </div>
-                </div>
-                
-                <div style="color: var(--text-primary); font-weight: 600; display:flex; align-items:center; gap:0.5rem; cursor:pointer; font-size:0.95rem;" onclick="alert('预制列表模版 (Mock)')">
-                    <span>🧳</span> 预制列表
+                    
+                    <div id="list-items-${stop.id}" style="display:flex; flex-direction:column; gap:0.5rem; padding-left:0.2rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 1rem; margin-bottom: 1rem;">
+                        ${(stop.items || []).map((li, i) => `
+                            <div style="display:flex; align-items:center; gap:0.6rem; color:var(--text-primary); margin-bottom: 0.3rem;" class="li-item-hover">
+                                <div style="width: 16px; height: 16px; border: 2px solid var(--text-secondary); border-radius: 50%; background:${li.checked ? 'var(--text-secondary)' : 'transparent'}; display:flex; align-items:center; justify-content:center; cursor:pointer;" onclick="toggleListItemCheck('${day.id}', '${stop.id}', ${i}, this)"></div>
+                                <textarea rows="1" oninput="this.style.height='';this.style.height=this.scrollHeight+'px'" onchange="updateListItemText('${day.id}', '${stop.id}', ${i}, this.value)" style="flex:1; background:transparent; border:none; outline:none; color:var(--text-primary); font-size:0.95rem; text-decoration:${li.checked ? 'line-through' : 'none'}; opacity:${li.checked ? '0.5' : '1'}; resize:none; overflow:hidden;">${li.text || ''}</textarea>
+                                <button class="delete-btn-hover" onclick="deleteListItem('${day.id}', '${stop.id}', ${i})" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:0.9rem; opacity:0; transition:opacity 0.2s;">✕</button>
+                            </div>
+                        `).join('')}
+                        <div style="display:flex; align-items:center; gap:0.6rem; color:var(--text-secondary); margin-top:0.3rem;">
+                            <div style="width: 16px; height: 16px; border: 2px solid var(--text-secondary); border-radius: 50%;"></div>
+                            <textarea rows="1" oninput="this.style.height='';this.style.height=this.scrollHeight+'px'" placeholder="添加一些项目..." onkeypress="if(event.key==='Enter'){event.preventDefault(); handleNewListItem(event, '${day.id}', '${stop.id}');}" style="flex:1; background:transparent; border:none; outline:none; color:var(--text-primary); font-size:0.95rem; resize:none; overflow:hidden;"></textarea>
+                        </div>
+                    </div>
+                    
+                    <div style="color: var(--text-primary); font-weight: 600; display:flex; align-items:center; gap:0.5rem; cursor:pointer; font-size:0.95rem; margin-left: 0.2rem;" onclick="alert('预制列表模版 (Mock)')">
+                        <span>🧳</span> 预制列表
+                    </div>
                 </div>
             </div>
         `;
@@ -110,20 +109,12 @@ export function getTimelineItemHTML(day, stop, index, locationIdx, showTransit) 
                 <!-- Thumb for Stop -->
                 <div style="width: 100px; height: 75px; border-radius: 6px; background-image: url('${stop.photo || 'https://picsum.photos/seed/' + stop.id + '/300/200'}'); background-size: cover; background-position: center; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.2);"></div>
             </div>
-            ${showTransit ? `
-                <div style="padding: 0.5rem 0 0.5rem 0.5rem; font-size: 0.85rem; color: var(--text-secondary); display:flex; align-items:center; gap: 0.5rem; position:relative; z-index:2;">
-                    ${stop.transitToNext
-                    ? `<span>🚗 ${stop.transitToNext.duration} · ${stop.transitToNext.distance}</span>`
-                    : `<span style="opacity:0.5;">🚗 计算路程中...</span>`
-                }
-                </div>
-            ` : ''}
         `;
     }
 
     return `
         ${styleBlock}
-        <div class="timeline-item-wrapper id-${stop.id}" style="position:relative; margin-bottom: ${isLocation ? '0.5rem' : '1.5rem'}; margin-left: -3rem; padding-left: 3rem; padding-right: 2.5rem; display:flex; align-items:flex-start; gap: 0.5rem;" 
+        <div class="timeline-item-wrapper id-${stop.id}" style="position:relative; margin-bottom: 0.8rem; margin-left: -3rem; padding-left: 1rem; padding-right: 2.5rem; display:flex; align-items:flex-start; gap: 0.5rem;" 
             draggable="true" 
             ondragstart="handleDragStart(event, '${day.id}', '${stop.id}')" 
             ondragover="handleDragOver(event)" 
@@ -132,7 +123,7 @@ export function getTimelineItemHTML(day, stop, index, locationIdx, showTransit) 
             ondragleave="handleDragLeave(event)" 
             ondragend="handleDragEnd(event)">
             <!-- Left Actions (Drag & Select) -->
-            <div class="item-hover-action" style="position:absolute; left: 0; top: 1.2rem; width: 2rem; display:flex; flex-direction:column; align-items:center; gap: 0.8rem; opacity:0; pointer-events:none; transition:opacity 0.2s;">
+            <div class="item-hover-action" style="position:absolute; left: -1.5rem; top: 1.2rem; width: 2rem; display:flex; flex-direction:column; align-items:center; gap: 0.8rem; opacity:0; pointer-events:none; transition:opacity 0.2s;">
                 <div style="cursor:grab; display:flex; flex-direction:column; gap:2px; color:var(--text-secondary); padding: 5px;">
                     <div style="display:flex; gap:2px;"><div style="width:4px;height:4px;border-radius:50%;background:currentColor;"></div><div style="width:4px;height:4px;border-radius:50%;background:currentColor;"></div></div>
                     <div style="display:flex; gap:2px;"><div style="width:4px;height:4px;border-radius:50%;background:currentColor;"></div><div style="width:4px;height:4px;border-radius:50%;background:currentColor;"></div></div>
@@ -157,6 +148,25 @@ export function getTimelineItemHTML(day, stop, index, locationIdx, showTransit) 
                 🗑️
             </div>
         </div>
+        ${(showAddRow || showTransit) ? `
+            <div style="margin-left:-3rem; padding-left:1.7rem; padding-right:2.5rem; display:flex; align-items:center; gap:0.6rem; position:relative; z-index:2; margin-bottom:0.8rem;">
+                ${showAddRow ? `
+                <div style="position:relative; display:inline-block; transform: translateX(-50%);">
+                    <button onclick="toggleMenu(event, 'add-menu-${stop.id}')" style="width:22px; height:22px; border-radius:50%; background:var(--bg-secondary); border:1.5px solid var(--glass-border); color:var(--text-secondary); cursor:pointer; font-size:1rem; display:flex; align-items:center; justify-content:center; line-height:1; transition: background 0.15s, color 0.15s; flex-shrink:0;" onmouseover="this.style.background='var(--accent-primary)';this.style.color='#fff';this.style.borderColor='var(--accent-primary)';" onmouseout="this.style.background='var(--bg-secondary)';this.style.color='var(--text-secondary)';this.style.borderColor='var(--glass-border)';" title="在此处插入">+</button>
+                    <div class="menu-dropdown" id="menu-add-menu-${stop.id}" style="top:1.8rem; left:0; min-width:160px;">
+                        <button onclick="showInlineSearchAt('${day.id}', '${stop.id}'); document.getElementById('menu-add-menu-${stop.id}').classList.remove('show');" style="display:flex; align-items:center; gap:8px;"><span>📍</span> 添加地点</button>
+                        <button onclick="insertNoteAfterStop('${day.id}', '${stop.id}'); document.getElementById('menu-add-menu-${stop.id}').classList.remove('show');" style="display:flex; align-items:center; gap:8px;"><span>📄</span> 添加笔记</button>
+                        <button onclick="insertListAfterStop('${day.id}', '${stop.id}'); document.getElementById('menu-add-menu-${stop.id}').classList.remove('show');" style="display:flex; align-items:center; gap:8px;"><span>✓</span> 添加清单</button>
+                    </div>
+                </div>
+                ` : ''}
+                ${showTransit ? `
+                <div style="display:flex; align-items:center; gap: 0.6rem;">
+                    <span style="font-size: 0.85rem; color: var(--text-secondary);">🚗 ${stop.transitToNext ? `${stop.transitToNext.duration} · ${stop.transitToNext.distance}` : '<span style="opacity:0.5;">计算路程中...</span>'}</span>
+                </div>
+                ` : ''}
+            </div>
+        ` : ''}
     `;
 }
 
@@ -229,7 +239,8 @@ export function getDayHTML(day, dayIndex, activeDayId) {
         const hasNextLocationStop = isLocationStop && day.stops.slice(index + 1).some(
             s => s.type === 'location' || !s.type
         );
-        return getTimelineItemHTML(day, stop, index, locationIdx, hasNextLocationStop);
+        const showAddRow = index < day.stops.length - 1;
+        return getTimelineItemHTML(day, stop, index, locationIdx, hasNextLocationStop, showAddRow);
     }).join('')}
             
             <!-- Dedicated Location Search Bar at bottom of Day -->

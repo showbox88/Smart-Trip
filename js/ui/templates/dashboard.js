@@ -7,7 +7,12 @@ export function getDashboardHTML() {
             <div class="trip-dashboard-container fade-in">
                 <div class="dashboard-header">
                     <h2>${state.user.name} 的全部行程</h2>
-                    <button class="btn-main" onclick="createNewTrip()">+ 新建行程</button>
+                    <div style="display:flex; align-items:center; gap:0.8rem;">
+                        <button onclick="cleanupImages()" style="background:none; border:1px solid var(--glass-border); color:var(--text-secondary); padding:0.4rem 0.9rem; border-radius:8px; cursor:pointer; font-size:0.82rem; display:flex; align-items:center; gap:5px; transition:all 0.2s;" onmouseover="this.style.borderColor='var(--accent-primary)';this.style.color='var(--accent-primary)'" onmouseout="this.style.borderColor='var(--glass-border)';this.style.color='var(--text-secondary)'" title="扫描并删除未被使用的缓存图片">
+                            🧹 清理图片缓存
+                        </button>
+                        <button class="btn-main" onclick="createNewTrip()">+ 新建行程</button>
+                    </div>
                 </div>
                 <div style="text-align:center; padding: 5rem 0; color: var(--text-secondary);">
                     <p style="font-size: 1.2rem;">您还没有行程，点击上方按钮开始规划吧！</p>
@@ -42,7 +47,12 @@ export function getDashboardHTML() {
         <div class="trip-dashboard-container fade-in">
             <div class="dashboard-header">
                 <h2>${state.user.name} 的全部行程</h2>
-                <button class="btn-main" onclick="createNewTrip()">+ 新建行程</button>
+                <div style="display:flex; align-items:center; gap:0.8rem;">
+                    <button onclick="cleanupImages()" style="background:none; border:1px solid var(--glass-border); color:var(--text-secondary); padding:0.4rem 0.9rem; border-radius:8px; cursor:pointer; font-size:0.82rem; display:flex; align-items:center; gap:5px; transition:all 0.2s;" onmouseover="this.style.borderColor='var(--accent-primary)';this.style.color='var(--accent-primary)'" onmouseout="this.style.borderColor='var(--glass-border)';this.style.color='var(--text-secondary)'" title="扫描并删除未被使用的缓存图片">
+                        🧹 清理图片缓存
+                    </button>
+                    <button class="btn-main" onclick="createNewTrip()">+ 新建行程</button>
+                </div>
             </div>
             <div class="trip-grid">
                 ${cardsHtml}

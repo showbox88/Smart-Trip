@@ -148,8 +148,6 @@ export function setDayColor(dayId, colorHex) {
 
 // --- Stop Management ---
 export function deleteStop(event, dayId, stopId) {
-    // Called from timeline trash icon (with event, dayId, stopId)
-    // or from edit modal delete button (no args, uses editState)
     if (event && dayId && stopId) {
         if (event) event.stopPropagation();
         window.openConfirmModal("确定要删除这项内容吗？", () => {
@@ -160,7 +158,6 @@ export function deleteStop(event, dayId, stopId) {
             renderApp();
         });
     } else {
-        // Called from modal
         window.openConfirmModal("确定删除这个目的地吗？", () => {
             const trip = state.trips.find(t => t.id === state.activeTripId);
             const day = trip.days.find(d => d.id === editState.editingDayId);
@@ -172,7 +169,6 @@ export function deleteStop(event, dayId, stopId) {
     }
 }
 
-// deleteTimelineItem is the trash icon on the timeline
 export function deleteTimelineItem(dayId, itemId) {
     window.openConfirmModal("确定要删除这项内容吗？", () => {
         const day = getDay(dayId);
@@ -440,7 +436,64 @@ export function addTimelineList(dayId) {
     injectNewStopToDOM(dayId, html);
 }
 
-export async function autoAddStop(dayId, placeId) {
+// Insert note right after a specific stop (used by the "+" transit button)
+export function insertNoteAfterStop(dayId, afterStopId) {
+    const day = getDay(dayId);
+    if (!day) return;
+
+    const afterIdx = day.stops.findIndex(s => s.id === afterStopId);
+    const insertIdx = afterIdx >= 0 ? afterIdx + 1 : day.stops.length;
+
+    const newStop = {
+        id: 'n' + Date.now(),
+        type: 'note',
+        content: '',
+        checked: false
+    };
+    day.stops.splice(insertIdx, 0, newStop);
+    saveData();
+
+    // Re-render the full day so indices / transit lines are correct
+    const trip = state.trips.find(t => t.id === state.activeTripId);
+    const daySection = document.getElementById(dayId);
+    const timeline = document.querySelector('.itinerary-timeline');
+    if (timeline && daySection) {
+        const dayIndex = trip.days.findIndex(d => d.id === dayId);
+        const temp = document.createElement('div');
+        temp.innerHTML = getDayHTML(day, dayIndex, state.activeTripId);
+        timeline.replaceChild(temp.firstElementChild, daySection);
+    }
+}
+
+// Insert checklist right after a specific stop (used by the "+" transit button)
+export function insertListAfterStop(dayId, afterStopId) {
+    const day = getDay(dayId);
+    if (!day) return;
+
+    const afterIdx = day.stops.findIndex(s => s.id === afterStopId);
+    const insertIdx = afterIdx >= 0 ? afterIdx + 1 : day.stops.length;
+
+    const newStop = {
+        id: 'l' + Date.now(),
+        type: 'list',
+        title: '',
+        items: []
+    };
+    day.stops.splice(insertIdx, 0, newStop);
+    saveData();
+
+    const trip = state.trips.find(t => t.id === state.activeTripId);
+    const daySection = document.getElementById(dayId);
+    const timeline = document.querySelector('.itinerary-timeline');
+    if (timeline && daySection) {
+        const dayIndex = trip.days.findIndex(d => d.id === dayId);
+        const temp = document.createElement('div');
+        temp.innerHTML = getDayHTML(day, dayIndex, state.activeTripId);
+        timeline.replaceChild(temp.firstElementChild, daySection);
+    }
+}
+
+export async function autoAddStop(dayId, placeId, afterStopId) {
     try {
         const { Place } = await google.maps.importLibrary('places');
         const place = new Place({ id: placeId });
@@ -496,18 +549,25 @@ export async function autoAddStop(dayId, placeId) {
             categoryIcon: categoryInfo.icon
         };
 
-        day.stops.push(newStop);
-
-        day.stops.sort((a, b) => {
-            const parseTime = (time, p) => {
-                if (!time) return 0;
-                let [hh, mm] = time.split(':').map(Number);
-                if (p === 'PM' && hh !== 12) hh += 12;
-                if (p === 'AM' && hh === 12) hh = 0;
-                return hh * 60 + mm;
-            };
-            return parseTime(a.time, a.period) - parseTime(b.time, b.period);
-        });
+        if (afterStopId) {
+            // Insert right after the specified stop (from "+" button)
+            const afterIdx = day.stops.findIndex(s => s.id === afterStopId);
+            const insertIdx = afterIdx >= 0 ? afterIdx + 1 : day.stops.length;
+            day.stops.splice(insertIdx, 0, newStop);
+        } else {
+            // Append and sort by time (normal search bar flow)
+            day.stops.push(newStop);
+            day.stops.sort((a, b) => {
+                const parseTime = (time, p) => {
+                    if (!time) return 0;
+                    let [hh, mm] = time.split(':').map(Number);
+                    if (p === 'PM' && hh !== 12) hh += 12;
+                    if (p === 'AM' && hh === 12) hh = 0;
+                    return hh * 60 + mm;
+                };
+                return parseTime(a.time, a.period) - parseTime(b.time, b.period);
+            });
+        }
 
         saveData();
 
@@ -522,7 +582,6 @@ export async function autoAddStop(dayId, placeId) {
             } else {
                 renderApp();
             }
-
             const countSpan = document.getElementById(`sidebar-count-${dayId}`);
             if (countSpan) countSpan.innerText = `共 ${day.stops.length} 站行程`;
         };

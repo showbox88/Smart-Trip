@@ -32,7 +32,54 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
             else:
                 self.wfile.write(b'{}')
             return
-        
+
+        if self.path == '/api/cleanup-images':
+            try:
+                # 1. Collect all image URLs referenced in the database
+                referenced = set()
+                if os.path.exists(DB_FILE):
+                    with open(DB_FILE, 'r', encoding='utf-8') as f:
+                        db = json.load(f)
+                    for trip in db.get('trips', []):
+                        # Trip cover thumbnail
+                        thumb = trip.get('thumb', '')
+                        if thumb.startswith('/uploads/'):
+                            referenced.add(thumb.lstrip('/'))
+                        for day in trip.get('days', []):
+                            for stop in day.get('stops', []):
+                                photo = stop.get('photo', '')
+                                if photo.startswith('/uploads/'):
+                                    referenced.add(photo.lstrip('/'))
+
+                # 2. Scan the uploads directory
+                deleted = []
+                if os.path.isdir(UPLOADS_DIR):
+                    for fname in os.listdir(UPLOADS_DIR):
+                        fpath = os.path.join(UPLOADS_DIR, fname)
+                        if not os.path.isfile(fpath):
+                            continue
+                        rel = f'uploads/{fname}'
+                        if rel not in referenced:
+                            os.remove(fpath)
+                            deleted.append(fname)
+                            print(f'[cleanup-images] Removed orphan: {fname}')
+
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({
+                    'status': 'success',
+                    'deleted_count': len(deleted),
+                    'deleted': deleted
+                }).encode('utf-8'))
+            except Exception as e:
+                print(f'[cleanup-images] Error: {e}')
+                self.send_response(500)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'status': 'error', 'message': str(e)}).encode('utf-8'))
+            return
+
         # Fallback to normal file serving
         return super().do_GET()
 
@@ -109,6 +156,42 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(json.dumps({"status": "error", "message": str(e)}).encode('utf-8'))
             return
 
+        if self.path == '/api/delete-image':
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            try:
+                body = json.loads(post_data.decode('utf-8'))
+                urls = body.get('urls', [])
+                if isinstance(urls, str):
+                    urls = [urls]
+                deleted = []
+                for local_url in urls:
+                    # Only allow deleting files inside /uploads/
+                    if not local_url.startswith('/uploads/'):
+                        continue
+                    filename = local_url.lstrip('/')          # "uploads/xxx.jpg"
+                    safe_path = os.path.normpath(filename)
+                    if not safe_path.startswith('uploads'):
+                        continue
+                    if os.path.exists(safe_path):
+                        os.remove(safe_path)
+                        deleted.append(local_url)
+                        print(f"[delete-image] Removed: {safe_path}")
+                    else:
+                        print(f"[delete-image] Not found (skip): {safe_path}")
+
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({"status": "success", "deleted": deleted}).encode('utf-8'))
+            except Exception as e:
+                print(f"[delete-image] Error: {e}")
+                self.send_response(500)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({"status": "error", "message": str(e)}).encode('utf-8'))
+            return
+
         self.send_response(404)
         self.end_headers()
 
@@ -121,5 +204,6 @@ with socketserver.TCPServer(("", PORT), CustomHandler) as httpd:
     print(f" - GET  /api/data")
     print(f" - POST /api/save")
     print(f" - POST /api/upload-image  (local image caching)")
+    print(f" - POST /api/delete-image  (remove cached images)")
     print(f" - Static files in /uploads/ served automatically")
     httpd.serve_forever()
