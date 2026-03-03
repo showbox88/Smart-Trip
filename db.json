@@ -9,44 +9,14 @@
             "id": "trip-1772497344770",
             "title": "新的神秘冒险",
             "startDate": "2026-05-01",
-            "endDate": "2026-05-05",
-            "thumb": "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+            "endDate": "2026-05-06",
+            "thumb": "/uploads/02e99a4ba157340cc3fb9cbef92ae14c.jpg",
             "activeDayId": "day-1772497344770-0",
             "days": [
                 {
                     "id": "day-1772497344770-0",
                     "title": "第 1 天",
                     "date": "2026年5月1日",
-                    "stops": [
-                        {
-                            "id": "s1772497354549",
-                            "location": "John F. Kennedy International Airport",
-                            "desc": "New York City hub offering flights from 80+ airlines, plus a variety of shops & eateries.",
-                            "address": "Queens, NY 11430, USA",
-                            "phone": "(718) 244-4444",
-                            "time": "09:00",
-                            "period": "AM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 40.6446124,
-                            "lng": -73.7797278,
-                            "photo": "/uploads/6552a69b05fa930e0b3bc2ffbde99982.jpg",
-                            "rating": 3.8,
-                            "category": "机场",
-                            "categoryIcon": "✈️",
-                            "transitToNext": {
-                                "duration": "26 分钟",
-                                "distance": "17.0 公里"
-                            }
-                        }
-                    ],
-                    "color": "#5b7a99"
-                },
-                {
-                    "id": "day-1772497344770-1",
-                    "title": "第 2 天",
-                    "date": "2026年5月2日",
                     "stops": [
                         {
                             "id": "s1772497373421",
@@ -65,28 +35,6 @@
                             "rating": 3.8,
                             "category": "机场",
                             "categoryIcon": "✈️",
-                            "transitToNext": {
-                                "duration": "26 分钟",
-                                "distance": "17.0 公里"
-                            }
-                        },
-                        {
-                            "id": "s1772497363325",
-                            "location": "Queens Center",
-                            "desc": "This coliseum-like indoor shopping mall houses dozens of retail stores plus a food court.",
-                            "address": "90-15 Queens Blvd, Elmhurst, NY 11373, USA",
-                            "phone": "(718) 592-3900",
-                            "time": "11:00",
-                            "period": "AM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 40.7347872,
-                            "lng": -73.8688409,
-                            "photo": "/uploads/6f5a13eb9aa2c980e7951741fcf8eef9.jpg",
-                            "rating": 4.4,
-                            "category": "购物中心",
-                            "categoryIcon": "🛍️",
                             "transitToNext": {
                                 "duration": "0 分钟",
                                 "distance": "NaN 公里"
@@ -109,6 +57,102 @@
                             "rating": 4.4,
                             "category": "购物中心",
                             "categoryIcon": "🛍️",
+                            "transitToNext": {
+                                "duration": "27 分钟",
+                                "distance": "21.4 公里"
+                            }
+                        }
+                    ],
+                    "color": "#f59e0b"
+                },
+                {
+                    "id": "day-1772497344770-1",
+                    "title": "第 2 天",
+                    "date": "2026年5月2日",
+                    "stops": [
+                        {
+                            "id": "s1772497354549",
+                            "location": "John F. Kennedy International Airport",
+                            "desc": "New York City hub offering flights from 80+ airlines, plus a variety of shops & eateries.",
+                            "address": "Queens, NY 11430, USA",
+                            "phone": "(718) 244-4444",
+                            "time": "09:00",
+                            "period": "AM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 40.6446124,
+                            "lng": -73.7797278,
+                            "photo": "/uploads/6552a69b05fa930e0b3bc2ffbde99982.jpg",
+                            "rating": 3.8,
+                            "category": "机场",
+                            "categoryIcon": "✈️",
+                            "transitToNext": {
+                                "duration": "15 分钟",
+                                "distance": "9.8 公里"
+                            }
+                        },
+                        {
+                            "id": "s1772497790322",
+                            "location": "Charcoal Grill & Modern Buffet",
+                            "desc": "",
+                            "address": "133-40 79th St, Howard Beach, NY 11414, USA",
+                            "phone": "(718) 799-6898",
+                            "time": "03:00",
+                            "period": "PM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 40.6726114,
+                            "lng": -73.8574016,
+                            "photo": "/uploads/3063217f4b71c0747d14fab71dbb5ef9.jpg",
+                            "rating": 4.7,
+                            "category": "餐饮",
+                            "categoryIcon": "🍴",
+                            "transitToNext": {
+                                "duration": "12 分钟",
+                                "distance": "9.0 公里"
+                            }
+                        },
+                        {
+                            "id": "s1772497757861",
+                            "location": "John F. Kennedy International Airport",
+                            "desc": "New York City hub offering flights from 80+ airlines, plus a variety of shops & eateries.",
+                            "address": "Queens, NY 11430, USA",
+                            "phone": "(718) 244-4444",
+                            "time": "01:00",
+                            "period": "PM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 40.6446124,
+                            "lng": -73.7797278,
+                            "photo": "/uploads/25c6a474552b74022911e04b8896a908.jpg",
+                            "rating": 3.8,
+                            "category": "机场",
+                            "categoryIcon": "✈️",
+                            "transitToNext": {
+                                "duration": "21 分钟",
+                                "distance": "16.9 公里"
+                            }
+                        },
+                        {
+                            "id": "s1772497780397",
+                            "location": "King Umberto",
+                            "desc": "Pizza & Italian food served in a relaxed setting with upscale touches & a lengthy wine list.",
+                            "address": "1343 Hempstead Turnpike, Elmont, NY 11003, USA",
+                            "phone": "(516) 352-8391",
+                            "time": "11:00",
+                            "period": "AM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 40.70792,
+                            "lng": -73.69009489999999,
+                            "photo": "/uploads/05ecbb807d4e885b21fd5c2a34e057b7.jpg",
+                            "rating": 4.6,
+                            "category": "外卖",
+                            "categoryIcon": "🥡",
                             "transitToNext": null
                         }
                     ],
@@ -134,6 +178,13 @@
                     "date": "2026年5月5日",
                     "stops": [],
                     "color": "#8b5cf6"
+                },
+                {
+                    "id": "day-1772498168701",
+                    "title": "第 6 天",
+                    "date": "2026年5月6日",
+                    "stops": [],
+                    "color": "#ec4899"
                 }
             ]
         }
@@ -159,6 +210,12 @@
         "day-1772497106347": true,
         "day-1772497108414": true,
         "day-1772497110063": true,
-        "day-1772497111784": true
+        "day-1772497111784": true,
+        "day-1772497344770-0": false,
+        "day-1772497344770-1": true,
+        "day-1772497344770-2": true,
+        "day-1772497344770-3": true,
+        "day-1772497344770-4": true,
+        "day-1772498168701": true
     }
 }

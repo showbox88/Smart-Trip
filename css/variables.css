@@ -1,0 +1,13 @@
+:root {
+    --bg-primary: #0f172a;
+    --bg-secondary: #1e293b;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --accent-primary: #f97316;
+    /* Vibrant Orange */
+    --accent-secondary: #3b82f6;
+    /* Electric Blue */
+    --glass-bg: rgba(30, 41, 59, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --font-main: 'Outfit', 'Noto Sans SC', sans-serif;
+}

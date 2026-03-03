@@ -1,0 +1,125 @@
+/* --- Itinerary General --- */
+.itinerary-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--bg-secondary);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 2rem 2.5rem;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+    margin-bottom: 3rem;
+    transition: all 0.3s ease;
+}
+
+.itinerary-header h2 {
+    font-size: 1.8rem;
+    color: var(--text-primary);
+}
+
+.trip-navigation li {
+    transition: background-color 0.2s ease, color 0.2s ease;
+    border-radius: 6px;
+    cursor: pointer;
+    padding: 0.6rem 0.5rem;
+    margin-bottom: 0.2rem;
+}
+
+.trip-navigation li:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.trip-navigation li.active {
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--glass-border);
+}
+
+.day-section {
+    margin-bottom: 4rem;
+    scroll-margin-top: 100px;
+}
+
+.day-section h4 {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    border-left: 4px solid var(--accent-primary);
+    padding-left: 1rem;
+}
+
+/* --- Stops & Timeline --- */
+.itinerary-item {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.time {
+    color: var(--accent-secondary);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.loc {
+    font-weight: 500;
+}
+
+.dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.red {
+    background: #ef4444;
+}
+
+.yellow {
+    background: #f59e0b;
+}
+
+.green {
+    background: #10b981;
+}
+
+.stop-card {
+    display: flex;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 0.5rem;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: 1px solid transparent;
+}
+
+.stop-card:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--glass-border);
+    backdrop-filter: blur(5px);
+}
+
+.stop-note {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-style: italic;
+    margin-top: 0.5rem;
+    display: block;
+}
+
+.stop-price {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    font-weight: 700;
+    color: #10b981;
+    font-size: 0.9rem;
+}
+
+.rich-stop-card:hover {
+    background: var(--glass-bg) !important;
+    border-color: var(--glass-border) !important;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+}
