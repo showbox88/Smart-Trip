@@ -325,7 +325,6 @@ export function deleteListItem(dayId, itemId, index) {
         item.items.splice(index, 1);
         saveData();
 
-        const state = window.appState;
         const trip = state.trips.find(t => t.id === state.activeTripId);
         const dayIndex = trip.days.findIndex(d => d.id === dayId);
         const temp = document.createElement('div');
@@ -359,7 +358,6 @@ export function handleNewListItem(event, dayId, itemId) {
                 item.items.push({ text: val, checked: false });
                 saveData();
 
-                const state = window.appState;
                 const trip = state.trips.find(t => t.id === state.activeTripId);
                 const dayIndex = trip.days.findIndex(d => d.id === dayId);
                 const temp = document.createElement('div');
