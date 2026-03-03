@@ -180,7 +180,7 @@ export function getDayHTML(day, dayIndex, activeDayId) {
     `;
 
     return `
-        <div class="day-section" id="${day.id}" style="margin-bottom: 3rem;">
+        <div class="day-section" id="${day.id}" style="margin-bottom: 3rem; scroll-margin-top: 120px;">
             <!-- Day Header -->
             <div style="display:flex; align-items:center; margin-bottom: 0.5rem;">
                 <h3 style="font-size: 1.5rem; margin:0;">${dayName}</h3>
