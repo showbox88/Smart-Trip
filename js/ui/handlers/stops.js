@@ -324,7 +324,26 @@ export function deleteListItem(dayId, itemId, index) {
     if (item && item.items) {
         item.items.splice(index, 1);
         saveData();
-        renderApp();
+
+        const state = window.appState;
+        const trip = state.trips.find(t => t.id === state.activeTripId);
+        const dayIndex = trip.days.findIndex(d => d.id === dayId);
+        const temp = document.createElement('div');
+        temp.innerHTML = getDayHTML(day, dayIndex, state.activeTripId);
+        const srcEl = document.getElementById(dayId);
+        if (srcEl) {
+            srcEl.replaceWith(temp.firstElementChild);
+            // Trigger auto-resize on any reproduced textareas
+            const newDayEl = document.getElementById(dayId);
+            if (newDayEl) {
+                newDayEl.querySelectorAll('textarea').forEach(ta => {
+                    ta.style.height = '';
+                    ta.style.height = ta.scrollHeight + 'px';
+                });
+            }
+        } else {
+            renderApp();
+        }
     }
 }
 
@@ -337,25 +356,32 @@ export function handleNewListItem(event, dayId, itemId) {
             const item = day.stops.find(s => s.id === itemId);
             if (item) {
                 item.items = item.items || [];
-                const newIndex = item.items.length;
                 item.items.push({ text: val, checked: false });
                 saveData();
 
-                // DOM injection to avoid renderApp
-                const listContainer = document.getElementById(`list-items-${itemId}`);
-                if (listContainer) {
-                    const newItemHtml = `
-                        <div style="display:flex; align-items:center; gap:0.6rem; color:var(--text-primary); margin-bottom: 0.3rem;" class="li-item-hover">
-                            <div style="width: 16px; height: 16px; border: 2px solid var(--text-secondary); border-radius: 50%; background:transparent; display:flex; align-items:center; justify-content:center; cursor:pointer;" onclick="toggleListItemCheck('${day.id}', '${item.id}', ${newIndex}, this)"></div>
-                            <input type="text" value="${val}" onchange="updateListItemText('${day.id}', '${item.id}', ${newIndex}, this.value)" style="flex:1; background:transparent; border:none; outline:none; color:var(--text-primary); font-size:0.95rem; text-decoration:none; opacity:1;">
-                            <button class="delete-btn-hover" onclick="deleteListItem('${day.id}', '${item.id}', ${newIndex})" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:0.9rem; opacity:0; transition:opacity 0.2s;">✕</button>
-                        </div>
-                    `;
-                    const temp = document.createElement('div');
-                    temp.innerHTML = newItemHtml;
-                    const inputsRow = listContainer.lastElementChild;
-                    listContainer.insertBefore(temp.firstElementChild, inputsRow);
-                    event.target.value = '';
+                const state = window.appState;
+                const trip = state.trips.find(t => t.id === state.activeTripId);
+                const dayIndex = trip.days.findIndex(d => d.id === dayId);
+                const temp = document.createElement('div');
+                temp.innerHTML = getDayHTML(day, dayIndex, state.activeTripId);
+                const srcEl = document.getElementById(dayId);
+                if (srcEl) {
+                    srcEl.replaceWith(temp.firstElementChild);
+
+                    const newDayEl = document.getElementById(dayId);
+                    if (newDayEl) {
+                        newDayEl.querySelectorAll('textarea').forEach(ta => {
+                            ta.style.height = '';
+                            ta.style.height = ta.scrollHeight + 'px';
+                        });
+
+                        // Focus back on the new input field in the recreated DOM
+                        const listContainer = document.getElementById(`list-items-${itemId}`);
+                        if (listContainer) {
+                            const newInputs = listContainer.querySelectorAll('textarea');
+                            if (newInputs.length > 0) newInputs[newInputs.length - 1].focus();
+                        }
+                    }
                 } else {
                     renderApp();
                 }

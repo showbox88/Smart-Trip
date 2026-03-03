@@ -49,7 +49,7 @@ export function getTimelineItemHTML(day, stop, index, locationIdx, showTransit) 
         `;
         contentHtml = `
             <div style="background: var(--bg-secondary); border-radius: 12px; padding: 0.8rem 1.2rem; display:flex; align-items:center; border: 1px solid var(--glass-border);">
-                <input type="text" value="${stop.content || ''}" onchange="updateNoteContent('${day.id}', '${stop.id}', this.value)" style="flex:1; background:transparent; border:none; outline:none; color:var(--text-primary); font-size:1rem; padding: 0.2rem;" placeholder="在此处书写或粘贴笔记">
+                <textarea rows="1" oninput="this.style.height='';this.style.height=this.scrollHeight+'px'" onchange="updateNoteContent('${day.id}', '${stop.id}', this.value)" style="flex:1; background:transparent; border:none; outline:none; color:var(--text-primary); font-size:1rem; padding: 0.2rem; resize:none; overflow:hidden;" placeholder="在此处书写或粘贴笔记">${stop.content || ''}</textarea>
             </div>
         `;
     } else if (stop.type === 'list') {
@@ -69,13 +69,13 @@ export function getTimelineItemHTML(day, stop, index, locationIdx, showTransit) 
                     ${(stop.items || []).map((li, i) => `
                         <div style="display:flex; align-items:center; gap:0.6rem; color:var(--text-primary); margin-bottom: 0.3rem;" class="li-item-hover">
                             <div style="width: 16px; height: 16px; border: 2px solid var(--text-secondary); border-radius: 50%; background:${li.checked ? 'var(--text-secondary)' : 'transparent'}; display:flex; align-items:center; justify-content:center; cursor:pointer;" onclick="toggleListItemCheck('${day.id}', '${stop.id}', ${i}, this)"></div>
-                            <input type="text" value="${li.text || ''}" onchange="updateListItemText('${day.id}', '${stop.id}', ${i}, this.value)" style="flex:1; background:transparent; border:none; outline:none; color:var(--text-primary); font-size:0.95rem; text-decoration:${li.checked ? 'line-through' : 'none'}; opacity:${li.checked ? '0.5' : '1'};">
+                            <textarea rows="1" oninput="this.style.height='';this.style.height=this.scrollHeight+'px'" onchange="updateListItemText('${day.id}', '${stop.id}', ${i}, this.value)" style="flex:1; background:transparent; border:none; outline:none; color:var(--text-primary); font-size:0.95rem; text-decoration:${li.checked ? 'line-through' : 'none'}; opacity:${li.checked ? '0.5' : '1'}; resize:none; overflow:hidden;">${li.text || ''}</textarea>
                             <button class="delete-btn-hover" onclick="deleteListItem('${day.id}', '${stop.id}', ${i})" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:0.9rem; opacity:0; transition:opacity 0.2s;">✕</button>
                         </div>
                     `).join('')}
                     <div style="display:flex; align-items:center; gap:0.6rem; color:var(--text-secondary); margin-top:0.3rem;">
                         <div style="width: 16px; height: 16px; border: 2px solid var(--text-secondary); border-radius: 50%;"></div>
-                        <input type="text" placeholder="添加一些项目..." onkeypress="handleNewListItem(event, '${day.id}', '${stop.id}')" style="flex:1; background:transparent; border:none; outline:none; color:var(--text-primary); font-size:0.95rem;">
+                        <textarea rows="1" oninput="this.style.height='';this.style.height=this.scrollHeight+'px'" placeholder="添加一些项目..." onkeypress="if(event.key==='Enter'){event.preventDefault(); handleNewListItem(event, '${day.id}', '${stop.id}');}" style="flex:1; background:transparent; border:none; outline:none; color:var(--text-primary); font-size:0.95rem; resize:none; overflow:hidden;"></textarea>
                     </div>
                 </div>
                 

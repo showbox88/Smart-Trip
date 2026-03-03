@@ -41,36 +41,6 @@
                             }
                         },
                         {
-                            "id": "s1772497382329",
-                            "location": "Queens Center",
-                            "desc": "This coliseum-like indoor shopping mall houses dozens of retail stores plus a food court.",
-                            "address": "90-15 Queens Blvd, Elmhurst, NY 11373, USA",
-                            "phone": "(718) 592-3900",
-                            "time": "11:00",
-                            "period": "AM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 40.7347872,
-                            "lng": -73.8688409,
-                            "photo": "/uploads/f775d24be8e745c3b8c31b25bd0d4fe7.jpg",
-                            "rating": 4.4,
-                            "category": "购物中心",
-                            "categoryIcon": "🛍️",
-                            "transitToNext": {
-                                "duration": "27 分钟",
-                                "distance": "21.4 公里"
-                            }
-                        }
-                    ],
-                    "color": "#f59e0b"
-                },
-                {
-                    "id": "day-1772497344770-1",
-                    "title": "第 2 天",
-                    "date": "2026年5月2日",
-                    "stops": [
-                        {
                             "id": "s1772497354549",
                             "location": "John F. Kennedy International Airport",
                             "desc": "New York City hub offering flights from 80+ airlines, plus a variety of shops & eateries.",
@@ -88,10 +58,82 @@
                             "category": "机场",
                             "categoryIcon": "✈️",
                             "transitToNext": {
-                                "duration": "15 分钟",
-                                "distance": "9.8 公里"
+                                "duration": "26 分钟",
+                                "distance": "17.0 公里"
                             }
                         },
+                        {
+                            "id": "s1772497382329",
+                            "location": "Queens Center",
+                            "desc": "This coliseum-like indoor shopping mall houses dozens of retail stores plus a food court.",
+                            "address": "90-15 Queens Blvd, Elmhurst, NY 11373, USA",
+                            "phone": "(718) 592-3900",
+                            "time": "11:00",
+                            "period": "AM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 40.7347872,
+                            "lng": -73.8688409,
+                            "photo": "/uploads/f775d24be8e745c3b8c31b25bd0d4fe7.jpg",
+                            "rating": 4.4,
+                            "category": "购物中心",
+                            "categoryIcon": "🛍️",
+                            "transitToNext": {
+                                "duration": "19 分钟",
+                                "distance": "10.0 公里"
+                            }
+                        },
+                        {
+                            "id": "s1772498749356",
+                            "location": "Sybil's",
+                            "desc": "Counter-serve joint supplying Caribbean & Guyanese meals, traditional savory baked goods & sweets.",
+                            "address": "132-17 Liberty Ave, South Richmond Hill, NY 11419, USA",
+                            "phone": "(718) 835-9235",
+                            "time": "01:00",
+                            "period": "PM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 40.6910029,
+                            "lng": -73.8136887,
+                            "photo": "/uploads/61f2b5da1dbd9bd799eb1f8ea2a6400c.jpg",
+                            "rating": 4.3,
+                            "category": "面包房",
+                            "categoryIcon": "🥐",
+                            "transitToNext": null
+                        },
+                        {
+                            "id": "l1772498788810",
+                            "type": "list",
+                            "title": "",
+                            "items": [
+                                {
+                                    "text": "2222",
+                                    "checked": false
+                                }
+                            ]
+                        },
+                        {
+                            "id": "n1772498849507",
+                            "type": "note",
+                            "content": "",
+                            "checked": false
+                        },
+                        {
+                            "id": "n1772498851010",
+                            "type": "note",
+                            "content": "",
+                            "checked": false
+                        }
+                    ],
+                    "color": "#f59e0b"
+                },
+                {
+                    "id": "day-1772497344770-1",
+                    "title": "第 2 天",
+                    "date": "2026年5月2日",
+                    "stops": [
                         {
                             "id": "s1772497790322",
                             "location": "Charcoal Grill & Modern Buffet",
@@ -162,7 +204,26 @@
                     "id": "day-1772497344770-2",
                     "title": "第 3 天",
                     "date": "2026年5月3日",
-                    "stops": [],
+                    "stops": [
+                        {
+                            "id": "s1772498743696",
+                            "location": "IHOP",
+                            "desc": "Long-standing chain serving a wide variety of pancakes & other American breakfast & diner fare.",
+                            "address": "170-19 Hillside Ave., Jamaica, NY 11432, USA",
+                            "phone": "(718) 523-4561",
+                            "time": "09:00",
+                            "period": "AM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 40.7114952,
+                            "lng": -73.7915144,
+                            "photo": "/uploads/80bf3f53f053291c0e5de7f5ae0c3770.jpg",
+                            "rating": 3.9,
+                            "category": "餐饮",
+                            "categoryIcon": "🍴"
+                        }
+                    ],
                     "color": "#f59e0b"
                 },
                 {
@@ -212,7 +273,7 @@
         "day-1772497110063": true,
         "day-1772497111784": true,
         "day-1772497344770-0": false,
-        "day-1772497344770-1": true,
+        "day-1772497344770-1": false,
         "day-1772497344770-2": true,
         "day-1772497344770-3": true,
         "day-1772497344770-4": true,
