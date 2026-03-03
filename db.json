@@ -11,13 +11,19 @@
             "startDate": "2026-05-01",
             "endDate": "2026-05-06",
             "thumb": "/uploads/9f33b97b0e4356e29f559a883253f0bc.jpg",
-            "activeDayId": "day-1772562082853-1",
+            "activeDayId": "day-1772562082853-0",
             "days": [
                 {
                     "id": "day-1772562082853-0",
                     "title": "第 1 天",
                     "date": "2026年5月1日",
                     "stops": [
+                        {
+                            "id": "n1772563145299",
+                            "type": "note",
+                            "content": "",
+                            "checked": false
+                        },
                         {
                             "id": "s1772562093029",
                             "location": "John F. Kennedy International Airport",
@@ -41,25 +47,7 @@
                             }
                         },
                         {
-                            "id": "n1772562125250",
-                            "type": "note",
-                            "content": "",
-                            "checked": false
-                        },
-                        {
-                            "id": "l1772562811280",
-                            "type": "list",
-                            "title": "",
-                            "items": []
-                        },
-                        {
-                            "id": "n1772562807499",
-                            "type": "note",
-                            "content": "",
-                            "checked": false
-                        },
-                        {
-                            "id": "s1772562102687",
+                            "id": "s1772563157111",
                             "location": "Queens Center",
                             "desc": "This coliseum-like indoor shopping mall houses dozens of retail stores plus a food court.",
                             "address": "90-15 Queens Blvd, Elmhurst, NY 11373, USA",
@@ -71,7 +59,7 @@
                             "type": "location",
                             "lat": 40.7347872,
                             "lng": -73.8688409,
-                            "photo": "/uploads/c83206d5a08a9365dfce67c734799acb.jpg",
+                            "photo": "/uploads/4fc6a317397f7f4e0fcee4611b48ca3e.jpg",
                             "rating": 4.4,
                             "category": "购物中心",
                             "categoryIcon": "🛍️",
@@ -146,8 +134,8 @@
         "day-1772497344770-3": true,
         "day-1772497344770-4": true,
         "day-1772498168701": true,
-        "day-1772562082853-0": true,
-        "day-1772562082853-1": false,
+        "day-1772562082853-0": false,
+        "day-1772562082853-1": true,
         "day-1772562082853-2": true,
         "day-1772562082853-3": true,
         "day-1772562082853-4": true,
