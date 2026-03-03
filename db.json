@@ -25,50 +25,6 @@
                             "checked": false
                         },
                         {
-                            "id": "s1772493952465",
-                            "location": "Starbucks Coffee - Nishitokyo Shimmachi",
-                            "desc": "Welcoming coffeehouse with handcrafted coffee, espresso & tea, plus breakfast, lunch & pastries.",
-                            "address": "5-chōme-19-10 Shinmachi, Nishitokyo, Tokyo 202-0023, Japan",
-                            "phone": "0422-39-8750",
-                            "time": "09:00",
-                            "period": "AM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 35.712151,
-                            "lng": 139.5333891,
-                            "photo": "/uploads/9ae02fd08af62e0f8589c7ca7dd0b362.jpg",
-                            "rating": 4.1,
-                            "category": "咖啡馆",
-                            "categoryIcon": "☕",
-                            "transitToNext": {
-                                "duration": "4 分钟",
-                                "distance": "1.8 公里"
-                            }
-                        },
-                        {
-                            "id": "s1772494564863",
-                            "location": "Domino's Pizza Higashikoganei Midoricho",
-                            "desc": "Delivery/carryout chain offering a wide range of pizzas & a variety of other dishes & sides.",
-                            "address": "2-chōme-7-25 Midorichō, Koganei, Tokyo 184-0003, Japan",
-                            "phone": "042-380-1655",
-                            "time": "11:00",
-                            "period": "AM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 35.7064473,
-                            "lng": 139.52158,
-                            "photo": "/uploads/5352975dad196886634db06e92ed9722.jpg",
-                            "rating": 2.6,
-                            "category": "餐饮",
-                            "categoryIcon": "🍴",
-                            "transitToNext": {
-                                "duration": "1 分钟",
-                                "distance": "0.7 公里"
-                            }
-                        },
-                        {
                             "id": "s1772493973141",
                             "location": "Mansei Koganei",
                             "desc": "",
@@ -86,8 +42,30 @@
                             "category": "餐饮",
                             "categoryIcon": "🍴",
                             "transitToNext": {
-                                "duration": "0 分钟",
-                                "distance": "0.2 公里"
+                                "duration": "3 分钟",
+                                "distance": "1.0 公里"
+                            }
+                        },
+                        {
+                            "id": "s1772493952465",
+                            "location": "Starbucks Coffee - Nishitokyo Shimmachi",
+                            "desc": "Welcoming coffeehouse with handcrafted coffee, espresso & tea, plus breakfast, lunch & pastries.",
+                            "address": "5-chōme-19-10 Shinmachi, Nishitokyo, Tokyo 202-0023, Japan",
+                            "phone": "0422-39-8750",
+                            "time": "09:00",
+                            "period": "AM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 35.712151,
+                            "lng": 139.5333891,
+                            "photo": "/uploads/9ae02fd08af62e0f8589c7ca7dd0b362.jpg",
+                            "rating": 4.1,
+                            "category": "咖啡馆",
+                            "categoryIcon": "☕",
+                            "transitToNext": {
+                                "duration": "3 分钟",
+                                "distance": "1.2 公里"
                             }
                         },
                         {
@@ -109,7 +87,29 @@
                             "categoryIcon": "🍴",
                             "transitToNext": {
                                 "duration": "1 分钟",
-                                "distance": "0.4 公里"
+                                "distance": "0.5 公里"
+                            }
+                        },
+                        {
+                            "id": "s1772494564863",
+                            "location": "Domino's Pizza Higashikoganei Midoricho",
+                            "desc": "Delivery/carryout chain offering a wide range of pizzas & a variety of other dishes & sides.",
+                            "address": "2-chōme-7-25 Midorichō, Koganei, Tokyo 184-0003, Japan",
+                            "phone": "042-380-1655",
+                            "time": "11:00",
+                            "period": "AM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 35.7064473,
+                            "lng": 139.52158,
+                            "photo": "/uploads/5352975dad196886634db06e92ed9722.jpg",
+                            "rating": 2.6,
+                            "category": "餐饮",
+                            "categoryIcon": "🍴",
+                            "transitToNext": {
+                                "duration": "2 分钟",
+                                "distance": "0.7 公里"
                             }
                         },
                         {
@@ -229,7 +229,7 @@
         }
     ],
     "collapsedDays": {
-        "day-1772489475916-0": true,
+        "day-1772489475916-0": false,
         "day-1772489475916-1": true,
         "day-1772489475916-2": true,
         "day-1772489475916-3": true,

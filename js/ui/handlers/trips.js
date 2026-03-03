@@ -24,11 +24,15 @@ export function createNewTrip() {
         let d = new Date(startStr.replace(/-/g, '/'));
         d.setDate(d.getDate() + i);
         let displayDate = !isNaN(d) ? `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日` : `Unknown`;
+        const defaultColors = ['#5b7a99', '#ef4444', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899'];
+        const newColor = defaultColors[i % defaultColors.length];
+
         newTrip.days.push({
             id: `day-${Date.now()}-${i}`,
             title: `第 ${i + 1} 天`,
             date: displayDate,
-            stops: []
+            stops: [],
+            color: newColor
         });
     }
 
@@ -101,11 +105,15 @@ export function saveTripMetadata() {
                 let d = new Date(trip.startDate.replace(/-/g, '/'));
                 d.setDate(d.getDate() + i);
                 let displayDate = !isNaN(d) ? `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日` : `Unknown`;
+                const defaultColors = ['#5b7a99', '#ef4444', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899'];
+                const newColor = defaultColors[i % defaultColors.length];
+
                 trip.days.push({
                     id: `day-${Date.now()}-${i}`,
                     title: `第 ${i + 1} 天`,
                     date: displayDate,
-                    stops: []
+                    stops: [],
+                    color: newColor
                 });
             }
         }
