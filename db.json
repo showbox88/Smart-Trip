@@ -8,108 +8,192 @@
         {
             "id": "trip-1772580447645",
             "title": "新的神秘冒险",
-            "startDate": "2026-05-01",
-            "endDate": "2026-05-05",
-            "thumb": "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-            "activeDayId": "day-1772580447645-1",
+            "startDate": "2026-05-10",
+            "endDate": "2026-05-15",
+            "thumb": "/uploads/ad465ebcfe13ccd14f9d7ad8a7f7b1a0.jpg",
+            "activeDayId": "day-1772580447645-0",
             "days": [
                 {
                     "id": "day-1772580447645-0",
                     "title": "第 1 天",
-                    "date": "2026年5月1日",
+                    "date": "2026年5月10日",
                     "stops": [
                         {
-                            "id": "s1772580466701",
-                            "location": "Queens Center",
-                            "desc": "This coliseum-like indoor shopping mall houses dozens of retail stores plus a food court.",
-                            "address": "90-15 Queens Blvd, Elmhurst, NY 11373, USA",
-                            "phone": "(718) 592-3900",
-                            "time": "11:00",
+                            "id": "s1772651684652",
+                            "location": "Shi-no-Cafe",
+                            "desc": "",
+                            "address": "1-chōme-8-9 Nogata, Nakano City, Tokyo 165-0027, Japan",
+                            "phone": "03-3385-2023",
+                            "time": "09:00",
                             "period": "AM",
                             "note": "",
                             "price": "0",
                             "type": "location",
-                            "lat": 40.7347872,
-                            "lng": -73.8688409,
-                            "photo": "/uploads/bfc759c1e0c132932116f870c7a2b3d6.jpg",
-                            "rating": 4.4,
-                            "category": "购物中心",
-                            "categoryIcon": "🛍️",
+                            "lat": 35.711620499999995,
+                            "lng": 139.65910700000003,
+                            "photo": "/uploads/188af53c75330df1a9307e9c5dc3217c.jpg",
+                            "rating": 4.6,
+                            "category": "咖啡馆",
+                            "categoryIcon": "☕",
                             "transitToNext": {
-                                "duration": "14 分钟",
-                                "distance": "8.6 公里"
-                            }
+                                "duration": "4 分钟",
+                                "distance": "0.9 公里"
+                            },
+                            "transitMode": "WALK"
                         },
                         {
-                            "id": "n1772580655773",
-                            "type": "note",
-                            "content": "",
-                            "checked": false
-                        },
-                        {
-                            "id": "s1772580579389",
-                            "location": "LaGuardia Airport",
-                            "desc": "Waterfront circa-1939 airport in Queens offers regional flights in the U.S., Canada & the Caribbean.",
-                            "address": "East Elmhurst, NY 11371, USA",
-                            "phone": "(718) 533-3400",
-                            "time": "01:00",
-                            "period": "PM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 40.7766422,
-                            "lng": -73.8742467,
-                            "photo": "/uploads/3ec66b53259615ebe5d56d5fd00ba85d.jpg",
-                            "rating": 4.1,
-                            "category": "机场",
-                            "categoryIcon": "✈️",
-                            "transitToNext": {
-                                "duration": "43 分钟",
-                                "distance": "48.5 公里"
-                            }
-                        },
-                        {
-                            "id": "s1772580616623",
-                            "location": "LA Fitness",
+                            "id": "s1772651725306",
+                            "location": "Nogata Hope Main store",
                             "desc": "",
-                            "address": "2110 Route #110, Broadhollow Rd, Farmingdale, NY 11735, USA",
-                            "phone": "(631) 293-4263",
-                            "time": "03:00",
+                            "address": "2-chōme-58-4 Nogata, Nakano City, Tokyo 165-0027, Japan",
+                            "phone": "03-3387-2886",
+                            "time": "11:00 ",
+                            "period": "AM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 35.7139285,
+                            "lng": 139.6538942,
+                            "photo": "/uploads/16b3935e3c39af3007d8ffa8667e2d9e.jpg",
+                            "rating": 4.1,
+                            "category": "餐饮",
+                            "categoryIcon": "🍴",
+                            "transitToNext": {
+                                "duration": "6 分钟",
+                                "distance": "2.0 公里"
+                            },
+                            "transitMode": "WALK"
+                        },
+                        {
+                            "id": "s1772653949840",
+                            "location": "irohaya",
+                            "desc": "",
+                            "address": "6-chōme-13-1 Asagayakita, 杉並区 Suginami City, Tokyo 166-0001, Japan",
+                            "phone": "",
+                            "time": "11:00 ",
+                            "period": "AM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 35.7131107,
+                            "lng": 139.6383176,
+                            "photo": "/uploads/780627514b6486edb4afd41bba4572b5.jpg",
+                            "rating": 4.1,
+                            "category": "餐饮",
+                            "categoryIcon": "🍴",
+                            "transitToNext": {
+                                "duration": "10 分钟",
+                                "distance": "3.1 公里"
+                            },
+                            "transitMode": "WALK"
+                        },
+                        {
+                            "id": "s1772653056938",
+                            "location": "砂場",
+                            "desc": "",
+                            "address": "1-chōme-20-4 Nogata, Nakano City, Tokyo 165-0027, Japan",
+                            "phone": "03-3385-8162",
+                            "time": "01:00  ",
                             "period": "PM",
                             "note": "",
                             "price": "0",
                             "type": "location",
-                            "lat": 40.7484569,
-                            "lng": -73.4236593,
-                            "photo": "/uploads/a4f21d8ee064ee8ade341148c2a6a320.jpg",
-                            "rating": 4,
+                            "lat": 35.71257,
+                            "lng": 139.6580171,
+                            "photo": "/uploads/66a1c82b7e821dd0697bb4af161fdcac.jpg",
+                            "rating": 3.7,
+                            "category": "餐饮",
+                            "categoryIcon": "🍴",
+                            "transitToNext": {
+                                "duration": "9 分钟",
+                                "distance": "2.2 公里"
+                            },
+                            "transitMode": "WALK"
+                        },
+                        {
+                            "id": "s1772653976418",
+                            "location": "Kashiwaya",
+                            "desc": "",
+                            "address": "Japan, 〒165-0033 Tokyo, Nakano City, Wakamiya, 2-chōme−4−１９ かしわや",
+                            "phone": "03-3330-5396",
+                            "time": "03:00   ",
+                            "period": "PM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 35.7163677,
+                            "lng": 139.6469579,
+                            "photo": "/uploads/a1d8c74d703a14c2b254c344bf116725.jpg",
+                            "rating": 4.1,
+                            "category": "餐饮",
+                            "categoryIcon": "🍴",
+                            "transitToNext": {
+                                "duration": "5 分钟",
+                                "distance": "1.5 公里"
+                            }
+                        },
+                        {
+                            "id": "s1772653997291",
+                            "location": "Nogata Hope Main store",
+                            "desc": "",
+                            "address": "2-chōme-58-4 Nogata, Nakano City, Tokyo 165-0027, Japan",
+                            "phone": "03-3387-2886",
+                            "time": "03:00   ",
+                            "period": "PM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 35.7139285,
+                            "lng": 139.6538942,
+                            "photo": "/uploads/8e40a571cd69310cb99992118309f8c0.jpg",
+                            "rating": 4.1,
+                            "category": "餐饮",
+                            "categoryIcon": "🍴",
+                            "transitToNext": {
+                                "duration": "6 分钟",
+                                "distance": "2.3 公里"
+                            }
+                        },
+                        {
+                            "id": "s1772654080096",
+                            "location": "Koike Pediatrics Clinic",
+                            "desc": "",
+                            "address": "3-chōme-2-10 Wakamiya, Nakano City, Tokyo 165-0033, Japan",
+                            "phone": "03-3330-0743",
+                            "time": "03:00   ",
+                            "period": "PM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 35.7193749,
+                            "lng": 139.6466447,
+                            "photo": "/uploads/b5be73f13cd47ac448ef34197bce18c2.jpg",
+                            "rating": 3.4,
                             "category": "地点",
                             "categoryIcon": "📍",
+                            "transitToNext": {
+                                "duration": "3 分钟",
+                                "distance": "0.8 公里"
+                            }
+                        },
+                        {
+                            "id": "s1772654149452",
+                            "location": "Kidouya",
+                            "desc": "",
+                            "address": "5-chōme-24-6 Nogata, Nakano City, Tokyo 165-0027, Japan",
+                            "phone": "03-5364-9252",
+                            "time": "03:00   ",
+                            "period": "PM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 35.7186848,
+                            "lng": 139.6528454,
+                            "photo": "/uploads/2a555bb18b56b7b185192431dadc743a.jpg",
+                            "rating": 3.8,
+                            "category": "餐饮",
+                            "categoryIcon": "🍴",
                             "transitToNext": null
-                        },
-                        {
-                            "id": "n1772580983953",
-                            "type": "note",
-                            "content": "",
-                            "checked": false
-                        },
-                        {
-                            "id": "l1772581077537",
-                            "type": "list",
-                            "title": "",
-                            "items": []
-                        },
-                        {
-                            "id": "l1772580998931",
-                            "type": "list",
-                            "title": "",
-                            "items": []
-                        },
-                        {
-                            "id": "n1772581073661",
-                            "type": "note",
-                            "content": "",
-                            "checked": false
                         }
                     ],
                     "color": "#5b7a99"
@@ -117,68 +201,85 @@
                 {
                     "id": "day-1772580447645-1",
                     "title": "第 2 天",
-                    "date": "2026年5月2日",
-                    "stops": [
-                        {
-                            "id": "s1772639317690",
-                            "location": "John F. Kennedy International Airport",
-                            "desc": "New York City hub offering flights from 80+ airlines, plus a variety of shops & eateries.",
-                            "address": "Queens, NY 11430, USA",
-                            "phone": "(718) 244-4444",
-                            "time": "09:00",
-                            "period": "AM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 40.6446124,
-                            "lng": -73.7797278,
-                            "photo": "/uploads/fefc8f334259e22ca873f56f07e27502.jpg",
-                            "rating": 3.8,
-                            "category": "机场",
-                            "categoryIcon": "✈️",
-                            "transitToNext": {
-                                "duration": "26 分钟",
-                                "distance": "17.0 公里"
-                            }
-                        },
-                        {
-                            "id": "s1772640540244",
-                            "location": "Queens Center",
-                            "desc": "This coliseum-like indoor shopping mall houses dozens of retail stores plus a food court.",
-                            "address": "90-15 Queens Blvd, Elmhurst, NY 11373, USA",
-                            "phone": "(718) 592-3900",
-                            "time": "11:00 ",
-                            "period": "AM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 40.7347872,
-                            "lng": -73.8688409,
-                            "photo": "/uploads/7152d517b95d4c6c070f8d721ffcd7ea.jpg",
-                            "rating": 4.4,
-                            "category": "购物中心",
-                            "categoryIcon": "🛍️",
-                            "transitToNext": null
-                        }
-                    ],
+                    "date": "2026年5月11日",
+                    "stops": [],
                     "color": "#ef4444"
                 },
                 {
                     "id": "day-1772580447645-2",
                     "title": "第 3 天",
-                    "date": "2026年5月3日",
+                    "date": "2026年5月12日",
                     "stops": [],
                     "color": "#f59e0b"
                 },
                 {
                     "id": "day-1772580447645-3",
                     "title": "第 4 天",
-                    "date": "2026年5月4日",
+                    "date": "2026年5月13日",
                     "stops": [],
                     "color": "#10b981"
                 },
                 {
                     "id": "day-1772580447645-4",
+                    "title": "第 5 天",
+                    "date": "2026年5月14日",
+                    "stops": [],
+                    "color": "#8b5cf6"
+                },
+                {
+                    "id": "day-1772651798322",
+                    "title": "第 6 天",
+                    "date": "2026年5月15日",
+                    "stops": [],
+                    "color": "#ec4899"
+                },
+                {
+                    "id": "day-1772651800334",
+                    "title": "第 7 天",
+                    "date": "2026年5月16日",
+                    "stops": [],
+                    "color": "#5b7a99"
+                }
+            ]
+        },
+        {
+            "id": "trip-1772653870970",
+            "title": "新的神秘冒险",
+            "startDate": "2026-05-01",
+            "endDate": "2026-05-05",
+            "thumb": "/uploads/f29b4d1f477924f0a6ef423d578b1517.jpg",
+            "activeDayId": "day-1772653870970-0",
+            "days": [
+                {
+                    "id": "day-1772653870970-0",
+                    "title": "第 1 天",
+                    "date": "2026年5月1日",
+                    "stops": [],
+                    "color": "#5b7a99"
+                },
+                {
+                    "id": "day-1772653870970-1",
+                    "title": "第 2 天",
+                    "date": "2026年5月2日",
+                    "stops": [],
+                    "color": "#ef4444"
+                },
+                {
+                    "id": "day-1772653870970-2",
+                    "title": "第 3 天",
+                    "date": "2026年5月3日",
+                    "stops": [],
+                    "color": "#f59e0b"
+                },
+                {
+                    "id": "day-1772653870970-3",
+                    "title": "第 4 天",
+                    "date": "2026年5月4日",
+                    "stops": [],
+                    "color": "#10b981"
+                },
+                {
+                    "id": "day-1772653870970-4",
                     "title": "第 5 天",
                     "date": "2026年5月5日",
                     "stops": [],
@@ -194,9 +295,11 @@
         "day-1772579247304-3": true,
         "day-1772579247304-4": true,
         "day-1772580447645-0": false,
-        "day-1772580447645-1": false,
+        "day-1772580447645-1": true,
         "day-1772580447645-2": true,
         "day-1772580447645-3": true,
-        "day-1772580447645-4": true
+        "day-1772580447645-4": true,
+        "day-1772651798322": true,
+        "day-1772651800334": true
     }
 }

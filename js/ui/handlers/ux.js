@@ -197,15 +197,23 @@ function scrollToDay(id) {
     if (sidebarNav) {
         Array.from(sidebarNav.children).forEach(li => {
             li.classList.remove('active');
+            li.style.background = 'transparent';
+            li.style.borderLeftColor = 'transparent';
+
             if (li.getAttribute('onclick') && li.getAttribute('onclick').includes(id)) {
                 li.classList.add('active');
+                li.style.background = 'rgba(255,255,255,0.05)';
+                // Extract color from the inner dot
+                const dot = li.querySelector('div[style*="border-radius"]');
+                if (dot && dot.style.backgroundColor) {
+                    li.style.borderLeftColor = dot.style.backgroundColor;
+                }
             }
         });
     }
 
     // Auto-expand clicked day, collapse all others
     state.collapsedDays = state.collapsedDays || {};
-    let needsMapRender = false;
 
     trip.days.forEach(d => {
         const isTarget = d.id === id;
@@ -213,7 +221,6 @@ function scrollToDay(id) {
 
         if (state.collapsedDays[d.id] !== willCollapse) {
             state.collapsedDays[d.id] = willCollapse;
-            needsMapRender = true;
 
             const content = document.getElementById(`day-content-${d.id}`);
             if (content) {
@@ -225,13 +232,6 @@ function scrollToDay(id) {
             }
         }
     });
-
-    if (needsMapRender) {
-        saveData();
-        if (window._realInitGoogleMaps) {
-            window._realInitGoogleMaps();
-        }
-    }
 
     const element = document.getElementById(id);
     const container = document.getElementById('itinerary-scroll-container');

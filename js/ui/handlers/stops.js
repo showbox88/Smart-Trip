@@ -680,6 +680,11 @@ export async function autoAddStop(dayId, placeId, afterStopId) {
 
         saveData();
 
+        // Ensure the day is expanded so the user can see the new item
+        if (state.collapsedDays && state.collapsedDays[dayId]) {
+            state.collapsedDays[dayId] = false;
+        }
+
         const renderDay = () => {
             const ds = document.getElementById(dayId);
             const tl = document.querySelector('.itinerary-timeline');
@@ -691,11 +696,17 @@ export async function autoAddStop(dayId, placeId, afterStopId) {
             } else {
                 renderApp();
             }
-            const countSpan = document.getElementById(`sidebar - count - ${dayId} `);
+            const countSpan = document.getElementById(`sidebar-count-${dayId}`);
             const locationStops = day.stops.filter(s => s.type === 'location' || !s.type).length;
             if (countSpan) countSpan.innerText = `共 ${locationStops} 站行程`;
         };
         renderDay();
+
+        // Auto scroll to the newly appended item
+        setTimeout(() => {
+            const newlyAddedEl = document.querySelector('.id-' + newStop.id);
+            if (newlyAddedEl) newlyAddedEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 150);
 
         if (window.googleMapsReady) {
             import('../../maps.js').then(m => {
@@ -742,15 +753,23 @@ function scrollToDay(id) {
     if (sidebarNav) {
         Array.from(sidebarNav.children).forEach(li => {
             li.classList.remove('active');
+            li.style.background = 'transparent';
+            li.style.borderLeftColor = 'transparent';
+
             if (li.getAttribute('onclick') && li.getAttribute('onclick').includes(id)) {
                 li.classList.add('active');
+                li.style.background = 'rgba(255,255,255,0.05)';
+                // Extract color from the inner dot
+                const dot = li.querySelector('div[style*="border-radius"]');
+                if (dot && dot.style.backgroundColor) {
+                    li.style.borderLeftColor = dot.style.backgroundColor;
+                }
             }
         });
     }
 
     // Auto-expand clicked day, collapse all others
     state.collapsedDays = state.collapsedDays || {};
-    let needsMapRender = false;
 
     trip.days.forEach(d => {
         const isTarget = d.id === id;
@@ -758,25 +777,17 @@ function scrollToDay(id) {
 
         if (state.collapsedDays[d.id] !== willCollapse) {
             state.collapsedDays[d.id] = willCollapse;
-            needsMapRender = true;
 
-            const content = document.getElementById(`day - content - ${d.id} `);
+            const content = document.getElementById(`day-content-${d.id}`);
             if (content) {
                 content.style.display = willCollapse ? 'none' : 'block';
             }
-            const arrow = document.getElementById(`collapse - arrow - ${d.id} `);
+            const arrow = document.getElementById(`collapse-arrow-${d.id}`);
             if (arrow) {
                 arrow.style.transform = willCollapse ? 'rotate(-90deg)' : 'rotate(0deg)';
             }
         }
     });
-
-    if (needsMapRender) {
-        saveData();
-        if (window._realInitGoogleMaps) {
-            window._realInitGoogleMaps();
-        }
-    }
 
     const element = document.getElementById(id);
     const container = document.getElementById('itinerary-scroll-container');

@@ -146,7 +146,7 @@ export function getTimelineItemHTML(day, stop, index, locationIdx, showTransit, 
                 ` : ''}
                 ${showTransit ? `
                 <div style="display:flex; align-items:center; gap: 0.6rem;">
-                    <span style="font-size: 0.85rem; color: var(--text-secondary);">🚗 ${stop.transitToNext ? `${stop.transitToNext.duration} · ${stop.transitToNext.distance}` : '<span style="opacity:0.5;">计算路程中...</span>'}</span>
+                    <span id="transit-${stop.id}" style="font-size: 0.85rem; color: var(--text-secondary);"><span onclick="toggleTransitMode('${day.id}', '${stop.id}')" style="cursor:pointer; user-select:none; display:inline-block; transition:transform 0.15s;" onmouseover="this.style.transform='scale(1.25)'" onmouseout="this.style.transform='scale(1)'" title="点击切换驾车/步行">${stop.transitMode === 'WALK' ? '🚶' : '🚗'}</span> ${stop.transitToNext ? `${stop.transitToNext.duration} · ${stop.transitToNext.distance}` : '<span style="opacity:0.5;">计算路程中...</span>'}</span>
                 </div>
                 ` : ''}
             </div>
@@ -280,13 +280,13 @@ export function getTripHTML(trip) {
         }
         const stopsCount = day.stops ? day.stops.filter(s => s.type === 'location' || !s.type).length : 0;
         return `
-                        <li class="${day.id === trip.activeDayId ? 'active' : ''}" onclick="scrollToDay('${day.id}')" style="display:flex; flex-direction:column; padding-right:10px; margin-bottom:0.5rem; cursor:pointer;">
-                            <div style="display:flex; align-items:center; gap: 6px; min-width:0;">
-                                <div style="width:8px; height:8px; border-radius:50%; background:${activeColor}; flex-shrink:0;"></div>
-                                <span style="white-space:nowrap; font-size:0.85rem; color:${activeColor}; font-weight:600;">${day.title}</span>
-                                <span style="font-size:0.85rem; color:${activeColor}; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${dateStr}</span>
+                        <li class="${day.id === trip.activeDayId ? 'active' : ''}" onclick="scrollToDay('${day.id}')" style="display:flex; flex-direction:column; padding: 0.6rem 10px 0.6rem 8px; margin-bottom:0.2rem; cursor:pointer; border-radius: 6px; border-left: 3px solid ${day.id === trip.activeDayId ? activeColor : 'transparent'}; background: ${day.id === trip.activeDayId ? 'rgba(255,255,255,0.05)' : 'transparent'}; transition: all 0.2s;" onmouseover="if(!this.classList.contains('active')) this.style.background='rgba(255,255,255,0.05)'" onmouseout="if(!this.classList.contains('active')) this.style.background='transparent'">
+                            <div style="display:flex; align-items:center; gap: 10px; min-width:0;">
+                                <div style="width:10px; height:10px; border-radius:50%; background:${activeColor}; flex-shrink:0;"></div>
+                                <span style="white-space:nowrap; font-size:0.9rem; color:var(--text-primary); font-weight:600;">${day.title}</span>
+                                <span style="font-size:0.75rem; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-left: auto;">${dateStr}</span>
                             </div>
-                            <div style="padding-left:14px; margin-top:4px;">
+                            <div style="padding-left:20px; margin-top:4px;">
                                 <span id="sidebar-count-${day.id}" style="font-size:0.75rem; color:var(--text-secondary); white-space:nowrap;">共 ${stopsCount} 站行程</span>
                             </div>
                         </li>

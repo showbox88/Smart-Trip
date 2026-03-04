@@ -3,7 +3,7 @@ import { state } from './state.js';
 const MAPS_API_KEY = 'AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k';
 
 // --- Routes REST API helpers (replaces deprecated DirectionsService) ---
-async function fetchRouteDuration(origin, dest) {
+async function fetchRouteDuration(origin, dest, travelMode = 'DRIVE') {
     try {
         const res = await fetch('https://routes.googleapis.com/directions/v2:computeRoutes', {
             method: 'POST',
@@ -15,7 +15,7 @@ async function fetchRouteDuration(origin, dest) {
             body: JSON.stringify({
                 origin: { location: { latLng: { latitude: origin.lat, longitude: origin.lng } } },
                 destination: { location: { latLng: { latitude: dest.lat, longitude: dest.lng } } },
-                travelMode: 'DRIVE'
+                travelMode: travelMode
             })
         });
         const data = await res.json();
@@ -309,7 +309,40 @@ async function showMapInfoPanel(place, placeId) {
     // Main photo
     const photo = place.photos?.[0] ? place.photos[0].getURI({ maxWidth: 600 }) : '';
 
-    // Reviews HTML
+    // Reviews Summary and HTML
+    // Compute rating distribution if reviews exist
+    const totalReviews = place.reviews?.length || 0;
+    const ratingCounts = [0, 0, 0, 0, 0, 0]; // index 1-5
+    if (totalReviews > 0) {
+        place.reviews.forEach(r => {
+            const rating = Math.round(r.rating) || 0;
+            if (rating >= 1 && rating <= 5) ratingCounts[rating]++;
+        });
+    }
+    // Build rating summary HTML (overall average and bars)
+    let ratingSummaryHtml = '';
+    if (totalReviews > 0) {
+        const avgRating = place.rating ? place.rating.toFixed(1) : '0';
+        ratingSummaryHtml = `
+        <div style="text-align:center;margin-bottom:1rem;">
+            <div style="font-size:1.5rem;font-weight:600;">${avgRating} ★</div>
+            <div style="display:flex;flex-direction:column;gap:4px;margin-top:0.5rem;">
+                ${[5, 4, 3, 2, 1].map(star => {
+            const count = ratingCounts[star];
+            const perc = totalReviews ? (count / totalReviews * 100).toFixed(0) : 0;
+            return `
+                    <div style="display:flex;align-items:center;">
+                        <span style="width:30px;font-size:0.85rem;">${star}★</span>
+                        <div style="flex:1;background:#444;border-radius:4px;height:8px;margin:0 8px;position:relative;">
+                            <div style="background:#ffb400;width:${perc}%;height:100%;border-radius:4px;"></div>
+                        </div>
+                        <span style="width:30px;font-size:0.85rem;">${count}</span>
+                    </div>`;
+        }).join('')}
+            </div>
+        </div>`;
+    }
+    // Default placeholder if no reviews
     let reviewsHtml = '<div style="color:var(--text-secondary);text-align:center;padding:1rem;">暂无评价</div>';
     if (place.reviews && place.reviews.length > 0) {
         reviewsHtml = place.reviews.map(r => `
@@ -319,30 +352,33 @@ async function showMapInfoPanel(place, placeId) {
                     <span style="font-weight:600;font-size:0.9rem;">${r.authorAttribution?.displayName || '匿名用户'}</span>
                     <span style="color:#f4b942;font-size:0.8rem;margin-left:auto;">${'★'.repeat(r.rating || 5)}</span>
                 </div>
-                <!-- Truncated text -->
                 <div style="font-size:0.85rem; color:var(--text-secondary); line-height:1.5; display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; overflow:hidden;">${r.text || ''}</div>
                 <div style="font-size:0.75rem; color:var(--text-secondary); margin-top:4px;">${r.relativePublishTimeDescription || ''}</div>
-            </div>
-        `).join('');
+            </div>`).join('');
     }
+    // Prepend rating summary if it exists
+    if (ratingSummaryHtml) reviewsHtml = ratingSummaryHtml + reviewsHtml;
 
-    // Photos HTML
+    // Photos HTML with lightbox support
     let photosHtml = '<div style="color:var(--text-secondary);text-align:center;padding:1rem;width:100%;">暂无照片</div>';
     if (place.photos && place.photos.length > 0) {
-        photosHtml = place.photos.map(p => `
-            <div style="aspect-ratio:1; border-radius:8px; overflow:hidden; background:#2a3441;">
-                <img src="${p.getURI({ maxWidth: 300 })}" style="width:100%;height:100%;object-fit:cover;" loading="lazy" onerror="this.style.display='none'">
-            </div>
-        `).join('');
+        photosHtml = place.photos.map(p => {
+            const thumbUrl = p.getURI({ maxWidth: 300 });
+            const fullUrl = p.getURI({ maxWidth: 1200 });
+            return `
+            <div style="aspect-ratio:1; border-radius:8px; overflow:hidden; background:#2a3441; cursor:pointer; transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'" onclick="openPhotoLightbox('${fullUrl.replace(/'/g, "\\'")}')">
+                <img src="${thumbUrl}" style="width:100%;height:100%;object-fit:cover;" loading="lazy" onerror="this.style.display='none'">
+            </div>`;
+        }).join('');
     }
 
     // Process Price and Type
     const priceLevels = ['免费', '$', '$$', '$$$', '$$$$'];
     const priceText = place.priceLevel !== undefined && place.priceLevel !== null && place.priceLevel >= 0 ? priceLevels[place.priceLevel] || '$$' : '';
-    const priceHtml = priceText ? `<span style="background:rgba(255,255,255,0.08); padding:3px 10px; border-radius:12px; font-size:0.75rem;">${priceText}</span>` : '';
+    const priceHtml = priceText ? `<span style="font-weight:bold; color:var(--text-primary); font-size:0.85rem; margin-right:4px;">${priceText}</span>` : '';
 
     let placeType = place.types?.[0] ? place.types[0].replace(/_/g, ' ') : '';
-    const typeHtml = placeType ? `<span style="background:rgba(255,255,255,0.08); padding:3px 10px; border-radius:12px; font-size:0.75rem; text-transform:capitalize;">${placeType}</span>` : '';
+    const typeHtml = placeType ? `<span style="color:var(--text-secondary); font-size:0.85rem; text-transform:capitalize;">${placeType}</span>` : '';
 
     // Opening hours today
     let todayHours = '';
@@ -363,11 +399,12 @@ async function showMapInfoPanel(place, placeId) {
 
         dropdownOptionsHtml = activeTrip.days.map(d => {
             const dColor = d.color || '#5b7a99';
+            // Added white-space: nowrap and adjusted font sizes to ensure one-line display
             return `
-                <div class="map-day-option" data-value="${d.id}" data-title="${d.title || ('第' + (activeTrip.days.indexOf(d) + 1) + '天')}" style="padding: 0.8rem 1rem; display:flex; align-items:center; cursor:pointer; border-bottom: 1px solid var(--glass-border);" onmouseover="this.style.background='var(--bg-hover, rgba(255,255,255,0.05))'" onmouseout="this.style.background='transparent'">
-                    <div style="width: 12px; height: 12px; border-radius: 50%; background: ${dColor}; margin-right: 12px;"></div>
-                    <span style="color:var(--text-primary); font-size:0.95rem; font-weight:600;">${d.title || ('第' + (activeTrip.days.indexOf(d) + 1) + '天')}</span>
-                    <span style="color:var(--text-secondary); font-size:0.8rem; margin-left:auto;">${d.date}</span>
+                <div class="global-map-day-option" data-value="${d.id}" data-title="${d.title || ('第' + (activeTrip.days.indexOf(d) + 1) + '天')}" style="padding: 0.6rem 1rem; display:flex; align-items:center; cursor:pointer; border-bottom: 1px solid var(--glass-border); white-space:nowrap;" onmouseover="this.style.background='var(--bg-hover, rgba(255,255,255,0.05))'" onmouseout="this.style.background='transparent'">
+                    <div style="width: 10px; height: 10px; border-radius: 50%; background: ${dColor}; margin-right: 10px; flex-shrink:0;"></div>
+                    <span style="color:var(--text-primary); font-size:0.9rem; font-weight:600; margin-right: 16px;">${d.title || ('第' + (activeTrip.days.indexOf(d) + 1) + '天')}</span>
+                    <span style="color:var(--text-secondary); font-size:0.75rem; margin-left:auto;">${d.date}</span>
                 </div>
             `;
         }).join('');
@@ -383,64 +420,51 @@ async function showMapInfoPanel(place, placeId) {
             <button onclick="closeMapInfoPanel()" style="position:absolute; right:12px; top:10px; background:rgba(255,255,255,0.05); border:none; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; color:var(--text-primary); cursor:pointer; transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">✕</button>
         </div>
         
-        <div style="flex:1; overflow-y:auto; padding: 1.2rem; position:relative;" class="custom-scrollbar">
+        <div style="padding: 1rem 1.2rem 0 1.2rem; z-index: 10;">
+            <!-- Single "Add to Trip" button Pinned at the top of the panel (outside scroll) -->
+            <button id="map-add-trigger" class="map-custom-select" style="background:var(--accent-primary); color:white; border:none; border-radius:6px; padding:8px 16px; font-weight:700; font-size:0.9rem; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow: 0 4px 12px rgba(249,115,22,0.3);" onmouseover="this.style.background='rgba(249,115,22,0.8)'" onmouseout="this.style.background='var(--accent-primary)'">
+                <span>+</span> 添加到行程
+            </button>
+        </div>
+
+        <div style="flex:1; overflow-y:auto; padding: 1.2rem; position:relative; z-index: 1;" class="custom-scrollbar">
             <!-- About Tab -->
-            <div class="poi-tab-content active" id="poi-about" style="display:flex; gap: 1.5rem; height: 100%;">
+            <div class="poi-tab-content active" id="poi-about" style="display:flex; justify-content:space-between; align-items:flex-start; gap: 1rem;">
                 
                 <!-- Left Column: Info & Button -->
                 <div style="flex:1; display:flex; flex-direction:column; min-width:0;">
+
                     <div style="display:flex; align-items:flex-start; justify-content:space-between;">
                         <div>
-                            <h2 style="margin:0 0 0.4rem 0; font-size:1.5rem; font-weight:800; line-height:1.2; word-break:break-word;">
-                                <span style="font-size:1.2rem; margin-right:4px;">📍</span> ${place.displayName || '未知地点'}
+                            <h2 style="margin:0 0 0.2rem 0; font-size:1.3rem; font-weight:800; line-height:1.2; word-break:break-word;">
+                                ${place.displayName || '未知地点'}
                             </h2>
-                            <div style="display:flex; align-items:center; gap:0.6rem; color:var(--text-secondary); margin-bottom:0.8rem; flex-wrap:wrap;">
+                            <div style="display:flex; align-items:center; gap:0.4rem; color:var(--text-secondary); margin-bottom:0.4rem; flex-wrap:wrap;">
                                 ${priceHtml} ${typeHtml}
                             </div>
-                            <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:1.5rem;">
+                            <div style="display:flex; align-items:center; gap:0.4rem; margin-bottom:1rem;">
                                 ${stars ? `
-                                <span style="color:#f4b942; font-weight:800; font-size:1.1rem;">${stars}</span>
-                                <span style="color:#f4b942; font-size:1.1rem; letter-spacing:1px; line-height:1;">${starsStr}</span>
-                                <span style="color:var(--text-secondary); font-size:0.85rem; margin-left:4px;">(${place.userRatingCount || 0} reviews)</span>
-                                ` : '<span style="color:var(--text-secondary); font-size:0.85rem;">暂无评分</span>'}
+                                <span style="color:#f4b942; font-weight:800; font-size:1rem;">${stars}</span>
+                                <span style="color:#f4b942; font-size:1rem; letter-spacing:1px; line-height:1;">${starsStr}</span>
+                                <span style="color:var(--text-secondary); font-size:0.8rem; margin-left:4px;">(${place.userRatingCount || 0} reviews)</span>
+                                ` : '<span style="color:var(--text-secondary); font-size:0.8rem;">暂无评分</span>'}
                             </div>
                         </div>
                     </div>
 
-                    <div style="display:grid; grid-template-columns: 24px 1fr; gap: 10px 8px; color:var(--text-primary); font-size:0.9rem; align-items:start; margin-bottom: 1.5rem;">
-                        <span style="font-size:1.1rem; text-align:center;">📍</span> <span style="line-height:1.4;">${place.formattedAddress || '未知地址'}</span>
-                        ${todayHours ? `<span style="font-size:1.1rem; text-align:center;">🕒</span> <span style="line-height:1.4;">${todayHours}</span>` : ''}
-                        ${place.internationalPhoneNumber ? `<span style="font-size:1.1rem; text-align:center;">📞</span> <span style="line-height:1.4; color:var(--accent-primary); cursor:pointer;">${place.internationalPhoneNumber}</span>` : ''}
-                        ${place.websiteURI ? `<span style="font-size:1.1rem; text-align:center;">🌐</span> <a href="${place.websiteURI}" target="_blank" style="color:var(--accent-primary); text-decoration:none; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block; line-height:1.4;">${place.websiteURI}</a>` : ''}
+                    <div style="display:grid; grid-template-columns: 20px 1fr; gap: 8px 6px; color:var(--text-primary); font-size:0.85rem; align-items:start; margin-bottom: 1rem;">
+                        <span style="font-size:1rem; text-align:center;">📍</span> <span style="line-height:1.3;">${place.formattedAddress || '未知地址'}</span>
+                        ${todayHours ? `<span style="font-size:1rem; text-align:center;">🕒</span> <span style="line-height:1.3;">${todayHours}</span>` : ''}
+                        ${place.internationalPhoneNumber ? `<span style="font-size:1rem; text-align:center;">📞</span> <span style="line-height:1.3; color:var(--accent-primary); cursor:pointer;">${place.internationalPhoneNumber}</span>` : ''}
+                        ${place.websiteURI ? `<span style="font-size:1rem; text-align:center;">🌐</span> <a href="${place.websiteURI}" target="_blank" style="color:var(--accent-primary); text-decoration:none; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block; line-height:1.3;">${place.websiteURI}</a>` : ''}
                     </div>
 
-                    <!-- Add Button pushes to bottom if needed -->
-                    <div style="margin-top:auto;">
-                        <!-- Orange Add to Trip Split Button -->
-                        <div style="display:inline-flex; align-items:stretch; background:#f97316; border-radius:8px; box-shadow:0 4px 10px rgba(249,115,22,0.3);">
-                            <button id="map-add-btn" style="background:transparent; color:white; border:none; padding:10px 18px; font-weight:700; font-size:0.95rem; cursor:pointer; display:flex; align-items:center; gap:6px; border-radius:8px 0 0 8px;" onmouseover="this.style.background='rgba(0,0,0,0.1)'" onmouseout="this.style.background='transparent'">
-                                <span>+</span> 添加到行程
-                            </button>
-                            ${activeTrip && activeTrip.days.length > 0 ? `
-                            <div style="width:1px; background:rgba(255,255,255,0.3); margin:6px 0;"></div>
-                            <div class="map-dropdown-container" style="position:relative; display:flex;">
-                                <button id="map-day-trigger" class="map-custom-select" style="background:transparent; color:white; border:none; padding:10px 14px 10px 10px; cursor:pointer; display:flex; align-items:center; gap:4px; font-weight:600; font-size:0.9rem; border-radius:0 8px 8px 0;" onmouseover="this.style.background='rgba(0,0,0,0.1)'" onmouseout="this.style.background='transparent'">
-                                    <span id="map-selected-day-txt" style="max-width:80px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${defaultDayTitle}</span> <span style="font-size:0.7rem;">▼</span>
-                                </button>
-                                <!-- The dropdown itself drops UP because it's at the bottom of the widget -->
-                                <div class="map-custom-dropdown" style="display:none; position:absolute; bottom:calc(100% + 8px); left:50%; transform:translateX(-50%); background:var(--bg-secondary); border:1px solid var(--glass-border); border-radius:12px; min-width:200px; box-shadow:0 -8px 24px rgba(0,0,0,0.6); z-index:100; overflow:hidden;">
-                                    ${dropdownOptionsHtml}
-                                </div>
-                            </div>
-                            ` : ''}
-                        </div>
-                    </div>
                 </div>
 
                 <!-- Right Column: Big Image -->
                 ${photo ? `
-                <div style="flex:0 0 50%; max-width: 400px; border-radius:12px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.3);">
-                    <img src="${photo}" style="width:100%;height:100%;object-fit:cover;">
+                <div style="width: 280px; height: 180px; flex-shrink: 0; border-radius:6px; overflow:hidden; margin-top: 2px;">
+                    <img src="${photo}" style="width:100%; height:100%; object-fit:cover; display:block;">
                 </div>` : ''}
 
             </div> <!-- end poi-about tab -->
@@ -496,83 +520,129 @@ async function showMapInfoPanel(place, placeId) {
         });
     });
 
-    // Dropdown selection logic
-    let currentSelectedDayId = selectedDayId;
-    const options = panel.querySelectorAll('.map-day-option');
-    options.forEach(opt => {
-        opt.addEventListener('click', (e) => {
-            currentSelectedDayId = opt.getAttribute('data-value');
-            const titleTxt = opt.getAttribute('data-title');
-            const txtEl = panel.querySelector('#map-selected-day-txt');
-            if (txtEl) txtEl.innerText = titleTxt;
-
-            const dp = opt.closest('.map-custom-dropdown');
-            if (dp) dp.style.display = 'none';
-            e.stopPropagation();
-        });
-    });
-
     // Close dropdown on outside click
-    function handleOutsideClick(e) {
-        const containers = document.querySelectorAll('.map-dropdown-container');
-        containers.forEach(container => {
-            const dp = container.querySelector('.map-custom-dropdown');
-            const triggerBtn = container.querySelector('#map-day-trigger');
-            if (dp && dp.style.display === 'block') {
-                if (!dp.contains(e.target) && triggerBtn && !triggerBtn.contains(e.target)) {
-                    dp.style.display = 'none';
-                }
+    function handleGlobalDropdownClose(e) {
+        const globalDropdown = document.getElementById('global-map-day-dropdown');
+        if (globalDropdown && globalDropdown.style.display !== 'none') {
+            const isClickInside = globalDropdown.contains(e.target);
+            const isTrigger = e.target.closest('#map-add-trigger');
+            if (!isClickInside && !isTrigger) {
+                globalDropdown.style.display = 'none';
             }
-        });
+        }
     }
-    document.removeEventListener('click', window._mapDropdownCloseHandler);
-    window._mapDropdownCloseHandler = handleOutsideClick;
-    document.addEventListener('click', window._mapDropdownCloseHandler);
 
-    // Dropdown Trigger Logic
-    const triggerBtn = panel.querySelector('#map-day-trigger');
+    if (window._mapGlobalDropdownCloseHandler) {
+        document.removeEventListener('click', window._mapGlobalDropdownCloseHandler);
+    }
+    window._mapGlobalDropdownCloseHandler = handleGlobalDropdownClose;
+    document.addEventListener('click', window._mapGlobalDropdownCloseHandler);
+
+    // Dropdown Trigger Logic (appending to document.body to escape InfoWindow clipping)
+    const triggerBtn = panel.querySelector('#map-add-trigger');
     if (triggerBtn) {
-        triggerBtn.addEventListener('click', (e) => {
-            const dropdown = panel.querySelector('.map-custom-dropdown');
-            if (dropdown) {
-                dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
-            }
+        triggerBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
             e.stopPropagation();
-        });
-    }
 
-    // Add button handler
-    const addBtn = panel.querySelector('#map-add-btn');
-    if (addBtn) {
-        addBtn.addEventListener('click', async () => {
-            addBtn.innerHTML = '<span>⏳</span> 添加中...';
-            addBtn.disabled = true;
-            try {
-                const { state } = await import('./state.js');
-                const trip = state.trips.find(t => t.id === state.activeTripId);
-                if (!trip || !trip.days || trip.days.length === 0) {
-                    alert('请先确保行程中有日期');
-                    addBtn.innerHTML = '<span>+</span> 添加到行程';
-                    addBtn.disabled = false;
-                    return;
-                }
-
-                const dayId = currentSelectedDayId || trip.days[0].id;
-                const { autoAddStop } = await import('./ui/handlers/stops.js');
-                await autoAddStop(dayId, placeId);
-
-                addBtn.innerHTML = '<span>✓</span> 已添加';
-                setTimeout(() => {
-                    panel.remove();
-                    if (window.closeMapInfoPanel) window.closeMapInfoPanel();
-                }, 1200);
-            } catch (err) {
-                console.error('[map-add] failed:', err);
-                addBtn.innerHTML = '<span>❌</span> 失败，请重试';
-                addBtn.disabled = false;
+            let globalDropdown = document.getElementById('global-map-day-dropdown');
+            if (!globalDropdown) {
+                globalDropdown = document.createElement('div');
+                globalDropdown.id = 'global-map-day-dropdown';
+                globalDropdown.className = 'custom-scrollbar';
+                globalDropdown.style.cssText = `
+                    display:none; 
+                    position:fixed; 
+                    background:var(--bg-secondary); 
+                    border:1px solid var(--glass-border); 
+                    border-radius:8px; 
+                    min-width:180px; 
+                    z-index:999999; 
+                    box-shadow:0 -8px 24px rgba(0,0,0,0.6);
+                    max-height: 300px;
+                    overflow-y: auto;
+                    overflow-x: hidden;
+                `;
+                document.body.appendChild(globalDropdown);
             }
+
+            if (globalDropdown.style.display === 'block') {
+                globalDropdown.style.display = 'none';
+                return;
+            }
+
+            // Populate list
+            if (activeTrip && activeTrip.days && activeTrip.days.length > 0) {
+                globalDropdown.innerHTML = dropdownOptionsHtml;
+            } else {
+                globalDropdown.innerHTML = '<div style="padding: 1rem; color:var(--text-secondary); white-space:nowrap; font-size:0.9rem;">未找到行程天数</div>';
+            }
+
+            // Bind click events directly on the newly injected options to perform Add action instantly
+            const options = globalDropdown.querySelectorAll('.global-map-day-option');
+            options.forEach(opt => {
+                opt.addEventListener('click', async (evt) => {
+                    evt.stopPropagation();
+                    globalDropdown.style.display = 'none';
+                    const targetDayId = opt.getAttribute('data-value');
+
+                    // Trigger the add action using existing place data
+                    const originalHtml = triggerBtn.innerHTML;
+                    triggerBtn.innerHTML = '<span>⏳</span> 添加中...';
+                    triggerBtn.disabled = true;
+
+                    try {
+                        const { autoAddStop } = await import('./ui/handlers/stops.js');
+                        let addPlaceObj = window._currentMapPlace;
+                        if (!addPlaceObj) addPlaceObj = place; // fallback
+
+                        const placeId = addPlaceObj.id || addPlaceObj.place_id;
+                        if (!placeId) throw new Error('No place ID found');
+
+                        await autoAddStop(targetDayId, placeId);
+
+                        triggerBtn.innerHTML = '<span>✅</span> 已添加';
+                        setTimeout(() => {
+                            if (document.body.contains(triggerBtn)) {
+                                triggerBtn.innerHTML = originalHtml;
+                                triggerBtn.disabled = false;
+                            }
+                        }, 2000);
+                    } catch (error) {
+                        console.error('[maps] Error adding location:', error);
+                        triggerBtn.innerHTML = '<span>❌</span> 添加失败';
+                        setTimeout(() => {
+                            if (document.body.contains(triggerBtn)) {
+                                triggerBtn.innerHTML = originalHtml;
+                                triggerBtn.disabled = false;
+                            }
+                        }, 2000);
+                    }
+                });
+            });
+
+            // Position calculation
+            globalDropdown.style.visibility = 'hidden';
+            globalDropdown.style.display = 'block';
+
+            const rect = triggerBtn.getBoundingClientRect();
+            // Drop UPWARDS (position top edge of dropdown relative to top edge of button)
+            const dropdownHeight = globalDropdown.offsetHeight;
+            let finalTop = rect.top - dropdownHeight - 6;
+
+            // Adjust if it goes off the screen top
+            if (finalTop < 10) {
+                // If it doesn't fit upwards, open it downwards below the button
+                finalTop = rect.bottom + 6;
+            }
+
+            globalDropdown.style.left = rect.left + 'px';
+            globalDropdown.style.top = finalTop + 'px';
+            globalDropdown.style.visibility = 'visible';
         });
     }
+
+    return containerDiv;
 }
 
 export function closeMapInfoPanel() {
@@ -582,6 +652,109 @@ export function closeMapInfoPanel() {
 
 // Expose globally so onclick="closeMapInfoPanel()" in HTML works
 window.closeMapInfoPanel = closeMapInfoPanel;
+
+// Photo lightbox – opens a full-screen overlay with the clicked photo
+function openPhotoLightbox(url) {
+    // Remove existing lightbox if any
+    const existing = document.getElementById('photo-lightbox');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'photo-lightbox';
+    overlay.style.cssText = `
+        position:fixed; inset:0; z-index:10000;
+        background:rgba(0,0,0,0.88); display:flex;
+        align-items:center; justify-content:center;
+        cursor:zoom-out; animation: lbFadeIn 0.2s ease;
+    `;
+
+    const img = document.createElement('img');
+    img.src = url;
+    img.style.cssText = `
+        max-width:90vw; max-height:90vh; object-fit:contain;
+        border-radius:8px; box-shadow:0 8px 40px rgba(0,0,0,0.6);
+    `;
+
+    const closeBtn = document.createElement('button');
+    closeBtn.innerHTML = '✕';
+    closeBtn.style.cssText = `
+        position:absolute; top:16px; right:24px;
+        background:rgba(255,255,255,0.15); border:none;
+        border-radius:50%; width:36px; height:36px;
+        color:#fff; font-size:1.2rem; cursor:pointer;
+        display:flex; align-items:center; justify-content:center;
+        transition:background 0.2s;
+    `;
+    closeBtn.onmouseover = () => closeBtn.style.background = 'rgba(255,255,255,0.3)';
+    closeBtn.onmouseout = () => closeBtn.style.background = 'rgba(255,255,255,0.15)';
+
+    overlay.appendChild(img);
+    overlay.appendChild(closeBtn);
+    document.body.appendChild(overlay);
+
+    // Close on overlay click or Escape
+    overlay.addEventListener('click', () => overlay.remove());
+    const onKey = (e) => { if (e.key === 'Escape') { overlay.remove(); document.removeEventListener('keydown', onKey); } };
+    document.addEventListener('keydown', onKey);
+
+    // Inject fade-in animation if not already present
+    if (!document.getElementById('lightbox-keyframes')) {
+        const style = document.createElement('style');
+        style.id = 'lightbox-keyframes';
+        style.textContent = '@keyframes lbFadeIn { from { opacity:0 } to { opacity:1 } }';
+        document.head.appendChild(style);
+    }
+}
+window.openPhotoLightbox = openPhotoLightbox;
+
+// Toggle transit mode between driving and walking for a specific stop
+async function toggleTransitMode(dayId, stopId) {
+    const { saveData } = await import('./api.js');
+    const trip = state.trips.find(t => t.id === state.activeTripId);
+    if (!trip) return;
+    const day = trip.days.find(d => d.id === dayId);
+    if (!day) return;
+
+    const locationStops = day.stops.filter(s => s.type === 'location' || !s.type);
+    const stopIndex = locationStops.findIndex(s => s.id === stopId);
+    if (stopIndex === -1 || stopIndex >= locationStops.length - 1) return;
+
+    const stop = locationStops[stopIndex];
+    const nextStop = locationStops[stopIndex + 1];
+
+    // Toggle mode
+    const currentMode = stop.transitMode || 'DRIVE';
+    const newMode = currentMode === 'DRIVE' ? 'WALK' : 'DRIVE';
+    stop.transitMode = newMode;
+
+    // Update icon and text immediately to show loading
+    const transitEl = document.getElementById(`transit-${stopId}`);
+    const iconBtn = (ico) => `<span onclick="toggleTransitMode('${dayId}', '${stopId}')" style="cursor:pointer; user-select:none; display:inline-block; transition:transform 0.15s;" onmouseover="this.style.transform='scale(1.25)'" onmouseout="this.style.transform='scale(1)'" title="点击切换驾车/步行">${ico}</span>`;
+    if (transitEl) {
+        const icon = newMode === 'WALK' ? '🚶' : '🚗';
+        transitEl.innerHTML = `${iconBtn(icon)} <span style="opacity:0.5;">计算路程中...</span>`;
+    }
+
+    // Fetch new route data
+    if (stop.lat !== undefined && nextStop.lat !== undefined) {
+        const origin = { lat: Number(stop.lat), lng: Number(stop.lng) };
+        const dest = { lat: Number(nextStop.lat), lng: Number(nextStop.lng) };
+        const result = await fetchRouteDuration(origin, dest, newMode);
+        stop.transitToNext = result;
+        saveData();
+
+        // Update UI
+        if (transitEl) {
+            const icon = newMode === 'WALK' ? '🚶' : '🚗';
+            if (result) {
+                transitEl.innerHTML = `${iconBtn(icon)} ${result.duration} · ${result.distance}`;
+            } else {
+                transitEl.innerHTML = `${iconBtn(icon)} <span style="opacity:0.5;">无法计算</span>`;
+            }
+        }
+    }
+}
+window.toggleTransitMode = toggleTransitMode;
 
 // Compute real driving transit data between consecutive location stops in a day
 // Stores { duration, distance } in stop.transitToNext and saves to DB

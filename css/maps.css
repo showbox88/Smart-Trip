@@ -9,7 +9,7 @@
     background-size: cover;
 }
 
-.map-placeholder span {
+.map-placeholder>span {
     background: var(--glass-bg);
     padding: 1rem;
     border-radius: 12px;
