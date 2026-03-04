@@ -181,7 +181,7 @@ export function initRealMap() {
             const routePath = []; // collect ordered positions for this day's polyline
 
             day.stops.forEach((stop) => {
-                if (stop.type !== 'location' || !stop.location) return;
+                if ((stop.type && stop.type !== 'location') || !stop.location) return;
                 pinCount++;
                 totalPins++;
                 if (stop.lat !== undefined && stop.lng !== undefined) {
@@ -192,12 +192,13 @@ export function initRealMap() {
                     const pinEl = document.createElement('div');
                     pinEl.style.cssText = `
                         width:26px; height:26px; border-radius:50% 50% 50% 0;
-                        transform:rotate(-45deg); background:${dayColor};
+                        transform:rotate(-45deg); background:transparent;
+                        border:2px solid ${dayColor};
                         display:flex; align-items:center; justify-content:center;
-                        box-shadow:0 2px 6px rgba(0,0,0,0.4);
+                        box-sizing: border-box;
                     `;
                     const label = document.createElement('span');
-                    label.style.cssText = 'transform:rotate(45deg); color:#fff; font-size:0.7rem; font-weight:700; line-height:1;';
+                    label.style.cssText = `transform:rotate(45deg); color:${dayColor}; font-size:0.8rem; font-weight:900; line-height:1; text-shadow: 0 0 2px #fff, 0 0 2px #fff;`;
                     label.textContent = String(pinCount);
                     pinEl.appendChild(label);
 
@@ -296,7 +297,7 @@ async function showMapInfoPanel(place, placeId) {
     const stars = place.rating !== undefined ? place.rating.toFixed(1) : '';
     const ratingNum = place.rating || 0;
     const starsStr = '★'.repeat(Math.round(ratingNum)) + '☆'.repeat(5 - Math.round(ratingNum));
-    
+
     // Main photo
     const photo = place.photos?.[0] ? place.photos[0].getURI({ maxWidth: 600 }) : '';
 
@@ -322,7 +323,7 @@ async function showMapInfoPanel(place, placeId) {
     if (place.photos && place.photos.length > 0) {
         photosHtml = place.photos.map(p => `
             <div style="aspect-ratio:1; border-radius:8px; overflow:hidden; background:#2a3441;">
-                <img src="${p.getURI({maxWidth: 300})}" style="width:100%;height:100%;object-fit:cover;" loading="lazy" onerror="this.style.display='none'">
+                <img src="${p.getURI({ maxWidth: 300 })}" style="width:100%;height:100%;object-fit:cover;" loading="lazy" onerror="this.style.display='none'">
             </div>
         `).join('');
     }
@@ -331,7 +332,7 @@ async function showMapInfoPanel(place, placeId) {
     const priceLevels = ['免费', '$', '$$', '$$$', '$$$$'];
     const priceText = place.priceLevel !== undefined && place.priceLevel !== null && place.priceLevel >= 0 ? priceLevels[place.priceLevel] || '$$' : '';
     const priceHtml = priceText ? `<span style="background:rgba(255,255,255,0.08); padding:3px 10px; border-radius:12px; font-size:0.75rem;">${priceText}</span>` : '';
-    
+
     let placeType = place.types?.[0] ? place.types[0].replace(/_/g, ' ') : '';
     const typeHtml = placeType ? `<span style="background:rgba(255,255,255,0.08); padding:3px 10px; border-radius:12px; font-size:0.75rem; text-transform:capitalize;">${placeType}</span>` : '';
 
@@ -351,20 +352,20 @@ async function showMapInfoPanel(place, placeId) {
     let dropdownOptionsHtml = '';
     if (activeTrip && activeTrip.days && activeTrip.days.length > 0) {
         if (!selectedDay) selectedDay = activeTrip.days[0];
-        
+
         dropdownOptionsHtml = activeTrip.days.map(d => {
             const dColor = d.color || '#5b7a99';
             return `
-                <div class="map-day-option" data-value="${d.id}" data-title="${d.title || ('第'+(activeTrip.days.indexOf(d)+1)+'天')}" style="padding: 0.8rem 1rem; display:flex; align-items:center; cursor:pointer; border-bottom: 1px solid var(--glass-border);" onmouseover="this.style.background='var(--bg-hover, rgba(255,255,255,0.05))'" onmouseout="this.style.background='transparent'">
+                <div class="map-day-option" data-value="${d.id}" data-title="${d.title || ('第' + (activeTrip.days.indexOf(d) + 1) + '天')}" style="padding: 0.8rem 1rem; display:flex; align-items:center; cursor:pointer; border-bottom: 1px solid var(--glass-border);" onmouseover="this.style.background='var(--bg-hover, rgba(255,255,255,0.05))'" onmouseout="this.style.background='transparent'">
                     <div style="width: 12px; height: 12px; border-radius: 50%; background: ${dColor}; margin-right: 12px;"></div>
-                    <span style="color:var(--text-primary); font-size:0.95rem; font-weight:600;">${d.title || ('第'+(activeTrip.days.indexOf(d)+1)+'天')}</span>
+                    <span style="color:var(--text-primary); font-size:0.95rem; font-weight:600;">${d.title || ('第' + (activeTrip.days.indexOf(d) + 1) + '天')}</span>
                     <span style="color:var(--text-secondary); font-size:0.8rem; margin-left:auto;">${d.date}</span>
                 </div>
             `;
         }).join('');
     }
 
-    let defaultDayTitle = selectedDay?.title || (selectedDay ? ('第'+(activeTrip.days.indexOf(selectedDay)+1)+'天') : '选择日期');
+    let defaultDayTitle = selectedDay?.title || (selectedDay ? ('第' + (activeTrip.days.indexOf(selectedDay) + 1) + '天') : '选择日期');
 
     panel.innerHTML = `
         <div style="display:flex; border-bottom:1px solid var(--glass-border); padding: 0 0.5rem; position:relative; background:var(--bg-secondary); flex-shrink:0;">
@@ -496,7 +497,7 @@ async function showMapInfoPanel(place, placeId) {
             const titleTxt = opt.getAttribute('data-title');
             const txtEl = panel.querySelector('#map-selected-day-txt');
             if (txtEl) txtEl.innerText = titleTxt;
-            
+
             const dp = opt.closest('.map-custom-dropdown');
             if (dp) dp.style.display = 'none';
             e.stopPropagation();
@@ -551,7 +552,7 @@ async function showMapInfoPanel(place, placeId) {
                 const dayId = currentSelectedDayId || trip.days[0].id;
                 const { autoAddStop } = await import('./ui/handlers/stops.js');
                 await autoAddStop(dayId, placeId);
-                
+
                 addBtn.innerHTML = '<span>✓</span> 已添加';
                 setTimeout(() => {
                     panel.remove();

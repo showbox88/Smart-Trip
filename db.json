@@ -1,31 +1,31 @@
 {
     "user": {
-        "name": "Test Traveler"
+        "name": "旅行者"
     },
     "currentView": "trip",
-    "activeTripId": "trip-1772562082853",
+    "activeTripId": "trip-1772580447645",
     "trips": [
         {
-            "id": "trip-1772562082853",
+            "id": "trip-1772580447645",
             "title": "新的神秘冒险",
             "startDate": "2026-05-01",
-            "endDate": "2026-05-06",
-            "thumb": "/uploads/9f33b97b0e4356e29f559a883253f0bc.jpg",
-            "activeDayId": "day-1772562082853-1",
+            "endDate": "2026-05-05",
+            "thumb": "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+            "activeDayId": "day-1772580447645-0",
             "days": [
                 {
-                    "id": "day-1772562082853-0",
+                    "id": "day-1772580447645-0",
                     "title": "第 1 天",
                     "date": "2026年5月1日",
                     "stops": [
                         {
-                            "id": "n1772563145299",
-                            "type": "note",
-                            "content": "",
-                            "checked": false
+                            "id": "l1772580603878",
+                            "type": "list",
+                            "title": "",
+                            "items": []
                         },
                         {
-                            "id": "s1772562093029",
+                            "id": "s1772580458642",
                             "location": "John F. Kennedy International Airport",
                             "desc": "New York City hub offering flights from 80+ airlines, plus a variety of shops & eateries.",
                             "address": "Queens, NY 11430, USA",
@@ -37,7 +37,7 @@
                             "type": "location",
                             "lat": 40.6446124,
                             "lng": -73.7797278,
-                            "photo": "/uploads/ae8992d69588f6ad0d1be15bf57ad515.jpg",
+                            "photo": "/uploads/b53c387abc3cb976e13a6c3121b16409.jpg",
                             "rating": 3.8,
                             "category": "机场",
                             "categoryIcon": "✈️",
@@ -47,39 +47,19 @@
                             }
                         },
                         {
-                            "id": "l1772563459214",
-                            "type": "list",
-                            "title": "",
-                            "items": []
-                        }
-                    ],
-                    "color": "#5b7a99"
-                },
-                {
-                    "id": "day-1772562082853-1",
-                    "title": "第 2 天",
-                    "date": "2026年5月2日",
-                    "stops": [
-                        {
-                            "id": "l1772567222248",
-                            "type": "list",
-                            "title": "",
-                            "items": []
-                        },
-                        {
-                            "id": "n1772563804261",
+                            "id": "n1772581809395",
                             "type": "note",
                             "content": "",
                             "checked": false
                         },
                         {
-                            "id": "n1772563805798",
+                            "id": "n1772581805660",
                             "type": "note",
                             "content": "",
                             "checked": false
                         },
                         {
-                            "id": "s1772563157111",
+                            "id": "s1772580466701",
                             "location": "Queens Center",
                             "desc": "This coliseum-like indoor shopping mall houses dozens of retail stores plus a food court.",
                             "address": "90-15 Queens Blvd, Elmhurst, NY 11373, USA",
@@ -91,85 +71,130 @@
                             "type": "location",
                             "lat": 40.7347872,
                             "lng": -73.8688409,
-                            "photo": "/uploads/4fc6a317397f7f4e0fcee4611b48ca3e.jpg",
+                            "photo": "/uploads/bfc759c1e0c132932116f870c7a2b3d6.jpg",
                             "rating": 4.4,
                             "category": "购物中心",
                             "categoryIcon": "🛍️",
+                            "transitToNext": {
+                                "duration": "14 分钟",
+                                "distance": "8.6 公里"
+                            }
+                        },
+                        {
+                            "id": "n1772580655773",
+                            "type": "note",
+                            "content": "",
+                            "checked": false
+                        },
+                        {
+                            "id": "s1772580579389",
+                            "location": "LaGuardia Airport",
+                            "desc": "Waterfront circa-1939 airport in Queens offers regional flights in the U.S., Canada & the Caribbean.",
+                            "address": "East Elmhurst, NY 11371, USA",
+                            "phone": "(718) 533-3400",
+                            "time": "01:00",
+                            "period": "PM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 40.7766422,
+                            "lng": -73.8742467,
+                            "photo": "/uploads/3ec66b53259615ebe5d56d5fd00ba85d.jpg",
+                            "rating": 4.1,
+                            "category": "机场",
+                            "categoryIcon": "✈️",
+                            "transitToNext": {
+                                "duration": "43 分钟",
+                                "distance": "48.5 公里"
+                            }
+                        },
+                        {
+                            "id": "s1772580616623",
+                            "location": "LA Fitness",
+                            "desc": "",
+                            "address": "2110 Route #110, Broadhollow Rd, Farmingdale, NY 11735, USA",
+                            "phone": "(631) 293-4263",
+                            "time": "03:00",
+                            "period": "PM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 40.7484569,
+                            "lng": -73.4236593,
+                            "photo": "/uploads/a4f21d8ee064ee8ade341148c2a6a320.jpg",
+                            "rating": 4,
+                            "category": "地点",
+                            "categoryIcon": "📍",
                             "transitToNext": null
                         },
                         {
-                            "id": "n1772563807440",
+                            "id": "n1772580983953",
+                            "type": "note",
+                            "content": "",
+                            "checked": false
+                        },
+                        {
+                            "id": "l1772581077537",
+                            "type": "list",
+                            "title": "",
+                            "items": []
+                        },
+                        {
+                            "id": "l1772580998931",
+                            "type": "list",
+                            "title": "",
+                            "items": []
+                        },
+                        {
+                            "id": "n1772581073661",
                             "type": "note",
                             "content": "",
                             "checked": false
                         }
                     ],
+                    "color": "#5b7a99"
+                },
+                {
+                    "id": "day-1772580447645-1",
+                    "title": "第 2 天",
+                    "date": "2026年5月2日",
+                    "stops": [],
                     "color": "#ef4444"
                 },
                 {
-                    "id": "day-1772562082853-2",
+                    "id": "day-1772580447645-2",
                     "title": "第 3 天",
                     "date": "2026年5月3日",
                     "stops": [],
                     "color": "#f59e0b"
                 },
                 {
-                    "id": "day-1772562082853-3",
+                    "id": "day-1772580447645-3",
                     "title": "第 4 天",
                     "date": "2026年5月4日",
                     "stops": [],
                     "color": "#10b981"
                 },
                 {
-                    "id": "day-1772562082853-4",
+                    "id": "day-1772580447645-4",
                     "title": "第 5 天",
                     "date": "2026年5月5日",
                     "stops": [],
                     "color": "#8b5cf6"
-                },
-                {
-                    "id": "day-1772562341660",
-                    "title": "第 6 天",
-                    "date": "2026年5月6日",
-                    "stops": [],
-                    "color": "#ec4899"
                 }
             ]
         }
     ],
     "collapsedDays": {
-        "day-1772489475916-0": false,
-        "day-1772489475916-1": false,
-        "day-1772489475916-2": true,
-        "day-1772489475916-3": true,
-        "day-1772489475916-4": true,
-        "day-1772489479401": true,
-        "day-1772489480835": true,
-        "day-1772492777973": true,
-        "day-1772492781573": true,
-        "day-1772492805470": true,
-        "day-1772492963583": true,
-        "day-1772494804393": true,
-        "day-1772496865628-0": false,
-        "day-1772496865628-1": true,
-        "day-1772496865628-2": true,
-        "day-1772496865628-3": true,
-        "day-1772496865628-4": true,
-        "day-1772497106347": true,
-        "day-1772497108414": true,
-        "day-1772497110063": true,
-        "day-1772497111784": true,
-        "day-1772497344770-0": false,
-        "day-1772497344770-1": false,
-        "day-1772497344770-2": true,
-        "day-1772497344770-3": true,
-        "day-1772497344770-4": true,
-        "day-1772498168701": true,
-        "day-1772562082853-0": true,
-        "day-1772562082853-1": false,
-        "day-1772562082853-2": true,
-        "day-1772562082853-3": true,
-        "day-1772562082853-4": true,
-        "day-1772562341660": true
+        "day-1772579247304-0": false,
+        "day-1772579247304-1": true,
+        "day-1772579247304-2": true,
+        "day-1772579247304-3": true,
+        "day-1772579247304-4": true,
+        "day-1772580447645-0": false,
+        "day-1772580447645-1": true,
+        "day-1772580447645-2": true,
+        "day-1772580447645-3": true,
+        "day-1772580447645-4": true
     }
 }

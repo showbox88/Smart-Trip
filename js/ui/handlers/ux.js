@@ -453,10 +453,12 @@ function handleDrop(e, targetDayId, targetStopId) {
 
         // Update stop counts in the sidebar
         const srcCountSpan = document.getElementById(`sidebar-count-${draggedDayId}`);
-        if (srcCountSpan) srcCountSpan.innerText = `共 ${sourceDay.stops.length} 站行程`;
+        const sourceLocationStops = sourceDay.stops.filter(s => s.type === 'location' || !s.type).length;
+        if (srcCountSpan) srcCountSpan.innerText = `共 ${sourceLocationStops} 站行程`;
 
         const tgtCountSpan = document.getElementById(`sidebar-count-${targetDayId}`);
-        if (tgtCountSpan) tgtCountSpan.innerText = `共 ${targetDay.stops.length} 站行程`;
+        const targetLocationStops = targetDay.stops.filter(s => s.type === 'location' || !s.type).length;
+        if (tgtCountSpan) tgtCountSpan.innerText = `共 ${targetLocationStops} 站行程`;
 
         // Re-render only affected days to avoid full page flash
 

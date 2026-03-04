@@ -3,7 +3,7 @@ import { renderApp } from '../render.js';
 import { saveData } from '../../api.js';
 import { getCategoryFromTypes } from '../../constants.js';
 import { calculateDays } from '../../utils.js';
-import { getDay, getDayHTML, getTimelineItemHTML, injectNewStopToDOM } from '../templates/itinerary.js';
+import { getDay, getDayHTML, getTimelineItemHTML } from '../templates/itinerary.js';
 import { closeModal } from './ux.js';
 
 // --- Day Management ---
@@ -66,15 +66,17 @@ export function addDay() {
         Array.from(sidebarNav.children).forEach(li => li.classList.remove('active'));
         const newLi = document.createElement('li');
         newLi.className = 'active';
-        newLi.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding-right:10px;";
+        newLi.style.cssText = "display:flex; flex-direction:column; padding-right:10px; margin-bottom:0.5rem; cursor:pointer;";
         let dateStr = newDateStr.includes('年') ? newDateStr.split('年')[1] : newDateStr;
         newLi.innerHTML = `
-            <div style="display:flex; align-items:center; gap: 8px; min-width:0;">
-                <div style="width:10px; height:10px; border-radius:50%; background:${newColor}; flex-shrink:0;"></div>
-                <span style="white-space:nowrap;">${newDay.title}</span>
-                <span style="font-size:0.85rem; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${dateStr}</span>
+            <div style="display:flex; align-items:center; gap: 6px; min-width:0;">
+                <div style="width:8px; height:8px; border-radius:50%; background:${newColor}; flex-shrink:0;"></div>
+                <span style="white-space:nowrap; font-size:0.85rem; color:${newColor}; font-weight:600;">${newDay.title}</span>
+                <span style="font-size:0.85rem; color:${newColor}; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${dateStr}</span>
             </div>
-            <span id="sidebar-count-${newDayId}" style="font-size:0.8rem; color:var(--text-secondary); white-space:nowrap; flex-shrink:0; margin-left:10px;">共 0 站行程</span>
+            <div style="padding-left:14px; margin-top:4px;">
+                <span id="sidebar-count-${newDayId}" style="font-size:0.75rem; color:var(--text-secondary); white-space:nowrap;">共 0 站行程</span>
+            </div>
         `;
         newLi.onclick = () => scrollToDay(newDayId);
         sidebarNav.appendChild(newLi);
@@ -169,14 +171,111 @@ export function deleteStop(event, dayId, stopId) {
     }
 }
 
-export function deleteTimelineItem(dayId, itemId) {
-    window.openConfirmModal("确定要删除这项内容吗？", () => {
+export function deleteTimelineItem(event, dayId, itemId) {
+    if (event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
+
+    // Check if a prompt already exists and remove it to prevent duplicates
+    const existingPrompt = document.getElementById('light-confirm-prompt');
+    if (existingPrompt) existingPrompt.remove();
+
+    // Calculate position based on the click event coordinates
+    let leftPos = '50%';
+    let topPos = '50%';
+    let transformStyle = 'translate(-50%, -50%)';
+
+    if (event && event.clientX) {
+        // Position slightly to the left of the cursor, vertically aligned
+        const proposedLeft = event.clientX - 280; // Width of modal is ~220px, give some padding
+        leftPos = `${Math.max(20, proposedLeft)}px`;
+        const proposedTop = event.clientY - 25; // Center vertically with cursor
+        topPos = `${Math.max(20, proposedTop)}px`;
+        transformStyle = 'none';
+    }
+
+    // Create a lightweight, non-dimming confirmation prompt
+    const prompt = document.createElement('div');
+    prompt.id = 'light-confirm-prompt';
+    prompt.style.cssText = `
+        position: fixed;
+        top: ${topPos};
+        left: ${leftPos};
+        transform: ${transformStyle};
+        background: var(--bg-secondary);
+        border: 1px solid var(--glass-border);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        padding: 0.8rem 1.2rem;
+        border-radius: 8px;
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        gap: 1.2rem;
+        color: var(--text-primary);
+        font-size: 0.95rem;
+        animation: popIn 0.15s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+    `;
+
+    // Add animation style if not present
+    if (!document.getElementById('light-prompt-style')) {
+        const style = document.createElement('style');
+        style.id = 'light-prompt-style';
+        style.innerHTML = `
+            @keyframes popIn {
+                from { transform: scale(0.9) ${transformStyle}; opacity: 0; }
+                to { transform: scale(1) ${transformStyle}; opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    prompt.innerHTML = `
+        <span>确定要删除吗？</span>
+        <div style="display:flex; gap: 0.6rem;">
+            <button id="light-confirm-cancel" style="background:transparent; border:1px solid var(--text-secondary); color:var(--text-secondary); padding:0.3rem 0.8rem; border-radius:6px; cursor:pointer;">取消</button>
+            <button id="light-confirm-ok" style="background:#ef4444; border:none; color:white; padding:0.3rem 0.8rem; border-radius:6px; cursor:pointer; font-weight:bold;">确定</button>
+        </div>
+    `;
+
+    document.body.appendChild(prompt);
+
+    // Cancel handler
+    document.getElementById('light-confirm-cancel').onclick = () => {
+        prompt.remove();
+    };
+
+    // Confirm handler
+    document.getElementById('light-confirm-ok').onclick = () => {
+        prompt.remove();
         const day = getDay(dayId);
         if (!day) return;
         day.stops = day.stops.filter(s => s.id !== itemId);
         saveData();
-        renderApp();
-    });
+        const trip = state.trips.find(t => t.id === state.activeTripId);
+
+        // Update sidebar count before rendering
+        const countSpan = document.getElementById(`sidebar-count-${dayId}`);
+        if (countSpan) {
+            const locationStops = day.stops.filter(s => s.type === 'location' || !s.type).length;
+            countSpan.innerText = `共 ${locationStops} 站行程`;
+        }
+
+        // Re-render only the affected day
+        const dayIndex = trip.days.findIndex(d => d.id === dayId);
+        const temp = document.createElement('div');
+        temp.innerHTML = getDayHTML(day, dayIndex, state.activeTripId);
+        const dayEl = document.getElementById(dayId);
+        if (dayEl) dayEl.replaceWith(temp.firstElementChild);
+
+        // Refresh map markers if necessary
+        if (window.googleMapsReady) {
+            import('../../maps.js').then(m => {
+                m.initRealMap();
+                m.computeTransitData(dayId);
+            });
+        }
+    };
 }
 
 export function saveStop() {
@@ -292,7 +391,7 @@ export function toggleListItemCheck(dayId, itemId, index, element) {
 
         if (element) {
             const isChecked = item.items[index].checked;
-            element.style.border = `2px solid ${isChecked ? 'var(--text-secondary)' : 'var(--text-secondary)'}`;
+            element.style.border = `2px solid ${isChecked ? 'var(--text-secondary)' : 'var(--text-secondary)'} `;
             element.style.background = isChecked ? 'var(--text-secondary)' : 'transparent';
             const input = element.nextElementSibling;
             if (input && input.tagName === 'INPUT') {
@@ -370,7 +469,7 @@ export function handleNewListItem(event, dayId, itemId) {
                         });
 
                         // Focus back on the new input field in the recreated DOM
-                        const listContainer = document.getElementById(`list-items-${itemId}`);
+                        const listContainer = document.getElementById(`list - items - ${itemId} `);
                         if (listContainer) {
                             const newInputs = listContainer.querySelectorAll('textarea');
                             if (newInputs.length > 0) newInputs[newInputs.length - 1].focus();
@@ -394,7 +493,7 @@ export function toggleItemSelect(dayId, itemId, element) {
         if (element) {
             const box = element.querySelector('div');
             if (box) {
-                box.style.border = `2px solid ${item.selected ? 'var(--accent-primary)' : 'var(--text-secondary)'}`;
+                box.style.border = `2px solid ${item.selected ? 'var(--accent-primary)' : 'var(--text-secondary)'} `;
                 box.style.background = item.selected ? 'var(--accent-primary)' : 'transparent';
                 box.innerText = item.selected ? '✓' : '';
             }
@@ -415,8 +514,13 @@ export function addTimelineNote(dayId) {
     day.stops.push(newStop);
     saveData();
 
-    const html = getTimelineItemHTML(day, newStop, day.stops.length - 1, 0, false);
-    injectNewStopToDOM(dayId, html);
+    // Re-render only the affected day to avoid full page flash
+    const trip = state.trips.find(t => t.id === state.activeTripId);
+    const dayIndex = trip.days.findIndex(d => d.id === dayId);
+    const temp = document.createElement('div');
+    temp.innerHTML = getDayHTML(day, dayIndex, state.activeTripId);
+    const dayEl = document.getElementById(dayId);
+    if (dayEl) dayEl.replaceWith(temp.firstElementChild);
 }
 
 export function addTimelineList(dayId) {
@@ -432,8 +536,13 @@ export function addTimelineList(dayId) {
     day.stops.push(newStop);
     saveData();
 
-    const html = getTimelineItemHTML(day, newStop, day.stops.length - 1, 0, false);
-    injectNewStopToDOM(dayId, html);
+    // Re-render only the affected day
+    const trip = state.trips.find(t => t.id === state.activeTripId);
+    const dayIndex = trip.days.findIndex(d => d.id === dayId);
+    const temp = document.createElement('div');
+    temp.innerHTML = getDayHTML(day, dayIndex, state.activeTripId);
+    const dayEl = document.getElementById(dayId);
+    if (dayEl) dayEl.replaceWith(temp.firstElementChild);
 }
 
 // Insert note right after a specific stop (used by the "+" transit button)
@@ -520,7 +629,7 @@ export async function autoAddStop(dayId, placeId, afterStopId) {
                 period = h >= 12 ? 'PM' : 'AM';
                 let displayH = h % 12;
                 if (displayH === 0) displayH = 12;
-                timeStr = `${displayH.toString().padStart(2, '0')}:${lastStop.time.split(':')[1] || '00'}`;
+                timeStr = `${displayH.toString().padStart(2, '0')}:${lastStop.time.split(':')[1] || '00'} `;
             }
         }
 
@@ -582,8 +691,9 @@ export async function autoAddStop(dayId, placeId, afterStopId) {
             } else {
                 renderApp();
             }
-            const countSpan = document.getElementById(`sidebar-count-${dayId}`);
-            if (countSpan) countSpan.innerText = `共 ${day.stops.length} 站行程`;
+            const countSpan = document.getElementById(`sidebar - count - ${dayId} `);
+            const locationStops = day.stops.filter(s => s.type === 'location' || !s.type).length;
+            if (countSpan) countSpan.innerText = `共 ${locationStops} 站行程`;
         };
         renderDay();
 
@@ -650,11 +760,11 @@ function scrollToDay(id) {
             state.collapsedDays[d.id] = willCollapse;
             needsMapRender = true;
 
-            const content = document.getElementById(`day-content-${d.id}`);
+            const content = document.getElementById(`day - content - ${d.id} `);
             if (content) {
                 content.style.display = willCollapse ? 'none' : 'block';
             }
-            const arrow = document.getElementById(`collapse-arrow-${d.id}`);
+            const arrow = document.getElementById(`collapse - arrow - ${d.id} `);
             if (arrow) {
                 arrow.style.transform = willCollapse ? 'rotate(-90deg)' : 'rotate(0deg)';
             }

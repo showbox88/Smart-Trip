@@ -7,32 +7,12 @@ export function getDay(dayId) {
     return trip ? trip.days.find(d => d.id === dayId) : null;
 }
 
-export function injectNewStopToDOM(dayId, stopHtml) {
-    const daySection = document.getElementById(dayId);
-    if (!daySection) return;
-    const timelineContainer = daySection.querySelector('.timeline-container');
-    if (!timelineContainer) return;
-
-    const temp = document.createElement('div');
-    temp.innerHTML = stopHtml;
-    const emptyMsg = timelineContainer.querySelector('p');
-    if (emptyMsg && emptyMsg.innerText.includes('还没有安排地点')) {
-        emptyMsg.remove();
-    }
-
-    const searchContainer = timelineContainer.querySelector('.location-search-container');
-    if (searchContainer) {
-        timelineContainer.insertBefore(temp.firstElementChild, searchContainer);
-    } else {
-        timelineContainer.appendChild(temp.firstElementChild);
-    }
-}
 
 // --- Timeline Item HTML ---
 export function getTimelineItemHTML(day, stop, index, locationIdx, showTransit, showAddRow) {
     let circleHtml = '';
     let contentHtml = '';
-    let isLocation = stop.type !== 'note' && stop.type !== 'list';
+    let isLocation = stop.type === 'location' || !stop.type;
 
     const styleBlock = index === 0 ? `
         <style>
@@ -114,7 +94,7 @@ export function getTimelineItemHTML(day, stop, index, locationIdx, showTransit, 
 
     return `
         ${styleBlock}
-        <div class="timeline-item-wrapper id-${stop.id}" style="position:relative; margin-bottom: 0.8rem; margin-left: -3rem; padding-left: 1rem; padding-right: 2.5rem; display:flex; align-items:flex-start; gap: 0.5rem;" 
+        <div class="timeline-item-wrapper id-${stop.id}" style="position:relative; margin-bottom: 0.8rem; padding-left: 36px; padding-right: 62px; display:flex; align-items:flex-start; gap: 0.5rem;" 
             draggable="true" 
             ondragstart="handleDragStart(event, '${day.id}', '${stop.id}')" 
             ondragover="handleDragOver(event)" 
@@ -123,7 +103,7 @@ export function getTimelineItemHTML(day, stop, index, locationIdx, showTransit, 
             ondragleave="handleDragLeave(event)" 
             ondragend="handleDragEnd(event)">
             <!-- Left Actions (Drag & Select) -->
-            <div class="item-hover-action" style="position:absolute; left: -1.5rem; top: 0.3rem; width: 1.5rem; display:flex; flex-direction:column; align-items:center; gap: 0.5rem; opacity:0; pointer-events:none; transition:opacity 0.2s;">
+            <div class="item-hover-action" style="position:absolute; left: 14px; top: 0.3rem; width: 16px; display:flex; flex-direction:column; align-items:center; gap: 0.5rem; opacity:0; pointer-events:none; transition:opacity 0.2s;">
                 <div style="cursor:grab; display:flex; flex-direction:column; gap:2px; color:var(--text-secondary); padding: 2px;">
                     <div style="display:flex; gap:2px;"><div style="width:3px;height:3px;border-radius:50%;background:currentColor;"></div><div style="width:3px;height:3px;border-radius:50%;background:currentColor;"></div></div>
                     <div style="display:flex; gap:2px;"><div style="width:3px;height:3px;border-radius:50%;background:currentColor;"></div><div style="width:3px;height:3px;border-radius:50%;background:currentColor;"></div></div>
@@ -136,7 +116,11 @@ export function getTimelineItemHTML(day, stop, index, locationIdx, showTransit, 
                 </div>
             </div>
             
-            ${circleHtml}
+            ${(stop.type === 'location' || !stop.type) ? `
+                <div style="width: 16px; height: 16px; border-radius: 50%; background: ${day.color || '#5b7a99'}; border: 3px solid var(--bg-primary); position: absolute; left: 22px; top: 1.2rem; transform: translate(-50%, -50%); z-index: 2;" title="在${locationIdx + 1}站"></div>
+            ` : `
+                <div style="width: 10px; height: 10px; border-radius: 50%; background: var(--text-secondary); border: 2px solid var(--bg-primary); position: absolute; left: 22px; top: 1.2rem; transform: translate(-50%, -50%); z-index: 2;"></div>
+            `}
             
             <!-- Main Content -->
             <div style="flex:1; min-width: 0;">
@@ -144,14 +128,14 @@ export function getTimelineItemHTML(day, stop, index, locationIdx, showTransit, 
             </div>
 
             <!-- Right Action (Trash) -->
-            <div class="item-hover-action" style="position:absolute; right: 0; top: 0.3rem; cursor:pointer; color:var(--text-secondary); z-index: 10; opacity:0; pointer-events:none; transition:opacity 0.2s; font-size: 0.95rem; padding: 0.2rem;" onmousedown="deleteTimelineItem('${day.id}', '${stop.id}')" title="删除">
+            <div class="item-hover-action" style="position:absolute; right: 31px; top: 0.3rem; cursor:pointer; color:var(--text-secondary); z-index: 10; opacity:0; pointer-events:none; transition:opacity 0.2s; font-size: 0.95rem; padding: 0.2rem;" onclick="deleteTimelineItem(event, '${day.id}', '${stop.id}')" title="删除">
                 🗑️
             </div>
         </div>
         ${(showAddRow || showTransit) ? `
-            <div style="margin-left:-3rem; padding-left:1.7rem; padding-right:2.5rem; display:flex; align-items:center; gap:0.6rem; position:relative; z-index:2; margin-bottom:0.8rem;">
+            <div style="padding-left:36px; padding-right:62px; display:flex; align-items:center; gap:0.6rem; position:relative; z-index:2; margin-bottom:0.8rem;">
                 ${showAddRow ? `
-                <div style="position:relative; display:inline-block; transform: translateX(-50%);">
+                <div style="position:relative; display:inline-block; transform: translateX(-50%); margin-left: -14px;">
                     <button onclick="toggleMenu(event, 'add-menu-${stop.id}')" style="width:22px; height:22px; border-radius:50%; background:var(--bg-secondary); border:1.5px solid var(--glass-border); color:var(--text-secondary); cursor:pointer; font-size:1rem; display:flex; align-items:center; justify-content:center; line-height:1; transition: background 0.15s, color 0.15s; flex-shrink:0;" onmouseover="this.style.background='var(--accent-primary)';this.style.color='#fff';this.style.borderColor='var(--accent-primary)';" onmouseout="this.style.background='var(--bg-secondary)';this.style.color='var(--text-secondary)';this.style.borderColor='var(--glass-border)';" title="在此处插入">+</button>
                     <div class="menu-dropdown" id="menu-add-menu-${stop.id}" style="top:1.8rem; left:0; min-width:160px;">
                         <button onclick="showInlineSearchAt('${day.id}', '${stop.id}'); document.getElementById('menu-add-menu-${stop.id}').classList.remove('show');" style="display:flex; align-items:center; gap:8px;"><span>📍</span> 添加地点</button>
@@ -192,7 +176,7 @@ export function getDayHTML(day, dayIndex, activeDayId) {
     return `
         <div class="day-section" id="${day.id}" style="margin-bottom: 3rem; scroll-margin-top: 120px;">
             <!-- Day Header -->
-            <div style="display:flex; align-items:center; margin-bottom: 0.5rem;">
+            <div style="display:flex; align-items:center; margin-bottom: 0.5rem; padding-left: 36px; padding-right: 46px;">
                 <h3 style="font-size: 1.5rem; margin:0;">${dayName}</h3>
                 ${colorPickerHtml}
                 <div style="position:relative;">
@@ -204,13 +188,13 @@ export function getDayHTML(day, dayIndex, activeDayId) {
                     </div>
                 </div>
             </div>
-            <div style="color: var(--text-secondary); cursor: pointer; padding-left: 2px; margin-bottom: 0.8rem; font-size: 0.95rem; display:flex; align-items:center;">
+            <div style="color: var(--text-secondary); cursor: pointer; padding-left: 38px; margin-bottom: 0.8rem; font-size: 0.95rem; display:flex; align-items:center;">
                 <span id="collapse-arrow-${day.id}" onclick="toggleDayCollapse('${day.id}')" style="display:inline-block; transform:${state.collapsedDays && state.collapsedDays[day.id] ? 'rotate(-90deg)' : 'rotate(0deg)'}; margin-right:4px; transition: transform 0.2s;">▼</span>
                 <span id="day-subtitle-${day.id}" onclick="editDaySubtitle('${day.id}')">${day.subtitle || '添加副标题'}</span>
             </div>
             
-            <div id="day-content-${day.id}" style="${state.collapsedDays && state.collapsedDays[day.id] ? 'display:none;' : 'display:block;'}">
-                <div style="display:flex; gap: 15px; align-items:center; margin-bottom: 0.8rem; font-size: 0.85rem; color: var(--text-secondary);">
+            <div id="day-content-${day.id}" style="${state.collapsedDays && state.collapsedDays[day.id] ? 'display:none;' : 'display:block;'}; padding-left: 0;">
+                <div style="display:flex; gap: 15px; align-items:center; margin-bottom: 0.8rem; font-size: 0.85rem; color: var(--text-secondary); padding-left: 36px;">
                     <button style="background:none; border:none; color: var(--accent-primary); cursor:pointer; font-weight:600; display:flex; align-items:center; gap:5px;">
                         <span style="font-size:1.1rem;">🪄</span> 自动填充日程
                     </button>
@@ -221,9 +205,9 @@ export function getDayHTML(day, dayIndex, activeDayId) {
                     <span>3 小时 49 分钟, 251英里</span>
                 </div>
 
-            <div class="timeline-container" style="position: relative; padding-left: 1.8rem;">
+            <div class="timeline-container" style="position: relative;">
                 <!-- Vertical continuous dashed line for the whole day -->
-                <div style="position: absolute; top: 0; bottom: 0; left: 0.9rem; width: 0; border-left: 2px dashed var(--glass-border); z-index: 0; transform: translateX(-1px);"></div>
+                <div style="position: absolute; top: 0; bottom: 0; left: 22px; width: 0; border-left: 2px dashed var(--glass-border); z-index: 0; transform: translateX(-50%);"></div>
                 
                 ${day.stops.length === 0 ? `
                 <div style="padding: 1.5rem 1rem; margin-bottom: 1.5rem; text-align: center; border: 1px dashed var(--glass-border); border-radius: 8px; background: rgba(255,255,255,0.02); position:relative; z-index:2;">
@@ -234,7 +218,7 @@ export function getDayHTML(day, dayIndex, activeDayId) {
                 ${day.stops.map((stop, index) => {
         // showTransit: true if current stop is a location AND there's any location stop after it
         // (notes/lists in between should NOT hide transit time)
-        const locationIdx = day.stops.slice(0, index).filter(s => s.type !== 'note' && s.type !== 'list').length;
+        const locationIdx = day.stops.slice(0, index).filter(s => s.type === 'location' || !s.type).length;
         const isLocationStop = stop.type === 'location' || !stop.type;
         const hasNextLocationStop = isLocationStop && day.stops.slice(index + 1).some(
             s => s.type === 'location' || !s.type
@@ -244,7 +228,7 @@ export function getDayHTML(day, dayIndex, activeDayId) {
     }).join('')}
             
             <!-- Dedicated Location Search Bar at bottom of Day -->
-            <div class="location-search-container" style="position: relative; margin-top: 1rem; margin-left: -2rem; display:flex; gap: 0.5rem;">
+            <div class="location-search-container" style="position: relative; margin-top: 1rem; padding-left: 36px; display:flex; gap: 0.5rem; padding-right: 46px;">
                 <div style="flex:1; position:relative;">
                     <span style="position:absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-secondary);">📍</span>
                     <input type="text" class="location-search-input" style="padding-left: 2.8rem; background: var(--bg-secondary); border: none;" placeholder="添加地点..." oninput="handleSearchInput(event, '${day.id}')" onkeydown="handleSearchKeyDown(event, '${day.id}')" autocomplete="off">
@@ -264,7 +248,7 @@ export function getDayHTML(day, dayIndex, activeDayId) {
 // --- Trip View HTML ---
 export function getTripHTML(trip) {
     if (!trip) return `<h2>行程未找到</h2>`;
-    const totalStops = trip.days.reduce((acc, d) => acc + d.stops.length, 0);
+    const totalStops = trip.days.reduce((acc, d) => acc + (d.stops ? d.stops.filter(s => s.type === 'location' || !s.type).length : 0), 0);
 
     return `
         <div class="dashboard-view fade-in">
@@ -294,15 +278,17 @@ export function getTripHTML(trip) {
         if (dateStr.includes('年')) {
             dateStr = dateStr.split('年')[1];
         }
-        const stopsCount = day.stops ? day.stops.length : 0;
+        const stopsCount = day.stops ? day.stops.filter(s => s.type === 'location' || !s.type).length : 0;
         return `
-                        <li class="${day.id === trip.activeDayId ? 'active' : ''}" onclick="scrollToDay('${day.id}')" style="display:flex; justify-content:space-between; align-items:center; padding-right:10px;">
-                            <div style="display:flex; align-items:center; gap: 8px; min-width:0;">
-                                <div style="width:10px; height:10px; border-radius:50%; background:${activeColor}; flex-shrink:0;"></div>
-                                <span style="white-space:nowrap;">${day.title}</span>
-                                <span style="font-size:0.85rem; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${dateStr}</span>
+                        <li class="${day.id === trip.activeDayId ? 'active' : ''}" onclick="scrollToDay('${day.id}')" style="display:flex; flex-direction:column; padding-right:10px; margin-bottom:0.5rem; cursor:pointer;">
+                            <div style="display:flex; align-items:center; gap: 6px; min-width:0;">
+                                <div style="width:8px; height:8px; border-radius:50%; background:${activeColor}; flex-shrink:0;"></div>
+                                <span style="white-space:nowrap; font-size:0.85rem; color:${activeColor}; font-weight:600;">${day.title}</span>
+                                <span style="font-size:0.85rem; color:${activeColor}; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${dateStr}</span>
                             </div>
-                            <span id="sidebar-count-${day.id}" style="font-size:0.8rem; color:var(--text-secondary); white-space:nowrap; flex-shrink:0; margin-left:10px;">共 ${stopsCount} 站行程</span>
+                            <div style="padding-left:14px; margin-top:4px;">
+                                <span id="sidebar-count-${day.id}" style="font-size:0.75rem; color:var(--text-secondary); white-space:nowrap;">共 ${stopsCount} 站行程</span>
+                            </div>
                         </li>
                         `;
     }).join('')}
@@ -336,7 +322,7 @@ export function getTripHTML(trip) {
                     </div>
                 </div>
                 
-                <div class="itinerary-timeline" style="padding: 0 1rem 0 3.5rem; max-width: 900px; margin: 0 auto;">
+                <div class="itinerary-timeline" style="padding: 0;">
                     ${trip.days.map((day, dayIndex) => getDayHTML(day, dayIndex, trip.activeDayId)).join('')}
                 </div>
             </section>

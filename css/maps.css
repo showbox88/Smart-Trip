@@ -73,3 +73,13 @@
     background: rgba(255, 255, 255, 0.12);
     border-left: 3px solid var(--accent-primary);
 }
+
+/* --- Map Marker Adjustments --- */
+gmp-advanced-marker,
+gmp-advanced-marker::part(background),
+gmp-advanced-marker::part(pin) {
+    background-color: transparent !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
