@@ -11,7 +11,7 @@
             "startDate": "2026-05-01",
             "endDate": "2026-05-05",
             "thumb": "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-            "activeDayId": "day-1772580447645-0",
+            "activeDayId": "day-1772580447645-1",
             "days": [
                 {
                     "id": "day-1772580447645-0",
@@ -23,40 +23,6 @@
                             "type": "list",
                             "title": "",
                             "items": []
-                        },
-                        {
-                            "id": "s1772580458642",
-                            "location": "John F. Kennedy International Airport",
-                            "desc": "New York City hub offering flights from 80+ airlines, plus a variety of shops & eateries.",
-                            "address": "Queens, NY 11430, USA",
-                            "phone": "(718) 244-4444",
-                            "time": "09:00",
-                            "period": "AM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 40.6446124,
-                            "lng": -73.7797278,
-                            "photo": "/uploads/b53c387abc3cb976e13a6c3121b16409.jpg",
-                            "rating": 3.8,
-                            "category": "机场",
-                            "categoryIcon": "✈️",
-                            "transitToNext": {
-                                "duration": "26 分钟",
-                                "distance": "17.0 公里"
-                            }
-                        },
-                        {
-                            "id": "n1772581809395",
-                            "type": "note",
-                            "content": "",
-                            "checked": false
-                        },
-                        {
-                            "id": "n1772581805660",
-                            "type": "note",
-                            "content": "",
-                            "checked": false
                         },
                         {
                             "id": "s1772580466701",
@@ -158,7 +124,26 @@
                     "id": "day-1772580447645-1",
                     "title": "第 2 天",
                     "date": "2026年5月2日",
-                    "stops": [],
+                    "stops": [
+                        {
+                            "id": "s1772639317690",
+                            "location": "John F. Kennedy International Airport",
+                            "desc": "New York City hub offering flights from 80+ airlines, plus a variety of shops & eateries.",
+                            "address": "Queens, NY 11430, USA",
+                            "phone": "(718) 244-4444",
+                            "time": "09:00",
+                            "period": "AM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 40.6446124,
+                            "lng": -73.7797278,
+                            "photo": "/uploads/fefc8f334259e22ca873f56f07e27502.jpg",
+                            "rating": 3.8,
+                            "category": "机场",
+                            "categoryIcon": "✈️"
+                        }
+                    ],
                     "color": "#ef4444"
                 },
                 {
@@ -191,8 +176,8 @@
         "day-1772579247304-2": true,
         "day-1772579247304-3": true,
         "day-1772579247304-4": true,
-        "day-1772580447645-0": false,
-        "day-1772580447645-1": true,
+        "day-1772580447645-0": true,
+        "day-1772580447645-1": false,
         "day-1772580447645-2": true,
         "day-1772580447645-3": true,
         "day-1772580447645-4": true

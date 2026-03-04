@@ -188,25 +188,32 @@ export function initRealMap() {
                     const pos = { lat: Number(stop.lat), lng: Number(stop.lng) };
                     if (isNaN(pos.lat) || isNaN(pos.lng)) return;
 
-                    // AdvancedMarkerElement replaces deprecated google.maps.Marker
-                    const pinEl = document.createElement('div');
-                    pinEl.style.cssText = `
-                        width:26px; height:26px; border-radius:50% 50% 50% 0;
-                        transform:rotate(-45deg); background:transparent;
-                        border:2px solid ${dayColor};
-                        display:flex; align-items:center; justify-content:center;
-                        box-sizing: border-box;
+                    // Use img + SVG data-URI for custom marker:
+                    // This bypasses the AdvancedMarkerElement shadow-DOM white background wrapper.
+                    console.log(`[maps] Creating custom SVG marker #${pinCount} color:${dayColor}`);
+                    const encodedSvg = encodeURIComponent(`<svg width="36" height="44" viewBox="0 0 36 44" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18 0 C8.06 0 0 8.06 0 18 C0 31.5 18 44 18 44 C18 44 36 31.5 36 18 C36 8.06 27.94 0 18 0Z" fill="${dayColor}" stroke="white" stroke-width="1.5" opacity="0.95"/>
+                        <circle cx="18" cy="18" r="11" fill="#1a2235" opacity="0.9"/>
+                        <text x="18" y="23" text-anchor="middle" fill="white" font-size="13" font-weight="800" font-family="Arial, sans-serif">${pinCount}</text>
+                    </svg>`);
+                    const markerImg = document.createElement('img');
+                    markerImg.src = `data:image/svg+xml,${encodedSvg}`;
+                    markerImg.width = 36;
+                    markerImg.height = 44;
+                    markerImg.style.cssText = `
+                        cursor: pointer;
+                        transition: transform 0.2s;
+                        filter: drop-shadow(0 3px 6px rgba(0,0,0,0.7));
+                        display: block;
                     `;
-                    const label = document.createElement('span');
-                    label.style.cssText = `transform:rotate(45deg); color:${dayColor}; font-size:0.8rem; font-weight:900; line-height:1; text-shadow: 0 0 2px #fff, 0 0 2px #fff;`;
-                    label.textContent = String(pinCount);
-                    pinEl.appendChild(label);
+                    markerImg.onmouseenter = () => markerImg.style.transform = 'scale(1.2) translateY(-4px)';
+                    markerImg.onmouseleave = () => markerImg.style.transform = 'scale(1) translateY(0)';
 
                     const marker = new google.maps.marker.AdvancedMarkerElement({
                         position: pos,
                         map: googleMapInstance,
                         title: stop.location,
-                        content: pinEl
+                        content: markerImg
                     });
                     googleMapMarkers.push(marker);
                     bounds.extend(pos);
