@@ -291,10 +291,11 @@ async function showMapInfoPanel(place, placeId) {
 
     const panel = document.createElement('div');
     panel.id = 'map-info-panel';
-    // Horizontal layout: height=1/3 of map, width=2/3 of map, left=8px, bottom=8px gap
+
+    // Horizontal layout: height=50%-10px of map, width=80% of map, left=8px, bottom=8px gap
     panel.style.cssText = `
         position:absolute; bottom:8px; left:8px; 
-        width: calc(66.66% - 16px); height: calc(33.33% - 16px); min-height: 280px;
+        width: 80%; height: calc(50% - 10px); min-height: 200px; max-width: none;
         background:var(--bg-primary, #1e2535); color:var(--text-primary, #e8eaf6); border-radius:12px;
         box-shadow:0 12px 40px rgba(0,0,0,0.6); z-index:500;
         border:1px solid var(--glass-border, rgba(255,255,255,0.12)); 
