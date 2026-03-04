@@ -94,7 +94,7 @@ export function getTimelineItemHTML(day, stop, index, locationIdx, showTransit, 
 
     return `
         ${styleBlock}
-        <div class="timeline-item-wrapper id-${stop.id}" style="position:relative; margin-bottom: 0.8rem; padding-left: 36px; padding-right: 62px; display:flex; align-items:flex-start; gap: 0.5rem;" 
+        <div class="timeline-item-wrapper id-${stop.id}" style="position:relative; margin-bottom: 0.8rem; padding-left: 36px; padding-right: 41px; display:flex; align-items:flex-start; gap: 0.5rem;" 
             draggable="true" 
             ondragstart="handleDragStart(event, '${day.id}', '${stop.id}')" 
             ondragover="handleDragOver(event)" 
@@ -128,12 +128,12 @@ export function getTimelineItemHTML(day, stop, index, locationIdx, showTransit, 
             </div>
 
             <!-- Right Action (Trash) -->
-            <div class="item-hover-action" style="position:absolute; right: 31px; top: 0.3rem; cursor:pointer; color:var(--text-secondary); z-index: 10; opacity:0; pointer-events:none; transition:opacity 0.2s; font-size: 0.95rem; padding: 0.2rem;" onclick="deleteTimelineItem(event, '${day.id}', '${stop.id}')" title="删除">
+            <div class="item-hover-action" style="position:absolute; right: 10px; top: 0.3rem; cursor:pointer; color:var(--text-secondary); z-index: 10; opacity:0; pointer-events:none; transition:opacity 0.2s; font-size: 0.95rem; padding: 0.2rem;" onclick="deleteTimelineItem(event, '${day.id}', '${stop.id}')" title="删除">
                 🗑️
             </div>
         </div>
         ${(showAddRow || showTransit) ? `
-            <div style="padding-left:36px; padding-right:62px; display:flex; align-items:center; gap:0.6rem; position:relative; z-index:2; margin-bottom:0.8rem;">
+            <div style="padding-left:36px; padding-right:41px; display:flex; align-items:center; gap:0.6rem; position:relative; z-index:2; margin-bottom:0.8rem;">
                 ${showAddRow ? `
                 <div style="position:relative; display:inline-block; transform: translateX(-50%); margin-left: -14px;">
                     <button onclick="toggleMenu(event, 'add-menu-${stop.id}')" style="width:22px; height:22px; border-radius:50%; background:var(--bg-secondary); border:1.5px solid var(--glass-border); color:var(--text-secondary); cursor:pointer; font-size:1rem; display:flex; align-items:center; justify-content:center; line-height:1; transition: background 0.15s, color 0.15s; flex-shrink:0;" onmouseover="this.style.background='var(--accent-primary)';this.style.color='#fff';this.style.borderColor='var(--accent-primary)';" onmouseout="this.style.background='var(--bg-secondary)';this.style.color='var(--text-secondary)';this.style.borderColor='var(--glass-border)';" title="在此处插入">+</button>

@@ -19,12 +19,6 @@
                     "date": "2026年5月1日",
                     "stops": [
                         {
-                            "id": "l1772580603878",
-                            "type": "list",
-                            "title": "",
-                            "items": []
-                        },
-                        {
                             "id": "s1772580466701",
                             "location": "Queens Center",
                             "desc": "This coliseum-like indoor shopping mall houses dozens of retail stores plus a food court.",
@@ -141,7 +135,30 @@
                             "photo": "/uploads/fefc8f334259e22ca873f56f07e27502.jpg",
                             "rating": 3.8,
                             "category": "机场",
-                            "categoryIcon": "✈️"
+                            "categoryIcon": "✈️",
+                            "transitToNext": {
+                                "duration": "26 分钟",
+                                "distance": "17.0 公里"
+                            }
+                        },
+                        {
+                            "id": "s1772640540244",
+                            "location": "Queens Center",
+                            "desc": "This coliseum-like indoor shopping mall houses dozens of retail stores plus a food court.",
+                            "address": "90-15 Queens Blvd, Elmhurst, NY 11373, USA",
+                            "phone": "(718) 592-3900",
+                            "time": "11:00 ",
+                            "period": "AM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 40.7347872,
+                            "lng": -73.8688409,
+                            "photo": "/uploads/7152d517b95d4c6c070f8d721ffcd7ea.jpg",
+                            "rating": 4.4,
+                            "category": "购物中心",
+                            "categoryIcon": "🛍️",
+                            "transitToNext": null
                         }
                     ],
                     "color": "#ef4444"
@@ -176,7 +193,7 @@
         "day-1772579247304-2": true,
         "day-1772579247304-3": true,
         "day-1772579247304-4": true,
-        "day-1772580447645-0": true,
+        "day-1772580447645-0": false,
         "day-1772580447645-1": false,
         "day-1772580447645-2": true,
         "day-1772580447645-3": true,
