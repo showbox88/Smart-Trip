@@ -9,7 +9,7 @@
             "id": "trip-1772580447645",
             "title": "新的神秘冒险",
             "startDate": "2026-05-10",
-            "endDate": "2026-05-15",
+            "endDate": "2026-05-16",
             "thumb": "/uploads/ad465ebcfe13ccd14f9d7ad8a7f7b1a0.jpg",
             "activeDayId": "day-1772580447645-0",
             "days": [
@@ -19,191 +19,56 @@
                     "date": "2026年5月10日",
                     "stops": [
                         {
-                            "id": "s1772651684652",
-                            "location": "Shi-no-Cafe",
-                            "desc": "",
-                            "address": "1-chōme-8-9 Nogata, Nakano City, Tokyo 165-0027, Japan",
-                            "phone": "03-3385-2023",
+                            "id": "s1772745638251",
+                            "location": "Karvers Grille",
+                            "desc": "Restaurant/bar with a cool, industrial vibe offering American food, local brews & craft cocktails.",
+                            "address": "480 Patchogue-Holbrook Rd, Holbrook, NY 11741, USA",
+                            "phone": "(631) 868-7300",
                             "time": "09:00",
                             "period": "AM",
                             "note": "",
                             "price": "0",
                             "type": "location",
-                            "lat": 35.711620499999995,
-                            "lng": 139.65910700000003,
-                            "photo": "/uploads/188af53c75330df1a9307e9c5dc3217c.jpg",
-                            "rating": 4.6,
-                            "category": "咖啡馆",
-                            "categoryIcon": "☕",
+                            "lat": 40.794387199999996,
+                            "lng": -73.0581041,
+                            "photo": "/uploads/867067fbe7bd6678cdc221ae7fc17bab.jpg",
+                            "rating": 4.4,
+                            "category": "餐饮",
+                            "categoryIcon": "🍴",
                             "transitToNext": {
-                                "duration": "4 分钟",
-                                "distance": "0.9 公里"
-                            },
-                            "transitMode": "WALK"
+                                "duration": "8 分钟",
+                                "distance": "5.3 公里"
+                            }
                         },
                         {
-                            "id": "s1772651725306",
-                            "location": "Nogata Hope Main store",
-                            "desc": "",
-                            "address": "2-chōme-58-4 Nogata, Nakano City, Tokyo 165-0027, Japan",
-                            "phone": "03-3387-2886",
+                            "id": "s1772745646344",
+                            "location": "Rudi's Bar & Grill",
+                            "desc": "Casual, lively sports bar & grill featuring American fare, multiple TVs & live music.",
+                            "address": "554 NY-112, Patchogue, NY 11772, USA",
+                            "phone": "(631) 627-6726",
                             "time": "11:00 ",
                             "period": "AM",
                             "note": "",
                             "price": "0",
                             "type": "location",
-                            "lat": 35.7139285,
-                            "lng": 139.6538942,
-                            "photo": "/uploads/16b3935e3c39af3007d8ffa8667e2d9e.jpg",
-                            "rating": 4.1,
-                            "category": "餐饮",
-                            "categoryIcon": "🍴",
-                            "transitToNext": {
-                                "duration": "6 分钟",
-                                "distance": "2.0 公里"
-                            },
-                            "transitMode": "WALK"
-                        },
-                        {
-                            "id": "s1772653949840",
-                            "location": "irohaya",
-                            "desc": "",
-                            "address": "6-chōme-13-1 Asagayakita, 杉並区 Suginami City, Tokyo 166-0001, Japan",
-                            "phone": "",
-                            "time": "11:00 ",
-                            "period": "AM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 35.7131107,
-                            "lng": 139.6383176,
-                            "photo": "/uploads/780627514b6486edb4afd41bba4572b5.jpg",
-                            "rating": 4.1,
-                            "category": "餐饮",
-                            "categoryIcon": "🍴",
-                            "transitToNext": {
-                                "duration": "10 分钟",
-                                "distance": "3.1 公里"
-                            },
-                            "transitMode": "WALK"
-                        },
-                        {
-                            "id": "s1772653056938",
-                            "location": "砂場",
-                            "desc": "",
-                            "address": "1-chōme-20-4 Nogata, Nakano City, Tokyo 165-0027, Japan",
-                            "phone": "03-3385-8162",
-                            "time": "01:00  ",
-                            "period": "PM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 35.71257,
-                            "lng": 139.6580171,
-                            "photo": "/uploads/66a1c82b7e821dd0697bb4af161fdcac.jpg",
-                            "rating": 3.7,
-                            "category": "餐饮",
-                            "categoryIcon": "🍴",
-                            "transitToNext": {
-                                "duration": "9 分钟",
-                                "distance": "2.2 公里"
-                            },
-                            "transitMode": "WALK"
-                        },
-                        {
-                            "id": "s1772653976418",
-                            "location": "Kashiwaya",
-                            "desc": "",
-                            "address": "Japan, 〒165-0033 Tokyo, Nakano City, Wakamiya, 2-chōme−4−１９ かしわや",
-                            "phone": "03-3330-5396",
-                            "time": "03:00   ",
-                            "period": "PM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 35.7163677,
-                            "lng": 139.6469579,
-                            "photo": "/uploads/a1d8c74d703a14c2b254c344bf116725.jpg",
-                            "rating": 4.1,
-                            "category": "餐饮",
-                            "categoryIcon": "🍴",
-                            "transitToNext": {
-                                "duration": "5 分钟",
-                                "distance": "1.5 公里"
-                            }
-                        },
-                        {
-                            "id": "s1772653997291",
-                            "location": "Nogata Hope Main store",
-                            "desc": "",
-                            "address": "2-chōme-58-4 Nogata, Nakano City, Tokyo 165-0027, Japan",
-                            "phone": "03-3387-2886",
-                            "time": "03:00   ",
-                            "period": "PM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 35.7139285,
-                            "lng": 139.6538942,
-                            "photo": "/uploads/8e40a571cd69310cb99992118309f8c0.jpg",
-                            "rating": 4.1,
-                            "category": "餐饮",
-                            "categoryIcon": "🍴",
-                            "transitToNext": {
-                                "duration": "6 分钟",
-                                "distance": "2.3 公里"
-                            }
-                        },
-                        {
-                            "id": "s1772654080096",
-                            "location": "Koike Pediatrics Clinic",
-                            "desc": "",
-                            "address": "3-chōme-2-10 Wakamiya, Nakano City, Tokyo 165-0033, Japan",
-                            "phone": "03-3330-0743",
-                            "time": "03:00   ",
-                            "period": "PM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 35.7193749,
-                            "lng": 139.6466447,
-                            "photo": "/uploads/b5be73f13cd47ac448ef34197bce18c2.jpg",
-                            "rating": 3.4,
-                            "category": "地点",
-                            "categoryIcon": "📍",
-                            "transitToNext": {
-                                "duration": "3 分钟",
-                                "distance": "0.8 公里"
-                            }
-                        },
-                        {
-                            "id": "s1772654149452",
-                            "location": "Kidouya",
-                            "desc": "",
-                            "address": "5-chōme-24-6 Nogata, Nakano City, Tokyo 165-0027, Japan",
-                            "phone": "03-5364-9252",
-                            "time": "03:00   ",
-                            "period": "PM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 35.7186848,
-                            "lng": 139.6528454,
-                            "photo": "/uploads/2a555bb18b56b7b185192431dadc743a.jpg",
-                            "rating": 3.8,
-                            "category": "餐饮",
-                            "categoryIcon": "🍴",
+                            "lat": 40.7877035,
+                            "lng": -73.00958179999999,
+                            "photo": "/uploads/8e4f5f512169aa1e6413cf6f9f0e010e.jpg",
+                            "rating": 4.3,
+                            "category": "酒吧",
+                            "categoryIcon": "🍸",
                             "transitToNext": null
                         }
                     ],
-                    "color": "#5b7a99"
+                    "color": "#8b5cf6",
+                    "subtitle": "测试测试"
                 },
                 {
                     "id": "day-1772580447645-1",
                     "title": "第 2 天",
                     "date": "2026年5月11日",
                     "stops": [],
-                    "color": "#ef4444"
+                    "color": "#10b981"
                 },
                 {
                     "id": "day-1772580447645-2",
@@ -217,7 +82,7 @@
                     "title": "第 4 天",
                     "date": "2026年5月13日",
                     "stops": [],
-                    "color": "#10b981"
+                    "color": "#ef4444"
                 },
                 {
                     "id": "day-1772580447645-4",

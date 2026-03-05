@@ -48,7 +48,7 @@ Smat Trip/
 | `api.js` | `loadData`, `saveData` | 与 `server.py` 的 REST API 通信 |
 | `constants.js` | `PLACE_CATEGORY_MAP`, `getCategoryFromTypes` | 地点分类图标映射（餐厅🍴、机场✈️等） |
 | `utils.js` | `calculateDays`, `formatDate`, `generateId` | 日期差计算、日期格式化 |
-| `maps.js` | `initRealMap`, `setGoogleMapsReady`, `toggleMapDarkMode` | 地图初始化、图钉管理、暗色模式切换 |
+| `maps.js` | `initRealMap`, `setGoogleMapsReady`, `toggleMapDarkMode`, `triggerMapSearch` (window) | 地图初始化、图钉管理、暗色模式切换、自定义快捷分类打点搜索 |
 | `main.js` | — | 入口：DOMContentLoaded 初始化、40+ window 桥接、全局错误处理、全局点击监听 |
 
 ### 表现层 (`js/ui/templates/`)
@@ -92,4 +92,4 @@ maps.js 联动更新地图图钉
 3. **新增 API**：在 `server.py` 添加路由，`api.js` 添加对应函数
 
 ---
-*Updated 2026-02-27 by Antigravity AI Assistant.*
+*Updated 2026-03-05 by Antigravity AI Assistant.*

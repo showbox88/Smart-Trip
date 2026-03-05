@@ -33,7 +33,7 @@
 
 | 依赖/服务 | 用途 | 备注 |
 | :--- | :--- | :--- |
-| **Google Maps API** | 地图渲染、POI 搜索、路由计算 | 使用 `AdvancedMarkerElement` |
+| **Google Maps API** | 地图渲染、POI 自定义快速搜索控件、路由计算 | 使用 `AdvancedMarkerElement` |
 | **Flatpickr** | 日历与日期选择 | 修改后的 Dark 主题 |
 | **Routes API** | 智能路网绘制 | 按天绘制专属主题色路线 |
 
@@ -47,4 +47,4 @@
 - `airport`, `train_station` -> ✈️ / 🚆
 - `lodging` -> 🏨
 - `museum`, `art_gallery` -> 🏛️ / 🎨
-*Created by Antigravity AI Assistant.*
+*Updated 2026-03-05 by Antigravity AI Assistant.*

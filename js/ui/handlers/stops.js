@@ -125,15 +125,12 @@ export function setDayColor(dayId, colorHex) {
         const colorBubbles = document.querySelectorAll(`[onclick="toggleMenu(event, 'color-${dayId}')"]`);
         colorBubbles.forEach(el => el.style.background = colorHex);
 
-        // 2. Update all timeline line segments for this day
-        const lineSegments = document.querySelectorAll(`.day-section#${dayId} .timeline-line`);
-        lineSegments.forEach(el => el.style.background = colorHex);
-
-        // 3. Update the dropdown selection borders
+        // 2. Update the dropdown selection borders
         const menuDropdown = document.getElementById(`menu-color-${dayId}`);
         if (menuDropdown) {
             Array.from(menuDropdown.children).forEach(child => {
-                if (child.style.background === colorHex || child.style.backgroundColor === colorHex) {
+                const onClickAttr = child.getAttribute('onclick') || '';
+                if (onClickAttr.includes(colorHex)) {
                     child.style.borderColor = 'var(--text-primary)';
                 } else {
                     child.style.borderColor = 'transparent';
@@ -141,8 +138,35 @@ export function setDayColor(dayId, colorHex) {
             });
         }
 
-        // 4. Update the Google Map to repaint the markers
-        if (window._realInitGoogleMaps) {
+        // 3. Update timeline elements
+        const dots = document.querySelectorAll(`.day-section#${dayId} .timeline-dot`);
+        dots.forEach(el => el.style.background = colorHex);
+
+        const richCardDots = document.querySelectorAll(`.day-section#${dayId} .rich-stop-card-dot`);
+        richCardDots.forEach(el => el.style.background = colorHex);
+
+        const lines = document.querySelectorAll(`.day-section#${dayId} .timeline-line`);
+        lines.forEach(el => el.style.borderLeftColor = colorHex);
+
+        // 4. Update Sidebar
+        const sidebarDot = document.getElementById(`sidebar-color-dot-${dayId}`);
+        if (sidebarDot) {
+            sidebarDot.style.background = colorHex;
+            sidebarDot.style.boxShadow = `0 0 8px ${colorHex}80`;
+        }
+
+        const sidebarItem = document.getElementById(`nav-day-${dayId}`);
+        if (sidebarItem && sidebarItem.classList.contains('active')) {
+            sidebarItem.style.borderLeftColor = colorHex;
+            sidebarItem.style.background = `linear-gradient(90deg, ${colorHex}20 0%, transparent 100%)`;
+        }
+
+        // 5. Update Map (we don't renderApp, but Map triggers are fine)
+        if (window.googleMapsReady) {
+            import('../../maps.js').then(m => {
+                m.initRealMap();
+            });
+        } else if (window._realInitGoogleMaps) {
             window._realInitGoogleMaps();
         }
     }

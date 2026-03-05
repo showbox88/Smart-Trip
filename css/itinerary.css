@@ -1,14 +1,12 @@
-/* --- Itinerary General --- */
 .itinerary-header {
     position: sticky;
     top: 0;
     z-index: 100;
-    background: var(--bg-secondary);
-    border: 1px solid var(--glass-border);
-    border-radius: 16px;
-    padding: 2rem 2.5rem;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
-    margin-bottom: 3rem;
+    background: var(--bg-primary);
+    /* Match deep blue of the sidebar */
+    border-bottom: 1px solid var(--glass-border);
+    padding: 1.5rem 2rem;
+    margin-bottom: 1.5rem;
     transition: all 0.3s ease;
 }
 
@@ -96,9 +94,9 @@
 }
 
 .stop-card:hover {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.08) !important;
     border-color: var(--glass-border);
-    backdrop-filter: blur(5px);
+    backdrop-filter: blur(8px) saturate(180%);
 }
 
 .stop-note {
@@ -118,8 +116,31 @@
     font-size: 0.9rem;
 }
 
+/* --- Drag & Drop Animations --- */
+.timeline-item-wrapper {
+    transition: transform 0.25s cubic-bezier(0.2, 0, 0, 1), padding 0.25s ease;
+    will-change: transform;
+}
+
+.timeline-item-wrapper.drag-yield-down {
+    transform: translateY(80px);
+}
+
+.timeline-item-wrapper.drag-yield-up {
+    transform: translateY(-80px);
+}
+
+.timeline-item-wrapper.dragging {
+    opacity: 0.4;
+    scale: 0.98;
+}
+
 .rich-stop-card:hover {
-    background: var(--glass-bg) !important;
+    background: rgba(255, 255, 255, 0.08) !important;
     border-color: var(--glass-border) !important;
+    backdrop-filter: blur(8px) saturate(180%);
+    /* Added backdrop filter */
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+    transition: all 0.3s;
+    /* Added transition */
 }

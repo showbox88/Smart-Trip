@@ -1,6 +1,9 @@
 :root {
-    --bg-primary: #0f172a;
+    --bg-primary: #0d111b;
     --bg-secondary: #1e293b;
+    --bg-deep: #0d111b;
+    --bg-itinerary: #1a2333;
+    /* Slightly lighter than deep blue, based on hover reference */
     --text-primary: #f8fafc;
     --text-secondary: #94a3b8;
     --accent-primary: #f97316;

@@ -24,17 +24,17 @@ export function getTimelineItemHTML(day, stop, index, locationIdx, showTransit, 
     if (stop.type === 'note') {
         circleHtml = '';
         contentHtml = `
-            <div style="background: var(--bg-secondary); border-radius: 12px; padding: 0.8rem 1.2rem; display:flex; align-items:center; gap: 1rem; border: 1px solid var(--glass-border);">
+            <div class="note-card stop-card" style="background: var(--bg-deep); border-radius: 12px; padding: 0.8rem 1.2rem; display:flex; align-items:center; gap: 1rem; border: 1px solid var(--glass-border); transition: all 0.3s ease;">
                 <div style="width: 24px; height: 24px; border-radius: 50%; background: var(--glass-bg); border: 2px solid var(--glass-border); display:flex; align-items:center; justify-content:center; font-size: 0.85rem; color: var(--text-secondary); flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                     📄
                 </div>
-                <textarea rows="1" oninput="this.style.height='';this.style.height=this.scrollHeight+'px'" onchange="updateNoteContent('${day.id}', '${stop.id}', this.value)" style="flex:1; background:transparent; border:none; outline:none; color:var(--text-primary); font-size:1rem; padding: 0.2rem; resize:none; overflow:hidden;" placeholder="在此处书写或粘贴笔记">${stop.content || ''}</textarea>
+                <textarea rows="1" oninput="this.style.height='';this.style.height=this.scrollHeight+'px'" onchange="updateNoteContent('${day.id}', '${stop.id}', this.value)" style="flex:1; background:transparent; border:none; outline:none; color:var(--text-primary); font-size:1rem; padding: 0.2rem; resize:none; overflow:hidden;" placeholder="在此处书写 or 粘贴笔记">${stop.content || ''}</textarea>
             </div>
         `;
     } else if (stop.type === 'list') {
         circleHtml = '';
         contentHtml = `
-            <div style="background: var(--bg-secondary); border-radius: 12px; padding: 1.2rem; border: 1px solid var(--glass-border); display:flex; align-items:flex-start; gap: 1rem;">
+            <div class="list-card stop-card" style="background: var(--bg-deep); border-radius: 12px; padding: 1.2rem; border: 1px solid var(--glass-border); display:flex; align-items:flex-start; gap: 1rem; transition: all 0.3s ease;">
                 <div style="width: 24px; height: 24px; border-radius: 50%; background: var(--glass-bg); border: 2px solid var(--glass-border); display:flex; align-items:center; justify-content:center; font-size: 0.85rem; color: var(--text-secondary); flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-top: 2px;">
                     ≡
                 </div>
@@ -70,14 +70,24 @@ export function getTimelineItemHTML(day, stop, index, locationIdx, showTransit, 
         circleHtml = '';
 
         contentHtml = `
-            <div class="rich-stop-card" onclick="openEditModal('${day.id}', '${stop.id}')" style="background: var(--bg-primary); border-radius: 8px; padding: 1rem; display:flex; gap: 1rem; transition: background 0.2s; cursor: pointer; border: 1px solid var(--glass-border); box-shadow: 0 2px 8px rgba(0,0,0,0.05); align-items: flex-start;">
+            <div class="rich-stop-card" onclick="openEditModal('${day.id}', '${stop.id}')" style="background: var(--bg-deep); border-radius: 8px; padding: 1rem; display:flex; gap: 1rem; transition: background 0.2s, backdrop-filter 0.2s; cursor: pointer; border: 1px solid var(--glass-border); box-shadow: 0 2px 8px rgba(0,0,0,0.05); align-items: flex-start;">
                 <div style="flex:1;">
-                    <div style="display:flex; align-items:center; gap: 10px; margin-bottom: 0.3rem;">
-                        <div style="width: 24px; height: 24px; background: ${activeColor}; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display:flex; align-items:center; justify-content:center; box-shadow: 0 2px 6px rgba(0,0,0,0.35); flex-shrink:0;">
+                    <div style="display:flex; align-items:center; gap: 10px; margin-bottom: 0.6rem;">
+                        <div class="rich-stop-card-dot" style="width: 24px; height: 24px; background: ${activeColor}; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display:flex; align-items:center; justify-content:center; box-shadow: 0 2px 6px rgba(0,0,0,0.35); flex-shrink:0;">
                             <span style="transform: rotate(45deg); color: #fff; font-size: 0.75rem; font-weight: 700; line-height: 1;">${pinNumber}</span>
                         </div>
-                        <h4 style="font-size: 1.1rem; margin: 0; color: var(--text-primary); font-weight: 600; border-left: none !important; padding-left: 0 !important;">${stop.location}</h4>
+                        <h4 style="font-size: 1.1rem; margin: 0; color: var(--text-primary); font-weight: 600; border-left: none !important; padding-left: 0 !important; display:flex; align-items:center; gap: 8px; flex-wrap:wrap; flex:1;">
+                            <span style="margin-right: 4px;">${stop.location}</span>
+                            ${stop.category && stop.category !== '地点' ? `<span style="color:var(--text-secondary); font-size:0.8rem; font-weight: 500; display:flex; align-items:center; gap:4px; margin-right: 4px;"><span style="opacity: 0.8;">${stop.categoryIcon || '📌'}</span> <span>${stop.category}</span></span>` : ''}
+                            ${stop.rating ? `<span style="font-size:0.85rem; color:#f97316; font-weight:700; display:flex; align-items:center; gap:2px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27l-5.18 3.09 1.34-5.88-4.54-3.95 6.01-.51L12 4.5l2.37 5.52 6.01.51-4.54 3.95 1.34 5.88L12 17.27z"/></svg>${stop.rating}</span>` : ''}
+                        </h4>
                     </div>
+                    
+                    <div style="display:flex; flex-direction:column; gap:6px; margin-bottom: 0.6rem;">
+                        ${stop.address ? `<div style="color:var(--text-secondary); font-size:0.8rem; display:flex; align-items:flex-start; gap:6px;"><span style="color:#f97316; padding-top:1px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></span><span style="flex:1; line-height:1.2;">${stop.address}</span></div>` : ''}
+                        ${stop.phone ? `<div style="color:var(--text-secondary); font-size:0.8rem; display:flex; align-items:center; gap:6px;"><span style="color:#f97316;"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg></span> ${stop.phone}</div>` : ''}
+                    </div>
+
                     ${stop.desc ? `<p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0 0 0.4rem 0; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">来自网络：${stop.desc}</p>` : ''}
                     ${stop.note ? `<p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0 0 0.4rem 0; line-height: 1.3;">${stop.note}</p>` : `<p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0 0 0.4rem 0; opacity: 0.6;">添加备注、链接等</p>`}
                     
@@ -117,7 +127,7 @@ export function getTimelineItemHTML(day, stop, index, locationIdx, showTransit, 
             </div>
             
             ${(stop.type === 'location' || !stop.type) ? `
-                <div style="width: 16px; height: 16px; border-radius: 50%; background: ${day.color || '#5b7a99'}; border: 3px solid var(--bg-primary); position: absolute; left: 22px; top: 1.2rem; transform: translate(-50%, -50%); z-index: 2;" title="在${locationIdx + 1}站"></div>
+                <div class="timeline-dot" style="width: 16px; height: 16px; border-radius: 50%; background: ${day.color || '#5b7a99'}; border: 3px solid var(--bg-primary); position: absolute; left: 22px; top: 1.2rem; transform: translate(-50%, -50%); z-index: 2;" title="在${locationIdx + 1}站"></div>
             ` : `
                 <div style="width: 10px; height: 10px; border-radius: 50%; background: var(--text-secondary); border: 2px solid var(--bg-primary); position: absolute; left: 22px; top: 1.2rem; transform: translate(-50%, -50%); z-index: 2;"></div>
             `}
@@ -174,7 +184,11 @@ export function getDayHTML(day, dayIndex, activeDayId) {
     `;
 
     return `
-        <div class="day-section" id="${day.id}" style="margin-bottom: 3rem; scroll-margin-top: 120px;">
+        <div class="day-section" id="${day.id}" style="margin-bottom: 3rem; scroll-margin-top: 120px;"
+             ondragover="handleDragOver(event)"
+             ondrop="handleDrop(event, '${day.id}', null)"
+             ondragenter="handleDragEnter(event)"
+             ondragleave="handleDragLeave(event)">
             <!-- Day Header -->
             <div style="display:flex; align-items:center; margin-bottom: 0.5rem; padding-left: 36px; padding-right: 46px;">
                 <h3 style="font-size: 1.5rem; margin:0;">${dayName}</h3>
@@ -207,7 +221,7 @@ export function getDayHTML(day, dayIndex, activeDayId) {
 
             <div class="timeline-container" style="position: relative;">
                 <!-- Vertical continuous dashed line for the whole day -->
-                <div style="position: absolute; top: 0; bottom: 0; left: 22px; width: 0; border-left: 2px dashed var(--glass-border); z-index: 0; transform: translateX(-50%);"></div>
+                <div class="timeline-line" style="position: absolute; top: 0; bottom: 0; left: 22px; width: 0; border-left: 2px dashed ${activeColor}; opacity: 0.5; z-index: 0; transform: translateX(-50%); transition: border-color 0.2s;"></div>
                 
                 ${day.stops.length === 0 ? `
                 <div style="padding: 1.5rem 1rem; margin-bottom: 1.5rem; text-align: center; border: 1px dashed var(--glass-border); border-radius: 8px; background: rgba(255,255,255,0.02); position:relative; z-index:2;">
@@ -280,9 +294,9 @@ export function getTripHTML(trip) {
         }
         const stopsCount = day.stops ? day.stops.filter(s => s.type === 'location' || !s.type).length : 0;
         return `
-                        <li class="${day.id === trip.activeDayId ? 'active' : ''}" onclick="scrollToDay('${day.id}')" style="display:flex; flex-direction:column; padding: 0.6rem 10px 0.6rem 8px; margin-bottom:0.2rem; cursor:pointer; border-radius: 6px; border-left: 3px solid ${day.id === trip.activeDayId ? activeColor : 'transparent'}; background: ${day.id === trip.activeDayId ? 'rgba(255,255,255,0.05)' : 'transparent'}; transition: all 0.2s;" onmouseover="if(!this.classList.contains('active')) this.style.background='rgba(255,255,255,0.05)'" onmouseout="if(!this.classList.contains('active')) this.style.background='transparent'">
+                        <li id="nav-day-${day.id}" class="${day.id === trip.activeDayId ? 'active' : ''}" onclick="scrollToDay('${day.id}')" style="display:flex; flex-direction:column; padding: 0.6rem 10px 0.6rem 8px; margin-bottom:0.2rem; cursor:pointer; border-radius: 6px; border-left: 3px solid ${day.id === trip.activeDayId ? activeColor : 'transparent'}; background: ${day.id === trip.activeDayId ? 'rgba(255,255,255,0.05)' : 'transparent'}; transition: all 0.2s;" onmouseover="if(!this.classList.contains('active')) this.style.background='rgba(255,255,255,0.05)'" onmouseout="if(!this.classList.contains('active')) this.style.background='transparent'">
                             <div style="display:flex; align-items:center; gap: 10px; min-width:0;">
-                                <div style="width:10px; height:10px; border-radius:50%; background:${activeColor}; flex-shrink:0;"></div>
+                                <div id="sidebar-color-dot-${day.id}" style="width:10px; height:10px; border-radius:50%; background:${activeColor}; flex-shrink:0;"></div>
                                 <span style="white-space:nowrap; font-size:0.9rem; color:var(--text-primary); font-weight:600;">${day.title}</span>
                                 <span style="font-size:0.75rem; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-left: auto;">${dateStr}</span>
                             </div>
@@ -297,7 +311,7 @@ export function getTripHTML(trip) {
             </aside>
             
             <section class="main-itinerary" id="itinerary-scroll-container" style="padding-top: 0; padding-left: 0; padding-right: 0;">
-                <div class="itinerary-header" id="trip-header-bar" style="padding: 0.75rem 1.5rem; background: var(--bg-secondary); border-bottom: 1px solid var(--glass-border); margin-bottom: 1.5rem; position: sticky; top: 0; z-index: 100;">
+                <div class="itinerary-header" id="trip-header-bar" style="padding: 0.75rem 1.5rem; background: var(--bg-primary); border-radius: 0; border-bottom: 1px solid var(--glass-border); margin-bottom: 1.5rem; position: sticky; top: 0; z-index: 100;">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <div style="display:flex; align-items:center; gap: 1rem;">
                             <!-- Compact thumbnail -->

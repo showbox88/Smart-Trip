@@ -306,15 +306,33 @@ function editDaySubtitle(dayId) {
     const day = trip.days.find(d => d.id === dayId);
     if (!day) return;
 
-    const newSub = prompt("请输入副标题：", day.subtitle || "");
-    if (newSub !== null) {
-        day.subtitle = newSub.trim();
+    const subSpan = document.getElementById(`day-subtitle-${dayId}`);
+    if (!subSpan) return;
+
+    // Prevent multiple inputs if already editing
+    if (subSpan.querySelector('input')) return;
+
+    const currentText = day.subtitle || '';
+    subSpan.innerHTML = `<input type="text" value="${currentText}" style="background:transparent; border:none; border-bottom:1px solid var(--accent-primary); outline:none; color:var(--text-primary); font-size:inherit; font-family:inherit; padding: 0; min-width: 250px;" placeholder="添加副标题">`;
+
+    const inputField = subSpan.querySelector('input');
+    inputField.focus();
+    inputField.selectionStart = inputField.selectionEnd = inputField.value.length;
+
+    const saveSubtitle = () => {
+        const newSub = inputField.value.trim();
+        day.subtitle = newSub;
         saveData();
-        const subSpan = document.getElementById(`day-subtitle-${dayId}`);
-        if (subSpan) {
-            subSpan.innerText = day.subtitle || '添加副标题';
+        subSpan.innerText = day.subtitle || '添加副标题';
+    };
+
+    inputField.addEventListener('blur', saveSubtitle);
+    inputField.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            inputField.blur();
         }
-    }
+    });
 }
 
 function toggleOverview() {
@@ -394,7 +412,10 @@ function handleDragStart(e, dayId, stopId) {
     draggedDayId = dayId;
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', stopId);
-    e.target.style.opacity = '0.4';
+    e.target.classList.add('dragging');
+    // Also add to parent wrapper if target is an inner element
+    const wrapper = e.target.closest('.timeline-item-wrapper');
+    if (wrapper) wrapper.classList.add('dragging');
 
     // Global listener so auto-scroll works everywhere, including above all droppable elements
     _globalDragOverHandler = (ev) => _startAutoScroll(ev.clientY);
@@ -404,65 +425,197 @@ function handleDragStart(e, dayId, stopId) {
 function handleDragOver(e) {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
+
+    let wrapper = e.target.closest('.timeline-item-wrapper');
+    const wrappers = Array.from(document.querySelectorAll('.timeline-item-wrapper'));
+    const draggedWrapper = document.querySelector(`.id-${draggedItem}`);
+    if (!draggedWrapper) return false;
+
+    // If mouse is inside a gap or outside a specific wrapper, find the closest one vertically
+    if (!wrapper) {
+        let minDist = Infinity;
+        wrappers.forEach(w => {
+            if (w === draggedWrapper) return;
+            const rect = w.getBoundingClientRect();
+            const midY = rect.top + rect.height / 2;
+            const dist = Math.abs(e.clientY - midY);
+            if (dist < minDist) {
+                minDist = dist;
+                wrapper = w;
+            }
+        });
+    }
+
+    if (!wrapper || wrapper.classList.contains('dragging')) return false;
+
+    const rect = wrapper.getBoundingClientRect();
+
+    const srcIdx = wrappers.indexOf(draggedWrapper);
+    const tgtIdx = wrappers.indexOf(wrapper);
+    if (srcIdx === -1 || tgtIdx === -1) return false;
+
+    const THRESHOLD = 10;
+
+    if (srcIdx < tgtIdx) {
+        const crossed = e.clientY > rect.top + THRESHOLD;
+        const maxYieldIdx = crossed ? tgtIdx : tgtIdx - 1;
+
+        wrappers.forEach((w, i) => {
+            if (i === srcIdx || w.classList.contains('dragging')) return;
+            if (i > srcIdx && i <= maxYieldIdx) {
+                w.classList.add('drag-yield-up');
+                w.classList.remove('drag-yield-down');
+            } else {
+                w.classList.remove('drag-yield-up', 'drag-yield-down');
+            }
+        });
+    } else if (srcIdx > tgtIdx) {
+        const crossed = e.clientY < rect.bottom - THRESHOLD;
+        const minYieldIdx = crossed ? tgtIdx : tgtIdx + 1;
+
+        wrappers.forEach((w, i) => {
+            if (i === srcIdx || w.classList.contains('dragging')) return;
+            if (i >= minYieldIdx && i < srcIdx) {
+                w.classList.add('drag-yield-down');
+                w.classList.remove('drag-yield-up');
+            } else {
+                w.classList.remove('drag-yield-up', 'drag-yield-down');
+            }
+        });
+    }
+
     return false;
 }
 
 function handleDragEnter(e) {
     e.preventDefault();
-    const wrapper = e.target.closest('.timeline-item-wrapper');
-    if (wrapper) {
-        wrapper.style.borderTop = '2px dashed var(--accent-primary)';
-        wrapper.style.paddingTop = '10px';
-    }
 }
 
 function handleDragLeave(e) {
-    const wrapper = e.target.closest('.timeline-item-wrapper');
-    if (wrapper) {
-        wrapper.style.borderTop = 'none';
-        wrapper.style.paddingTop = '0';
-    }
+    // Cleaning up is fully handled by dragover and dragend robustly.
 }
 
-function handleDrop(e, targetDayId, targetStopId) {
+function handleDrop(e, targetDayId, dropZoneStopId) {
     e.stopPropagation();
     e.preventDefault();
 
-    const wrapper = e.target.closest('.timeline-item-wrapper');
-    if (wrapper) {
-        wrapper.style.borderTop = 'none';
-        wrapper.style.paddingTop = '0';
+    if (!draggedItem || !draggedDayId) return;
+
+    // We must find out exactly where the user 'intended' to drop based on the visual
+    // yield gap, because the mouse might not be directly over `dropZoneStopId`.
+    const wrappers = Array.from(document.querySelectorAll('.timeline-item-wrapper'));
+    const draggedWrapper = document.querySelector(`.id-${draggedItem}`);
+
+    // Find where the visual gap is. We look for the first item that yielded DOWN, 
+    // or the last item that yielded UP.
+    let yieldedDownIdx = wrappers.findIndex(w => w.classList.contains('drag-yield-down'));
+    let yieldedUpIdx = wrappers.findLastIndex(w => w.classList.contains('drag-yield-up'));
+
+    // Clear visual classes
+    wrappers.forEach(w => w.classList.remove('drag-yield-down', 'drag-yield-up', 'dragging'));
+
+    const srcIdx = wrappers.indexOf(draggedWrapper);
+    if (srcIdx === -1) {
+        draggedItem = null;
+        draggedDayId = null;
+        return;
     }
 
-    if (!draggedItem || !draggedDayId) return;
-    if (draggedItem === targetStopId) return;
+    let intendedTargetWrapper = null;
+    let insertAfter = false;
+    let actualTargetDayId = null;
+    let actualTargetStopId = null;
+
+    // Logic: If items yielded down, we insert BEFORE the first item that yielded down.
+    // That means we target the item that yielded down, and insertAfter = false.
+    if (yieldedDownIdx !== -1) {
+        intendedTargetWrapper = wrappers[yieldedDownIdx];
+        insertAfter = false;
+    }
+    // If items yielded up, we insert AFTER the last item that yielded up.
+    // That means we target the item that yielded up, and insertAfter = true.
+    else if (yieldedUpIdx !== -1) {
+        intendedTargetWrapper = wrappers[yieldedUpIdx];
+        insertAfter = true;
+    }
+    // If no visual yield happened, fallback to dropZoneStopId (e.g. dropped exactly on self, or edge of list)
+    else {
+        if (dropZoneStopId) {
+            intendedTargetWrapper = document.querySelector(`.id-${dropZoneStopId}`);
+            // If it was dropped back on itself or we failed to find target, do nothing
+            if (!intendedTargetWrapper || draggedWrapper === intendedTargetWrapper) {
+                draggedItem = null;
+                draggedDayId = null;
+                return;
+            }
+            // Basic fallback: if dragging down, insert after; if dragging up, insert before
+            const tgtIdx = wrappers.indexOf(intendedTargetWrapper);
+            insertAfter = srcIdx < tgtIdx;
+        } else {
+            // Dropped on empty space or day container with no yield gap detected
+            // Fallback: Drop at the end of the provided targetDayId
+            actualTargetDayId = targetDayId;
+            actualTargetStopId = null; // Indicates appending to end
+        }
+    }
+
+    if (intendedTargetWrapper) {
+        const targetDaySection = intendedTargetWrapper.closest('.day-section');
+        if (!targetDaySection) {
+            draggedItem = null;
+            draggedDayId = null;
+            return;
+        }
+        actualTargetDayId = targetDaySection.id;
+
+        // Extract stop id from class like "id-s12345"
+        const classList = Array.from(intendedTargetWrapper.classList);
+        const idClass = classList.find(c => c.startsWith('id-'));
+        if (idClass) actualTargetStopId = idClass.substring(3);
+    }
+
+    if (!actualTargetDayId) {
+        draggedItem = null;
+        draggedDayId = null;
+        return;
+    }
 
     const trip = state.trips.find(t => t.id === state.activeTripId);
     const sourceDay = trip.days.find(d => d.id === draggedDayId);
-    const targetDay = trip.days.find(d => d.id === targetDayId);
+    const targetDay = trip.days.find(d => d.id === actualTargetDayId);
 
     if (!sourceDay || !targetDay) return;
 
     let sourceIndex = sourceDay.stops.findIndex(s => s.id === draggedItem);
-    let targetIndex = targetDay.stops.findIndex(s => s.id === targetStopId);
+    let targetIndex = -1;
+    if (actualTargetStopId) {
+        targetIndex = targetDay.stops.findIndex(s => s.id === actualTargetStopId);
+    }
 
-    if (sourceIndex >= 0 && targetIndex >= 0) {
+    if (sourceIndex >= 0) {
         const [movedStop] = sourceDay.stops.splice(sourceIndex, 1);
-        targetDay.stops.splice(targetIndex, 0, movedStop);
+
+        if (actualTargetStopId && targetIndex >= 0) {
+            // Determine final index dynamically
+            let finalTargetIndex = targetDay.stops.findIndex(s => s.id === actualTargetStopId);
+            if (insertAfter) finalTargetIndex++;
+            targetDay.stops.splice(finalTargetIndex, 0, movedStop);
+        } else {
+            // Target empty zone or item not found, just append to day
+            targetDay.stops.push(movedStop);
+        }
+
         saveData();
 
-        // Update stop counts in the sidebar
         const srcCountSpan = document.getElementById(`sidebar-count-${draggedDayId}`);
         const sourceLocationStops = sourceDay.stops.filter(s => s.type === 'location' || !s.type).length;
         if (srcCountSpan) srcCountSpan.innerText = `共 ${sourceLocationStops} 站行程`;
 
-        const tgtCountSpan = document.getElementById(`sidebar-count-${targetDayId}`);
+        const tgtCountSpan = document.getElementById(`sidebar-count-${actualTargetDayId}`);
         const targetLocationStops = targetDay.stops.filter(s => s.type === 'location' || !s.type).length;
         if (tgtCountSpan) tgtCountSpan.innerText = `共 ${targetLocationStops} 站行程`;
 
-        // Re-render only affected days to avoid full page flash
-
-        if (draggedDayId !== targetDayId) {
+        if (actualTargetDayId !== draggedDayId) {
             const sDayIndex = trip.days.findIndex(d => d.id === draggedDayId);
             const temp1 = document.createElement('div');
             temp1.innerHTML = getDayHTML(sourceDay, sDayIndex, state.activeTripId);
@@ -470,18 +623,17 @@ function handleDrop(e, targetDayId, targetStopId) {
             if (srcEl) srcEl.replaceWith(temp1.firstElementChild);
         }
 
-        const tDayIndex = trip.days.findIndex(d => d.id === targetDayId);
+        const tDayIndex = trip.days.findIndex(d => d.id === actualTargetDayId);
         const temp2 = document.createElement('div');
         temp2.innerHTML = getDayHTML(targetDay, tDayIndex, state.activeTripId);
-        const tgtEl = document.getElementById(targetDayId);
+        const tgtEl = document.getElementById(actualTargetDayId);
         if (tgtEl) tgtEl.replaceWith(temp2.firstElementChild);
 
-        // Refresh map markers + route + transit data for affected days
         if (window.googleMapsReady) {
             import('../../maps.js').then(m => {
-                m.initRealMap();  // update markers & route line
-                m.computeTransitData(targetDayId);
-                if (draggedDayId !== targetDayId) {
+                m.initRealMap();
+                m.computeTransitData(actualTargetDayId);
+                if (draggedDayId !== actualTargetDayId) {
                     m.computeTransitData(draggedDayId);
                 }
             });
@@ -499,11 +651,12 @@ function handleDragEnd(e) {
         document.removeEventListener('dragover', _globalDragOverHandler);
         _globalDragOverHandler = null;
     }
-    if (e.target.style) e.target.style.opacity = '1';
+    if (e.target && e.target.classList) {
+        e.target.classList.remove('dragging');
+    }
     const wrappers = document.querySelectorAll('.timeline-item-wrapper');
     wrappers.forEach(w => {
-        w.style.borderTop = 'none';
-        w.style.paddingTop = '0';
+        w.classList.remove('dragging', 'drag-yield-down', 'drag-yield-up');
     });
     draggedItem = null;
     draggedDayId = null;

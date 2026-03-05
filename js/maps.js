@@ -260,6 +260,9 @@ export function initRealMap() {
             if (debugEl) debugEl.innerText = "Map Status: Ready (No locations to show)";
         }
 
+        // --- Custom Search Control Injection ---
+        initMapSearchControl(googleMapInstance);
+
         // Map click → show place info panel
         googleMapInstance.addListener('click', async (e) => {
             closeMapInfoPanel();
@@ -278,6 +281,200 @@ export function initRealMap() {
     } catch (e) {
         console.error("initRealMap failed:", e);
         if (debugEl) debugEl.innerText = "Map Status: ERROR - " + e.message;
+    }
+}
+
+// --- Map Custom Search Control ---
+function initMapSearchControl(mapInstance) {
+    if (mapInstance.controls[google.maps.ControlPosition.TOP_LEFT].getLength() > 0) {
+        mapInstance.controls[google.maps.ControlPosition.TOP_LEFT].clear();
+    }
+
+    const controlWrapper = document.createElement('div');
+    controlWrapper.style.margin = '10px';
+    controlWrapper.style.position = 'relative';
+    controlWrapper.style.zIndex = '1000'; // above map layers but below some modals
+
+    const searchInputWrapper = document.createElement('div');
+    searchInputWrapper.style.display = 'flex';
+    searchInputWrapper.style.alignItems = 'center';
+    searchInputWrapper.style.background = '#fff';
+    searchInputWrapper.style.borderRadius = '24px'; // match mockup rounded style
+    searchInputWrapper.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
+    searchInputWrapper.style.padding = '0 12px';
+    searchInputWrapper.style.width = '320px'; // a bit wider
+    searchInputWrapper.style.height = '48px';
+    searchInputWrapper.style.boxSizing = 'border-box';
+
+    const searchIcon = document.createElement('div');
+    // Using a clear bold search icon
+    searchIcon.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#222" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>`;
+    searchIcon.style.display = 'flex';
+    searchIcon.style.alignItems = 'center';
+    searchIcon.style.marginRight = '8px';
+
+    const searchInput = document.createElement('input');
+    searchInput.type = 'text';
+    searchInput.placeholder = '搜索地点';
+    searchInput.style.border = 'none';
+    searchInput.style.outline = 'none';
+    searchInput.style.flex = '1';
+    searchInput.style.fontSize = '16px';
+    searchInput.style.background = 'transparent';
+    searchInput.style.color = '#333';
+
+    searchInputWrapper.appendChild(searchIcon);
+    searchInputWrapper.appendChild(searchInput);
+
+    // Dropdown Panel
+    const dropdown = document.createElement('div');
+    dropdown.style.display = 'none';
+    dropdown.style.position = 'absolute';
+    dropdown.style.top = '56px';
+    dropdown.style.left = '0';
+    dropdown.style.width = '100%';
+    dropdown.style.background = '#fff';
+    dropdown.style.borderRadius = '12px';
+    dropdown.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+    dropdown.style.overflow = 'hidden';
+    dropdown.style.fontFamily = 'var(--font-primary)';
+
+    const categories = [
+        { label: '餐饮', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M11 9H9V2H7v7H5V2H3v7c0 2.12 1.66 3.84 3.75 3.97V22h2.5v-9.03C11.34 12.84 13 11.12 13 9V2h-2v7zm5-3v8h2.5v8H21V2c-2.76 0-5 2.24-5 4z"/></svg>', type: ['restaurant', 'cafe', 'fast_food', 'bakery', 'coffee_shop', 'sandwich_shop', 'steak_house', 'american_restaurant', 'chinese_restaurant', 'pizza_restaurant', 'seafood_restaurant'] },
+        { label: '旅游景点', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>', type: ['tourist_attraction', 'museum', 'park', 'national_park', 'historical_landmark', 'amusement_center', 'aquarium', 'art_gallery'] },
+        { label: '加油站', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19.77 7.23l.01-.01-3.72-3.72L15 4.56l2.11 2.11C16.17 7 15.5 8.22 15.5 9.61c0 2.54 1.95 4.62 4.45 4.86V20h2v-5.5h-2.5V9.61c0-1.01-.48-1.92-1.22-2.5l.38-.38-.34-.5-1 1M12 10H6v4h6v-4m0-6H6c-1.1 0-2 .9-2 2v14h8V4z"/></svg>', type: ['gas_station'] },
+        { label: '电动车充电', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M14.5 11l-3 6v-4h-2l3-6v4h2z M17 3H7c-1.1 0-2 .9-2 2v16h14V5c0-1.1-.9-2-2-2zm0 16H7V5h10v14z"/></svg>', type: ['electric_vehicle_charging_station'] },
+        { label: '休息站', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M7 13c1.66 0 3-1.34 3-3S8.66 7 7 7s-3 1.34-3 3 1.34 3 3 3zm12-6h-8v7H3V5H1v15h2v-3h18v3h2v-9c0-2.21-1.79-4-4-4z"/></svg>', type: ['lodging', 'hotel', 'motel', 'bed_and_breakfast', 'guest_house', 'hostel', 'resort_hotel', 'rv_park'] }
+    ];
+
+    categories.forEach((cat, idx) => {
+        const item = document.createElement('div');
+        item.style.padding = '12px 16px';
+        item.style.display = 'flex';
+        item.style.alignItems = 'center';
+        item.style.gap = '12px';
+        item.style.cursor = 'pointer';
+        item.style.color = '#333';
+        item.style.fontSize = '15px';
+        item.style.borderBottom = idx < categories.length - 1 ? '1px solid #f0f0f0' : 'none';
+        item.style.transition = 'background 0.2s';
+
+        item.innerHTML = `<span style="display:flex; justify-content:center; align-items:center; width:24px;">${cat.icon}</span> <span>${cat.label}</span>`;
+
+        item.onmouseenter = () => item.style.background = '#f8f9fa';
+        item.onmouseleave = () => item.style.background = 'transparent';
+        item.onclick = () => {
+            searchInput.value = cat.label;
+            dropdown.style.display = 'none';
+            triggerMapSearch(cat.label, cat.type);
+        };
+        dropdown.appendChild(item);
+    });
+
+    controlWrapper.appendChild(searchInputWrapper);
+    controlWrapper.appendChild(dropdown);
+
+    // Toggle logic
+    let hideTimeout;
+    searchInput.addEventListener('focus', () => {
+        clearTimeout(hideTimeout);
+        dropdown.style.display = 'block';
+    });
+
+    searchInput.addEventListener('blur', () => {
+        hideTimeout = setTimeout(() => { dropdown.style.display = 'none'; }, 200);
+    });
+
+    searchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            dropdown.style.display = 'none';
+            searchInput.blur();
+            triggerMapSearch(searchInput.value);
+        }
+    });
+
+    mapInstance.controls[google.maps.ControlPosition.TOP_LEFT].push(controlWrapper);
+}
+
+// Global search function
+window._searchMarkers = window._searchMarkers || [];
+
+window.triggerMapSearch = async function (query, typeRestraint = null) {
+    if (!googleMapInstance || !query.trim()) return;
+
+    const debugEl = document.getElementById('map-debug-status');
+    if (debugEl) debugEl.innerText = `Map Status: Searching for ${query}...`;
+
+    try {
+        const { Place } = await google.maps.importLibrary('places');
+
+        const searchRequest = {
+            fields: ['id', 'location', 'displayName'],
+            language: 'zh-CN', // enforce Chinese metadata response
+            maxResultCount: 20 // Max out the results to give user the full picture
+        };
+
+        // If it's an array of underlying types (clicked from dropdown), use includedType natively.
+        // If it's raw text from the input, just attach textQuery.
+        if (Array.isArray(typeRestraint)) {
+            searchRequest.includedType = typeRestraint[0]; // Places API usually allows single primary type for broad search, or rely on textQuery. 
+            // Workaround for multiple categories: The modern Place.searchByText only accepts one includedType. 
+            // So we'll pass the text query along, but tell it to heavily constrain to those semantic bounds.
+            searchRequest.textQuery = query;
+        } else {
+            searchRequest.textQuery = query;
+        }
+
+        // Add strict location restriction based on current map view bounds
+        if (googleMapInstance.getBounds()) {
+            searchRequest.locationRestriction = googleMapInstance.getBounds();
+        }
+
+        const { places } = await Place.searchByText(searchRequest);
+
+        // Clear previous search marked pins
+        window._searchMarkers.forEach(m => {
+            if (m) m.map = null;
+        });
+        window._searchMarkers = [];
+
+        if (places && places.length > 0) {
+            const bounds = new google.maps.LatLngBounds();
+
+            places.forEach(place => {
+                const marker = new google.maps.marker.AdvancedMarkerElement({
+                    position: place.location,
+                    map: googleMapInstance,
+                    title: place.displayName || query
+                });
+
+                // Clicking the marker opens the side info panel natively
+                marker.addListener("click", () => {
+                    google.maps.event.trigger(googleMapInstance, 'click', { placeId: place.id, stop: () => { } });
+                });
+
+                window._searchMarkers.push(marker);
+                bounds.extend(place.location);
+            });
+
+            googleMapInstance.fitBounds(bounds);
+            if (places.length === 1) {
+                // If only one result, zoom in a bit closer manually
+                googleMapInstance.setZoom(16);
+            }
+
+            if (debugEl) debugEl.innerText = `Map Status: Found ${places.length} results for ${query}`;
+
+            // Trigger click event to pop open the side panel automatically for the first hit
+            const firstPlace = places[0];
+            google.maps.event.trigger(googleMapInstance, 'click', { placeId: firstPlace.id, stop: () => { } });
+        } else {
+            if (debugEl) debugEl.innerText = `Map Status: No results for ${query}`;
+        }
+    } catch (err) {
+        console.error("Map search error:", err);
+        if (debugEl) debugEl.innerText = `Map Status: Search Error`;
     }
 }
 
@@ -425,59 +622,59 @@ async function showMapInfoPanel(place, placeId) {
             </button>
         </div>
         
-        <div style="padding: 1.2rem 1.2rem 0 1.2rem; z-index: 10;">
+        <div style="padding: 0.8rem 1.2rem 0 1.2rem; z-index: 10;">
             <!-- Single "Add to Trip" button -->
-            <button id="map-add-trigger" class="map-custom-select" style="background:var(--accent-primary); color:white; border:none; border-radius:10px; padding:12px 24px; font-weight:800; font-size:1.05rem; cursor:pointer; display:inline-flex; align-items:center; gap:8px; box-shadow: 0 4px 15px rgba(249,115,22,0.35); transition:transform 0.2s, background 0.2s;" onmouseover="this.style.transform='scale(1.02)'; this.style.background='rgba(249,115,22,0.9)'" onmouseout="this.style.transform='scale(1)'; this.style.background='var(--accent-primary)'">
-                <span style="font-size:1.3rem; margin-top:-2px;">+</span> 添加到行程
+            <button id="map-add-trigger" class="map-custom-select" style="background:var(--accent-primary); color:white; border:none; border-radius:8px; padding:6px 18px; font-weight:700; font-size:0.9rem; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow: 0 4px 12px rgba(249,115,22,0.3); transition:transform 0.15s, background 0.15s;" onmouseover="this.style.transform='translateY(-1px)'; this.style.background='rgba(249,115,22,0.95)'" onmouseout="this.style.transform='translateY(0)'; this.style.background='var(--accent-primary)'">
+                <span style="font-size:1.1rem; margin-top:-1px;">+</span> 添加到行程
             </button>
         </div>
 
-        <div style="flex:1; overflow-y:auto; padding: 1.2rem; position:relative; z-index: 1;" class="custom-scrollbar">
+        <div style="flex:1; overflow-y:auto; padding: 0.8rem 1.2rem 1.2rem 1.2rem; position:relative; z-index: 1;" class="custom-scrollbar">
             <!-- About Tab -->
-            <div class="poi-tab-content active" id="poi-about" style="display:flex; justify-content:space-between; align-items:flex-start; gap: 1rem;">
+            <div class="poi-tab-content active" id="poi-about" style="display:flex; justify-content:space-between; align-items:flex-start; gap: 1.5rem;">
                 
                 <!-- Left Column: Info & Details -->
                 <div style="flex:1; display:flex; flex-direction:column; min-width:0;">
 
-                    <div style="margin-bottom: 1.2rem;">
-                        <h2 style="margin:0 0 0.3rem 0; font-size:1.6rem; font-weight:800; color:white; word-break:break-word;">
+                    <div style="margin-bottom: 1rem;">
+                        <h2 style="margin:0 0 0.2rem 0; font-size:1.5rem; font-weight:800; color:white; word-break:break-word; line-height:1.2;">
                             ${place.displayName || '未知地点'}
                         </h2>
-                        <div style="color:var(--text-secondary); font-size:0.95rem; margin-bottom:0.6rem;">
+                        <div style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:0.5rem;">
                             ${placeType || '地点'}
                         </div>
-                        <div style="display:flex; align-items:center; gap:0.5rem;">
+                        <div style="display:flex; align-items:center; gap:0.4rem;">
                             ${stars ? `
-                            <span style="color:#f97316; font-weight:800; font-size:1.05rem;">${stars}</span>
-                            <span style="color:#f97316; font-size:1rem; letter-spacing:1px; line-height:1;">${starsStr}</span>
-                            <span style="color:var(--text-secondary); font-size:0.9rem; margin-left:4px;">(${place.userRatingCount || 0} reviews)</span>
-                            ` : '<span style="color:var(--text-secondary); font-size:0.9rem;">暂无评分</span>'}
+                            <span style="color:#f97316; font-weight:800; font-size:1rem;">${stars}</span>
+                            <span style="color:#f97316; font-size:0.9rem; letter-spacing:1px; line-height:1;">${starsStr}</span>
+                            <span style="color:var(--text-secondary); font-size:0.85rem; margin-left:2px;">(${place.userRatingCount || 0} reviews)</span>
+                            ` : '<span style="color:var(--text-secondary); font-size:0.85rem;">暂无评分</span>'}
                         </div>
                     </div>
 
-                    <div style="display:flex; flex-direction:column; gap: 14px; margin-bottom: 2rem;">
+                    <div style="display:flex; flex-direction:column; gap: 12px; margin-bottom: 1rem;">
                         <!-- Address -->
-                        <div style="display:flex; align-items:flex-start; gap: 12px;">
-                            <span style="color:#f97316; flex-shrink:0; margin-top:2px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></span>
-                            <span style="color:#e2e8f0; font-size:0.95rem; line-height:1.4;">${place.formattedAddress || '未知地址'}</span>
+                        <div style="display:flex; align-items:flex-start; gap: 10px;">
+                            <span style="color:#f97316; flex-shrink:0; margin-top:2px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></span>
+                            <span style="color:#e2e8f0; font-size:0.9rem; line-height:1.4;">${place.formattedAddress || '未知地址'}</span>
                         </div>
                         <!-- Hours -->
                         ${todayHours ? `
-                        <div style="display:flex; align-items:center; gap: 12px;">
-                            <span style="color:#f97316; flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg></span>
-                            <span style="color:#e2e8f0; font-size:0.95rem;">${todayHours}</span>
+                        <div style="display:flex; align-items:center; gap: 10px;">
+                            <span style="color:#f97316; flex-shrink:0;"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg></span>
+                            <span style="color:#e2e8f0; font-size:0.9rem;">${todayHours}</span>
                         </div>` : ''}
                         <!-- Phone -->
                         ${place.internationalPhoneNumber ? `
-                        <div style="display:flex; align-items:center; gap: 12px;">
-                            <span style="color:#f97316; flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg></span>
-                            <span style="color:#f97316; font-size:0.95rem; font-weight:600;">${place.internationalPhoneNumber}</span>
+                        <div style="display:flex; align-items:center; gap: 10px;">
+                            <span style="color:#f97316; flex-shrink:0;"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg></span>
+                            <span style="color:#f97316; font-size:0.9rem; font-weight:600;">${place.internationalPhoneNumber}</span>
                         </div>` : ''}
                         <!-- Website -->
                         ${place.websiteURI ? `
-                        <div style="display:flex; align-items:center; gap: 12px;">
-                            <span style="color:#f97316; flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm6.93 6h-2.95c-.32-1.25-.78-2.45-1.38-3.56 1.84.63 3.37 1.91 4.33 3.56zM12 4.04c.83 1.2 1.48 2.53 1.91 3.96h-3.82c.43-1.43 1.08-2.76 1.91-3.96zM4.26 14c-.17-.64-.26-1.31-.26-2s.09-1.36.26-2h3.38c-.04.66-.07 1.32-.07 2s.03 1.34.07 2H4.26zm.82 2h2.95c.32 1.25.78 2.45 1.38 3.56-1.84-.63-3.37-1.91-4.33-3.56zm2.95-8H5.08c.96-1.65 2.49-2.93 4.33-3.56-.6 1.11-1.06 2.31-1.38 3.56zM12 19.96c-.83-1.2-1.48-2.53-1.91-3.96h3.82c-.43 1.43-1.08 2.76-1.91 3.96zM14.34 14H9.66c-.04-.66-.06-1.34-.06-2s.02-1.34.06-2h4.68c.04.66.06 1.34.06 2s-.02 1.34-.06 2zm.24 5.56c.6-1.11 1.06-2.31 1.38-3.56h2.95c-.96 1.65-2.49 2.93-4.33 3.56zM16.36 14c.04-.66.07-1.32.07-2s-.03-1.34-.07-2h3.38c.17.64.26 1.31.26 2s-.09 1.36-.26 2h-3.38z"/></svg></span>
-                            <a href="${place.websiteURI}" target="_blank" style="color:#f97316; font-size:0.95rem; font-weight:600; text-decoration:none; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${place.websiteURI.replace('https://', '').replace(/\/$/, '')}</a>
+                        <div style="display:flex; align-items:center; gap: 10px;">
+                            <span style="color:#f97316; flex-shrink:0;"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm6.93 6h-2.95c-.32-1.25-.78-2.45-1.38-3.56 1.84.63 3.37 1.91 4.33 3.56zM12 4.04c.83 1.2 1.48 2.53 1.91 3.96h-3.82c.43-1.43 1.08-2.76 1.91-3.96zM4.26 14c-.17-.64-.26-1.31-.26-2s.09-1.36.26-2h3.38c-.04.66-.07 1.32-.07 2s.03 1.34.07 2H4.26zm.82 2h2.95c.32 1.25.78 2.45 1.38 3.56-1.84-.63-3.37-1.91-4.33-3.56zm2.95-8H5.08c.96-1.65 2.49-2.93 4.33-3.56-.6 1.11-1.06 2.31-1.38 3.56zM12 19.96c-.83-1.2-1.48-2.53-1.91-3.96h3.82c-.43 1.43-1.08 2.76-1.91 3.96zM14.34 14H9.66c-.04-.66-.06-1.34-.06-2s.02-1.34.06-2h4.68c.04.66.06 1.34.06 2s-.02 1.34-.06 2zm.24 5.56c.6-1.11 1.06-2.31 1.38-3.56h2.95c-.96 1.65-2.49-2.93-4.33 3.56zM16.36 14c.04-.66.07-1.32.07-2s-.03-1.34-.07-2h3.38c.17.64.26 1.31.26 2s-.09 1.36-.26 2h-3.38z"/></svg></span>
+                            <a href="${place.websiteURI}" target="_blank" style="color:#f97316; font-size:0.9rem; font-weight:600; text-decoration:none; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${place.websiteURI.replace('https://', '').replace(/\/$/, '')}</a>
                         </div>` : ''}
                     </div>
 
@@ -485,8 +682,8 @@ async function showMapInfoPanel(place, placeId) {
 
                 <!-- Right Column: Big Image -->
                 ${photo ? `
-                <div style="width: 280px; height: 180px; flex-shrink: 0; border-radius:6px; overflow:hidden; margin-top: 2px; cursor:pointer;" onclick="openPhotoLightbox(0)">
-                    <img src="${photo}" style="width:100%; height:100%; object-fit:cover; display:block;">
+                <div style="width: 340px; height: 210px; flex-shrink: 0; border-radius:10px; overflow:hidden; margin-top: 2px; cursor:pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.4);" onclick="openPhotoLightbox(0)">
+                    <img src="${photo}" style="width:100%; height:100%; object-fit:cover; display:block; transition:transform 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
                 </div>` : ''}
 
             </div> <!-- end poi-about tab -->
@@ -593,9 +790,19 @@ async function showMapInfoPanel(place, placeId) {
                 return;
             }
 
-            // Populate list
-            if (activeTrip && activeTrip.days && activeTrip.days.length > 0) {
-                globalDropdown.innerHTML = dropdownOptionsHtml;
+            // Populate list dynamically to fetch latest colors/state
+            const currentActiveTrip = state.trips.find(t => t.id === state.activeTripId);
+            if (currentActiveTrip && currentActiveTrip.days && currentActiveTrip.days.length > 0) {
+                globalDropdown.innerHTML = currentActiveTrip.days.map(d => {
+                    const dColor = d.color || '#5b7a99';
+                    return `
+                        <div class="global-map-day-option" data-value="${d.id}" data-title="${d.title || ('第' + (currentActiveTrip.days.indexOf(d) + 1) + '天')}" style="padding: 0.6rem 1rem; display:flex; align-items:center; cursor:pointer; border-bottom: 1px solid var(--glass-border); white-space:nowrap;" onmouseover="this.style.background='var(--bg-hover, rgba(255,255,255,0.05))'" onmouseout="this.style.background='transparent'">
+                            <div style="width: 10px; height: 10px; border-radius: 50%; background: ${dColor}; margin-right: 10px; flex-shrink:0;"></div>
+                            <span style="color:var(--text-primary); font-size:0.9rem; font-weight:600; margin-right: 16px;">${d.title || ('第' + (currentActiveTrip.days.indexOf(d) + 1) + '天')}</span>
+                            <span style="color:var(--text-secondary); font-size:0.75rem; margin-left:auto;">${d.date}</span>
+                        </div>
+                    `;
+                }).join('');
             } else {
                 globalDropdown.innerHTML = '<div style="padding: 1rem; color:var(--text-secondary); white-space:nowrap; font-size:0.9rem;">未找到行程天数</div>';
             }
