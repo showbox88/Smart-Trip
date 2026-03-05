@@ -83,9 +83,3 @@ gmp-advanced-marker::part(pin) {
     border: none !important;
     box-shadow: none !important;
 }
-
-#map-info-panel {
-    max-width: none !important;
-    width: 80% !important;
-    height: calc(50% - 10px) !important;
-}

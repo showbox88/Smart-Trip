@@ -298,7 +298,7 @@ async function showMapInfoPanel(place, placeId) {
 
     // Horizontal layout: height=50%-10px of map, width=80% of map, left=8px, bottom=8px gap
     panel.style.cssText = `
-        position:absolute; bottom:23px; left:15px; right:60px;
+        position:absolute; bottom:23px; left:15px; right:65px;
         height: calc(50% - 14px); min-height: 250px;
         background: #0d111b; color:var(--text-primary, #e8eaf6); border-radius:12px;
         box-shadow:0 12px 40px rgba(0,0,0,0.8); z-index:500;
