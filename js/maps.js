@@ -137,7 +137,8 @@ export function initRealMap() {
                 zoom: 12,
                 mapId: 'DEMO_MAP_ID',          // Required for AdvancedMarkerElement
                 disableDefaultUI: true,
-                zoomControl: true
+                zoomControl: true,
+                gestureHandling: 'greedy'
             });
         }
 
