@@ -1,41 +1,44 @@
 # Project Structure & Architecture | 项目架构说明
 
-本项目采用经典的前后端分离架构（本地化实现），旨在提供极致的交互性能与数据可靠性。
+本项目采用现代化的 ES Module 模块化架构，旨在提供清晰的代码组织、极致的交互性能与数据可靠性。
 
 ## 🏗️ 架构概览
 
-### 1. 前端层 (Frontend)
-- **技术栈**: Vanilla JS, CSS3 (Glassmorphism), HTML5.
-- **核心逻辑 (`app.js`)**:
-  - **状态管理**: 维护全局 `state` 对象，包含用户信息、当前视图、所有行程数据。
-  - **渲染引擎**: `renderApp` 函数根据当前状态动态生成 DOM。组件化思想实现（如 `getDayHTML`, `getTripHTML`）。
-  - **Google Maps 集成**: 负责地图初始化、Marker 管理、以及调用 Places Service 获取地点详情（包含 `types` 映射）。
-  - **UX 增强**: 处理键盘事件（搜索框导航）、双击保存、弹窗交互等。
+### 1. 前端层 (Frontend - `js/`)
+- **技术栈**: Vanilla JS (ES Modules), CSS3 (Glassmorphism), HTML5.
+- **入口 (`main.js`)**: 负责初始化、全局错误处理、以及将模块化函数桥接到 `window` 对象以便 HTML 属性调用。
+- **状态管理 (`state.js`)**: 维护全局 `state` 对象（用户信息、行程数据）及编辑上下文 (`editState`)。
+- **UI 渲染 (`ui/`)**:
+    - **渲染引擎 (`render.js`)**: 控制整体应用的视图切换与局部 DOM 更新。
+    - **模板系统 (`templates/`)**: 纯函数组件，生成登录、看板及行程详情的 HTML。
+- **地图集成 (`maps.js`)**: 封装 Google Maps 生命周期、Marker 管理及 POI 详情面板。
+- **业务逻辑 (`handlers/`)**: 处理认证、行程管理、地点搜索及极致的 UX 交互（如拖拽、自适应文本框）。
 
 ### 2. 后端服务层 (Backend Service)
 - **核心文件 (`server.py`)**:
-  - 一个轻量级的 Python HTTPServer 扩展。
-  - **API 支持**:
-    - `GET /data`: 从 `db.json` 读取最新的行程数据。
-    - `POST /data`: 将前端提交的最新全量 `state` 写入 `db.json`。
-  - **跨域支持 (CORS)**: 允许本地前端文件通过 JavaScript 进行数据交互。
+    - 基于 Python `http.server` 的轻量级 REST API。
+    - **API 支持**:
+        - `GET /api/data`: 读取 `db.json` 全量数据。
+        - `POST /api/save`: 全量保存 `state` 到 `db.json`。
+        - `POST /api/upload-image`: 本地缓存远程图片。
+        - `POST /api/delete-image`: 删除指定的本地缓存图片。
+        - `GET /api/cleanup-images`: 管理员功能，清理孤立的图片资源。
 
 ### 3. 数据存储层 (Data Layer)
 - **核心文件 (`db.json`)**:
-  - 存储 JSON 格式的结构化数据。
-  - **Schema 特性**:
-    - `trips`: 行程列表，包含日期、封面 (Thumb)、分类 (Category) 等元数据。
-    - `days`: 每一天包含多个 `stops`（地点、笔记、清单）。
-    - `stops`: 存储地点坐标 (Lat/Lng)、照片、联系方式及 **分类图标 (categoryIcon)**。
+    - 存储 JSON 格式的结构化数据，支持 Git 同步。
+    - **Schema 结构**: `user`, `trips`, `activeTripId` 等核心状态字段。
 
 ## 📍 集成与依赖
 
 | 依赖/服务 | 用途 | 备注 |
 | :--- | :--- | :--- |
-| **Google Maps JS API** | 地图渲染、POI 搜索 | 需要 `libraries=places` |
-| **Flatpickr** | 日历与日期选择 | 轻量级、无依赖 |
-| **LoremFlickr / Unsplash** | 封面图片随机生成 | 替换了高额成本的 Google Photos |
-| **Outfit / Noto Sans SC** | Google 字体库 | 提升跨平台排版美感 |
+| **Google Maps API** | 地图渲染、POI 搜索、路由计算 | 使用 `AdvancedMarkerElement` |
+| **Flatpickr** | 日历与日期选择 | 修改后的 Dark 主题 |
+| **Routes API** | 智能路网绘制 | 按天绘制专属主题色路线 |
+
+---
+*详见 [js/ARCHITECTURE.md](./js/ARCHITECTURE.md) 获取更底层开发细节。*
 
 ## 🛠️ 地点分类对应表 (Category Logic)
 
@@ -44,7 +47,4 @@
 - `airport`, `train_station` -> ✈️ / 🚆
 - `lodging` -> 🏨
 - `museum`, `art_gallery` -> 🏛️ / 🎨
-- `park`, `zoo` -> 🌳 / 🦁
-
----
 *Created by Antigravity AI Assistant.*
