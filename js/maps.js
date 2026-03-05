@@ -293,6 +293,9 @@ async function showMapInfoPanel(place, placeId) {
     const panel = document.createElement('div');
     panel.id = 'map-info-panel';
 
+    // Store photos globally for lightbox access
+    window._currentPlacePhotos = place.photos ? place.photos.map(p => p.getURI({ maxWidth: 1200 })) : [];
+
     // Horizontal layout: height=50%-10px of map, width=80% of map, left=8px, bottom=8px gap
     panel.style.cssText = `
         position:absolute; bottom:8px; left:8px; 
@@ -363,11 +366,10 @@ async function showMapInfoPanel(place, placeId) {
     // Photos HTML with lightbox support
     let photosHtml = '<div style="color:var(--text-secondary);text-align:center;padding:1rem;width:100%;">暂无照片</div>';
     if (place.photos && place.photos.length > 0) {
-        photosHtml = place.photos.map(p => {
+        photosHtml = place.photos.map((p, idx) => {
             const thumbUrl = p.getURI({ maxWidth: 300 });
-            const fullUrl = p.getURI({ maxWidth: 1200 });
             return `
-            <div style="aspect-ratio:1; border-radius:8px; overflow:hidden; background:#2a3441; cursor:pointer; transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'" onclick="openPhotoLightbox('${fullUrl.replace(/'/g, "\\'")}')">
+            <div style="aspect-ratio:1; border-radius:8px; overflow:hidden; background:#2a3441; cursor:pointer; transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'" onclick="openPhotoLightbox(${idx})">
                 <img src="${thumbUrl}" style="width:100%;height:100%;object-fit:cover;" loading="lazy" onerror="this.style.display='none'">
             </div>`;
         }).join('');
@@ -464,7 +466,7 @@ async function showMapInfoPanel(place, placeId) {
 
                 <!-- Right Column: Big Image -->
                 ${photo ? `
-                <div style="width: 280px; height: 180px; flex-shrink: 0; border-radius:6px; overflow:hidden; margin-top: 2px;">
+                <div style="width: 280px; height: 180px; flex-shrink: 0; border-radius:6px; overflow:hidden; margin-top: 2px; cursor:pointer;" onclick="openPhotoLightbox(0)">
                     <img src="${photo}" style="width:100%; height:100%; object-fit:cover; display:block;">
                 </div>` : ''}
 
@@ -654,8 +656,13 @@ export function closeMapInfoPanel() {
 // Expose globally so onclick="closeMapInfoPanel()" in HTML works
 window.closeMapInfoPanel = closeMapInfoPanel;
 
-// Photo lightbox – opens a full-screen overlay with the clicked photo
-function openPhotoLightbox(url) {
+// Photo lightbox – opens a full-screen overlay with the clicked photo index
+function openPhotoLightbox(index) {
+    const urls = window._currentPlacePhotos || [];
+    if (!urls[index]) return;
+
+    let currentIndex = index;
+
     // Remove existing lightbox if any
     const existing = document.getElementById('photo-lightbox');
     if (existing) existing.remove();
@@ -664,45 +671,139 @@ function openPhotoLightbox(url) {
     overlay.id = 'photo-lightbox';
     overlay.style.cssText = `
         position:fixed; inset:0; z-index:10000;
-        background:rgba(0,0,0,0.88); display:flex;
+        background:rgba(0,0,0,0.95); display:flex;
         align-items:center; justify-content:center;
-        cursor:zoom-out; animation: lbFadeIn 0.2s ease;
+        animation: lbFadeIn 0.2s ease;
+        user-select: none;
     `;
 
+    // Main image component
     const img = document.createElement('img');
-    img.src = url;
     img.style.cssText = `
         max-width:90vw; max-height:90vh; object-fit:contain;
-        border-radius:8px; box-shadow:0 8px 40px rgba(0,0,0,0.6);
+        border-radius:8px; box-shadow:0 8px 40px rgba(0,0,0,0.8);
+        transition: opacity 0.2s ease;
     `;
+
+    const updateImage = (idx) => {
+        currentIndex = idx;
+        // Dim the old image slightly instead of hiding completely to indicate change but avoid black flash
+        img.style.opacity = '0.4';
+
+        const tempImg = new Image();
+        tempImg.onload = () => {
+            if (currentIndex !== idx) return; // ignore if user clicked another one while loading
+            img.src = urls[currentIndex];
+            img.style.opacity = '1';
+            updateCounter();
+            preloadAdjacent();
+        };
+        tempImg.onerror = () => {
+            img.style.opacity = '1';
+            updateCounter();
+        };
+        tempImg.src = urls[currentIndex];
+    };
+
+    const preloadAdjacent = () => {
+        const nextIdx = (currentIndex + 1) % urls.length;
+        const prevIdx = (currentIndex - 1 + urls.length) % urls.length;
+        if (urls[nextIdx]) (new Image()).src = urls[nextIdx];
+        if (urls[prevIdx]) (new Image()).src = urls[prevIdx];
+    };
+    preloadAdjacent();
+
+    img.src = urls[currentIndex];
+
+    // Counter
+    const counter = document.createElement('div');
+    counter.style.cssText = `
+        position:absolute; bottom:24px; left:50%; transform:translateX(-50%);
+        color:white; background:rgba(255,255,255,0.1); padding:4px 12px;
+        border-radius:20px; font-size:0.9rem; font-weight:600;
+    `;
+    const updateCounter = () => {
+        counter.innerText = `${currentIndex + 1} / ${urls.length}`;
+    };
+    updateCounter();
+
+    // Navigation buttons
+    const btnStyle = `
+        position:absolute; top:50%; transform:translateY(-50%);
+        background:rgba(255,255,255,0.1); border:none; border-radius:50%;
+        width:48px; height:48px; color:white; font-size:1.5rem;
+        cursor:pointer; display:flex; align-items:center; justify-content:center;
+        transition: background 0.2s, transform 0.1s; z-index: 10001;
+    `;
+
+    const prevBtn = document.createElement('button');
+    prevBtn.innerHTML = '‹';
+    prevBtn.style.cssText = btnStyle + 'left: 24px;';
+    prevBtn.onclick = (e) => { e.stopPropagation(); updateImage((currentIndex - 1 + urls.length) % urls.length); };
+    prevBtn.onmouseenter = () => prevBtn.style.background = 'rgba(255,255,255,0.25)';
+    prevBtn.onmouseleave = () => prevBtn.style.background = 'rgba(255,255,255,0.1)';
+    prevBtn.onmousedown = () => prevBtn.style.transform = 'translateY(-50%) scale(0.9)';
+    prevBtn.onmouseup = () => prevBtn.style.transform = 'translateY(-50%) scale(1)';
+
+    const nextBtn = document.createElement('button');
+    nextBtn.innerHTML = '›';
+    nextBtn.style.cssText = btnStyle + 'right: 24px;';
+    nextBtn.onclick = (e) => { e.stopPropagation(); updateImage((currentIndex + 1) % urls.length); };
+    nextBtn.onmouseenter = () => nextBtn.style.background = 'rgba(255,255,255,0.25)';
+    nextBtn.onmouseleave = () => nextBtn.style.background = 'rgba(255,255,255,0.1)';
+    nextBtn.onmousedown = () => nextBtn.style.transform = 'translateY(-50%) scale(0.9)';
+    nextBtn.onmouseup = () => nextBtn.style.transform = 'translateY(-50%) scale(1)';
 
     const closeBtn = document.createElement('button');
     closeBtn.innerHTML = '✕';
     closeBtn.style.cssText = `
-        position:absolute; top:16px; right:24px;
+        position:absolute; top:24px; right:24px;
         background:rgba(255,255,255,0.15); border:none;
-        border-radius:50%; width:36px; height:36px;
+        border-radius:50%; width:40px; height:40px;
         color:#fff; font-size:1.2rem; cursor:pointer;
         display:flex; align-items:center; justify-content:center;
-        transition:background 0.2s;
+        transition:background 0.2s; z-index: 10001;
     `;
+    closeBtn.onclick = () => overlay.remove();
     closeBtn.onmouseover = () => closeBtn.style.background = 'rgba(255,255,255,0.3)';
     closeBtn.onmouseout = () => closeBtn.style.background = 'rgba(255,255,255,0.15)';
 
     overlay.appendChild(img);
     overlay.appendChild(closeBtn);
+    overlay.appendChild(counter);
+    if (urls.length > 1) {
+        overlay.appendChild(prevBtn);
+        overlay.appendChild(nextBtn);
+    }
     document.body.appendChild(overlay);
 
-    // Close on overlay click or Escape
-    overlay.addEventListener('click', () => overlay.remove());
-    const onKey = (e) => { if (e.key === 'Escape') { overlay.remove(); document.removeEventListener('keydown', onKey); } };
+    // Close on background click
+    overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+
+    // Keyboard navigation
+    const onKey = (e) => {
+        if (e.key === 'Escape') overlay.remove();
+        if (urls.length > 1) {
+            if (e.key === 'ArrowLeft') updateImage((currentIndex - 1 + urls.length) % urls.length);
+            if (e.key === 'ArrowRight') updateImage((currentIndex + 1) % urls.length);
+        }
+    };
     document.addEventListener('keydown', onKey);
+
+    // Clean up event listener when removed
+    const observer = new MutationObserver(() => {
+        if (!document.body.contains(overlay)) {
+            document.removeEventListener('keydown', onKey);
+            observer.disconnect();
+        }
+    });
+    observer.observe(document.body, { childList: true });
 
     // Inject fade-in animation if not already present
     if (!document.getElementById('lightbox-keyframes')) {
         const style = document.createElement('style');
         style.id = 'lightbox-keyframes';
-        style.textContent = '@keyframes lbFadeIn { from { opacity:0 } to { opacity:1 } }';
+        style.textContent = '@keyframes lbFadeIn { from { opacity:0; transform:scale(0.95); } to { opacity:1; transform:scale(1); } }';
         document.head.appendChild(style);
     }
 }
