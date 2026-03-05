@@ -299,11 +299,11 @@ async function showMapInfoPanel(place, placeId) {
     // Horizontal layout: height=50%-10px of map, width=80% of map, left=8px, bottom=8px gap
     panel.style.cssText = `
         position:absolute; bottom:8px; left:8px; 
-        width: 80%; height: calc(50% - 10px); min-height: 200px; max-width: none;
-        background:var(--bg-primary, #1e2535); color:var(--text-primary, #e8eaf6); border-radius:12px;
-        box-shadow:0 12px 40px rgba(0,0,0,0.6); z-index:500;
-        border:1px solid var(--glass-border, rgba(255,255,255,0.12)); 
-        display:flex; flex-direction:column; overflow:hidden; font-family:inherit;
+        width: 80%; height: calc(50% - 14px); min-height: 250px; max-width: none;
+        background: #0d111b; color:var(--text-primary, #e8eaf6); border-radius:12px;
+        box-shadow:0 12px 40px rgba(0,0,0,0.8); z-index:500;
+        border:1px solid rgba(255,255,255,0.08); 
+        display:flex; flex-direction:column; overflow:hidden; font-family:var(--font-main, inherit);
     `;
 
     const stars = place.rating !== undefined ? place.rating.toFixed(1) : '';
@@ -416,17 +416,19 @@ async function showMapInfoPanel(place, placeId) {
     let defaultDayTitle = selectedDay?.title || (selectedDay ? ('第' + (activeTrip.days.indexOf(selectedDay) + 1) + '天') : '选择日期');
 
     panel.innerHTML = `
-        <div style="display:flex; border-bottom:1px solid var(--glass-border); padding: 0 0.5rem; position:relative; background:var(--bg-secondary); flex-shrink:0;">
-            <button class="poi-tab active" data-target="poi-about" style="padding:12px 16px; background:none; border:none; color:var(--accent-primary); font-weight:700; border-bottom:2px solid var(--accent-primary); cursor:pointer; font-size:0.95rem;">简介 (About)</button>
-            <button class="poi-tab" data-target="poi-reviews" style="padding:12px 16px; background:none; border:none; color:var(--text-secondary); font-weight:600; cursor:pointer; font-size:0.95rem;">评价 (Reviews)</button>
-            <button class="poi-tab" data-target="poi-photos" style="padding:12px 16px; background:none; border:none; color:var(--text-secondary); font-weight:600; cursor:pointer; font-size:0.95rem;">照片 (Photos)</button>
-            <button onclick="closeMapInfoPanel()" style="position:absolute; right:12px; top:10px; background:rgba(255,255,255,0.05); border:none; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; color:var(--text-primary); cursor:pointer; transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">✕</button>
+        <div style="display:flex; border-bottom:1px solid rgba(255,255,255,0.1); padding: 0 0.8rem; height: 50px; position:relative; background:#0d111b; flex-shrink:0;">
+            <button class="poi-tab active" data-target="poi-about" style="padding:0 16px; background:none; border:none; color:var(--accent-primary); font-weight:700; border-bottom:2px solid var(--accent-primary); cursor:pointer; font-size:0.95rem; display:flex; align-items:center;">简介 (About)</button>
+            <button class="poi-tab" data-target="poi-reviews" style="padding:0 16px; background:none; border:none; color:var(--text-secondary); font-weight:600; cursor:pointer; font-size:0.95rem; display:flex; align-items:center;">评价 (Reviews)</button>
+            <button class="poi-tab" data-target="poi-photos" style="padding:0 16px; background:none; border:none; color:var(--text-secondary); font-weight:600; cursor:pointer; font-size:0.95rem; display:flex; align-items:center;">照片 (Photos)</button>
+            <button onclick="closeMapInfoPanel()" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:var(--text-secondary); cursor:pointer; transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='none'">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
         </div>
         
-        <div style="padding: 1rem 1.2rem 0 1.2rem; z-index: 10;">
-            <!-- Single "Add to Trip" button Pinned at the top of the panel (outside scroll) -->
-            <button id="map-add-trigger" class="map-custom-select" style="background:var(--accent-primary); color:white; border:none; border-radius:6px; padding:8px 16px; font-weight:700; font-size:0.9rem; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow: 0 4px 12px rgba(249,115,22,0.3);" onmouseover="this.style.background='rgba(249,115,22,0.8)'" onmouseout="this.style.background='var(--accent-primary)'">
-                <span>+</span> 添加到行程
+        <div style="padding: 1.2rem 1.2rem 0 1.2rem; z-index: 10;">
+            <!-- Single "Add to Trip" button -->
+            <button id="map-add-trigger" class="map-custom-select" style="background:var(--accent-primary); color:white; border:none; border-radius:10px; padding:12px 24px; font-weight:800; font-size:1.05rem; cursor:pointer; display:inline-flex; align-items:center; gap:8px; box-shadow: 0 4px 15px rgba(249,115,22,0.35); transition:transform 0.2s, background 0.2s;" onmouseover="this.style.transform='scale(1.02)'; this.style.background='rgba(249,115,22,0.9)'" onmouseout="this.style.transform='scale(1)'; this.style.background='var(--accent-primary)'">
+                <span style="font-size:1.3rem; margin-top:-2px;">+</span> 添加到行程
             </button>
         </div>
 
@@ -434,32 +436,49 @@ async function showMapInfoPanel(place, placeId) {
             <!-- About Tab -->
             <div class="poi-tab-content active" id="poi-about" style="display:flex; justify-content:space-between; align-items:flex-start; gap: 1rem;">
                 
-                <!-- Left Column: Info & Button -->
+                <!-- Left Column: Info & Details -->
                 <div style="flex:1; display:flex; flex-direction:column; min-width:0;">
 
-                    <div style="display:flex; align-items:flex-start; justify-content:space-between;">
-                        <div>
-                            <h2 style="margin:0 0 0.2rem 0; font-size:1.3rem; font-weight:800; line-height:1.2; word-break:break-word;">
-                                ${place.displayName || '未知地点'}
-                            </h2>
-                            <div style="display:flex; align-items:center; gap:0.4rem; color:var(--text-secondary); margin-bottom:0.4rem; flex-wrap:wrap;">
-                                ${priceHtml} ${typeHtml}
-                            </div>
-                            <div style="display:flex; align-items:center; gap:0.4rem; margin-bottom:1rem;">
-                                ${stars ? `
-                                <span style="color:#f4b942; font-weight:800; font-size:1rem;">${stars}</span>
-                                <span style="color:#f4b942; font-size:1rem; letter-spacing:1px; line-height:1;">${starsStr}</span>
-                                <span style="color:var(--text-secondary); font-size:0.8rem; margin-left:4px;">(${place.userRatingCount || 0} reviews)</span>
-                                ` : '<span style="color:var(--text-secondary); font-size:0.8rem;">暂无评分</span>'}
-                            </div>
+                    <div style="margin-bottom: 1.2rem;">
+                        <h2 style="margin:0 0 0.3rem 0; font-size:1.6rem; font-weight:800; color:white; word-break:break-word;">
+                            ${place.displayName || '未知地点'}
+                        </h2>
+                        <div style="color:var(--text-secondary); font-size:0.95rem; margin-bottom:0.6rem;">
+                            ${placeType || '地点'}
+                        </div>
+                        <div style="display:flex; align-items:center; gap:0.5rem;">
+                            ${stars ? `
+                            <span style="color:#f97316; font-weight:800; font-size:1.05rem;">${stars}</span>
+                            <span style="color:#f97316; font-size:1rem; letter-spacing:1px; line-height:1;">${starsStr}</span>
+                            <span style="color:var(--text-secondary); font-size:0.9rem; margin-left:4px;">(${place.userRatingCount || 0} reviews)</span>
+                            ` : '<span style="color:var(--text-secondary); font-size:0.9rem;">暂无评分</span>'}
                         </div>
                     </div>
 
-                    <div style="display:grid; grid-template-columns: 20px 1fr; gap: 8px 6px; color:var(--text-primary); font-size:0.85rem; align-items:start; margin-bottom: 1rem;">
-                        <span style="font-size:1rem; text-align:center;">📍</span> <span style="line-height:1.3;">${place.formattedAddress || '未知地址'}</span>
-                        ${todayHours ? `<span style="font-size:1rem; text-align:center;">🕒</span> <span style="line-height:1.3;">${todayHours}</span>` : ''}
-                        ${place.internationalPhoneNumber ? `<span style="font-size:1rem; text-align:center;">📞</span> <span style="line-height:1.3; color:var(--accent-primary); cursor:pointer;">${place.internationalPhoneNumber}</span>` : ''}
-                        ${place.websiteURI ? `<span style="font-size:1rem; text-align:center;">🌐</span> <a href="${place.websiteURI}" target="_blank" style="color:var(--accent-primary); text-decoration:none; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block; line-height:1.3;">${place.websiteURI}</a>` : ''}
+                    <div style="display:flex; flex-direction:column; gap: 14px; margin-bottom: 2rem;">
+                        <!-- Address -->
+                        <div style="display:flex; align-items:flex-start; gap: 12px;">
+                            <span style="color:#f97316; flex-shrink:0; margin-top:2px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></span>
+                            <span style="color:#e2e8f0; font-size:0.95rem; line-height:1.4;">${place.formattedAddress || '未知地址'}</span>
+                        </div>
+                        <!-- Hours -->
+                        ${todayHours ? `
+                        <div style="display:flex; align-items:center; gap: 12px;">
+                            <span style="color:#f97316; flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg></span>
+                            <span style="color:#e2e8f0; font-size:0.95rem;">${todayHours}</span>
+                        </div>` : ''}
+                        <!-- Phone -->
+                        ${place.internationalPhoneNumber ? `
+                        <div style="display:flex; align-items:center; gap: 12px;">
+                            <span style="color:#f97316; flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg></span>
+                            <span style="color:#f97316; font-size:0.95rem; font-weight:600;">${place.internationalPhoneNumber}</span>
+                        </div>` : ''}
+                        <!-- Website -->
+                        ${place.websiteURI ? `
+                        <div style="display:flex; align-items:center; gap: 12px;">
+                            <span style="color:#f97316; flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm6.93 6h-2.95c-.32-1.25-.78-2.45-1.38-3.56 1.84.63 3.37 1.91 4.33 3.56zM12 4.04c.83 1.2 1.48 2.53 1.91 3.96h-3.82c.43-1.43 1.08-2.76 1.91-3.96zM4.26 14c-.17-.64-.26-1.31-.26-2s.09-1.36.26-2h3.38c-.04.66-.07 1.32-.07 2s.03 1.34.07 2H4.26zm.82 2h2.95c.32 1.25.78 2.45 1.38 3.56-1.84-.63-3.37-1.91-4.33-3.56zm2.95-8H5.08c.96-1.65 2.49-2.93 4.33-3.56-.6 1.11-1.06 2.31-1.38 3.56zM12 19.96c-.83-1.2-1.48-2.53-1.91-3.96h3.82c-.43 1.43-1.08 2.76-1.91 3.96zM14.34 14H9.66c-.04-.66-.06-1.34-.06-2s.02-1.34.06-2h4.68c.04.66.06 1.34.06 2s-.02 1.34-.06 2zm.24 5.56c.6-1.11 1.06-2.31 1.38-3.56h2.95c-.96 1.65-2.49 2.93-4.33 3.56zM16.36 14c.04-.66.07-1.32.07-2s-.03-1.34-.07-2h3.38c.17.64.26 1.31.26 2s-.09 1.36-.26 2h-3.38z"/></svg></span>
+                            <a href="${place.websiteURI}" target="_blank" style="color:#f97316; font-size:0.95rem; font-weight:600; text-decoration:none; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${place.websiteURI.replace('https://', '').replace(/\/$/, '')}</a>
+                        </div>` : ''}
                     </div>
 
                 </div>
