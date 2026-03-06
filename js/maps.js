@@ -216,6 +216,19 @@ export function initRealMap() {
                         title: stop.location,
                         content: markerImg
                     });
+
+                    // Explicit click listener to fix sensitivity issues in the center of the marker
+                    marker.addListener('click', () => {
+                        console.log('[marker-click] Stop marker clicked:', stop.location);
+                        if (stop.placeId) {
+                            google.maps.event.trigger(googleMapInstance, 'click', { placeId: stop.placeId, stop: () => { } });
+                        } else {
+                            // If no placeId (older data), we can't open a rich panel easily without a re-search,
+                            // but we can at least center the map or show a basic info panel if needed.
+                            // For now, satisfy the click feedback.
+                        }
+                    });
+
                     googleMapMarkers.push(marker);
                     bounds.extend(pos);
                     routePath.push(pos);
@@ -562,7 +575,7 @@ async function showMapInfoPanel(place, placeId) {
         display:flex; flex-direction:column; overflow:hidden; font-family:var(--font-main, inherit);
     `;
 
-    const stars = place.rating !== undefined ? place.rating.toFixed(1) : '';
+    const stars = (place.rating !== undefined && place.rating !== null) ? place.rating.toFixed(1) : '';
     const ratingNum = place.rating || 0;
     const starsStr = '★'.repeat(Math.round(ratingNum)) + '☆'.repeat(5 - Math.round(ratingNum));
 

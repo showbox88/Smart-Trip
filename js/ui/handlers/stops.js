@@ -679,7 +679,8 @@ export async function autoAddStop(dayId, placeId, afterStopId) {
             photo: remotePhotoUrl,
             rating: place.rating,
             category: categoryInfo.label,
-            categoryIcon: categoryInfo.icon
+            categoryIcon: categoryInfo.icon,
+            placeId: place.id
         };
 
         if (afterStopId) {

@@ -3,7 +3,7 @@
         "name": "旅行者"
     },
     "currentView": "trip",
-    "activeTripId": "trip-1772580447645",
+    "activeTripId": "trip-1772827496784",
     "trips": [
         {
             "id": "trip-1772580447645",
@@ -11,7 +11,7 @@
             "startDate": "2026-05-10",
             "endDate": "2026-05-16",
             "thumb": "/uploads/0cd1f45ff26ba9624c57168479f078eb.jpg",
-            "activeDayId": "day-1772580447645-2",
+            "activeDayId": "day-1772580447645-3",
             "days": [
                 {
                     "id": "day-1772580447645-0",
@@ -55,6 +55,12 @@
                             "transitMode": "WALK"
                         },
                         {
+                            "id": "n1772823990382",
+                            "type": "note",
+                            "content": "",
+                            "checked": false
+                        },
+                        {
                             "id": "s1772813322393",
                             "location": "Chuck E. Cheese",
                             "desc": "Kid-friendly chain known for its arcade games, pizza parties & play zones.",
@@ -73,12 +79,6 @@
                             "categoryIcon": "🥡",
                             "transitToNext": null,
                             "expenseCategory": "汽油"
-                        },
-                        {
-                            "id": "n1772823990382",
-                            "type": "note",
-                            "content": "",
-                            "checked": false
                         }
                     ],
                     "color": "#8b5cf6",
@@ -218,43 +218,107 @@
             ]
         },
         {
-            "id": "trip-1772653870970",
+            "id": "trip-1772827496784",
             "title": "新的神秘冒险",
             "startDate": "2026-05-01",
             "endDate": "2026-05-05",
-            "thumb": "/uploads/f29b4d1f477924f0a6ef423d578b1517.jpg",
-            "activeDayId": "day-1772653870970-0",
+            "thumb": "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+            "activeDayId": "day-1772827496784-0",
             "days": [
                 {
-                    "id": "day-1772653870970-0",
+                    "id": "day-1772827496784-0",
                     "title": "第 1 天",
                     "date": "2026年5月1日",
-                    "stops": [],
+                    "stops": [
+                        {
+                            "id": "s1772827553729",
+                            "location": "John F. Kennedy International Airport",
+                            "desc": "New York City hub offering flights from 80+ airlines, plus a variety of shops & eateries.",
+                            "address": "Queens, NY 11430, USA",
+                            "phone": "(718) 244-4444",
+                            "time": "09:00",
+                            "period": "AM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 40.6446124,
+                            "lng": -73.7797278,
+                            "photo": "/uploads/be9dd02186bcdae52d3720f017540cad.jpg",
+                            "rating": 3.8,
+                            "category": "机场",
+                            "categoryIcon": "✈️",
+                            "transitToNext": {
+                                "duration": "26 分钟",
+                                "distance": "17.0 公里"
+                            }
+                        },
+                        {
+                            "id": "s1772827574931",
+                            "location": "Queens Center",
+                            "desc": "This coliseum-like indoor shopping mall houses dozens of retail stores plus a food court.",
+                            "address": "90-15 Queens Blvd, Elmhurst, NY 11373, USA",
+                            "phone": "(718) 592-3900",
+                            "time": "11:00 ",
+                            "period": "AM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 40.7347872,
+                            "lng": -73.8688409,
+                            "photo": "/uploads/ca3a10320c634c54a0d53961829b8e63.jpg",
+                            "rating": 4.4,
+                            "category": "购物中心",
+                            "categoryIcon": "🛍️",
+                            "transitToNext": {
+                                "duration": "19 分钟",
+                                "distance": "10.0 公里"
+                            }
+                        },
+                        {
+                            "id": "s1772827587480",
+                            "location": "Sybil's",
+                            "desc": "Counter-serve joint supplying Caribbean & Guyanese meals, traditional savory baked goods & sweets.",
+                            "address": "132-17 Liberty Ave, South Richmond Hill, NY 11419, USA",
+                            "phone": "(718) 835-9235",
+                            "time": "01:00  ",
+                            "period": "PM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 40.6910029,
+                            "lng": -73.8136887,
+                            "photo": "https://places.googleapis.com/v1/places/ChIJr1C_tjRnwokRFc9We8WSkpk/photos/ATCDNfV5nGEcK7pf0gGL8uHuIDYkyne5qe_v3FFtWFtLL4RBoEhNSMNs8s_OfYZF_y4FKKB3t_ZHB1niwVzl1fVK7Jom-ALJOl1EW3pX4_BNTw6HKSuQMw1J0ats7xWOnXWnFLcFD0eWEZd_1G9NLiv7RB2x_IdHtKSIRnnNKGeEUObuC2yjohTsxLlInM-v-AyQU9c79DEnNhZQE16EbA6607CKQG3K0BZ3Vl6Ar06yIu8epiAMMz9nie7HHnyiY7jZe64J6VlfazUW-XjyjoMEPyoN1I34eRBZA66L-5nk9onNK2mlDwAlV-cNbhUVsZokmUS6KK3vgvd3XWE0e_gL-peW155xuvLU312Ugr1W3L2iXrZD5TyEwW3b1e4gt2SlngKOR_SIQWNEVoJsqfWDLtyJcaeFSgE9yTj6vvE__z0Vug/media?maxWidthPx=600&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k",
+                            "rating": 4.3,
+                            "category": "面包房",
+                            "categoryIcon": "🥐",
+                            "transitToNext": null
+                        }
+                    ],
                     "color": "#5b7a99"
                 },
                 {
-                    "id": "day-1772653870970-1",
+                    "id": "day-1772827496784-1",
                     "title": "第 2 天",
                     "date": "2026年5月2日",
                     "stops": [],
                     "color": "#ef4444"
                 },
                 {
-                    "id": "day-1772653870970-2",
+                    "id": "day-1772827496784-2",
                     "title": "第 3 天",
                     "date": "2026年5月3日",
                     "stops": [],
                     "color": "#f59e0b"
                 },
                 {
-                    "id": "day-1772653870970-3",
+                    "id": "day-1772827496784-3",
                     "title": "第 4 天",
                     "date": "2026年5月4日",
                     "stops": [],
                     "color": "#10b981"
                 },
                 {
-                    "id": "day-1772653870970-4",
+                    "id": "day-1772827496784-4",
                     "title": "第 5 天",
                     "date": "2026年5月5日",
                     "stops": [],
@@ -270,7 +334,7 @@
         "day-1772579247304-3": true,
         "day-1772579247304-4": true,
         "day-1772580447645-0": false,
-        "day-1772580447645-1": false,
+        "day-1772580447645-1": true,
         "day-1772580447645-2": true,
         "day-1772580447645-3": true,
         "day-1772580447645-4": true,
