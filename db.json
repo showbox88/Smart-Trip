@@ -97,7 +97,7 @@
                             "time": "09:00",
                             "period": "AM",
                             "note": "",
-                            "price": "0",
+                            "price": "60",
                             "type": "location",
                             "lat": 40.794387199999996,
                             "lng": -73.0581041,
@@ -108,7 +108,8 @@
                             "transitToNext": {
                                 "duration": "8 分钟",
                                 "distance": "5.4 公里"
-                            }
+                            },
+                            "expenseCategory": "活动"
                         },
                         {
                             "id": "s1772814388777",
@@ -119,7 +120,7 @@
                             "time": "11:00 ",
                             "period": "AM",
                             "note": "",
-                            "price": "0",
+                            "price": "120",
                             "type": "location",
                             "lat": 40.7903879,
                             "lng": -73.00810369999999,
@@ -127,7 +128,8 @@
                             "rating": 3.9,
                             "category": "餐饮",
                             "categoryIcon": "🍴",
-                            "transitToNext": null
+                            "transitToNext": null,
+                            "expenseCategory": "活动"
                         }
                     ],
                     "color": "#10b981"

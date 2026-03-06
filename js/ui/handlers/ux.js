@@ -971,6 +971,10 @@ function saveMockExpense() {
         }
     }
 
+    // Capture scroll position
+    const scrollContainer = document.getElementById('itinerary-scroll-container');
+    const currentScrollTop = scrollContainer ? scrollContainer.scrollTop : 0;
+
     if (typeof isDirectEdit !== 'undefined' && isDirectEdit) {
         saveData();
         renderApp();
@@ -979,6 +983,15 @@ function saveMockExpense() {
         saveData(); // Save the new category/price
         renderApp(); // Re-render to show updated price/icon globally if needed
     }
+
+    // Restore scroll position
+    setTimeout(() => {
+        const newScrollContainer = document.getElementById('itinerary-scroll-container');
+        if (newScrollContainer) {
+            newScrollContainer.scrollTop = currentScrollTop;
+        }
+    }, 0);
+
     closeSubModal();
 }
 
