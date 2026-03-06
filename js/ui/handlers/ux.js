@@ -920,6 +920,15 @@ function openExpenseModal() {
     const overlay = document.getElementById('sub-modal-overlay');
     overlay.classList.add('active');
     overlay.classList.remove('hidden');
+
+    // Ensure the input field is fully focused and selected every time the modal opens
+    setTimeout(() => {
+        const amountInput = document.getElementById('expense-amount');
+        if (amountInput) {
+            amountInput.focus();
+            amountInput.select();
+        }
+    }, 50);
 }
 
 window.selectExpenseCategory = function (evt, cat) {
