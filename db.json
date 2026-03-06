@@ -43,7 +43,7 @@
                             "type": "location",
                             "lat": 40.7877035,
                             "lng": -73.00958179999999,
-                            "photo": "/uploads/8e4f5f512169aa1e6413cf6f9f0e010e.jpg",
+                            "photo": "https://places.googleapis.com/v1/places/ChIJizPqG8dI6IkR4ia4tkSVHys/photos/ATCDNfUEfVv88pzMSNb1ARTDRofyHmwn4l0yZnHKY5foCVNMz3AjSNWaLjeUi6UZp_1Hyk-qt-cPOWPNsT8SBK4mDHKHBLNszzAeQ7T9SQCG6QORmlWukIHcuzcTxfywzkLAeufOcWrc8PwUtt3LT0bd5qauLuZmoopaRNAbZomG02mjWpsPNQ3bfLOUHGDHYqgqjcaQpN_30obyZMSi2sd7hX5IbmeY58nUfXwVGv1SDd3fPTmU3m3sF6VfWf1ViY_6YSUC8uQuRCxb_H9vScMRQ68J3LIzaglWUi9HGLyysBTPZQ/media?maxWidthPx=600&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k",
                             "rating": 4.3,
                             "category": "酒吧",
                             "categoryIcon": "🍸",
@@ -67,7 +67,7 @@
                             "type": "location",
                             "lat": 40.7810068,
                             "lng": -73.0019348,
-                            "photo": "/uploads/c68edc6b9be301540cda0a344727ed66.jpg",
+                            "photo": "https://places.googleapis.com/v1/places/ChIJpy6kwv0v6IkRO87R9kqojmA/photos/ATCDNfWmjQIppDGSNCGYdMVEBVTUsgLCHpyK7jXUu6uOEx9GqgSqs7yJ6K-wUP-6GYJkei0IGgezuT-5asab0iYlLCYCwjxVwRNlBMBMJwH0OC-Zd2uupAIW2ptcPTxa7ckM4EEJSUN90OxIKpPYMF3lMFiTyakEoUylQgEI0rBY3zr14ipAEHiSOyquB9JPc8xjv_Xh0GcYhaC-I1LdVtYxHR9cIzEHZIKr4JDDIVpR1dJTPTcSc0XzkQ0IL4Z5H4w7lkqDuAXnOxe4LwtCIbalQ9yZZgU5h0IaMU4pp8DzViuVo0hSExXdd6lehJGRuJ3n1mqBojpJHEW9LQIh8otyB8HlKPnTfDnN15R9MDCnbNBijn5vfxg6Wi2kf-ZLJRbcOYOSi6uXq9voTFJJteAeyjH5zEa8cDkcpqTrkX48KMPXqA/media?maxWidthPx=600&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k",
                             "rating": 4.2,
                             "category": "外卖",
                             "categoryIcon": "🥡",
@@ -108,7 +108,7 @@
                             "type": "location",
                             "lat": 40.794387199999996,
                             "lng": -73.0581041,
-                            "photo": "/uploads/867067fbe7bd6678cdc221ae7fc17bab.jpg",
+                            "photo": "https://places.googleapis.com/v1/places/ChIJvRLLfkFI6IkRi-xO6_s7OAs/photos/ATCDNfVHmgYTTl8pK-forTxtEqoRTCa0kBYfhtTYUritwgWlUCbrKTWdsgssvYlARw94KA_DxgEJtUPVLPJvu6NMyysw4PT98UEaxxFDi2KxBZuEc_N1b1gTaJYC0aFkxND1Mh0YnR2gOf0YH_nrBn8yhctZwrqJbS5F2k1JFYzAz41xVYTFHB5BBE5zUzSmYpAzRIf-tLXj0Uzkr6O8Wb_7DP95DR5owGM0hE5xXVIL3_ROrhtLlOktIHeYlKXg2bCdr_4cPdfTJZRSQVkI-cjax6MBnRaVYu4wZbU5sx8qpa_Ecg/media?maxWidthPx=600&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k",
                             "rating": 4.4,
                             "category": "餐饮",
                             "categoryIcon": "🍴",
@@ -131,7 +131,7 @@
                             "type": "location",
                             "lat": 40.7903879,
                             "lng": -73.00810369999999,
-                            "photo": "/uploads/50eeaaa970e4af11f10d64a971dbe56a.jpg",
+                            "photo": "https://places.googleapis.com/v1/places/ChIJrwk1hLhI6IkRLuYuQ5OCe5w/photos/ATCDNfXh928jt84M-AIAE_ZoVY0YNpFfQdBlw_iB6pdPXgXZvrzbI4qJfqDMiSg4Ftv3n7c5BcHnEnjvOSnA-MpK3sU3Q29cC2AhY4q4k9RmZroerymDpZLDz5WKy9S4bKshiC4QVR3i6Ohk78dwCxtDNlJAG3ZM6jhnqKOzllgWpIilE9oCqxbN348Um3mb3k8IDCwLp17U4fDqpkfR3gEBWmE6ym0QDyXIO_Tqc7LV9-wo7Tahg0bRbWSwzyIHPHyUEdf-ZcTmLU53NNE2Wi2Yhn4B4Ij7e-n4bJdDKl7T9uzWTw/media?maxWidthPx=600&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k",
                             "rating": 3.9,
                             "category": "餐饮",
                             "categoryIcon": "🍴",
@@ -275,6 +275,11 @@
         "day-1772580447645-3": true,
         "day-1772580447645-4": true,
         "day-1772651798322": true,
-        "day-1772651800334": true
+        "day-1772651800334": true,
+        "day-1772653870970-0": false,
+        "day-1772653870970-1": true,
+        "day-1772653870970-2": true,
+        "day-1772653870970-3": true,
+        "day-1772653870970-4": true
     }
 }

@@ -17,7 +17,8 @@ Smart Trip 是一款以用户体验为核心的旅行规划原型应用。本项
 ### 2. 交互式地点增强 (Rich Location Modals)
 - **Google Places 自动填充**：搜索并添加地点时，系统自动捕捉简介、地址、电话、评分及分类信息。
 - **所见即所得编辑器**：点击行程卡片展开高级编辑器，支持时间选择、费用追踪、地址/备注编辑。
-- **封面图搜索**：支持回车键触发搜索，预览图双击自动保存。
+- **智能地点换图**：集成 Google Places Photo API，支持直接从 Google Maps 获取地点的真实实拍图，支持单选高亮与双击快速更换。
+- **高级费用管理**：费用弹窗支持全品类图标选择，金额输入框智能聚焦并全选，操作体验极简高效。
 - **键盘导航**：搜索下拉列表支持方向键选择及回车确认。
 
 ### 3. 可视化交互地图 (Google Maps Integration)
@@ -95,4 +96,4 @@ Smat Trip/
 - **数据**：JSON 文件持久化
 
 ---
-*Created with ♥ by Antigravity AI Assistant. Updated 2026-03-05.*
+*Created with ♥ by Antigravity AI Assistant. Updated 2026-03-06.*

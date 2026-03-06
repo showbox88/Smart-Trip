@@ -66,8 +66,8 @@ Smat Trip/
 | `auth.js` | `handleLogin`, `handleLoginKey`, `goDashboard`, `startPlanning` |
 | `trips.js` | `createNewTrip`, `openTrip`, `deleteTrip`, `shareTrip`, `toggleMenu`, `saveTripMetadata` |
 | `stops.js` | `addDay`, `deleteDay`, `saveStop`, `deleteStop`, `autoAddStop`（Google Places API）、笔记/清单 CRUD、DOM 注入避免闪烁 |
-| `search.js` | `handleSearchInput`（自动补全）、`handleSearchKeyDown`（键盘导航）、`handleDropdownClick`、`searchImages`（封面图）、`selectImage` |
-| `ux.js` | Modal 管理、`openEditTripModal`（行程编辑）、`openEditModal`（目的地编辑）、时间选择器、费用弹窗、拖拽排序（仅重绘受影响 Day）、侧栏折叠/导航 |
+| `search.js` | `handleSearchInput`（自动补全）、`handleSearchKeyDown`（键盘导航）、`handleDropdownClick`、`searchImages`（封面图）、`searchGoogleStopImages`（Google 加持实拍图）、`selectImage` |
+| `ux.js` | Modal 管理、`openEditTripModal`（行程编辑）、`openEditModal`（目的地编辑）、时间选择器、高级费用弹窗、`changeStopImage`（智能换图）、拖拽排序（仅重绘受影响 Day）、侧栏折叠/导航 |
 
 ## 🔄 数据流
 
@@ -92,4 +92,4 @@ maps.js 联动更新地图图钉
 3. **新增 API**：在 `server.py` 添加路由，`api.js` 添加对应函数
 
 ---
-*Updated 2026-03-05 by Antigravity AI Assistant.*
+*Updated 2026-03-06 by Antigravity AI Assistant.*

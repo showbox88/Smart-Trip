@@ -1038,7 +1038,7 @@ function changeStopImage(dayId, stopId) {
     }, 100);
 }
 
-window.selectStopThumb = function (event, url) {
+function selectStopThumb(event, url) {
     if (event) event.stopPropagation();
     document.getElementById('selected-stop-image-url').value = url;
 
@@ -1054,16 +1054,16 @@ window.selectStopThumb = function (event, url) {
         event.currentTarget.style.transform = 'scale(1.02)';
         event.currentTarget.style.boxShadow = '0 4px 12px rgba(79, 70, 229, 0.3)';
     }
-};
+}
 
-window.confirmStopImage = function (dayId, stopId) {
+function confirmStopImage(dayId, stopId) {
     const newUrl = document.getElementById('selected-stop-image-url').value;
     if (!newUrl) {
         closeSubModal();
         return;
     }
     window.saveStopImage(dayId, stopId, newUrl);
-};
+}
 
 
 function saveStopImage(dayId, stopId, passedUrl) {
