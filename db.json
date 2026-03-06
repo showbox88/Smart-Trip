@@ -39,7 +39,7 @@
                             "time": "11:00 ",
                             "period": "AM",
                             "note": "",
-                            "price": "0",
+                            "price": "30",
                             "type": "location",
                             "lat": 40.7877035,
                             "lng": -73.00958179999999,
@@ -50,7 +50,8 @@
                             "transitToNext": {
                                 "duration": "3 分钟",
                                 "distance": "1.5 公里"
-                            }
+                            },
+                            "expenseCategory": "活动"
                         },
                         {
                             "id": "s1772813322393",
@@ -61,7 +62,7 @@
                             "time": "01:00  ",
                             "period": "PM",
                             "note": "",
-                            "price": "0",
+                            "price": "120",
                             "type": "location",
                             "lat": 40.7810068,
                             "lng": -73.0019348,
@@ -69,7 +70,8 @@
                             "rating": 4.2,
                             "category": "外卖",
                             "categoryIcon": "🥡",
-                            "transitToNext": null
+                            "transitToNext": null,
+                            "expenseCategory": "杂货"
                         }
                     ],
                     "color": "#8b5cf6",
