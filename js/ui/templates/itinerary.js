@@ -264,6 +264,15 @@ export function getTripHTML(trip) {
     if (!trip) return `<h2>行程未找到</h2>`;
     const totalStops = trip.days.reduce((acc, d) => acc + (d.stops ? d.stops.filter(s => s.type === 'location' || !s.type).length : 0), 0);
 
+    // Calculate total trip cost
+    const totalCost = trip.days.reduce((acc, day) => {
+        if (!day.stops) return acc;
+        return acc + day.stops.reduce((dayAcc, stop) => {
+            const price = parseFloat(stop.price);
+            return dayAcc + (isNaN(price) ? 0 : price);
+        }, 0);
+    }, 0);
+
     return `
         <div class="dashboard-view fade-in">
             <aside class="sidebar" style="padding-top: 1rem;">
@@ -322,6 +331,7 @@ export function getTripHTML(trip) {
                                     <span id="trip-header-dates" style="color:var(--text-secondary); font-size:0.82rem;">${trip.startDate} 至 ${trip.endDate}</span>
                                     <span id="trip-header-duration" style="background:rgba(167,139,250,0.15); color:var(--accent-secondary); border:1px solid var(--accent-secondary); padding:2px 8px; border-radius:20px; font-size:0.75rem; font-weight:bold;">${calculateDays(trip.startDate, trip.endDate)} 天</span>
                                     <span style="background:rgba(167,139,250,0.15); color:var(--accent-secondary); border:1px solid var(--accent-secondary); padding:2px 8px; border-radius:20px; font-size:0.75rem; font-weight:bold;">1 人</span>
+                                    ${totalCost > 0 ? `<span style="background:rgba(167,139,250,0.15); color:var(--accent-secondary); border:1px solid var(--accent-secondary); padding:2px 8px; border-radius:20px; font-size:0.75rem; font-weight:bold;">$${totalCost.toFixed(2)}</span>` : ''}
                                 </div>
                             </div>
                         </div>

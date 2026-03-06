@@ -51,7 +51,7 @@
                                 "duration": "3 分钟",
                                 "distance": "1.5 公里"
                             },
-                            "expenseCategory": "活动"
+                            "expenseCategory": "观光"
                         },
                         {
                             "id": "s1772813322393",
@@ -62,7 +62,7 @@
                             "time": "01:00  ",
                             "period": "PM",
                             "note": "",
-                            "price": "120",
+                            "price": "220",
                             "type": "location",
                             "lat": 40.7810068,
                             "lng": -73.0019348,
@@ -71,7 +71,7 @@
                             "category": "外卖",
                             "categoryIcon": "🥡",
                             "transitToNext": null,
-                            "expenseCategory": "杂货"
+                            "expenseCategory": "汽油"
                         }
                     ],
                     "color": "#8b5cf6",
