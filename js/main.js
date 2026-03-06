@@ -217,6 +217,9 @@ window.selectMockTime = UXHandlers.selectMockTime;
 window.saveMockExpense = UXHandlers.saveMockExpense;
 window.changeStopImage = UXHandlers.changeStopImage;
 window.saveStopImage = UXHandlers.saveStopImage;
+window.selectStopThumb = UXHandlers.selectStopThumb;
+window.confirmStopImage = UXHandlers.confirmStopImage;
+window.searchGoogleStopImages = SearchHandlers.searchGoogleStopImages;
 
 // Drag & Drop
 window.handleDragStart = UXHandlers.handleDragStart;

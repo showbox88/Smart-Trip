@@ -191,3 +191,51 @@ export function selectImage(event, url) {
         })
         .catch(err => console.warn('[image-cache] Trip cover cache failed:', err));
 }
+// Google Maps Places Photo Search for Stops
+export async function searchGoogleStopImages(dayId, stopId, query) {
+    const trip = state.trips.find(t => t.id === state.activeTripId);
+    const grid = document.getElementById('image-grid');
+    if (!grid) return;
+
+    grid.innerHTML = '<p style="grid-column: span 3; color: var(--text-secondary); text-align:center; padding: 2rem 0; font-size:0.9rem;">正在从 Google Maps 获取该地点的实拍图...</p>';
+
+    try {
+        const { Place, SearchNearbyPriority } = await google.maps.importLibrary("places");
+
+        // Use Text Search to find the specific place
+        const { places } = await google.maps.places.Place.searchByText({
+            textQuery: query,
+            fields: ['photos', 'displayName', 'id'],
+            maxResultCount: 1
+        });
+
+        if (!places || places.length === 0 || !places[0].photos || places[0].photos.length === 0) {
+            grid.innerHTML = '<p style="grid-column: span 3; color: var(--text-secondary); text-align:center; padding: 2rem 0; font-size:0.9rem;">未在 Google Maps 上找到该地点的照片，请尝试更换关键词。</p>';
+            return;
+        }
+
+        const place = places[0];
+        let html = '';
+
+        // Limit to 9 photos for the grid
+        const photos = place.photos.slice(0, 9);
+
+        photos.forEach((photo, idx) => {
+            const url = photo.getURI({ maxWidth: 600 });
+            html += `
+                <div class="image-thumb-option" 
+                     onclick="window.selectStopThumb(event, '${url}')" 
+                     ondblclick="window.selectStopThumb(event, '${url}'); window.confirmStopImage('${dayId}', '${stopId}')" 
+                     style="background-image:url('${url}'); border-radius:8px; height:100px; background-size:cover; background-position:center; cursor:pointer; border:2px solid transparent; transition:all 0.2s;"
+                     data-url="${url}">
+                </div>
+            `;
+        });
+
+        grid.innerHTML = html;
+
+    } catch (err) {
+        console.error('[searchGoogleStopImages] failed:', err);
+        grid.innerHTML = '<p style="grid-column: span 3; color: var(--text-secondary); text-align:center; padding: 2rem 0; font-size:0.9rem;">获取照片失败，请检查网络或重试。</p>';
+    }
+}

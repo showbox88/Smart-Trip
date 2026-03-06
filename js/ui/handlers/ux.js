@@ -1,7 +1,7 @@
 import { state, editState, setEditingContext } from '../../state.js';
 import { renderApp } from '../render.js';
 import { saveData } from '../../api.js';
-import { searchImages } from './search.js';
+import { searchImages, searchGoogleStopImages } from './search.js';
 import { getDayHTML } from '../templates/itinerary.js';
 
 // --- Modal Management ---
@@ -995,25 +995,35 @@ function saveMockExpense() {
     closeSubModal();
 }
 
-window.changeStopImage = function (dayId, stopId) {
+function changeStopImage(dayId, stopId) {
     const trip = state.trips.find(t => t.id === state.activeTripId);
     const day = trip.days.find(d => d.id === dayId);
     const stop = day.stops.find(s => s.id === stopId);
 
     const title = document.getElementById('sub-modal-title');
     const body = document.getElementById('sub-modal-body');
-    title.innerText = '修改地点图片';
+    title.innerText = '修改地点照片';
 
     body.innerHTML = `
         <div style="padding: 10px 0;">
-            <p style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:1rem;">请输入新的图片链接 URL:</p>
-            <input type="text" id="new-stop-image-url" value="${stop.photo || ''}" placeholder="https://example.com/image.jpg" 
-                style="width:100%; padding:14px; border:1.5px solid var(--glass-border); border-radius:10px; background:var(--bg-secondary); color:var(--text-primary); outline:none; font-size:1rem; transition:all 0.2s;" 
-                onfocus="this.style.borderColor='var(--accent-primary)'; this.style.boxShadow='0 0 0 3px rgba(79, 70, 229, 0.1)';" onblur="this.style.borderColor='var(--glass-border)'; this.style.boxShadow='none'">
+            <p style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:1rem;">从 Google Maps 搜索实拍图:</p>
+            <div style="display:flex; gap:8px; margin-bottom:16px;">
+                <input type="text" id="stop-image-search-input" value="${stop.location}" placeholder="输入地名或关键词" 
+                    style="flex:1; padding:12px; border:1.5px solid var(--glass-border); border-radius:10px; background:var(--bg-secondary); color:var(--text-primary); outline:none; font-size:1rem;" 
+                    onkeydown="if(event.key === 'Enter') window.searchGoogleStopImages('${dayId}', '${stopId}', this.value)">
+                <button onclick="window.searchGoogleStopImages('${dayId}', '${stopId}', document.getElementById('stop-image-search-input').value)" 
+                    style="padding:0 20px; border-radius:10px; border:none; background:var(--accent-primary); color:white; cursor:pointer; font-weight:600;">搜索</button>
+            </div>
+            
+            <div id="image-grid" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; min-height:220px; max-height:350px; overflow-y:auto; padding:4px;">
+                <!-- Google photos loaded here -->
+            </div>
+            
+            <input type="hidden" id="selected-stop-image-url" value="${stop.photo || ''}">
             
             <div style="margin-top:24px; display:flex; gap:12px; justify-content:flex-end;">
                 <button onclick="closeSubModal()" style="padding:10px 24px; border-radius:20px; border:none; background:var(--bg-secondary); color:var(--text-secondary); cursor:pointer; font-weight:600; font-size:0.95rem;">取消</button>
-                <button onclick="window.saveStopImage('${dayId}', '${stopId}')" style="padding:10px 32px; border-radius:20px; border:none; background:var(--accent-primary); color:white; cursor:pointer; font-weight:600; font-size:0.95rem; box-shadow:0 4px 12px rgba(79, 70, 229, 0.3);">保存图片</button>
+                <button onclick="window.confirmStopImage('${dayId}', '${stopId}')" style="padding:10px 32px; border-radius:20px; border:none; background:var(--accent-primary); color:white; cursor:pointer; font-weight:600; font-size:0.95rem; box-shadow:0 4px 12px rgba(79, 70, 229, 0.3);">确定更换</button>
             </div>
         </div>
     `;
@@ -1022,14 +1032,42 @@ window.changeStopImage = function (dayId, stopId) {
     overlay.classList.add('active');
     overlay.classList.remove('hidden');
 
+    // Initial search
     setTimeout(() => {
-        const input = document.getElementById('new-stop-image-url');
-        if (input) { input.focus(); input.select(); }
+        searchGoogleStopImages(dayId, stopId, stop.location);
     }, 100);
+}
+
+window.selectStopThumb = function (event, url) {
+    if (event) event.stopPropagation();
+    document.getElementById('selected-stop-image-url').value = url;
+
+    // UI feedback
+    document.querySelectorAll('#image-grid .image-thumb-option').forEach(el => {
+        el.style.border = '2px solid transparent';
+        el.style.transform = 'scale(1)';
+        el.style.boxShadow = 'none';
+    });
+
+    if (event && event.currentTarget) {
+        event.currentTarget.style.border = '2px solid var(--accent-primary)';
+        event.currentTarget.style.transform = 'scale(1.02)';
+        event.currentTarget.style.boxShadow = '0 4px 12px rgba(79, 70, 229, 0.3)';
+    }
 };
 
-window.saveStopImage = function (dayId, stopId) {
-    const newUrl = document.getElementById('new-stop-image-url').value;
+window.confirmStopImage = function (dayId, stopId) {
+    const newUrl = document.getElementById('selected-stop-image-url').value;
+    if (!newUrl) {
+        closeSubModal();
+        return;
+    }
+    window.saveStopImage(dayId, stopId, newUrl);
+};
+
+
+function saveStopImage(dayId, stopId, passedUrl) {
+    const newUrl = passedUrl || document.getElementById('selected-stop-image-url').value;
     const trip = state.trips.find(t => t.id === state.activeTripId);
     const day = trip.days.find(d => d.id === dayId);
     const stop = day.stops.find(s => s.id === stopId);
@@ -1051,7 +1089,7 @@ window.saveStopImage = function (dayId, stopId) {
     }, 50);
 
     closeSubModal();
-};
+}
 
 // --- Exports ---
 export {
@@ -1063,5 +1101,7 @@ export {
     openTimePickerModal, openExpenseModal,
     selectMockTime, saveMockExpense,
     changeStopImage,
-    saveStopImage
+    saveStopImage,
+    selectStopThumb,
+    confirmStopImage
 };
