@@ -749,35 +749,170 @@ function openExpenseModal() {
     const day = trip.days.find(d => d.id === editState.editingDayId);
     const stop = editState.editingStopId ? day.stops.find(s => s.id === editState.editingStopId) : { location: '', price: '' };
 
+    // Get formatted date like "10/26"
+    const dateStr = day.date.split('月');
+    let formattedDate = '添加日期';
+    if (dateStr.length > 1) {
+        const month = parseInt(dateStr[0].replace(/[^0-9]/g, '')).toString().padStart(2, '0');
+        const dStr = dateStr[1].split('日');
+        const d = parseInt(dStr[0].replace(/[^0-9]/g, '')).toString().padStart(2, '0');
+        formattedDate = `${month}/${d}`;
+    }
+
+    // Category Icons Map
+    const categoryIcons = {
+        '航班': '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="color:white;"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>',
+        '住宿': '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="color:white;"><path d="M7 13c1.66 0 3-1.34 3-3S8.66 7 7 7s-3 1.34-3 3 1.34 3 3 3zm12-6h-8v7H3V5H1v15h2v-3h18v3h2v-9c0-2.21-1.79-4-4-4z"/></svg>',
+        '租车': '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="color:white;"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>',
+        '交通': '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="color:white;"><path d="M12 2c-4 0-8 .5-8 4v9.5C4 17.43 5.57 19 7.5 19L6 20.5v.5h12v-.5L16.5 19c1.93 0 3.5-1.57 3.5-3.5V6c0-3.5-3.58-4-8-4zm5.66 3H6.34C6.83 4.15 8.95 4 12 4c3.05 0 5.17.15 5.66 1zM11 7v3H6V7h5zm2 0h5v3h-5V7zm-1.5 10.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm5-5H7.5c-1.1 0-2-.9-2-2v-1h13v1c0 1.1-.9 2-2 2z"/></svg>',
+        '餐饮': '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="color:white;"><path d="M11 9H9V2H7v7H5V2H3v7c0 2.12 1.66 3.84 3.75 3.97V22h2.5v-9.03C11.34 12.84 13 11.12 13 9V2h-2v7zm5-3v8h2.5v8H21V2c-2.76 0-5 2.24-5 4z"/></svg>',
+        '饮料': '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="color:white;"><path d="M21 5V3H3v2l8 9v5H6v2h12v-2h-5v-5l8-9zM7.43 7L5.66 5h12.69l-1.78 2H7.43z"/></svg>',
+        '观光': '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="color:white;"><path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3zm0 2.8L18.7 10H5.3L12 5.8z"/></svg>',
+        '活动': '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="color:white;"><path d="M16.5 10V9h-2v1H12V9h-2v1H8V9H6v1c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V12c0-1.1-.9-2-2-2h-3.5zm-3 8h-3v-3h3v3zm4 0h-3v-3h3v3zm0-4h-3v-3h3v3zm-4 0h-3v-3h3v3zM6 18v-3h3v3H6zm0-4v-3h3v3H6zm10.5-8V4h-9v2H6V4c0-1.1.9-2 2-2h9c1.1 0 2 .9 2 2v2h-2.5z"/></svg>',
+        '购物': '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="color:white;"><path d="M18 6h-2c0-2.21-1.79-4-4-4S8 3.79 8 6H6c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-6-2c1.1 0 2 .9 2 2h-4c0-1.1.9-2 2-2zm6 16H6V8h2v2c0 .55.45 1 1 1s1-.45 1-1V8h4v2c0 .55.45 1 1 1s1-.45 1-1V8h2v12z"/></svg>',
+        '汽油': '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="color:white;"><path d="M19.77 7.23l.01-.01-3.72-3.72L15 4.56l2.11 2.11C16.17 7 15.5 8.22 15.5 9.5c0 2.48 2.02 4.5 4.5 4.5V22h2V11c0-2.05-1.63-3.73-3.66-3.87.12-.2.21-.42.27-.65.06-.27.16-.54.16-.85 0-.58-.23-1.1-.58-1.4h-.01zM20 12c-1.38 0-2.5-1.12-2.5-2.5S18.62 7 20 7s2.5 1.12 2.5 2.5S21.38 12 20 12zM12 10H4v6h8v-6zm0-6H4c-1.1 0-2 .9-2 2v16h12V6c0-1.1-.9-2-2-2zM4 2h12v2H4z"/></svg>',
+        '杂货': '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="color:white;"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>',
+        '其他': '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="color:white;"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>'
+    };
+
+    const currentCat = stop.expenseCategory || '活动';
+    const currentIcon = categoryIcons[currentCat] || categoryIcons['活动'];
+
     body.innerHTML = `
-        <div class="form-group" style="position:relative; margin-bottom:1.5rem;">
-            <div style="display:flex; align-items:center; border: 2px solid rgba(167, 139, 250, 0.4); border-radius:12px; padding: 1rem; font-size: 1.5rem; font-weight:bold;">
-                <span style="color:var(--text-primary); margin-right:5px;">$ ▼</span>
-                <input type="number" id="expense-amount" placeholder="0" value="${stop.price || ''}" style="border:none; background:transparent; color:var(--text-primary); font-size: 1.5rem; font-weight:bold; width:100%; outline:none;">
+        <style>
+            .expense-modal-group {
+                border: 1px solid var(--glass-border);
+                border-radius: 8px;
+                background: var(--bg-primary);
+                margin-bottom: 12px;
+                overflow: hidden;
+            }
+            .expense-modal-row {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 14px 16px;
+                font-size: 1rem;
+                color: var(--text-primary);
+            }
+            .expense-modal-row:not(:last-child) {
+                border-bottom: 1px solid var(--glass-border);
+            }
+            .expense-dropdown-text {
+                flex-shrink: 0;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            .expense-cat-grid {
+                display: none;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 8px;
+                padding: 12px 16px;
+                background: #1b2533; /* Dark blue background for the entire dropdown */
+                border-top: 1px solid var(--glass-border);
+            }
+            .expense-cat-item {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 8px;
+                padding: 12px 0;
+                border-radius: 8px;
+                cursor: pointer;
+                background: #101623; /* Darker blue background for individual items */
+                transition: background 0.15s;
+            }
+            .expense-cat-item:hover {
+                background: rgba(255,255,255,0.05); /* very subtle hover */
+            }
+            .expense-cat-icon {
+                width: 36px;
+                height: 36px;
+                border-radius: 10px;
+                background: #94a3b8; /* Light blue-grey pill background for icons */
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .expense-cat-item.selected .expense-cat-icon {
+                background: #ff6b00; /* Orange background for selected icon */
+            }
+            .expense-cat-label {
+                font-size: 0.75rem;
+                color: #e2e8f0; /* Light text for labels on dark background */
+                font-weight: 600;
+            }
+        </style>
+
+        <div class="expense-modal-group">
+            <div class="expense-modal-row">
+                <div class="expense-dropdown-text" style="font-size: 1.3rem; margin-right: 12px;">$ <span style="font-size:0.8rem; opacity:0.6;">▼</span></div>
+                <input type="number" id="expense-amount" placeholder="0.00" value="${stop.price && stop.price !== '0' ? stop.price : ''}" autofocus style="border:none; width:100%; font-size:1.1rem; color:var(--text-primary); outline:none; background:transparent;">
             </div>
         </div>
-        <div class="form-group" style="margin-bottom:1.5rem; display:flex; align-items:center; justify-content:space-between; border: 1px solid var(--glass-border); padding:1rem 1.2rem; border-radius:12px; cursor:pointer; background: var(--bg-primary);">
-            <span style="font-size:1.1rem;">✈️ 航班</span>
-            <span>></span>
+
+        <div class="expense-modal-group">
+            <div class="expense-modal-row" style="cursor:pointer;" onclick="document.getElementById('expense-cat-grid').style.display = document.getElementById('expense-cat-grid').style.display === 'grid' ? 'none' : 'grid'">
+                <div class="expense-dropdown-text">
+                    <span id="expense-selected-icon-container" style="display:flex; align-items:center; justify-content:center; width:24px; height:24px; border-radius:6px; background:#94a3b8; margin-right:4px;">
+                        ${currentIcon}
+                    </span>
+                    <span id="expense-selected-label">${currentCat}</span>
+                </div>
+                <span style="color:var(--text-secondary); font-weight:bold;">›</span>
+            </div>
+            <div id="expense-cat-grid" class="expense-cat-grid">
+                ${Object.keys(categoryIcons).map(cat => `
+                    <div class="expense-cat-item ${currentCat === cat ? 'selected' : ''}" onclick="window.selectExpenseCategory(event, '${cat}')">
+                        <div class="expense-cat-icon" id="icon-bg-${cat}" style="background: ${currentCat === cat ? 'var(--accent-primary)' : '#94a3b8'};">
+                            ${categoryIcons[cat]}
+                        </div>
+                        <span class="expense-cat-label">${cat}</span>
+                    </div>
+                `).join('')}
+            </div>
+            <input type="hidden" id="expense-category-input" value="${currentCat}">
         </div>
-        <div class="form-group" style="margin-bottom:1.5rem;">
-            <label style="font-size:0.95rem; font-weight:bold; margin-bottom:0.5rem; display:block;">添加描述</label>
-            <textarea style="min-height: 80px; padding:1rem; background:var(--bg-primary); border: 1px solid var(--glass-border); border-radius:12px; color:var(--text-primary); width:100%; box-sizing:border-box;">${stop.location || '目的地费用'}</textarea>
+
+        <div class="expense-modal-group">
+            <div style="padding: 12px 16px;">
+                <label style="font-size:0.8rem; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">添加描述</label>
+                <textarea style="width:100%; padding:4px 0; border:none; outline:none; resize:none; font-size:1rem; color:var(--text-primary); background:transparent; min-height:48px;" placeholder="在此输入描述">${stop.location || ''}</textarea>
+            </div>
         </div>
-        <div class="form-group" style="display:flex; align-items:center; justify-content:space-between; border: 1px solid var(--glass-border); padding:1rem 1.2rem; border-radius:12px; margin-bottom:1.5rem; background: var(--bg-primary);">
-            <span style="color:var(--text-primary); font-size:1.1rem;">付款人</span>
-            <span style="color:var(--text-primary); font-weight:bold; font-size:1.1rem;">${state.user?.name || '您'} ▼</span>
+
+        <div class="expense-modal-group">
+            <div class="expense-modal-row" style="cursor:pointer;">
+                <div style="font-weight:700;">付款人</div>
+                <div class="expense-dropdown-text" style="color:var(--text-secondary); font-weight:normal;">
+                    <div style="width:24px; height:24px; border-radius:50%; background:var(--bg-secondary); display:inline-block; vertical-align:middle; background-image:url('https://picsum.photos/50'); background-size:cover;"></div>
+                    ${state.user?.name || '您（Show Box）'} <span style="font-size:0.8rem; opacity:0.6; margin-left:4px;">▼</span>
+                </div>
+            </div>
         </div>
-        <div class="form-group" style="display:flex; align-items:center; justify-content:space-between; border: 1px solid var(--glass-border); padding:1rem 1.2rem; border-radius:12px; margin-bottom:2rem; background: var(--bg-primary);">
-            <span style="color:var(--text-primary); font-size:1.1rem;">分摊</span>
-            <span style="color:var(--text-primary); font-weight:bold; font-size:1.1rem;">不分摊 ▼</span>
+
+        <div class="expense-modal-group">
+            <div class="expense-modal-row" style="cursor:pointer;">
+                <div style="font-weight:700;">分摊</div>
+                <div class="expense-dropdown-text" style="color:var(--text-secondary); font-weight:normal;">
+                    不分摊 <span style="font-size:0.8rem; opacity:0.6; margin-left:4px;">▼</span>
+                </div>
+            </div>
         </div>
-        
-        <div style="display:flex; gap:1rem; align-items:center; justify-content:space-between;">
-            <div style="color:var(--text-secondary);"><span style="font-size:1rem;">日期:</span> <strong>${day.date.substring(0, 5)} ▼</strong></div>
-            <div style="display:flex; gap:0.5rem;">
-                <button class="submit-btn" style="background:var(--bg-primary); color:var(--text-primary); padding: 0.8rem 1.5rem;" onclick="closeSubModal()">🗑️</button>
-                <button class="submit-btn" style="background:#f05252; padding: 0.8rem 2.5rem; font-weight:bold;" onclick="saveMockExpense()">保存</button>
+
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top: 1rem; margin-bottom: 0.5rem; padding: 0 4px;">
+            <div style="color:var(--text-secondary); font-weight:700; font-size:0.95rem; cursor:pointer;" title="修改日期">
+                日期: <span style="color:var(--text-secondary); font-weight:normal;">${formattedDate} ▼</span>
+            </div>
+            <div style="display:flex; gap: 1rem;">
+                <button onclick="closeSubModal()" style="background:var(--bg-secondary); color:var(--text-secondary); border:none; border-radius:20px; padding: 10px 24px; font-weight:700; display:flex; align-items:center; gap:6px; cursor:pointer; font-size:0.9rem;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6"/></svg> 删除
+                </button>
+                <button onclick="saveMockExpense()" style="background:#ef4444; color:white; border:none; border-radius:20px; padding: 10px 42px; font-weight:700; cursor:pointer; font-size:1rem; box-shadow:0 4px 10px rgba(239, 68, 68, 0.3);">
+                    保存
+                </button>
             </div>
         </div>
     `;
@@ -787,20 +922,53 @@ function openExpenseModal() {
     overlay.classList.remove('hidden');
 }
 
+window.selectExpenseCategory = function (evt, cat) {
+    if (evt) evt.stopPropagation();
+    document.getElementById('expense-category-input').value = cat;
+    document.getElementById('expense-selected-label').innerText = cat;
+
+    // Update the selected category icon
+    const iconHTML = document.getElementById(`icon-bg-${cat}`).innerHTML;
+    document.getElementById('expense-selected-icon-container').innerHTML = iconHTML;
+
+    // Reset backgrounds and apply selection
+    document.querySelectorAll('.expense-cat-item').forEach(el => el.classList.remove('selected'));
+    document.querySelectorAll('.expense-cat-icon').forEach(el => el.style.background = '#94a3b8');
+
+    if (evt && evt.currentTarget) {
+        evt.currentTarget.classList.add('selected');
+    }
+    document.getElementById(`icon-bg-${cat}`).style.background = '#ff6b00';
+
+    // Auto collapse after selection
+    setTimeout(() => {
+        document.getElementById('expense-cat-grid').style.display = 'none';
+    }, 150);
+}
+
 function saveMockExpense() {
     const amount = document.getElementById('expense-amount').value;
+    const catInput = document.getElementById('expense-category-input');
+    const cat = catInput ? catInput.value : '活动';
+
     const trip = state.trips.find(t => t.id === state.activeTripId);
     const day = trip.days.find(d => d.id === editState.editingDayId);
 
     if (editState.editingStopId) {
         const stop = day.stops.find(s => s.id === editState.editingStopId);
-        if (stop) stop.price = amount;
+        if (stop) {
+            stop.price = amount;
+            stop.expenseCategory = cat;
+        }
     }
 
-    if (isDirectEdit) {
+    if (typeof isDirectEdit !== 'undefined' && isDirectEdit) {
         saveData();
         renderApp();
         isDirectEdit = false;
+    } else {
+        saveData(); // Save the new category/price
+        renderApp(); // Re-render to show updated price/icon globally if needed
     }
     closeSubModal();
 }

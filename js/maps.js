@@ -478,6 +478,65 @@ window.triggerMapSearch = async function (query, typeRestraint = null) {
     }
 }
 
+// Function to programmatically open the map info panel for a location (e.g. from itinerary card click)
+window.openLocationInMapPanel = async function (query, lat, lng) {
+    if (!googleMapInstance || !query) return;
+
+    const debugEl = document.getElementById('map-debug-status');
+    if (debugEl) debugEl.innerText = `Map Status: Loading info for ${query}...`;
+
+    try {
+        const { Place } = await google.maps.importLibrary('places');
+        const searchRequest = {
+            textQuery: query,
+            fields: ['id', 'displayName', 'formattedAddress', 'rating', 'userRatingCount', 'types', 'photos', 'priceLevel', 'regularOpeningHours', 'nationalPhoneNumber', 'internationalPhoneNumber', 'websiteURI', 'reviews', 'location'],
+            language: 'zh-CN',
+            maxResultCount: 3
+        };
+
+        if (lat !== undefined && lng !== undefined && !isNaN(lat) && !isNaN(lng)) {
+            searchRequest.locationBias = new google.maps.LatLng(Number(lat), Number(lng));
+        }
+
+        const { places } = await Place.searchByText(searchRequest);
+
+        if (places && places.length > 0) {
+            let bestPlace = places[0];
+            if (lat && lng) {
+                let minDist = Infinity;
+                places.forEach(p => {
+                    if (p.location) {
+                        const plat = p.location.lat();
+                        const plng = p.location.lng();
+                        const dist = Math.pow(plat - Number(lat), 2) + Math.pow(plng - Number(lng), 2);
+                        if (dist < minDist) {
+                            minDist = dist;
+                            bestPlace = p;
+                        }
+                    }
+                });
+            }
+
+            if (bestPlace.location) {
+                googleMapInstance.panTo(bestPlace.location);
+            }
+            // Trigger native map info panel explicitly with the resolved place data
+            google.maps.event.trigger(googleMapInstance, 'click', { placeId: bestPlace.id, stop: () => { } });
+
+            if (debugEl) debugEl.innerText = `Map Status: Showing ${bestPlace.displayName || query}`;
+        } else {
+            console.warn("No place resolved for:", query);
+            if (debugEl) debugEl.innerText = `Map Status: No detailed info found for ${query}`;
+            if (lat && lng) {
+                googleMapInstance.panTo({ lat: Number(lat), lng: Number(lng) });
+            }
+        }
+    } catch (err) {
+        console.error('[map-search] Failed to open location in map panel:', err);
+        if (debugEl) debugEl.innerText = "Map Status: Error retrieving place info";
+    }
+};
+
 // --- Map Info Panel ---
 async function showMapInfoPanel(place, placeId) {
     closeMapInfoPanel();
@@ -612,6 +671,34 @@ async function showMapInfoPanel(place, placeId) {
 
     let defaultDayTitle = selectedDay?.title || (selectedDay ? ('第' + (activeTrip.days.indexOf(selectedDay) + 1) + '天') : '选择日期');
 
+    // Check if this place is already in the itinerary
+    let addedDays = [];
+    if (activeTrip && activeTrip.days) {
+        activeTrip.days.forEach((day, index) => {
+            if (day.stops) {
+                const match = day.stops.some(s => s.location && place.displayName && s.location.toLowerCase() === place.displayName.toLowerCase());
+                if (match) {
+                    addedDays.push({ id: day.id, title: day.title || `第${index + 1}天` });
+                }
+            }
+        });
+    }
+
+    let addedStatusHtml = '';
+    if (addedDays.length > 0) {
+        addedStatusHtml = `
+            <div style="position:relative; display:inline-block; margin-left: 10px;">
+                <button onclick="toggleMenu(event, 'map-added-status-${placeId}')" style="background:rgba(34, 197, 94, 0.15); color:#22c55e; border:1px solid rgba(34, 197, 94, 0.3); border-radius:8px; padding:6px 14px; font-weight:700; font-size:0.85rem; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:background 0.15s;" onmouseover="this.style.background='rgba(34, 197, 94, 0.25)'" onmouseout="this.style.background='rgba(34, 197, 94, 0.15)'">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> 已加入
+                </button>
+                <div class="menu-dropdown" id="menu-map-added-status-${placeId}" style="top:2.5rem; left:0; min-width:140px; padding: 0.5rem; z-index: 1000;">
+                    <div style="font-size: 0.75rem; color:var(--text-secondary); margin-bottom: 0.4rem; padding: 0 4px;">已存在于以下行程：</div>
+                    ${addedDays.map(d => `<div style="padding: 4px 8px; font-size: 0.85rem; color:var(--text-primary); background: rgba(255,255,255,0.05); border-radius: 4px; margin-bottom: 4px;">${d.title}</div>`).join('')}
+                </div>
+            </div>
+        `;
+    }
+
     panel.innerHTML = `
         <div style="display:flex; border-bottom:1px solid rgba(255,255,255,0.1); padding: 0 0.8rem; height: 50px; position:relative; background:#0d111b; flex-shrink:0;">
             <button class="poi-tab active" data-target="poi-about" style="padding:0 16px; background:none; border:none; color:var(--accent-primary); font-weight:700; border-bottom:2px solid var(--accent-primary); cursor:pointer; font-size:0.95rem; display:flex; align-items:center;">简介 (About)</button>
@@ -622,11 +709,12 @@ async function showMapInfoPanel(place, placeId) {
             </button>
         </div>
         
-        <div style="padding: 0.8rem 1.2rem 0 1.2rem; z-index: 10;">
+        <div style="padding: 0.8rem 1.2rem 0 1.2rem; z-index: 10; display: flex; align-items: center;">
             <!-- Single "Add to Trip" button -->
             <button id="map-add-trigger" class="map-custom-select" style="background:var(--accent-primary); color:white; border:none; border-radius:8px; padding:6px 18px; font-weight:700; font-size:0.9rem; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow: 0 4px 12px rgba(249,115,22,0.3); transition:transform 0.15s, background 0.15s;" onmouseover="this.style.transform='translateY(-1px)'; this.style.background='rgba(249,115,22,0.95)'" onmouseout="this.style.transform='translateY(0)'; this.style.background='var(--accent-primary)'">
                 <span style="font-size:1.1rem; margin-top:-1px;">+</span> 添加到行程
             </button>
+            ${addedStatusHtml}
         </div>
 
         <div style="flex:1; overflow-y:auto; padding: 0.8rem 1.2rem 1.2rem 1.2rem; position:relative; z-index: 1;" class="custom-scrollbar">
@@ -836,7 +924,9 @@ async function showMapInfoPanel(place, placeId) {
                                 triggerBtn.innerHTML = originalHtml;
                                 triggerBtn.disabled = false;
                             }
-                        }, 2000);
+                            // Re-render the panel to show the new "Added" badge state
+                            showMapInfoPanel(place, placeId);
+                        }, 600);
                     } catch (error) {
                         console.error('[maps] Error adding location:', error);
                         triggerBtn.innerHTML = '<span>❌</span> 添加失败';

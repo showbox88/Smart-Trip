@@ -70,7 +70,7 @@ export function getTimelineItemHTML(day, stop, index, locationIdx, showTransit, 
         circleHtml = '';
 
         contentHtml = `
-            <div class="rich-stop-card" onclick="openEditModal('${day.id}', '${stop.id}')" style="background: var(--bg-deep); border-radius: 8px; padding: 1rem; display:flex; gap: 1rem; transition: background 0.2s, backdrop-filter 0.2s; cursor: pointer; border: 1px solid var(--glass-border); box-shadow: 0 2px 8px rgba(0,0,0,0.05); align-items: flex-start;">
+            <div class="rich-stop-card" onclick="if(window.openLocationInMapPanel) window.openLocationInMapPanel('${stop.location.replace(/'/g, "\\'")}', ${stop.lat || 'undefined'}, ${stop.lng || 'undefined'});" style="background: var(--bg-deep); border-radius: 8px; padding: 1rem; display:flex; gap: 1rem; transition: background 0.2s, backdrop-filter 0.2s; cursor: pointer; border: 1px solid var(--glass-border); box-shadow: 0 2px 8px rgba(0,0,0,0.05); align-items: flex-start;">
                 <div style="flex:1;">
                     <div style="display:flex; align-items:center; gap: 10px; margin-bottom: 0.6rem;">
                         <div class="rich-stop-card-dot" style="width: 24px; height: 24px; background: ${activeColor}; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display:flex; align-items:center; justify-content:center; box-shadow: 0 2px 6px rgba(0,0,0,0.35); flex-shrink:0;">

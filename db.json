@@ -11,13 +11,81 @@
             "startDate": "2026-05-10",
             "endDate": "2026-05-16",
             "thumb": "/uploads/ad465ebcfe13ccd14f9d7ad8a7f7b1a0.jpg",
-            "activeDayId": "day-1772580447645-0",
+            "activeDayId": "day-1772580447645-2",
             "days": [
                 {
                     "id": "day-1772580447645-0",
                     "title": "第 1 天",
                     "date": "2026年5月10日",
                     "stops": [
+                        {
+                            "id": "n1772748193385",
+                            "type": "note",
+                            "content": "",
+                            "checked": false
+                        },
+                        {
+                            "id": "l1772748195308",
+                            "type": "list",
+                            "title": "",
+                            "items": []
+                        },
+                        {
+                            "id": "s1772745646344",
+                            "location": "Rudi's Bar & Grill",
+                            "desc": "Casual, lively sports bar & grill featuring American fare, multiple TVs & live music.",
+                            "address": "554 NY-112, Patchogue, NY 11772, USA",
+                            "phone": "(631) 627-6726",
+                            "time": "11:00 ",
+                            "period": "AM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 40.7877035,
+                            "lng": -73.00958179999999,
+                            "photo": "/uploads/8e4f5f512169aa1e6413cf6f9f0e010e.jpg",
+                            "rating": 4.3,
+                            "category": "酒吧",
+                            "categoryIcon": "🍸",
+                            "transitToNext": {
+                                "duration": "3 分钟",
+                                "distance": "1.5 公里"
+                            }
+                        },
+                        {
+                            "id": "s1772813322393",
+                            "location": "Chuck E. Cheese",
+                            "desc": "Kid-friendly chain known for its arcade games, pizza parties & play zones.",
+                            "address": "121 Sunrise Hwy, Patchogue, NY 11772, USA",
+                            "phone": "(631) 654-9373",
+                            "time": "01:00  ",
+                            "period": "PM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 40.7810068,
+                            "lng": -73.0019348,
+                            "photo": "/uploads/c68edc6b9be301540cda0a344727ed66.jpg",
+                            "rating": 4.2,
+                            "category": "外卖",
+                            "categoryIcon": "🥡",
+                            "transitToNext": null
+                        }
+                    ],
+                    "color": "#8b5cf6",
+                    "subtitle": "测试测试"
+                },
+                {
+                    "id": "day-1772580447645-1",
+                    "title": "第 2 天",
+                    "date": "2026年5月11日",
+                    "stops": [
+                        {
+                            "id": "n1772748194332",
+                            "type": "note",
+                            "content": "",
+                            "checked": false
+                        },
                         {
                             "id": "s1772745638251",
                             "location": "Karvers Grille",
@@ -37,51 +105,81 @@
                             "categoryIcon": "🍴",
                             "transitToNext": {
                                 "duration": "8 分钟",
-                                "distance": "5.3 公里"
+                                "distance": "5.4 公里"
                             }
                         },
                         {
-                            "id": "s1772745646344",
-                            "location": "Rudi's Bar & Grill",
-                            "desc": "Casual, lively sports bar & grill featuring American fare, multiple TVs & live music.",
-                            "address": "554 NY-112, Patchogue, NY 11772, USA",
-                            "phone": "(631) 627-6726",
+                            "id": "s1772814388777",
+                            "location": "Ristegio's Restaurant & Lounge",
+                            "desc": "Casually elegant restaurant & bar with a varied menu that includes steaks, seafood, pasta & sushi.",
+                            "address": "641 Medford Ave #112, Patchogue, NY 11772, USA",
+                            "phone": "(631) 731-3663",
                             "time": "11:00 ",
                             "period": "AM",
                             "note": "",
                             "price": "0",
                             "type": "location",
-                            "lat": 40.7877035,
-                            "lng": -73.00958179999999,
-                            "photo": "/uploads/8e4f5f512169aa1e6413cf6f9f0e010e.jpg",
-                            "rating": 4.3,
-                            "category": "酒吧",
-                            "categoryIcon": "🍸",
+                            "lat": 40.7903879,
+                            "lng": -73.00810369999999,
+                            "photo": "/uploads/50eeaaa970e4af11f10d64a971dbe56a.jpg",
+                            "rating": 3.9,
+                            "category": "餐饮",
+                            "categoryIcon": "🍴",
                             "transitToNext": null
                         }
                     ],
-                    "color": "#8b5cf6",
-                    "subtitle": "测试测试"
-                },
-                {
-                    "id": "day-1772580447645-1",
-                    "title": "第 2 天",
-                    "date": "2026年5月11日",
-                    "stops": [],
                     "color": "#10b981"
                 },
                 {
                     "id": "day-1772580447645-2",
                     "title": "第 3 天",
                     "date": "2026年5月12日",
-                    "stops": [],
+                    "stops": [
+                        {
+                            "id": "s1772814236458",
+                            "location": "El Matador Restaurant",
+                            "desc": "",
+                            "address": "680 NY-112, East Patchogue, NY 11772, USA",
+                            "phone": "(631) 569-5082",
+                            "time": "09:00",
+                            "period": "AM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 40.7918362,
+                            "lng": -73.0084016,
+                            "photo": "/uploads/f221fd4d6d8a333f91b53bb0033f9c2b.jpg",
+                            "rating": 4.6,
+                            "category": "餐饮",
+                            "categoryIcon": "🍴"
+                        }
+                    ],
                     "color": "#f59e0b"
                 },
                 {
                     "id": "day-1772580447645-3",
                     "title": "第 4 天",
                     "date": "2026年5月13日",
-                    "stops": [],
+                    "stops": [
+                        {
+                            "id": "s1772814178985",
+                            "location": "Rudi's Bar & Grill",
+                            "desc": "Casual, lively sports bar & grill featuring American fare, multiple TVs & live music.",
+                            "address": "554 NY-112, Patchogue, NY 11772, USA",
+                            "phone": "(631) 627-6726",
+                            "time": "09:00",
+                            "period": "AM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 40.7877035,
+                            "lng": -73.00958179999999,
+                            "photo": "/uploads/22cea41140684e2900eebf712bb039ab.jpg",
+                            "rating": 4.3,
+                            "category": "酒吧",
+                            "categoryIcon": "🍸"
+                        }
+                    ],
                     "color": "#ef4444"
                 },
                 {
@@ -160,9 +258,9 @@
         "day-1772579247304-3": true,
         "day-1772579247304-4": true,
         "day-1772580447645-0": false,
-        "day-1772580447645-1": true,
-        "day-1772580447645-2": true,
-        "day-1772580447645-3": true,
+        "day-1772580447645-1": false,
+        "day-1772580447645-2": false,
+        "day-1772580447645-3": false,
         "day-1772580447645-4": true,
         "day-1772651798322": true,
         "day-1772651800334": true
