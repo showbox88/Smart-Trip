@@ -97,7 +97,7 @@ export function getTimelineItemHTML(day, stop, index, locationIdx, showTransit, 
                     </div>
                 </div>
                 <!-- Thumb for Stop -->
-                <div style="width: 100px; height: 75px; border-radius: 6px; background-image: url('${stop.photo || 'https://picsum.photos/seed/' + stop.id + '/300/200'}'); background-size: cover; background-position: center; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.2);"></div>
+                <div onclick="window.changeStopImage('${day.id}', '${stop.id}')" style="cursor: pointer; width: 100px; height: 75px; border-radius: 6px; background-image: url('${stop.photo || 'https://picsum.photos/seed/' + stop.id + '/300/200'}'); background-size: cover; background-position: center; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.2);" title="点击更换图片"></div>
             </div>
         `;
     }

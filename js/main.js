@@ -215,6 +215,8 @@ window.openTimePickerModal = UXHandlers.openTimePickerModal;
 window.openExpenseModal = UXHandlers.openExpenseModal;
 window.selectMockTime = UXHandlers.selectMockTime;
 window.saveMockExpense = UXHandlers.saveMockExpense;
+window.changeStopImage = UXHandlers.changeStopImage;
+window.saveStopImage = UXHandlers.saveStopImage;
 
 // Drag & Drop
 window.handleDragStart = UXHandlers.handleDragStart;

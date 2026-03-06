@@ -10,7 +10,7 @@
             "title": "新的神秘冒险",
             "startDate": "2026-05-10",
             "endDate": "2026-05-16",
-            "thumb": "/uploads/ad465ebcfe13ccd14f9d7ad8a7f7b1a0.jpg",
+            "thumb": "/uploads/0cd1f45ff26ba9624c57168479f078eb.jpg",
             "activeDayId": "day-1772580447645-2",
             "days": [
                 {
@@ -39,7 +39,7 @@
                             "time": "11:00 ",
                             "period": "AM",
                             "note": "",
-                            "price": "30",
+                            "price": "40",
                             "type": "location",
                             "lat": 40.7877035,
                             "lng": -73.00958179999999,
@@ -51,7 +51,8 @@
                                 "duration": "3 分钟",
                                 "distance": "1.5 公里"
                             },
-                            "expenseCategory": "观光"
+                            "expenseCategory": "观光",
+                            "transitMode": "WALK"
                         },
                         {
                             "id": "s1772813322393",
@@ -72,6 +73,12 @@
                             "categoryIcon": "🥡",
                             "transitToNext": null,
                             "expenseCategory": "汽油"
+                        },
+                        {
+                            "id": "n1772823990382",
+                            "type": "note",
+                            "content": "",
+                            "checked": false
                         }
                     ],
                     "color": "#8b5cf6",
@@ -132,7 +139,8 @@
                             "expenseCategory": "活动"
                         }
                     ],
-                    "color": "#10b981"
+                    "color": "#10b981",
+                    "subtitle": ""
                 },
                 {
                     "id": "day-1772580447645-2",
@@ -263,8 +271,8 @@
         "day-1772579247304-4": true,
         "day-1772580447645-0": false,
         "day-1772580447645-1": false,
-        "day-1772580447645-2": false,
-        "day-1772580447645-3": false,
+        "day-1772580447645-2": true,
+        "day-1772580447645-3": true,
         "day-1772580447645-4": true,
         "day-1772651798322": true,
         "day-1772651800334": true

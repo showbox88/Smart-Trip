@@ -995,6 +995,64 @@ function saveMockExpense() {
     closeSubModal();
 }
 
+window.changeStopImage = function (dayId, stopId) {
+    const trip = state.trips.find(t => t.id === state.activeTripId);
+    const day = trip.days.find(d => d.id === dayId);
+    const stop = day.stops.find(s => s.id === stopId);
+
+    const title = document.getElementById('sub-modal-title');
+    const body = document.getElementById('sub-modal-body');
+    title.innerText = '修改地点图片';
+
+    body.innerHTML = `
+        <div style="padding: 10px 0;">
+            <p style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:1rem;">请输入新的图片链接 URL:</p>
+            <input type="text" id="new-stop-image-url" value="${stop.photo || ''}" placeholder="https://example.com/image.jpg" 
+                style="width:100%; padding:14px; border:1.5px solid var(--glass-border); border-radius:10px; background:var(--bg-secondary); color:var(--text-primary); outline:none; font-size:1rem; transition:all 0.2s;" 
+                onfocus="this.style.borderColor='var(--accent-primary)'; this.style.boxShadow='0 0 0 3px rgba(79, 70, 229, 0.1)';" onblur="this.style.borderColor='var(--glass-border)'; this.style.boxShadow='none'">
+            
+            <div style="margin-top:24px; display:flex; gap:12px; justify-content:flex-end;">
+                <button onclick="closeSubModal()" style="padding:10px 24px; border-radius:20px; border:none; background:var(--bg-secondary); color:var(--text-secondary); cursor:pointer; font-weight:600; font-size:0.95rem;">取消</button>
+                <button onclick="window.saveStopImage('${dayId}', '${stopId}')" style="padding:10px 32px; border-radius:20px; border:none; background:var(--accent-primary); color:white; cursor:pointer; font-weight:600; font-size:0.95rem; box-shadow:0 4px 12px rgba(79, 70, 229, 0.3);">保存图片</button>
+            </div>
+        </div>
+    `;
+
+    const overlay = document.getElementById('sub-modal-overlay');
+    overlay.classList.add('active');
+    overlay.classList.remove('hidden');
+
+    setTimeout(() => {
+        const input = document.getElementById('new-stop-image-url');
+        if (input) { input.focus(); input.select(); }
+    }, 100);
+};
+
+window.saveStopImage = function (dayId, stopId) {
+    const newUrl = document.getElementById('new-stop-image-url').value;
+    const trip = state.trips.find(t => t.id === state.activeTripId);
+    const day = trip.days.find(d => d.id === dayId);
+    const stop = day.stops.find(s => s.id === stopId);
+
+    // Capture scroll position
+    const scrollContainer = document.getElementById('itinerary-scroll-container');
+    const currentScrollTop = scrollContainer ? scrollContainer.scrollTop : 0;
+
+    stop.photo = newUrl;
+    saveData();
+    renderApp();
+
+    // Restore scroll position
+    setTimeout(() => {
+        const newScrollContainer = document.getElementById('itinerary-scroll-container');
+        if (newScrollContainer) {
+            newScrollContainer.scrollTop = currentScrollTop;
+        }
+    }, 50);
+
+    closeSubModal();
+};
+
 // --- Exports ---
 export {
     closeModal, closeSubModal, openModal, openConfirmModal,
@@ -1003,5 +1061,7 @@ export {
     handleDragStart, handleDragOver, handleDragEnter, handleDragLeave, handleDrop, handleDragEnd,
     openTimePickerDirectly, openExpenseDirectly,
     openTimePickerModal, openExpenseModal,
-    selectMockTime, saveMockExpense
+    selectMockTime, saveMockExpense,
+    changeStopImage,
+    saveStopImage
 };
