@@ -177,21 +177,70 @@ export function initRealMap() {
             if (state.collapsedDays && state.collapsedDays[day.id]) return;
             if (!day.stops) return;
 
+            // --- Hotel Logic Detection for routePath ---
+            const allStopsWithDays = trip.days.flatMap(d => d.stops.map(s => ({ ...s, dayId: d.id })));
+            const staysMap = new Map();
+            allStopsWithDays.forEach(s => {
+                if (s.stayId) {
+                    if (!staysMap.get(s.stayId)) staysMap.set(s.stayId, { id: s.stayId, cin: null, cout: null });
+                    const stay = staysMap.get(s.stayId);
+                    if (s.type === 'hotel_checkin') stay.cin = s;
+                    if (s.type === 'hotel_checkout') stay.cout = s;
+                }
+            });
+
+            const dIdx = trip.days.findIndex(d => d.id === day.id);
+            const dayStay = Array.from(staysMap.values()).find(s => {
+                if (!s.cin || !s.cout) return false;
+                const cinIdx = trip.days.findIndex(d => d.id === s.cin.dayId);
+                const coutIdx = trip.days.findIndex(d => d.id === s.cout.dayId);
+                return dIdx >= cinIdx && dIdx <= coutIdx;
+            });
+
             let pinCount = 0;
             const dayColor = day.color || '#5b7a99';
             const routePath = []; // collect ordered positions for this day's polyline
 
+            // Get valid physical stops for this day
+            const physicalStops = day.stops.filter(stop => {
+                const isLocation = stop.type === 'location' || !stop.type;
+                const isHotelType = stop.type === 'hotel_checkin' || stop.type === 'hotel_checkout';
+                return (isLocation || isHotelType) && stop.location && stop.lat !== undefined && stop.lng !== undefined;
+            });
+
+            // 1. Prepend hotel if departing AND the first stop is NOT the hotel itself
+            const isBetween = dayStay && dayStay.cin.dayId !== day.id && dayStay.cout.dayId !== day.id;
+            const isCoutOnly = dayStay && dayStay.cout.dayId === day.id && dayStay.cin.dayId !== day.id;
+            if ((isBetween || isCoutOnly) && dayStay.cin.lat !== undefined) {
+                const hotelPos = { lat: Number(dayStay.cin.lat), lng: Number(dayStay.cin.lng) };
+                const firstPhysical = physicalStops[0];
+                const isFirstPhysicalHotel = firstPhysical && (firstPhysical.type === 'hotel_checkin' || firstPhysical.type === 'hotel_checkout');
+
+                if (!isFirstPhysicalHotel) {
+                    routePath.push(hotelPos);
+                }
+            }
+
             day.stops.forEach((stop) => {
-                if ((stop.type && stop.type !== 'location') || !stop.location) return;
-                pinCount++;
+                const isLocation = stop.type === 'location' || !stop.type;
+                const isHotelType = stop.type === 'hotel_checkin' || stop.type === 'hotel_checkout';
+
+                if (!isLocation && !isHotelType) return;
+                if (!stop.location) return;
+
+                if (isLocation) {
+                    pinCount++;
+                }
                 totalPins++;
+
                 if (stop.lat !== undefined && stop.lng !== undefined) {
                     const pos = { lat: Number(stop.lat), lng: Number(stop.lng) };
                     if (isNaN(pos.lat) || isNaN(pos.lng)) return;
 
-                    // Use img + SVG data-URI for custom marker:
-                    // This bypasses the AdvancedMarkerElement shadow-DOM white background wrapper.
-                    console.log(`[maps] Creating custom SVG marker #${pinCount} color:${dayColor}`);
+                    const markerIcon = isHotelType ? 'H' : pinCount;
+                    const markerColor = isHotelType ? '#f97316' : dayColor;
+                    const iconColor = '#ffffff';
+
                     const markerContent = document.createElement('div');
                     markerContent.style.cssText = `
                         width: 36px; height: 44px;
@@ -201,23 +250,18 @@ export function initRealMap() {
                         display: block;
                     `;
                     markerContent.innerHTML = `<svg width="36" height="44" viewBox="0 0 36 44" xmlns="http://www.w3.org/2000/svg" style="pointer-events: none;">
-                        <path d="M18 0 C8.06 0 0 8.06 0 18 C0 31.5 18 44 18 44 C18 44 36 31.5 36 18 C36 8.06 27.94 0 18 0Z" fill="${dayColor}" stroke="white" stroke-width="1.5" opacity="0.95" style="pointer-events: auto;"/>
+                        <path d="M18 0 C8.06 0 0 8.06 0 18 C0 31.5 18 44 18 44 C18 44 36 31.5 36 18 C36 8.06 27.94 0 18 0Z" fill="${markerColor}" stroke="white" stroke-width="1.5" opacity="0.95" style="pointer-events: auto;"/>
                         <circle cx="18" cy="18" r="11" fill="#1a2235" opacity="0.9" style="pointer-events: none;"/>
-                        <text x="18" y="23" text-anchor="middle" fill="white" font-size="13" font-weight="800" font-family="Arial, sans-serif" style="pointer-events: none;">${pinCount}</text>
+                        <text x="18" y="24" text-anchor="middle" fill="${iconColor}" font-size="15" font-weight="900" font-family="Arial, sans-serif" style="pointer-events: none;">${markerIcon}</text>
                     </svg>`;
 
                     markerContent.onmouseenter = () => markerContent.style.transform = 'scale(1.2) translateY(-4px)';
                     markerContent.onmouseleave = () => markerContent.style.transform = 'scale(1) translateY(0)';
 
-                    // Direct click listener on the content div as a secondary fallback for 100% reliability
                     markerContent.onclick = (e) => {
                         e.stopPropagation();
-                        console.log('[marker-content-click] Direct content click for:', stop.location);
-                        if (stop.placeId) {
-                            window._openPlacePanel(stop.placeId);
-                        } else {
-                            window.openLocationInMapPanel(stop.location, stop.lat, stop.lng);
-                        }
+                        if (stop.placeId) window._openPlacePanel(stop.placeId);
+                        else window.openLocationInMapPanel(stop.location, stop.lat, stop.lng);
                     };
 
                     const marker = new google.maps.marker.AdvancedMarkerElement({
@@ -227,17 +271,9 @@ export function initRealMap() {
                         content: markerContent
                     });
 
-                    // Explicit click listener to fix sensitivity issues in the center of the marker
-                    // Using addEventListener('gmp-click') as recommended for AdvancedMarkerElement
                     marker.addEventListener('gmp-click', () => {
-                        console.log('[marker-click] Stop marker clicked:', stop.location);
-                        if (stop.placeId) {
-                            window._openPlacePanel(stop.placeId);
-                        } else {
-                            // Fallback for older data: search by name and coordinates
-                            console.log('[marker-click] No placeId, using search fallback for:', stop.location);
-                            window.openLocationInMapPanel(stop.location, stop.lat, stop.lng);
-                        }
+                        if (stop.placeId) window._openPlacePanel(stop.placeId);
+                        else window.openLocationInMapPanel(stop.location, stop.lat, stop.lng);
                     });
 
                     googleMapMarkers.push(marker);
@@ -246,6 +282,20 @@ export function initRealMap() {
                     hasValidPins = true;
                 }
             });
+
+            // 2. Append hotel if returning AND the last stop is NOT the hotel itself
+            // NEW: Only if showReturnRoute is enabled
+            const isCinOnly = dayStay && dayStay.cin.dayId === day.id && dayStay.cout.dayId !== day.id;
+            const isSameDayStay = dayStay && dayStay.cin.dayId === day.id && dayStay.cout.dayId === day.id;
+            if ((isBetween || isCinOnly || isSameDayStay) && dayStay.cin.lat !== undefined && day.showReturnRoute) {
+                const hotelPos = { lat: Number(dayStay.cin.lat), lng: Number(dayStay.cin.lng) };
+                const lastPhysical = physicalStops[physicalStops.length - 1];
+                const isLastPhysicalHotel = lastPhysical && (lastPhysical.type === 'hotel_checkin' || lastPhysical.type === 'hotel_checkout');
+
+                if (!isLastPhysicalHotel) {
+                    routePath.push(hotelPos);
+                }
+            }
 
             // Draw driving route via Routes REST API specifically for this day
             if (routePath.length >= 2) {
@@ -727,7 +777,16 @@ async function showMapInfoPanel(place, placeId) {
     if (activeTrip && activeTrip.days) {
         activeTrip.days.forEach((day, index) => {
             if (day.stops) {
-                const match = day.stops.some(s => s.location && place.displayName && s.location.toLowerCase() === place.displayName.toLowerCase());
+                const match = day.stops.some(s => {
+                    // 1. If both have placeId, compare by placeId (most accurate)
+                    if (s.placeId && place.id) {
+                        return s.placeId === place.id;
+                    }
+                    // 2. Fallback: compare by name AND address (since name alone is not unique for chains)
+                    const nameMatch = s.location && place.displayName && s.location.toLowerCase() === place.displayName.toLowerCase();
+                    const addressMatch = s.address && place.formattedAddress && s.address === place.formattedAddress;
+                    return nameMatch && addressMatch;
+                });
                 if (match) {
                     addedDays.push({ id: day.id, title: day.title || `第${index + 1}天` });
                 }
@@ -1184,7 +1243,7 @@ async function toggleTransitMode(dayId, stopId) {
     const day = trip.days.find(d => d.id === dayId);
     if (!day) return;
 
-    const locationStops = day.stops.filter(s => s.type === 'location' || !s.type);
+    const locationStops = day.stops.filter(s => s.type === 'location' || !s.type || s.type === 'hotel_checkin' || s.type === 'hotel_checkout');
     const stopIndex = locationStops.findIndex(s => s.id === stopId);
     if (stopIndex === -1 || stopIndex >= locationStops.length - 1) return;
 
@@ -1223,7 +1282,52 @@ async function toggleTransitMode(dayId, stopId) {
         }
     }
 }
+async function toggleHotelTransitMode(dayId, direction) {
+    const { saveData } = await import('./api.js');
+    const trip = state.trips.find(t => t.id === state.activeTripId);
+    if (!trip) return;
+    const day = trip.days.find(d => d.id === dayId);
+    if (!day) return;
+
+    if (direction === 'from') {
+        const currentMode = day.transitFromHotelMode || 'DRIVE';
+        day.transitFromHotelMode = currentMode === 'DRIVE' ? 'WALK' : 'DRIVE';
+    } else {
+        const currentMode = day.transitToHotelMode || 'DRIVE';
+        day.transitToHotelMode = currentMode === 'DRIVE' ? 'WALK' : 'DRIVE';
+    }
+
+    saveData();
+    // Trigger re-computation
+    await computeTransitData(dayId);
+}
+
+async function toggleReturnRoute(dayId) {
+    const { saveData } = await import('./api.js');
+    const trip = state.trips.find(t => t.id === state.activeTripId);
+    if (!trip) return;
+    const day = trip.days.find(d => d.id === dayId);
+    if (!day) return;
+
+    day.showReturnRoute = !day.showReturnRoute;
+    saveData();
+    initRealMap(); // Re-render markers/lines
+
+    // Re-render day UI
+    const { getDayHTML } = await import('./ui/templates/itinerary.js');
+    const dayEl = document.getElementById(dayId);
+    const timeline = document.querySelector('.itinerary-timeline');
+    if (dayEl && timeline) {
+        const dayIndex = trip.days.findIndex(d => d.id === dayId);
+        const temp = document.createElement('div');
+        temp.innerHTML = getDayHTML(day, dayIndex, state.activeTripId);
+        timeline.replaceChild(temp.firstElementChild, dayEl);
+    }
+}
+
 window.toggleTransitMode = toggleTransitMode;
+window.toggleHotelTransitMode = toggleHotelTransitMode;
+window.toggleReturnRoute = toggleReturnRoute;
 
 // Compute real driving transit data between consecutive location stops in a day
 // Stores { duration, distance } in stop.transitToNext and saves to DB
@@ -1240,35 +1344,80 @@ export async function computeTransitData(dayId) {
     if (!day) return;
 
     const locationStops = day.stops.filter(s =>
-        (s.type === 'location' || !s.type) &&
+        (s.type === 'location' || !s.type || s.type === 'hotel_checkin' || s.type === 'hotel_checkout') &&
         s.lat !== undefined && s.lat !== null && s.lat !== '' &&
         s.lng !== undefined && s.lng !== null && s.lng !== ''
     );
-    if (locationStops.length < 2) {
-        console.log('[transit] Not enough location stops with coordinates:', locationStops.length);
-        return;
-    }
-    console.log('[transit] Computing transit for', locationStops.length, 'stops in day', dayId);
 
-    // Use Routes REST API (replaces deprecated DirectionsService)
+    // --- Virtual Hotel Transit Logic ---
+    // Identify if this day is within a stay range to compute transit to/from hotel hints
+    const allStopsWithDays = trip.days.flatMap(d => d.stops.map(s => ({ ...s, dayId: d.id })));
+    const staysMap = new Map();
+    allStopsWithDays.forEach(s => {
+        if (s.stayId) {
+            if (!staysMap.get(s.stayId)) staysMap.set(s.stayId, { id: s.stayId, cin: null, cout: null });
+            const stay = staysMap.get(s.stayId);
+            if (s.type === 'hotel_checkin') stay.cin = s;
+            if (s.type === 'hotel_checkout') stay.cout = s;
+        }
+    });
+
+    const dIdx = trip.days.findIndex(d => d.id === day.id);
+    const dayStay = Array.from(staysMap.values()).find(s => {
+        if (!s.cin || !s.cout) return false;
+        const cinIdx = trip.days.findIndex(d => d.id === s.cin.dayId);
+        const coutIdx = trip.days.findIndex(d => d.id === s.cout.dayId);
+        return dIdx >= cinIdx && dIdx <= coutIdx;
+    });
+
+    // 1. Transit from virtual hotel start
+    const isBetween = dayStay && dayStay.cin.dayId !== day.id && dayStay.cout.dayId !== day.id;
+    const isCoutOnly = dayStay && dayStay.cout.dayId === day.id && dayStay.cin.dayId !== day.id;
+    if ((isBetween || isCoutOnly) && locationStops.length > 0) {
+        const hotelOrigin = { lat: Number(dayStay.cin.lat), lng: Number(dayStay.cin.lng) };
+        const firstStopDest = { lat: Number(locationStops[0].lat), lng: Number(locationStops[0].lng) };
+        day.transitFromHotel = await fetchRouteDuration(hotelOrigin, firstStopDest, day.transitFromHotelMode || 'DRIVE');
+    } else {
+        day.transitFromHotel = null;
+    }
+
+    // 2. Normal segments between physical stops
     for (let i = 0; i < locationStops.length - 1; i++) {
         const origin = { lat: Number(locationStops[i].lat), lng: Number(locationStops[i].lng) };
         const dest = { lat: Number(locationStops[i + 1].lat), lng: Number(locationStops[i + 1].lng) };
-        const result = await fetchRouteDuration(origin, dest);
-        locationStops[i].transitToNext = result; // null if failed
-        if (result) {
-            console.log(`[transit] ${locationStops[i].location} → ${locationStops[i + 1].location}: ${result.duration}, ${result.distance}`);
-        } else {
-            console.error(`[transit] Failed stop ${i}→${i + 1}. Ensure "Routes API" is enabled in Google Cloud Console.`);
-        }
+        const result = await fetchRouteDuration(origin, dest, locationStops[i].transitMode || 'DRIVE');
+        locationStops[i].transitToNext = result;
+    }
+    if (locationStops.length > 0) {
+        locationStops[locationStops.length - 1].transitToNext = null;
     }
 
-    // Clear last stop's transit
-    locationStops[locationStops.length - 1].transitToNext = null;
+    // 3. Transit back to virtual hotel end
+    const isCinOnly = dayStay && dayStay.cin.dayId === day.id && dayStay.cout.dayId !== day.id;
+    const isSameDayStay = dayStay && dayStay.cin.dayId === day.id && dayStay.cout.dayId === day.id;
+    if ((isBetween || isCinOnly || isSameDayStay) && locationStops.length > 0) {
+        // Find the last location stop that is NOT the check-in card itself (if it's on same day)
+        // Actually the prompt says "每天行程默认从酒店出发，并在当天最后一项行程后默认返回酒店"
+        // If it's CinOnly, the hotel is a stop. We return to hotel AFTER all other stops.
+        const lastStop = locationStops[locationStops.length - 1];
+        // If the last stop is already a hotel card, maybe we don't need a virtual "return" hint?
+        // But the prompt says "这些只作为 UI 提示... 不生成额外卡片"
+        const hotelDest = { lat: Number(dayStay.cin.lat), lng: Number(dayStay.cin.lng) };
+        const lastStopOrigin = { lat: Number(lastStop.lat), lng: Number(lastStop.lng) };
+
+        // Only add if last stop isn't already the hotel
+        if (lastStop.id !== dayStay.cin.id) {
+            day.transitToHotel = await fetchRouteDuration(lastStopOrigin, hotelDest, day.transitToHotelMode || 'DRIVE');
+        } else {
+            day.transitToHotel = null;
+        }
+    } else {
+        day.transitToHotel = null;
+    }
 
     saveData();
 
-    // Re-render only the affected day
+    // Re-render
     const dayEl = document.getElementById(dayId);
     const timeline = document.querySelector('.itinerary-timeline');
     if (dayEl && timeline) {

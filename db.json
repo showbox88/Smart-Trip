@@ -3,462 +3,296 @@
         "name": "旅行者"
     },
     "currentView": "trip",
-    "activeTripId": "trip-1772827496784",
+    "activeTripId": "trip-1772941902922",
     "trips": [
         {
-            "id": "trip-1772580447645",
-            "title": "新的神秘冒险",
-            "startDate": "2026-05-10",
-            "endDate": "2026-05-16",
-            "thumb": "/uploads/0cd1f45ff26ba9624c57168479f078eb.jpg",
-            "activeDayId": "day-1772580447645-3",
-            "days": [
-                {
-                    "id": "day-1772580447645-0",
-                    "title": "第 1 天",
-                    "date": "2026年5月10日",
-                    "stops": [
-                        {
-                            "id": "n1772748193385",
-                            "type": "note",
-                            "content": "",
-                            "checked": false
-                        },
-                        {
-                            "id": "l1772748195308",
-                            "type": "list",
-                            "title": "",
-                            "items": []
-                        },
-                        {
-                            "id": "s1772745646344",
-                            "location": "Rudi's Bar & Grill",
-                            "desc": "Casual, lively sports bar & grill featuring American fare, multiple TVs & live music.",
-                            "address": "554 NY-112, Patchogue, NY 11772, USA",
-                            "phone": "(631) 627-6726",
-                            "time": "11:00 ",
-                            "period": "AM",
-                            "note": "",
-                            "price": "40",
-                            "type": "location",
-                            "lat": 40.7877035,
-                            "lng": -73.00958179999999,
-                            "photo": "https://places.googleapis.com/v1/places/ChIJizPqG8dI6IkR4ia4tkSVHys/photos/ATCDNfUEfVv88pzMSNb1ARTDRofyHmwn4l0yZnHKY5foCVNMz3AjSNWaLjeUi6UZp_1Hyk-qt-cPOWPNsT8SBK4mDHKHBLNszzAeQ7T9SQCG6QORmlWukIHcuzcTxfywzkLAeufOcWrc8PwUtt3LT0bd5qauLuZmoopaRNAbZomG02mjWpsPNQ3bfLOUHGDHYqgqjcaQpN_30obyZMSi2sd7hX5IbmeY58nUfXwVGv1SDd3fPTmU3m3sF6VfWf1ViY_6YSUC8uQuRCxb_H9vScMRQ68J3LIzaglWUi9HGLyysBTPZQ/media?maxWidthPx=600&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k",
-                            "rating": 4.3,
-                            "category": "酒吧",
-                            "categoryIcon": "🍸",
-                            "transitToNext": {
-                                "duration": "3 分钟",
-                                "distance": "1.5 公里"
-                            },
-                            "expenseCategory": "观光",
-                            "transitMode": "WALK"
-                        },
-                        {
-                            "id": "n1772823990382",
-                            "type": "note",
-                            "content": "",
-                            "checked": false
-                        },
-                        {
-                            "id": "s1772813322393",
-                            "location": "Chuck E. Cheese",
-                            "desc": "Kid-friendly chain known for its arcade games, pizza parties & play zones.",
-                            "address": "121 Sunrise Hwy, Patchogue, NY 11772, USA",
-                            "phone": "(631) 654-9373",
-                            "time": "01:00  ",
-                            "period": "PM",
-                            "note": "",
-                            "price": "220",
-                            "type": "location",
-                            "lat": 40.7810068,
-                            "lng": -73.0019348,
-                            "photo": "https://places.googleapis.com/v1/places/ChIJpy6kwv0v6IkRO87R9kqojmA/photos/ATCDNfWmjQIppDGSNCGYdMVEBVTUsgLCHpyK7jXUu6uOEx9GqgSqs7yJ6K-wUP-6GYJkei0IGgezuT-5asab0iYlLCYCwjxVwRNlBMBMJwH0OC-Zd2uupAIW2ptcPTxa7ckM4EEJSUN90OxIKpPYMF3lMFiTyakEoUylQgEI0rBY3zr14ipAEHiSOyquB9JPc8xjv_Xh0GcYhaC-I1LdVtYxHR9cIzEHZIKr4JDDIVpR1dJTPTcSc0XzkQ0IL4Z5H4w7lkqDuAXnOxe4LwtCIbalQ9yZZgU5h0IaMU4pp8DzViuVo0hSExXdd6lehJGRuJ3n1mqBojpJHEW9LQIh8otyB8HlKPnTfDnN15R9MDCnbNBijn5vfxg6Wi2kf-ZLJRbcOYOSi6uXq9voTFJJteAeyjH5zEa8cDkcpqTrkX48KMPXqA/media?maxWidthPx=600&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k",
-                            "rating": 4.2,
-                            "category": "外卖",
-                            "categoryIcon": "🥡",
-                            "transitToNext": null,
-                            "expenseCategory": "汽油"
-                        }
-                    ],
-                    "color": "#8b5cf6",
-                    "subtitle": "测试测试"
-                },
-                {
-                    "id": "day-1772580447645-1",
-                    "title": "第 2 天",
-                    "date": "2026年5月11日",
-                    "stops": [
-                        {
-                            "id": "n1772748194332",
-                            "type": "note",
-                            "content": "",
-                            "checked": false
-                        },
-                        {
-                            "id": "s1772745638251",
-                            "location": "Karvers Grille",
-                            "desc": "Restaurant/bar with a cool, industrial vibe offering American food, local brews & craft cocktails.",
-                            "address": "480 Patchogue-Holbrook Rd, Holbrook, NY 11741, USA",
-                            "phone": "(631) 868-7300",
-                            "time": "09:00",
-                            "period": "AM",
-                            "note": "",
-                            "price": "60",
-                            "type": "location",
-                            "lat": 40.794387199999996,
-                            "lng": -73.0581041,
-                            "photo": "https://places.googleapis.com/v1/places/ChIJvRLLfkFI6IkRi-xO6_s7OAs/photos/ATCDNfVHmgYTTl8pK-forTxtEqoRTCa0kBYfhtTYUritwgWlUCbrKTWdsgssvYlARw94KA_DxgEJtUPVLPJvu6NMyysw4PT98UEaxxFDi2KxBZuEc_N1b1gTaJYC0aFkxND1Mh0YnR2gOf0YH_nrBn8yhctZwrqJbS5F2k1JFYzAz41xVYTFHB5BBE5zUzSmYpAzRIf-tLXj0Uzkr6O8Wb_7DP95DR5owGM0hE5xXVIL3_ROrhtLlOktIHeYlKXg2bCdr_4cPdfTJZRSQVkI-cjax6MBnRaVYu4wZbU5sx8qpa_Ecg/media?maxWidthPx=600&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k",
-                            "rating": 4.4,
-                            "category": "餐饮",
-                            "categoryIcon": "🍴",
-                            "transitToNext": {
-                                "duration": "8 分钟",
-                                "distance": "5.4 公里"
-                            },
-                            "expenseCategory": "活动"
-                        },
-                        {
-                            "id": "s1772814388777",
-                            "location": "Ristegio's Restaurant & Lounge",
-                            "desc": "Casually elegant restaurant & bar with a varied menu that includes steaks, seafood, pasta & sushi.",
-                            "address": "641 Medford Ave #112, Patchogue, NY 11772, USA",
-                            "phone": "(631) 731-3663",
-                            "time": "11:00 ",
-                            "period": "AM",
-                            "note": "",
-                            "price": "120",
-                            "type": "location",
-                            "lat": 40.7903879,
-                            "lng": -73.00810369999999,
-                            "photo": "https://places.googleapis.com/v1/places/ChIJrwk1hLhI6IkRLuYuQ5OCe5w/photos/ATCDNfXh928jt84M-AIAE_ZoVY0YNpFfQdBlw_iB6pdPXgXZvrzbI4qJfqDMiSg4Ftv3n7c5BcHnEnjvOSnA-MpK3sU3Q29cC2AhY4q4k9RmZroerymDpZLDz5WKy9S4bKshiC4QVR3i6Ohk78dwCxtDNlJAG3ZM6jhnqKOzllgWpIilE9oCqxbN348Um3mb3k8IDCwLp17U4fDqpkfR3gEBWmE6ym0QDyXIO_Tqc7LV9-wo7Tahg0bRbWSwzyIHPHyUEdf-ZcTmLU53NNE2Wi2Yhn4B4Ij7e-n4bJdDKl7T9uzWTw/media?maxWidthPx=600&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k",
-                            "rating": 3.9,
-                            "category": "餐饮",
-                            "categoryIcon": "🍴",
-                            "transitToNext": null,
-                            "expenseCategory": "活动"
-                        }
-                    ],
-                    "color": "#10b981",
-                    "subtitle": ""
-                },
-                {
-                    "id": "day-1772580447645-2",
-                    "title": "第 3 天",
-                    "date": "2026年5月12日",
-                    "stops": [
-                        {
-                            "id": "s1772814236458",
-                            "location": "El Matador Restaurant",
-                            "desc": "",
-                            "address": "680 NY-112, East Patchogue, NY 11772, USA",
-                            "phone": "(631) 569-5082",
-                            "time": "09:00",
-                            "period": "AM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 40.7918362,
-                            "lng": -73.0084016,
-                            "photo": "/uploads/f221fd4d6d8a333f91b53bb0033f9c2b.jpg",
-                            "rating": 4.6,
-                            "category": "餐饮",
-                            "categoryIcon": "🍴"
-                        }
-                    ],
-                    "color": "#f59e0b"
-                },
-                {
-                    "id": "day-1772580447645-3",
-                    "title": "第 4 天",
-                    "date": "2026年5月13日",
-                    "stops": [
-                        {
-                            "id": "s1772814178985",
-                            "location": "Rudi's Bar & Grill",
-                            "desc": "Casual, lively sports bar & grill featuring American fare, multiple TVs & live music.",
-                            "address": "554 NY-112, Patchogue, NY 11772, USA",
-                            "phone": "(631) 627-6726",
-                            "time": "09:00",
-                            "period": "AM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 40.7877035,
-                            "lng": -73.00958179999999,
-                            "photo": "/uploads/22cea41140684e2900eebf712bb039ab.jpg",
-                            "rating": 4.3,
-                            "category": "酒吧",
-                            "categoryIcon": "🍸"
-                        }
-                    ],
-                    "color": "#ef4444"
-                },
-                {
-                    "id": "day-1772580447645-4",
-                    "title": "第 5 天",
-                    "date": "2026年5月14日",
-                    "stops": [],
-                    "color": "#8b5cf6"
-                },
-                {
-                    "id": "day-1772651798322",
-                    "title": "第 6 天",
-                    "date": "2026年5月15日",
-                    "stops": [],
-                    "color": "#ec4899"
-                },
-                {
-                    "id": "day-1772651800334",
-                    "title": "第 7 天",
-                    "date": "2026年5月16日",
-                    "stops": [],
-                    "color": "#5b7a99"
-                }
-            ]
-        },
-        {
-            "id": "trip-1772827496784",
+            "id": "trip-1772941902922",
             "title": "新的神秘冒险",
             "startDate": "2026-05-01",
-            "endDate": "2026-05-07",
+            "endDate": "2026-05-12",
             "thumb": "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-            "activeDayId": "day-1772833059103",
+            "activeDayId": "day-1772941929944",
             "days": [
                 {
-                    "id": "day-1772827496784-0",
+                    "id": "day-1772941902922-0",
                     "title": "第 1 天",
                     "date": "2026年5月1日",
                     "stops": [
                         {
-                            "id": "s1772827587480",
-                            "location": "Sybil's",
-                            "desc": "Counter-serve joint supplying Caribbean & Guyanese meals, traditional savory baked goods & sweets.",
-                            "address": "132-17 Liberty Ave, South Richmond Hill, NY 11419, USA",
-                            "phone": "(718) 835-9235",
+                            "id": "s1772945770411",
+                            "location": "Business Hotel Crescent",
+                            "desc": "Low-key rooms with minifridges in a no-nonsense hotel featuring Wi-Fi.",
+                            "address": "3-chōme-3-4 Nakano, Nakano City, Tokyo 164-0001, Japan",
+                            "phone": "03-5385-0300",
+                            "time": "09:00",
+                            "period": "AM",
+                            "note": "入住登记",
+                            "price": "120",
+                            "type": "hotel_checkin",
+                            "lat": 35.7003322,
+                            "lng": 139.662131,
+                            "photo": "/uploads/dd7d346bcdc679fdb20f4d3e48630224.jpg",
+                            "rating": 3.4,
+                            "category": "酒店",
+                            "categoryIcon": "🏨",
+                            "placeId": "ChIJrYD4wZLyGGARPGs_tL_ilwI",
+                            "stayId": "stay-1772945777799",
+                            "expenseCategory": "活动",
+                            "transitToNext": {
+                                "duration": "7 分钟",
+                                "distance": "0.5 公里"
+                            },
+                            "transitMode": "WALK"
+                        },
+                        {
+                            "id": "s1772947590093",
+                            "location": "Yuei",
+                            "desc": "",
+                            "address": "104 1-chōme-6-5 Kōenjiminami, Suginami City, Tokyo 166-0002, Japan",
+                            "phone": "",
+                            "time": "09:00",
+                            "period": "AM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 35.6981985,
+                            "lng": 139.6585402,
+                            "photo": "/uploads/958bd976a6570aafa58eb38ee2ae517d.jpg",
+                            "rating": 4.2,
+                            "category": "餐饮",
+                            "categoryIcon": "🍴",
+                            "placeId": "ChIJkVP5ejqNGGAR96viFCXYOl0",
+                            "transitToNext": {
+                                "duration": "17 分钟",
+                                "distance": "1.2 公里"
+                            },
+                            "transitMode": "WALK"
+                        },
+                        {
+                            "id": "s1772947601881",
+                            "location": "Milk Roll",
+                            "desc": "",
+                            "address": "4-chōme-37-25 Honchō, Nakano City, Tokyo 164-0012, Japan",
+                            "phone": "03-3381-5541",
+                            "time": "11:00 ",
+                            "period": "AM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 35.6948405,
+                            "lng": 139.66866710000002,
+                            "photo": "/uploads/d212284968600fd2c333a1c297077420.jpg",
+                            "rating": 4.5,
+                            "category": "面包房",
+                            "categoryIcon": "🥐",
+                            "placeId": "ChIJZcEaU-jyGGARfCGpedkJEM8",
+                            "transitToNext": {
+                                "duration": "13 分钟",
+                                "distance": "3.8 公里"
+                            }
+                        },
+                        {
+                            "id": "s1772947616701",
+                            "location": "Senrigan",
+                            "desc": "Modest eatery for Jiro-style ramen noodles, with counter seating alongside the open kitchen.",
+                            "address": "4-chōme-6-8 Komaba, Meguro City, Tokyo 153-0041, Japan",
+                            "phone": "03-3481-5773",
                             "time": "01:00  ",
                             "period": "PM",
                             "note": "",
                             "price": "0",
                             "type": "location",
-                            "lat": 40.6910029,
-                            "lng": -73.8136887,
-                            "photo": "https://places.googleapis.com/v1/places/ChIJr1C_tjRnwokRFc9We8WSkpk/photos/ATCDNfV5nGEcK7pf0gGL8uHuIDYkyne5qe_v3FFtWFtLL4RBoEhNSMNs8s_OfYZF_y4FKKB3t_ZHB1niwVzl1fVK7Jom-ALJOl1EW3pX4_BNTw6HKSuQMw1J0ats7xWOnXWnFLcFD0eWEZd_1G9NLiv7RB2x_IdHtKSIRnnNKGeEUObuC2yjohTsxLlInM-v-AyQU9c79DEnNhZQE16EbA6607CKQG3K0BZ3Vl6Ar06yIu8epiAMMz9nie7HHnyiY7jZe64J6VlfazUW-XjyjoMEPyoN1I34eRBZA66L-5nk9onNK2mlDwAlV-cNbhUVsZokmUS6KK3vgvd3XWE0e_gL-peW155xuvLU312Ugr1W3L2iXrZD5TyEwW3b1e4gt2SlngKOR_SIQWNEVoJsqfWDLtyJcaeFSgE9yTj6vvE__z0Vug/media?maxWidthPx=600&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k",
-                            "rating": 4.3,
-                            "category": "面包房",
-                            "categoryIcon": "🥐",
-                            "transitToNext": {
-                                "duration": "14 分钟",
-                                "distance": "3.8 公里"
-                            }
-                        },
-                        {
-                            "id": "l1772832703339",
-                            "type": "list",
-                            "title": "",
-                            "items": []
-                        },
-                        {
-                            "id": "s1772831424023",
-                            "location": "IHOP",
-                            "desc": "Long-standing chain serving a wide variety of pancakes & other American breakfast & diner fare.",
-                            "address": "170-19 Hillside Ave., Jamaica, NY 11432, USA",
-                            "phone": "(718) 523-4561",
-                            "time": "03:00   ",
-                            "period": "PM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 40.7114952,
-                            "lng": -73.7915144,
-                            "photo": "https://places.googleapis.com/v1/places/ChIJlVdhircr6IkRVmAfra3VMEo/photos/ATCDNfUZpTVElU5jCY6lvArRrY0iioJjdPyxOIMUw75_8TPbukihhF3KpC7CGfp7Zyrl1e3cUCIhvUBpxjeBAoZE85xRf_2giArm8YgCO-cXySqiyPKTVAcELdD9jRTIfug7ztIeH0SldGcWP4r3H-GnpkfTNcwr7VOouh9FrBgFU5w6SZ_ffUQvAlHgjtNx11HkWj4KaIBs9YDVRjF7o6ModIAqtYyPEFotnXTwE-vrPnhH8cAhEQ9yJSR6WTx__yU2iLRMylobEYGne73HASkPxcZXRkAQzH0QWEYNpGKi6uiG--RVZjDcvown_xB4_OzNSNge7GqZ_POJzQzZt7PsjQUgNRrECinfMg_IjvUHJedeNneVryE7f3fIZZ2f3m3M_ZTM7jGeeM53T7h6J-M9Bfa9lrpM4S2HBYNqApSJHdtktdgFHN-RcJWeiKU_dA/media?maxWidthPx=600&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k",
+                            "lat": 35.6640124,
+                            "lng": 139.6784917,
+                            "photo": "/uploads/9940443d6eee97eb340e50627aa4faee.jpg",
                             "rating": 3.9,
                             "category": "餐饮",
                             "categoryIcon": "🍴",
-                            "placeId": "ChIJ0xzx9x5hwokRJXGnTo9wbeM",
-                            "transitToNext": {
-                                "duration": "16 分钟",
-                                "distance": "10.4 公里"
-                            }
-                        },
-                        {
-                            "id": "n1772832699864",
-                            "type": "note",
-                            "content": "",
-                            "checked": false
-                        },
-                        {
-                            "id": "s1772827574931",
-                            "location": "Queens Center",
-                            "desc": "This coliseum-like indoor shopping mall houses dozens of retail stores plus a food court.",
-                            "address": "90-15 Queens Blvd, Elmhurst, NY 11373, USA",
-                            "phone": "(718) 592-3900",
-                            "time": "11:00 ",
-                            "period": "AM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 40.7347872,
-                            "lng": -73.8688409,
-                            "photo": "https://places.googleapis.com/v1/places/ChIJA7Ciw0tewokRWJrqRqhFJBs/photos/ATCDNfVhmvd_s9Zeo-vSNegptQAVqvh7-iyd5jJn-kkyRWD7Sk0XLDFRFD0b_TOXZ1skDf8fvZelRRTvAWx8Ojnc_X9mKLtcl-Ckis3E3uXRYw31Fc7mJ8Ikeo-lH0n4KoqGe2V4syh_V2orrxoGxZK36y6lcYpO-kZMZmEcqNrjxiBz5qJEWZ9VGfw2Y-E3mEm43FqmO9K2d76T72GzbybvQwAZ2Txpx4G6qKDjsS7iN4r28_yEtTX0efdwhkSapXtL3fLMuHJb0tmqXsi65uh1OGnUn_X5Vd1ESARDaAbkQST_JmDNMo1cFvqsPJESmjv25TcLqjK76dSF55c7_QtYuAm7cq6w2Se84-jNPNXK_wUMj6qmn67_2bUxpdK_IXfXvs7LcEDu7CuO-x03tAnLlCNRgtGzUlx9qiQ81Xjmq4o/media?maxWidthPx=600&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k",
-                            "rating": 4.4,
-                            "category": "购物中心",
-                            "categoryIcon": "🛍️",
-                            "transitToNext": {
-                                "duration": "15 分钟",
-                                "distance": "10.3 公里"
-                            }
-                        },
-                        {
-                            "id": "s1772831429895",
-                            "location": "IHOP",
-                            "desc": "Long-standing chain serving a wide variety of pancakes & other American breakfast & diner fare.",
-                            "address": "170-19 Hillside Ave., Jamaica, NY 11432, USA",
-                            "phone": "(718) 523-4561",
-                            "time": "09:00",
-                            "period": "AM",
-                            "note": "",
-                            "price": "220",
-                            "type": "location",
-                            "lat": 40.7114952,
-                            "lng": -73.7915144,
-                            "photo": "/uploads/b738544a6f79388959b5fe64447f74c3.jpg",
-                            "rating": 3.9,
-                            "category": "餐饮",
-                            "categoryIcon": "🍴",
-                            "placeId": "ChIJ0xzx9x5hwokRJXGnTo9wbeM",
-                            "expenseCategory": "活动",
-                            "transitToNext": {
-                                "duration": "23 分钟",
-                                "distance": "11.3 公里"
-                            }
-                        },
-                        {
-                            "id": "s1772827553729",
-                            "location": "John F. Kennedy International Airport",
-                            "desc": "New York City hub offering flights from 80+ airlines, plus a variety of shops & eateries.",
-                            "address": "Queens, NY 11430, USA",
-                            "phone": "(718) 244-4444",
-                            "time": "09:00",
-                            "period": "AM",
-                            "note": "",
-                            "price": "120",
-                            "type": "location",
-                            "lat": 40.6446124,
-                            "lng": -73.7797278,
-                            "photo": "/uploads/be9dd02186bcdae52d3720f017540cad.jpg",
-                            "rating": 3.8,
-                            "category": "机场",
-                            "categoryIcon": "✈️",
-                            "transitToNext": null,
-                            "expenseCategory": "活动"
+                            "placeId": "ChIJxb5izUXzGGARATweg8oBicg",
+                            "transitToNext": null
                         }
                     ],
-                    "color": "#5b7a99"
+                    "color": "#10b981",
+                    "transitFromHotel": null,
+                    "transitToHotel": {
+                        "duration": "16 分钟",
+                        "distance": "6.3 公里"
+                    },
+                    "showReturnRoute": false
                 },
                 {
-                    "id": "day-1772827496784-1",
+                    "id": "day-1772941902922-1",
                     "title": "第 2 天",
                     "date": "2026年5月2日",
                     "stops": [
                         {
-                            "id": "n1772835199113",
-                            "type": "note",
-                            "content": "",
-                            "checked": false
-                        },
-                        {
-                            "id": "l1772835200042",
-                            "type": "list",
-                            "title": "",
-                            "items": []
-                        },
-                        {
-                            "id": "s1772832724133",
-                            "location": "McDonald's",
-                            "desc": "Classic, long-running fast-food chain known for its burgers & fries.",
-                            "address": "114-01 Sutphin Blvd, Jamaica, NY 11434, USA",
-                            "phone": "(718) 845-0581",
+                            "id": "s1772947905153",
+                            "location": "Kisoji",
+                            "desc": "",
+                            "address": "2-chōme-27-6 Kamiochiai, Shinjuku City, Tokyo 161-0034, Japan",
+                            "phone": "03-5338-1671",
                             "time": "09:00",
                             "period": "AM",
                             "note": "",
                             "price": "0",
                             "type": "location",
-                            "lat": 40.6861836,
-                            "lng": -73.7933352,
-                            "photo": "https://places.googleapis.com/v1/places/ChIJVbvl6qrU6YkRLysouCaANvA/photos/ATCDNfXeLBCAxJeMwYCYB_i8WDnEmy8M24OdSbD1jQhtpwOonxbrZnY6qf27z0_Bc3Fb-lR7JBdKLVd1FjCgKCVLlrGZbX7zsYO3GE8mJ9EpruWacKVUPuE9Yq24huTr7g6aqtldSqFH_6UJqs0dQvAFI5lGWdRPp-JTlKgxNkVFApY3n_8eOsXVGAuSam5DY104PHQNoSiPhhVV_VnyNAwHFD_I3JNdHAZpzB6faO8WKPYVJod1q_S5L_QyUEndq0f6Vep2uk6PLGAgkXHh3SLFZnQMhTnpCDdlYpoHhoNfvjyb1w/media?maxWidthPx=600&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k",
-                            "rating": 3.6,
-                            "category": "咖啡馆",
-                            "categoryIcon": "☕",
-                            "placeId": "ChIJQ5HhCtVmwokRQS2Ud6mH9Xs",
+                            "lat": 35.712151,
+                            "lng": 139.6859451,
+                            "photo": "/uploads/5a50f405768a0fa0beed166811ca8e2f.jpg",
+                            "rating": 3.9,
+                            "category": "外卖",
+                            "categoryIcon": "🥡",
+                            "placeId": "ChIJVbZOnrbyGGARzSe1BTQULvI",
                             "transitToNext": {
                                 "duration": "7 分钟",
-                                "distance": "1.9 公里"
+                                "distance": "2.6 公里"
                             }
                         },
                         {
-                            "id": "s1772832925043",
-                            "location": "Domino's Pizza",
-                            "desc": "Delivery/carryout chain offering a wide range of pizzas & a variety of other dishes & sides.",
-                            "address": "109-50 Merrick Blvd, Queens, NY 11433, USA",
-                            "phone": "(718) 658-4200",
+                            "id": "s1772947923647",
+                            "location": "Aigre Douce",
+                            "desc": "French-inspired cakes, biscuits & chocolates offered in a celebrated, old-fashioned patisserie.",
+                            "address": "3-chōme-22-13 Shimoochiai, Shinjuku City, Tokyo 161-0033, Japan",
+                            "phone": "03-5988-0330",
                             "time": "11:00 ",
                             "period": "AM",
                             "note": "",
                             "price": "0",
                             "type": "location",
-                            "lat": 40.696017600000005,
-                            "lng": -73.783345,
-                            "photo": "https://places.googleapis.com/v1/places/ChIJXfOcKnAs6IkRK2J-wmarls4/photos/ATCDNfV5cYV2jOj9u2aaa5ZGquVU6bXn1UI77XZoCY8a2p0v8NwY0RGj_hj-28aZcPb7qgmMyCQ1-JJ5fDE8BibmAvXnDBSpqvuwzEtorJJyhEcTYUjOntb0MOLTGuAUz5vi_-qF0teiBOXIJPvP8VZGKVUlpaoUgBrlGqOC_kOiDOxWNkdyfg6RIbE-VqvE2wMxMDCX6oLCeBc9EMcyDtyzwPcxSqRHzVlkeAEP8xX2mziWL2sejHLX8PJby3K5XRkhBXsecMr8phugECl8Y6exscAvfLSYHQcZLdRzXB9rY_-Axg/media?maxWidthPx=600&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k",
-                            "rating": 3,
-                            "category": "外卖",
-                            "categoryIcon": "🥡",
-                            "placeId": "ChIJ4Ur7hSZhwokRMQMUk1GAYwQ",
-                            "transitToNext": null
+                            "lat": 35.7224674,
+                            "lng": 139.7006317,
+                            "photo": "/uploads/427ad2b6d4bed74b6aa56e993b247ef2.jpg",
+                            "rating": 4.4,
+                            "category": "面包房",
+                            "categoryIcon": "🥐",
+                            "placeId": "ChIJEQmRkU-NGGAR2GD7JadI6qg",
+                            "transitToNext": {
+                                "duration": "8 分钟",
+                                "distance": "2.8 公里"
+                            }
                         },
                         {
-                            "id": "n1772835198448",
-                            "type": "note",
-                            "content": "",
-                            "checked": false
+                            "id": "s1772947938972",
+                            "location": "Ramen Yamaguchi",
+                            "desc": "Small ramen shop serving thin ramen noodles with hearty, soy-based chicken broths & dipping sauces.",
+                            "address": "3-chōme-13-4 Nishiwaseda, Shinjuku City, Tokyo 169-0051, Japan",
+                            "phone": "03-3204-5120",
+                            "time": "01:00  ",
+                            "period": "PM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 35.7099735,
+                            "lng": 139.7139079,
+                            "photo": "/uploads/dc4f35a27c8ca7c99131bd8f30b2c420.jpg",
+                            "rating": 4.1,
+                            "category": "餐饮",
+                            "categoryIcon": "🍴",
+                            "placeId": "ChIJQbWaOxiNGGAR2Wr2BfXxEU8",
+                            "transitToNext": null
                         }
                     ],
-                    "color": "#10b981"
+                    "color": "#ef4444",
+                    "transitFromHotel": {
+                        "duration": "11 分钟",
+                        "distance": "3.5 公里"
+                    },
+                    "transitToHotel": {
+                        "duration": "21 分钟",
+                        "distance": "5.9 公里"
+                    },
+                    "showReturnRoute": false
                 },
                 {
-                    "id": "day-1772827496784-2",
+                    "id": "day-1772941902922-2",
                     "title": "第 3 天",
                     "date": "2026年5月3日",
                     "stops": [],
-                    "color": "#ef4444"
+                    "color": "#f59e0b"
                 },
                 {
-                    "id": "day-1772827496784-3",
+                    "id": "day-1772941902922-3",
                     "title": "第 4 天",
                     "date": "2026年5月4日",
                     "stops": [],
                     "color": "#10b981"
                 },
                 {
-                    "id": "day-1772827496784-4",
+                    "id": "day-1772941902922-4",
                     "title": "第 5 天",
                     "date": "2026年5月5日",
                     "stops": [],
                     "color": "#8b5cf6"
                 },
                 {
-                    "id": "day-1772833052389",
+                    "id": "day-1772941926274",
                     "title": "第 6 天",
                     "date": "2026年5月6日",
                     "stops": [],
                     "color": "#ec4899"
                 },
                 {
-                    "id": "day-1772833059103",
+                    "id": "day-1772941927086",
                     "title": "第 7 天",
                     "date": "2026年5月7日",
                     "stops": [],
                     "color": "#5b7a99"
+                },
+                {
+                    "id": "day-1772941927821",
+                    "title": "第 8 天",
+                    "date": "2026年5月8日",
+                    "stops": [],
+                    "color": "#ef4444"
+                },
+                {
+                    "id": "day-1772941928492",
+                    "title": "第 9 天",
+                    "date": "2026年5月9日",
+                    "stops": [],
+                    "color": "#f59e0b"
+                },
+                {
+                    "id": "day-1772941929263",
+                    "title": "第 10 天",
+                    "date": "2026年5月10日",
+                    "stops": [],
+                    "color": "#10b981"
+                },
+                {
+                    "id": "day-1772941929944",
+                    "title": "第 11 天",
+                    "date": "2026年5月11日",
+                    "stops": [],
+                    "color": "#8b5cf6"
+                },
+                {
+                    "id": "day-1772941930794",
+                    "title": "第 12 天",
+                    "date": "2026年5月12日",
+                    "stops": [
+                        {
+                            "id": "cout-1772945782037",
+                            "location": "Business Hotel Crescent",
+                            "desc": "Low-key rooms with minifridges in a no-nonsense hotel featuring Wi-Fi.",
+                            "address": "3-chōme-3-4 Nakano, Nakano City, Tokyo 164-0001, Japan",
+                            "phone": "03-5385-0300",
+                            "time": "12:00",
+                            "period": "PM",
+                            "note": "办理退房",
+                            "price": "0",
+                            "type": "hotel_checkout",
+                            "lat": 35.7003322,
+                            "lng": 139.662131,
+                            "photo": "/uploads/dd7d346bcdc679fdb20f4d3e48630224.jpg",
+                            "rating": 3.4,
+                            "category": "酒店",
+                            "categoryIcon": "🏨",
+                            "placeId": "ChIJrYD4wZLyGGARPGs_tL_ilwI",
+                            "stayId": "stay-1772945777799"
+                        }
+                    ],
+                    "color": "#10b981"
                 }
             ]
         }
@@ -481,10 +315,22 @@
         "day-1772653870970-2": true,
         "day-1772653870970-3": true,
         "day-1772653870970-4": true,
-        "day-1772827496784-0": true,
+        "day-1772827496784-0": false,
         "day-1772827496784-1": false,
-        "day-1772827496784-2": true,
-        "day-1772827496784-3": true,
-        "day-1772827496784-4": true
+        "day-1772827496784-2": false,
+        "day-1772827496784-3": false,
+        "day-1772827496784-4": true,
+        "day-1772941902922-0": false,
+        "day-1772941902922-1": false,
+        "day-1772941902922-2": false,
+        "day-1772941902922-3": true,
+        "day-1772941902922-4": true,
+        "day-1772941926274": true,
+        "day-1772941927086": true,
+        "day-1772941927821": true,
+        "day-1772941928492": true,
+        "day-1772941929263": true,
+        "day-1772941929944": false,
+        "day-1772941930794": false
     }
 }

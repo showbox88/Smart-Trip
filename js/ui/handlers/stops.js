@@ -91,9 +91,16 @@ export function addDay() {
     }
 
     setTimeout(() => {
+        // Scroll main timeline
         const element = document.getElementById(newDayId);
         if (element) {
             element.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Scroll sidebar to bottom to keep "Add Day" button visible
+        const sidebar = document.querySelector('.sidebar');
+        if (sidebar) {
+            sidebar.scrollTo({ top: sidebar.scrollHeight, behavior: 'smooth' });
         }
     }, 50);
 }
@@ -638,6 +645,12 @@ export async function autoAddStop(dayId, placeId, afterStopId) {
         const trip = state.trips.find(t => t.id === state.activeTripId);
         const day = trip.days.find(d => d.id === dayId);
 
+        // Preventive check: don't add if already exists in this day (by placeId)
+        if (day.stops.some(s => s.placeId === placeId)) {
+            console.warn('[autoAddStop] Place already exists in this day:', placeId);
+            return;
+        }
+
         let timeStr = '09:00';
         let period = 'AM';
 
@@ -822,6 +835,203 @@ function scrollToDay(id) {
         container.scrollTo({
             top: element.offsetTop - headerOffset,
             behavior: 'smooth'
+        });
+    }
+}
+
+export function openStayInfoModal(event, dayId, stopId) {
+    if (event) event.stopPropagation();
+    setEditingContext(dayId, stopId, state.activeTripId);
+
+    const trip = state.trips.find(t => t.id === state.activeTripId);
+    const day = trip.days.find(d => d.id === dayId);
+    const stop = day.stops.find(s => s.id === stopId);
+
+    // Find associated stay if existing
+    let checkinDate = day.date.replace(/[年月日]/g, '-').replace(/-$/, '');
+    let checkoutDate = checkinDate;
+    let checkinTime = stop.time || '02:00';
+    let checkinPeriod = stop.period || 'PM';
+    let checkoutTime = '12:00';
+    let checkoutPeriod = 'PM';
+
+    if (stop.stayId) {
+        const allStops = trip.days.flatMap(d => d.stops.map(s => ({ ...s, dayId: d.id, dayDate: d.date })));
+        const cin = allStops.find(s => s.stayId === stop.stayId && s.type === 'hotel_checkin');
+        const cout = allStops.find(s => s.stayId === stop.stayId && s.type === 'hotel_checkout');
+        if (cin) {
+            checkinDate = cin.dayDate.replace(/[年月日]/g, '-').replace(/-$/, '');
+            checkinTime = cin.time;
+            checkinPeriod = cin.period;
+        }
+        if (cout) {
+            checkoutDate = cout.dayDate.replace(/[年月日]/g, '-').replace(/-$/, '');
+            checkoutTime = cout.time;
+            checkoutPeriod = cout.period;
+        }
+    }
+
+    const title = document.getElementById('modal-title');
+    const body = document.getElementById('modal-body');
+    title.innerText = '入住信息管理';
+
+    body.innerHTML = `
+        <div style="padding: 1rem;">
+            <div style="display:flex; gap: 1.5rem; margin-bottom: 2rem;">
+                <div style="flex:1;">
+                    <label style="display:block; font-size:0.9rem; color:var(--text-secondary); margin-bottom:0.5rem;">入住日期</label>
+                    <input type="text" id="stay-checkin-date" class="date-picker-input" value="${checkinDate}" style="width:100%; background:var(--bg-secondary); border:1px solid var(--glass-border); padding:0.8rem; border-radius:8px; color:var(--text-primary);">
+                </div>
+                <div style="flex:1;">
+                    <label style="display:block; font-size:0.9rem; color:var(--text-secondary); margin-bottom:0.5rem;">入住时间</label>
+                    <div style="display:flex; gap:5px;">
+                        <input type="text" id="stay-checkin-time" value="${checkinTime}" style="flex:1; background:var(--bg-secondary); border:1px solid var(--glass-border); padding:0.8rem; border-radius:8px; color:var(--text-primary); text-align:center;">
+                        <select id="stay-checkin-period" style="background:var(--bg-secondary); border:1px solid var(--glass-border); color:var(--text-primary); border-radius:8px; padding:0 0.5rem;">
+                            <option value="AM" ${checkinPeriod === 'AM' ? 'selected' : ''}>AM</option>
+                            <option value="PM" ${checkinPeriod === 'PM' ? 'selected' : ''}>PM</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:flex; gap: 1.5rem; margin-bottom: 2rem;">
+                <div style="flex:1;">
+                    <label style="display:block; font-size:0.9rem; color:var(--text-secondary); margin-bottom:0.5rem;">退房日期</label>
+                    <input type="text" id="stay-checkout-date" class="date-picker-input-cout" value="${checkoutDate}" style="width:100%; background:var(--bg-secondary); border:1px solid var(--glass-border); padding:0.8rem; border-radius:8px; color:var(--text-primary);">
+                </div>
+                <div style="flex:1;">
+                    <label style="display:block; font-size:0.9rem; color:var(--text-secondary); margin-bottom:0.5rem;">退房时间</label>
+                    <div style="display:flex; gap:5px;">
+                        <input type="text" id="stay-checkout-time" value="${checkoutTime}" style="flex:1; background:var(--bg-secondary); border:1px solid var(--glass-border); padding:0.8rem; border-radius:8px; color:var(--text-primary); text-align:center;">
+                        <select id="stay-checkout-period" style="background:var(--bg-secondary); border:1px solid var(--glass-border); color:var(--text-primary); border-radius:8px; padding:0 0.5rem;">
+                            <option value="AM" ${checkoutPeriod === 'AM' ? 'selected' : ''}>AM</option>
+                            <option value="PM" ${checkoutPeriod === 'PM' ? 'selected' : ''}>PM</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <p style="color:var(--text-secondary); font-size:0.85rem; margin-bottom: 2rem; border-left: 3px solid var(--accent-primary); padding-left: 10px;">系统将自动在选定日期生成“入住”和“退房”卡片，并为您标记住宿期间的行程起点与终点。</p>
+
+            <div style="display:flex; gap:10px;">
+                <button class="submit-btn" style="background:var(--bg-secondary); border:1px solid var(--glass-border); color:var(--text-primary); flex:1;" onclick="closeModal()">取消</button>
+                <button class="submit-btn" style="background:var(--accent-primary); color:white; border:none; flex:2; font-weight:bold;" onclick="saveStayInfo('${stopId}')">完成设置</button>
+            </div>
+        </div>
+    `;
+
+    const overlay = document.getElementById('modal-overlay');
+    overlay.classList.add('active');
+    overlay.classList.remove('hidden');
+
+    if (typeof flatpickr !== 'undefined') {
+        flatpickr(".date-picker-input", { locale: "zh", dateFormat: "Y-m-d", theme: "dark" });
+        flatpickr(".date-picker-input-cout", { locale: "zh", dateFormat: "Y-m-d", theme: "dark" });
+    }
+}
+
+export function saveStayInfo(originalStopId) {
+    const trip = state.trips.find(t => t.id === state.activeTripId);
+    let originalDay = null;
+    let stop = null;
+
+    // Find the original stop and its day
+    trip.days.forEach(d => {
+        const s = d.stops.find(st => st.id === originalStopId);
+        if (s) {
+            originalDay = d;
+            stop = s;
+        }
+    });
+
+    if (!stop) return alert('找不到该地点');
+
+    const cinDate = document.getElementById('stay-checkin-date').value;
+    const cinTime = document.getElementById('stay-checkin-time').value;
+    const cinPeriod = document.getElementById('stay-checkin-period').value;
+    const coutDate = document.getElementById('stay-checkout-date').value;
+    const coutTime = document.getElementById('stay-checkout-time').value;
+    const coutPeriod = document.getElementById('stay-checkout-period').value;
+
+    if (!cinDate || !coutDate) return alert('请选择日期');
+
+    const stayId = stop.stayId || 'stay-' + Date.now();
+    stop.stayId = stayId;
+
+    // Helper to format date
+    const formatDateToZh = (iso) => {
+        const d = new Date(iso.replace(/-/g, '/'));
+        return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
+    };
+    const cinZh = formatDateToZh(cinDate);
+    const coutZh = formatDateToZh(coutDate);
+
+    const cinDay = trip.days.find(d => d.date === cinZh);
+    const coutDay = trip.days.find(d => d.date === coutZh);
+
+    if (!cinDay || !coutDay) return alert('所选日期范围超出行程限制');
+
+    // 1. Remove any PREVIOUSly paired checkout stop with this stayId
+    // (We'll recreate/update it)
+    trip.days.forEach(d => {
+        d.stops = d.stops.filter(s => s.stayId === stayId && s.id !== originalStopId && s.type === 'hotel_checkout' ? false : true);
+    });
+
+    // 2. Update and Move the Check-in Stop (Original Stop)
+    stop.type = 'hotel_checkin';
+    stop.time = cinTime;
+    stop.period = cinPeriod;
+    stop.note = stop.note || '入住登记';
+
+    if (originalDay.id !== cinDay.id) {
+        // Remove from current day
+        originalDay.stops = originalDay.stops.filter(s => s.id !== originalStopId);
+        // Add to target cin day
+        cinDay.stops.push(stop);
+    }
+
+    // 3. Create/Add the Checkout Stop
+    const coutStop = {
+        ...JSON.parse(JSON.stringify(stop)),
+        id: 'cout-' + Date.now(),
+        type: 'hotel_checkout',
+        stayId: stayId,
+        time: coutTime,
+        period: coutPeriod,
+        note: '办理退房'
+    };
+    coutDay.stops.push(coutStop);
+
+    // 4. Sort affected days
+    const sortFn = (a, b) => {
+        const parseTime = (time, p) => {
+            if (!time) return 0;
+            let [h, m] = time.split(':').map(Number);
+            if (p === 'PM' && h !== 12) h += 12;
+            if (p === 'AM' && h === 12) h = 0;
+            return h * 60 + (m || 0);
+        };
+        return parseTime(a.time, a.period) - parseTime(b.time, b.period);
+    };
+
+    cinDay.stops.sort(sortFn);
+    coutDay.stops.sort(sortFn);
+    if (originalDay.id !== cinDay.id && originalDay.id !== coutDay.id) {
+        originalDay.stops.sort(sortFn);
+    }
+
+    saveData();
+    closeModal();
+    renderApp();
+
+    // 5. Refresh Maps and compute transit for all affected days
+    if (window.googleMapsReady) {
+        import('../../maps.js').then(m => {
+            m.initRealMap();
+
+            // Recalculate for all days that might have changed order or transit segments
+            const affectedDayIds = new Set([originalDay.id, cinDay.id, coutDay.id]);
+            affectedDayIds.forEach(id => m.computeTransitData(id));
         });
     }
 }

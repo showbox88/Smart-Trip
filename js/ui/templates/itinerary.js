@@ -69,37 +69,46 @@ export function getTimelineItemHTML(day, stop, index, locationIdx, showTransit, 
 
         circleHtml = '';
 
-        contentHtml = `
-            <div class="rich-stop-card" onclick="if(window.openLocationInMapPanel) window.openLocationInMapPanel('${stop.location.replace(/'/g, "\\'")}', ${stop.lat || 'undefined'}, ${stop.lng || 'undefined'});" style="background: var(--bg-deep); border-radius: 8px; padding: 1rem; display:flex; gap: 1rem; transition: background 0.2s, backdrop-filter 0.2s; cursor: pointer; border: 1px solid var(--glass-border); box-shadow: 0 2px 8px rgba(0,0,0,0.05); align-items: flex-start;">
-                <div style="flex:1;">
-                    <div style="display:flex; align-items:center; gap: 10px; margin-bottom: 0.6rem;">
-                        <div class="rich-stop-card-dot" style="width: 24px; height: 24px; background: ${activeColor}; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display:flex; align-items:center; justify-content:center; box-shadow: 0 2px 6px rgba(0,0,0,0.35); flex-shrink:0;">
-                            <span style="transform: rotate(45deg); color: #fff; font-size: 0.75rem; font-weight: 700; line-height: 1;">${pinNumber}</span>
-                        </div>
-                        <h4 style="font-size: 1.1rem; margin: 0; color: var(--text-primary); font-weight: 600; border-left: none !important; padding-left: 0 !important; display:flex; align-items:center; gap: 8px; flex-wrap:wrap; flex:1;">
-                            <span style="margin-right: 4px;">${stop.location}</span>
-                            ${stop.category && stop.category !== '地点' ? `<span style="color:var(--text-secondary); font-size:0.8rem; font-weight: 500; display:flex; align-items:center; gap:4px; margin-right: 4px;"><span style="opacity: 0.8;">${stop.categoryIcon || '📌'}</span> <span>${stop.category}</span></span>` : ''}
-                            ${stop.rating ? `<span style="font-size:0.85rem; color:#f97316; font-weight:700; display:flex; align-items:center; gap:2px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27l-5.18 3.09 1.34-5.88-4.54-3.95 6.01-.51L12 4.5l2.37 5.52 6.01.51-4.54 3.95 1.34 5.88L12 17.27z"/></svg>${stop.rating}</span>` : ''}
-                        </h4>
-                    </div>
-                    
-                    <div style="display:flex; flex-direction:column; gap:6px; margin-bottom: 0.6rem;">
-                        ${stop.address ? `<div style="color:var(--text-secondary); font-size:0.8rem; display:flex; align-items:flex-start; gap:6px;"><span style="color:#f97316; padding-top:1px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></span><span style="flex:1; line-height:1.2;">${stop.address}</span></div>` : ''}
-                        ${stop.phone ? `<div style="color:var(--text-secondary); font-size:0.8rem; display:flex; align-items:center; gap:6px;"><span style="color:#f97316;"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg></span> ${stop.phone}</div>` : ''}
-                    </div>
+        const isHotel = stop.category === '酒店' || stop.category === '住宿';
+        const isCin = stop.type === 'hotel_checkin';
+        const isCout = stop.type === 'hotel_checkout';
+        const isSpecialHotel = isCin || isCout;
+        const hotelBorderColor = isCin ? '#22c55e' : (isCout ? '#ef4444' : activeColor);
+        const hotelLabel = isCin ? `${stop.time} 入住` : (isCout ? `${stop.time} 退房` : '');
 
-                    ${stop.desc ? `<p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0 0 0.4rem 0; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">来自网络：${stop.desc}</p>` : ''}
-                    ${stop.note ? `<p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0 0 0.4rem 0; line-height: 1.3;">${stop.note}</p>` : `<p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0 0 0.4rem 0; opacity: 0.6;">添加备注、链接等</p>`}
-                    
-                    <div style="display:flex; gap: 0.8rem; margin-top: 0.6rem; align-items:center;">
-                        <span onclick="openTimePickerDirectly(event, '${day.id}', '${stop.id}')" style="color: #4f46e5; background: rgba(79, 70, 229, 0.1); padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; cursor:pointer;" title="编辑时间">${stop.time} ${stop.period === 'AM' ? '上午' : '下午'}</span>
-                        <span onclick="openExpenseDirectly(event, '${day.id}', '${stop.id}')" style="color: ${stop.price && stop.price !== '0' ? '#22c55e' : 'var(--text-secondary)'}; background: ${stop.price && stop.price !== '0' ? 'rgba(34, 197, 94, 0.1)' : 'var(--bg-secondary)'}; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; cursor:pointer;" title="编辑费用">${stop.price && stop.price !== '0' ? '$' + parseFloat(stop.price).toFixed(2) : '$ 添加费用'}</span>
+        contentHtml = `
+                <div class="rich-stop-card ${isSpecialHotel ? 'special-hotel-card' : ''}" onclick="if(window.openLocationInMapPanel) window.openLocationInMapPanel('${stop.location.replace(/'/g, "\\'")}', ${stop.lat || 'undefined'}, ${stop.lng || 'undefined'});" style="background: var(--bg-deep); border-radius: 8px; padding: 1rem; display:flex; gap: 1rem; transition: background 0.2s, backdrop-filter 0.2s; cursor: pointer; border: 1px solid ${isSpecialHotel ? hotelBorderColor : 'var(--glass-border)'}; box-shadow: 0 2px 8px rgba(0,0,0,0.05); align-items: flex-start; position: relative;">
+                    ${isSpecialHotel ? `<div style="position:absolute; top:-10px; right:10px; background:${hotelBorderColor}; color:white; padding:2px 8px; border-radius:4px; font-size:0.7rem; font-weight:bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">${hotelLabel}</div>` : ''}
+                    <div style="flex:1;">
+                        <div style="display:flex; align-items:center; gap: 10px; margin-bottom: 0.6rem;">
+                            <div class="rich-stop-card-dot" style="width: 24px; height: 24px; background: ${activeColor}; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display:flex; align-items:center; justify-content:center; box-shadow: 0 2px 6px rgba(0,0,0,0.35); flex-shrink:0;">
+                                <span style="transform: rotate(45deg); color: #fff; font-size: 0.75rem; font-weight: 700; line-height: 1;">${isSpecialHotel ? '🏨' : pinNumber}</span>
+                            </div>
+                            <h4 style="font-size: 1.1rem; margin: 0; color: var(--text-primary); font-weight: 600; border-left: none !important; padding-left: 0 !important; display:flex; align-items:center; gap: 8px; flex-wrap:wrap; flex:1;">
+                                <span style="margin-right: 4px;">${stop.location}</span>
+                                ${stop.category && stop.category !== '地点' ? `<span style="color:var(--text-secondary); font-size:0.8rem; font-weight: 500; display:flex; align-items:center; gap:4px; margin-right: 4px;"><span style="opacity: 0.8;">${stop.categoryIcon || '📌'}</span> <span>${stop.category}</span></span>` : ''}
+                                ${stop.rating ? `<span style="font-size:0.85rem; color:#f97316; font-weight:700; display:flex; align-items:center; gap:2px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27l-5.18 3.09 1.34-5.88-4.54-3.95 6.01-.51L12 4.5l2.37 5.52 6.01.51-4.54 3.95 1.34 5.88L12 17.27z"/></svg>${stop.rating}</span>` : ''}
+                            </h4>
+                        </div>
+                        
+                        <div style="display:flex; flex-direction:column; gap:6px; margin-bottom: 0.6rem;">
+                            ${stop.address ? `<div style="color:var(--text-secondary); font-size:0.8rem; display:flex; align-items:flex-start; gap:6px;"><span style="color:#f97316; padding-top:1px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></span><span style="flex:1; line-height:1.2;">${stop.address}</span></div>` : ''}
+                            ${stop.phone ? `<div style="color:var(--text-secondary); font-size:0.8rem; display:flex; align-items:center; gap:6px;"><span style="color:#f97316;"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg></span> ${stop.phone}</div>` : ''}
+                        </div>
+
+                        ${stop.desc ? `<p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0 0 0.4rem 0; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">来自网络：${stop.desc}</p>` : ''}
+                        ${stop.note ? `<p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0 0 0.4rem 0; line-height: 1.3;">${stop.note}</p>` : `<p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0 0 0.4rem 0; opacity: 0.6;">添加备注、链接等</p>`}
+                        
+                        <div style="display:flex; gap: 0.8rem; margin-top: 0.6rem; align-items:center; flex-wrap:wrap;">
+                            <span onclick="openTimePickerDirectly(event, '${day.id}', '${stop.id}')" style="color: #4f46e5; background: rgba(79, 70, 229, 0.1); padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; cursor:pointer;" title="编辑时间">${stop.time} ${stop.period === 'AM' ? '上午' : '下午'}</span>
+                            ${isHotel || isSpecialHotel ? `<span onclick="openStayInfoModal(event, '${day.id}', '${stop.id}')" style="color: #f59e0b; background: rgba(245, 158, 11, 0.1); padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; cursor:pointer;" title="入住信息">🏨 入住信息</span>` : ''}
+                            <span onclick="openExpenseDirectly(event, '${day.id}', '${stop.id}')" style="color: ${stop.price && stop.price !== '0' ? '#22c55e' : 'var(--text-secondary)'}; background: ${stop.price && stop.price !== '0' ? 'rgba(34, 197, 94, 0.1)' : 'var(--bg-secondary)'}; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; cursor:pointer;" title="编辑费用">${stop.price && stop.price !== '0' ? '$' + parseFloat(stop.price).toFixed(2) : '$ 添加费用'}</span>
+                        </div>
                     </div>
+                    <!-- Thumb for Stop -->
+                    <div onclick="window.changeStopImage('${day.id}', '${stop.id}')" style="cursor: pointer; width: 100px; height: 75px; border-radius: 6px; background-image: url('${stop.photo || 'https://picsum.photos/seed/' + stop.id + '/300/200'}'); background-size: cover; background-position: center; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.2);" title="点击更换图片"></div>
                 </div>
-                <!-- Thumb for Stop -->
-                <div onclick="window.changeStopImage('${day.id}', '${stop.id}')" style="cursor: pointer; width: 100px; height: 75px; border-radius: 6px; background-image: url('${stop.photo || 'https://picsum.photos/seed/' + stop.id + '/300/200'}'); background-size: cover; background-position: center; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.2);" title="点击更换图片"></div>
-            </div>
-        `;
+            `;
     }
 
     return `
@@ -166,12 +175,43 @@ export function getTimelineItemHTML(day, stop, index, locationIdx, showTransit, 
 
 // --- Day HTML ---
 export function getDayHTML(day, dayIndex, activeDayId) {
+    const trip = state.trips.find(t => t.id === state.activeTripId);
+
     const dObj = new Date(day.date);
     const daysOfWeek = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
     const dayName = isNaN(dObj.getTime()) ? day.date : `${daysOfWeek[dObj.getDay()]}, ${dObj.getMonth() + 1}月 ${dObj.getDate()}日`;
 
     const colors = ['#5b7a99', '#ef4444', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899'];
     const activeColor = day.color || '#5b7a99';
+
+    // --- Hotel Logic Detection ---
+    let stays = [];
+    if (trip) {
+        const allStops = trip.days.flatMap(d => d.stops.map(s => ({ ...s, dayId: d.id })));
+        const staysMap = new Map();
+        allStops.forEach(s => {
+            if (s.stayId) {
+                if (!staysMap.has(s.stayId)) staysMap.set(s.stayId, { id: s.stayId, checkinDayId: null, checkoutDayId: null, location: s.location });
+                const stay = staysMap.get(s.stayId);
+                if (s.type === 'hotel_checkin') stay.checkinDayId = s.dayId;
+                if (s.type === 'hotel_checkout') stay.checkoutDayId = s.dayId;
+            }
+        });
+        stays = Array.from(staysMap.values()).filter(s => s.checkinDayId && s.checkoutDayId);
+    }
+
+    const currentDayStay = stays.find(s => {
+        const dIdx = trip.days.findIndex(d => d.id === day.id);
+        const cinIdx = trip.days.findIndex(d => d.id === s.checkinDayId);
+        const coutIdx = trip.days.findIndex(d => d.id === s.checkoutDayId);
+        return dIdx >= cinIdx && dIdx <= coutIdx;
+    });
+
+    const isCinOnly = currentDayStay && currentDayStay.checkinDayId === day.id && currentDayStay.checkoutDayId !== day.id;
+    const isCoutOnly = currentDayStay && currentDayStay.checkoutDayId === day.id && currentDayStay.checkinDayId !== day.id;
+    const isBetween = currentDayStay && currentDayStay.checkinDayId !== day.id && currentDayStay.checkoutDayId !== day.id;
+    const isSameDayStay = currentDayStay && currentDayStay.checkinDayId === day.id && currentDayStay.checkoutDayId === day.id;
+
     const colorPickerHtml = `
         <div style="position:relative; margin-left: auto; margin-right: 15px; display:flex; align-items:center;">
             <div style="width: 14px; height: 14px; border-radius: 50%; background: ${activeColor}; cursor:pointer; border: 2px solid var(--glass-border); box-shadow: 0 1px 3px rgba(0,0,0,0.3); transition: transform 0.1s;" onclick="toggleMenu(event, 'color-${day.id}')" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'" title="更改路线颜色"></div>
@@ -223,6 +263,25 @@ export function getDayHTML(day, dayIndex, activeDayId) {
                 <!-- Vertical continuous dashed line for the whole day -->
                 <div class="timeline-line" style="position: absolute; top: 0; bottom: 0; left: 22px; width: 0; border-left: 2px dashed ${activeColor}; opacity: 0.5; z-index: 0; transform: translateX(-50%); transition: border-color 0.2s;"></div>
                 
+                ${currentDayStay ? `
+                    <div class="stay-range-indicator" style="position: absolute; left: 10px; top: 0; bottom: 0; width: 4px; background: #f59e0b; opacity: 0.4; border-radius: 2px; z-index: 1;" title="正在入住: ${currentDayStay.location}"></div>
+                ` : ''}
+
+                <!-- Hotel Departure Hint -->
+                ${(isBetween || isCoutOnly) ? `
+                    <div style="padding-left: 36px; margin-bottom: 0.8rem; color: #f59e0b; font-size: 0.85rem; font-weight: 600; display: flex; flex-direction:column; gap: 4px;">
+                        <div style="display:flex; align-items:center; gap: 6px;">
+                            <span>🏨</span> <span>从酒店 ${currentDayStay.location} 出发</span>
+                        </div>
+                        ${day.transitFromHotel ? `
+                        <div style="margin-left: 22px; font-weight: normal; color: var(--text-secondary); font-size: 0.8rem; display:flex; align-items:center; gap: 0.6rem;">
+                            <span style="cursor:pointer; user-select:none; display:inline-block; transition:transform 0.15s;" onmouseover="this.style.transform='scale(1.25)'" onmouseout="this.style.transform='scale(1)'" onclick="toggleHotelTransitMode('${day.id}', 'from')" title="点击切换驾车/步行">${day.transitFromHotelMode === 'WALK' ? '🚶' : '🚗'}</span>
+                            <span>${day.transitFromHotel.duration} · ${day.transitFromHotel.distance}</span>
+                        </div>
+                        ` : ''}
+                    </div>
+                ` : ''}
+
                 ${day.stops.length === 0 ? `
                 <div style="padding: 1.5rem 1rem; margin-bottom: 1.5rem; text-align: center; border: 1px dashed var(--glass-border); border-radius: 8px; background: rgba(255,255,255,0.02); position:relative; z-index:2;">
                     <span style="font-size: 2rem; opacity: 0.5;">📅</span>
@@ -230,17 +289,43 @@ export function getDayHTML(day, dayIndex, activeDayId) {
                 </div>
                 ` : ''}
                 ${day.stops.map((stop, index) => {
-        // showTransit: true if current stop is a location AND there's any location stop after it
-        // (notes/lists in between should NOT hide transit time)
-        const locationIdx = day.stops.slice(0, index).filter(s => s.type === 'location' || !s.type).length;
         const isLocationStop = stop.type === 'location' || !stop.type;
-        const hasNextLocationStop = isLocationStop && day.stops.slice(index + 1).some(
-            s => s.type === 'location' || !s.type
+        const isHotelStop = stop.type === 'hotel_checkin' || stop.type === 'hotel_checkout';
+
+        // locationIdx should only increment for actual 'location' types (to keep marker numbers correct)
+        const locationIdx = day.stops.slice(0, index).filter(s => s.type === 'location' || !s.type).length;
+
+        // Transit info should show if CURRENT stop is a point-of-interest (loc or hotel)
+        // AND there's ANOTHER point-of-interest after it.
+        const isPoi = isLocationStop || isHotelStop;
+        const hasNextPoi = day.stops.slice(index + 1).some(
+            s => s.type === 'location' || !s.type || s.type === 'hotel_checkin' || s.type === 'hotel_checkout'
         );
+        const hasNextLocationStop = isPoi && hasNextPoi;
         const showAddRow = index < day.stops.length - 1;
         return getTimelineItemHTML(day, stop, index, locationIdx, hasNextLocationStop, showAddRow);
     }).join('')}
             
+                <!-- Hotel Return Hint -->
+                ${(isBetween || isCinOnly || isSameDayStay) ? `
+                    <div style="padding-left: 36px; margin-top: 0.8rem; color: #f59e0b; font-size: 0.85rem; font-weight: 600; display: flex; flex-direction:column; gap: 4px;">
+                        ${day.transitToHotel ? `
+                        <div style="margin-left: 22px; font-weight: normal; color: var(--text-secondary); font-size: 0.8rem; display:flex; align-items:center; gap: 0.6rem; margin-bottom: 4px;">
+                            <span style="cursor:pointer; user-select:none; display:inline-block; transition:transform 0.15s;" onmouseover="this.style.transform='scale(1.25)'" onmouseout="this.style.transform='scale(1)'" onclick="toggleHotelTransitMode('${day.id}', 'to')" title="点击切换驾车/步行">${day.transitToHotelMode === 'WALK' ? '🚶' : '🚗'}</span>
+                            <span>${day.transitToHotel.duration} · ${day.transitToHotel.distance}</span>
+                        </div>
+                        ` : ''}
+                        <div style="display:flex; align-items:center; justify-content: space-between; gap: 6px;">
+                            <div style="display:flex; align-items:center; gap: 6px;">
+                                <span>🏨</span> <span>返回酒店 ${currentDayStay.location}</span>
+                            </div>
+                            <button onclick="toggleReturnRoute('${day.id}')" style="background: var(--bg-secondary); border: 1px solid var(--glass-border); color: var(--text-secondary); font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; cursor: pointer; transition: all 0.2s; font-weight: normal;" onmouseover="this.style.background='var(--accent-primary)'; this.style.color='#fff';" onmouseout="this.style.background='var(--bg-secondary)'; this.style.color='var(--text-secondary)';">
+                                ${day.showReturnRoute ? '隐藏回程' : '显示回程'}
+                            </button>
+                        </div>
+                    </div>
+                ` : ''}
+
             <!-- Dedicated Location Search Bar at bottom of Day -->
             <div class="location-search-container" style="position: relative; margin-top: 1rem; padding-left: 36px; display:flex; gap: 0.5rem; padding-right: 46px;">
                 <div style="flex:1; position:relative;">
@@ -276,9 +361,6 @@ export function getTripHTML(trip) {
     return `
         <div class="dashboard-view fade-in">
             <aside class="sidebar" style="padding-top: 1rem;">
-                <button class="btn-secondary" style="margin-bottom:1rem; width:100%; border:none; text-align:left; padding-left:0;" onclick="goDashboard()">
-                    ← 返回列表
-                </button>
                 <h3 style="margin-bottom: 0.5rem;">${trip.title}</h3>
                 
                 <!-- New Overview Section -->
