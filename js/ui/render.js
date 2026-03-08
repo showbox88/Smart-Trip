@@ -1,6 +1,6 @@
 import { state } from '../state.js';
 import { getLoginHTML } from './templates/auth.js';
-import { getDashboardHTML } from './templates/dashboard.js';
+import { getDashboardHTML, getTripGridHTML } from './templates/dashboard.js';
 import { getTripHTML } from './templates/itinerary.js';
 import { initRealMap } from '../maps.js';
 
@@ -30,8 +30,6 @@ function updateNavLinks() {
         nav.innerHTML = `
             <li><a href="#" onclick="goDashboard()">我的行程</a></li>
             <li><a href="https://google.com/travel" target="_blank">灵感</a></li>
-            <li class="btn-login"><a href="#">${state.user.name}</a></li>
-            <li class="btn-primary"><a href="#" onclick="goDashboard()">开始规划</a></li>
         `;
     }
 }
@@ -87,5 +85,47 @@ export function renderApp() {
                 <button onclick="state.currentView='dashboard'; renderApp()">返回首页</button>
             </div>
         `;
+    }
+}
+
+/**
+ * Partial renderer for the dashboard to avoid full-page flickering.
+ */
+export function renderDashboardPartials() {
+    if (state.currentView !== 'dashboard') return;
+
+    const gridContainer = document.getElementById('trip-grid-container');
+    if (gridContainer) {
+        gridContainer.innerHTML = getTripGridHTML();
+    }
+
+    // Update active classes for filter tabs
+    const filterTabs = document.getElementById('dashboard-filter-tabs');
+    if (filterTabs) {
+        filterTabs.querySelectorAll('.filter-tab').forEach(btn => {
+            const onClickAttr = btn.getAttribute('onclick') || '';
+            const match = onClickAttr.match(/'([^']+)'/);
+            const filterType = match ? match[1] : '';
+            if (filterType === state.dashboardFilter) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+    }
+
+    // Update active classes for view toggles
+    const viewToggles = document.getElementById('dashboard-view-toggles');
+    if (viewToggles) {
+        viewToggles.querySelectorAll('.view-icon').forEach(btn => {
+            const onClickAttr = btn.getAttribute('onclick') || '';
+            const match = onClickAttr.match(/'([^']+)'/);
+            const mode = match ? match[1] : '';
+            if (mode === state.dashboardView) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
     }
 }

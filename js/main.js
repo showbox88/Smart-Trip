@@ -41,6 +41,9 @@ window.deleteTrip = TripHandlers.deleteTrip;
 window.shareTrip = TripHandlers.shareTrip;
 window.toggleMenu = TripHandlers.toggleMenu;
 window.saveTripMetadata = TripHandlers.saveTripMetadata;
+window.filterDashboard = TripHandlers.filterDashboard;
+window.switchViewMode = TripHandlers.switchViewMode;
+window.handleTripThumbUpload = UXHandlers.handleTripThumbUpload;
 
 // Stops & Day Management
 window.addDay = StopHandlers.addDay;

@@ -1,5 +1,5 @@
 import { state, editState } from '../../state.js';
-import { renderApp } from '../render.js';
+import { renderApp, renderDashboardPartials } from '../render.js';
 import { saveData } from '../../api.js';
 import { calculateDays, formatDate } from '../../utils.js';
 import { closeModal } from './ux.js';
@@ -15,6 +15,7 @@ export function createNewTrip() {
         startDate: startStr,
         endDate: endStr,
         thumb: "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+        status: "planned",
         activeDayId: 'day-1',
         days: []
     };
@@ -87,10 +88,12 @@ export function saveTripMetadata() {
     const thumb = document.getElementById('trip-edit-thumb').value;
     const start = document.getElementById('trip-edit-start').value;
     const end = document.getElementById('trip-edit-end').value;
+    const status = document.getElementById('trip-edit-status').value;
 
     const trip = state.trips.find(t => t.id === state.activeTripId);
     if (title) trip.title = title;
     if (thumb) trip.thumb = thumb;
+    if (status) trip.status = status;
 
     let datesChanged = false;
     if (start && start !== trip.startDate) { trip.startDate = start; datesChanged = true; }
@@ -138,4 +141,14 @@ export function saveTripMetadata() {
     closeModal();
     saveData();
     renderApp();
+}
+
+export function filterDashboard(filter) {
+    state.dashboardFilter = filter;
+    renderDashboardPartials();
+}
+
+export function switchViewMode(mode) {
+    state.dashboardView = mode;
+    renderDashboardPartials();
 }

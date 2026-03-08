@@ -3,14 +3,28 @@
     --bg-secondary: #1e293b;
     --bg-deep: #0d111b;
     --bg-itinerary: #1a2333;
-    /* Slightly lighter than deep blue, based on hover reference */
+    /* Core Colors - Inspired by Stitch */
+    --bg-dark: #0d111b;
+    --bg-light: #f5f7f8;
+
+    --accent-primary: #3c83f6;
+    /* Premium Blue */
+    --accent-secondary: #ff8c42;
+
     --text-primary: #f8fafc;
-    --text-secondary: #94a3b8;
-    --accent-primary: #f97316;
-    /* Vibrant Orange */
-    --accent-secondary: #3b82f6;
-    /* Electric Blue */
-    --glass-bg: rgba(30, 41, 59, 0.7);
-    --glass-border: rgba(255, 255, 255, 0.1);
-    --font-main: 'Outfit', 'Noto Sans SC', sans-serif;
+    /* Added back to fix black text issue */
+    --text-main: #ffffff;
+    --text-secondary: #cbd5e1;
+    /* Increased brightness (Slate 300) */
+    --text-muted: #94a3b8;
+    /* Increased brightness (Slate 400) */
+
+    /* Glassmorphism System */
+    --glass-bg: rgba(255, 255, 255, 0.03);
+    --glass-nav: rgba(13, 17, 27, 0.8);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-blur: blur(12px);
+    --shadow-premium: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+
+    --font-main: 'Plus Jakarta Sans', 'Outfit', 'Noto Sans SC', sans-serif;
 }

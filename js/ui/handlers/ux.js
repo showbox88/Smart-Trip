@@ -61,6 +61,7 @@ function openModal(title, bodyHTML) {
 
 // --- Edit Trip Modal ---
 function openEditTripModal(tripId) {
+    window._isUploadingThumb = false; // Reset lock when opening modal
     state.activeTripId = tripId;
     const trip = state.trips.find(t => t.id === tripId);
 
@@ -73,11 +74,22 @@ function openEditTripModal(tripId) {
             <label>行程名称</label>
             <input type="text" id="trip-edit-title" value="${trip.title}">
         </div>
+        <div class="form-group">
+            <label>行程状态</label>
+            <div class="status-selector-group" style="display:flex; background:var(--bg-primary); padding:4px; border-radius:10px; border:1px solid var(--glass-border); gap:4px;">
+                <button type="button" onclick="window._setEditStatus('ongoing', this)" class="status-choice-btn ${trip.status === 'ongoing' ? 'active' : ''}" style="flex:1; padding:8px; border:none; border-radius:7px; cursor:pointer; font-size:0.85rem; transition:all 0.2s; background:${trip.status === 'ongoing' ? 'var(--accent-primary)' : 'transparent'}; color:${trip.status === 'ongoing' ? '#fff' : 'var(--text-secondary)'};">进行中</button>
+                <button type="button" onclick="window._setEditStatus('planned', this)" class="status-choice-btn ${trip.status === 'planned' || !trip.status ? 'active' : ''}" style="flex:1; padding:8px; border:none; border-radius:7px; cursor:pointer; font-size:0.85rem; transition:all 0.2s; background:${(trip.status === 'planned' || !trip.status) ? 'var(--accent-primary)' : 'transparent'}; color:${(trip.status === 'planned' || !trip.status) ? '#fff' : 'var(--text-secondary)'};">计划中</button>
+                <button type="button" onclick="window._setEditStatus('completed', this)" class="status-choice-btn ${trip.status === 'completed' ? 'active' : ''}" style="flex:1; padding:8px; border:none; border-radius:7px; cursor:pointer; font-size:0.85rem; transition:all 0.2s; background:${trip.status === 'completed' ? 'var(--accent-primary)' : 'transparent'}; color:${trip.status === 'completed' ? '#fff' : 'var(--text-secondary)'};">已完成</button>
+            </div>
+            <input type="hidden" id="trip-edit-status" value="${trip.status || 'planned'}">
+        </div>
         <div class="form-group" style="margin-bottom: 0.5rem;">
-            <label>封面图片搜索</label>
+            <label>封面图片</label>
             <div style="display:flex; gap:0.5rem; margin-bottom:0.8rem;">
-                <input type="text" id="trip-edit-search" placeholder="输入关键词 (例如: Tokyo, Beach)" style="flex:1; background:var(--bg-primary); border:1px solid var(--glass-border); padding:0.6rem 0.8rem; border-radius:8px; color:var(--text-primary);" onkeydown="if(event.key === 'Enter') searchImages()">
-                <button class="btn-primary" onclick="searchImages()" style="padding:0 1rem; font-size: 0.9rem;">搜索缩略图</button>
+                <button class="btn-primary" onclick="document.getElementById('thumb-upload-input').click()" style="padding:0 1rem; font-size: 0.85rem; background: var(--bg-secondary); border: 1px solid var(--glass-border);">上传本地图片</button>
+                <input type="file" id="thumb-upload-input" style="display:none;" accept="image/*" onchange="handleTripThumbUpload(event)">
+                <input type="text" id="trip-edit-search" placeholder="或搜索在线图片..." style="flex:1; background:var(--bg-primary); border:1px solid var(--glass-border); padding:0.6rem 0.8rem; border-radius:8px; color:var(--text-primary);" onkeydown="if(event.key === 'Enter') searchImages()">
+                <button class="btn-primary" onclick="searchImages()" style="padding:0 1rem; font-size: 0.85rem;">搜索</button>
             </div>
             <input type="hidden" id="trip-edit-thumb" value="${trip.thumb}">
             <div id="image-grid" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:0.5rem; max-height:220px; overflow-y:auto; padding-right:4px;">
@@ -114,6 +126,75 @@ function openEditTripModal(tripId) {
     // Auto-load some images based on the trip title
     const initialQuery = (trip.title || "travel").replace(/[^a-zA-Z\s]/g, '') || "travel";
     searchImages(initialQuery);
+}
+
+function handleTripThumbUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    window._isUploadingThumb = true; // Block auto-search from overwriting
+
+    if (!file.type.startsWith('image/')) {
+        alert('请选择图片文件');
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        const base64Data = e.target.result;
+
+        // Show immediate local preview
+        const grid = document.getElementById('image-grid');
+        if (grid) {
+            grid.innerHTML = `<p style="grid-column: span 3; text-align:center; color:var(--text-secondary);">正在持久化存储图片...</p>`;
+        }
+
+        // --- Step 2: Send to Backend to convert Base64 to physical file ---
+        fetch('/api/upload-local', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image: base64Data })
+        })
+            .then(r => r.json())
+            .then(result => {
+                if (result.status === 'success' && result.localUrl) {
+                    const finalUrl = result.localUrl;
+                    const thumbInput = document.getElementById('trip-edit-thumb');
+                    if (thumbInput) thumbInput.value = finalUrl;
+
+                    const trip = state.trips.find(t => t.id === state.activeTripId);
+                    if (trip) {
+                        trip.thumb = finalUrl;
+                        // Persist state with the new local URL
+                        import('../../api.js').then(m => m.saveData());
+                        import('../render.js').then(m => m.renderApp());
+                    }
+
+                    // Update all UI previews
+                    if (grid) {
+                        grid.innerHTML = `
+                        <div class="image-option selected" style="position:relative; width:100%; aspect-ratio:3/2; overflow:hidden; border-radius:8px; border:2px solid var(--accent-primary); background:#000;">
+                            <img src="${finalUrl}" style="width:100%; height:100%; object-fit:contain;">
+                            <div style="position:absolute; top:4px; right:4px; background:var(--accent-primary); color:white; border-radius:50%; width:20px; height:20px; display:flex; align-items:center; justify-content:center; font-size:12px;">✓</div>
+                        </div>
+                    `;
+                    }
+
+                    const modalCover = document.querySelector('.edit-trip-modal .modal-cover');
+                    if (modalCover) modalCover.style.backgroundImage = `url('${finalUrl}')`;
+
+                    const itineraryThumb = document.getElementById('itinerary-header-thumb');
+                    if (itineraryThumb) itineraryThumb.style.backgroundImage = `url('${finalUrl}')`;
+                } else {
+                    alert('图片上传失败: ' + (result.message || '未知错误'));
+                }
+            })
+            .catch(err => {
+                console.error('[Upload-Local] failed:', err);
+                alert('服务器连接失败，请确认 server.py 正在运行且文件大小未超限。');
+            });
+    };
+    reader.readAsDataURL(file);
 }
 
 // --- Edit Stop Modal ---
@@ -1094,7 +1175,7 @@ function saveStopImage(dayId, stopId, passedUrl) {
 // --- Exports ---
 export {
     closeModal, closeSubModal, openModal, openConfirmModal,
-    openEditTripModal, openEditModal,
+    openEditTripModal, openEditModal, handleTripThumbUpload,
     scrollToDay, editDay, saveEditDay, editDaySubtitle, toggleOverview, toggleDayCollapse,
     handleDragStart, handleDragOver, handleDragEnter, handleDragLeave, handleDrop, handleDragEnd,
     openTimePickerDirectly, openExpenseDirectly,
@@ -1104,4 +1185,23 @@ export {
     saveStopImage,
     selectStopThumb,
     confirmStopImage
+};
+
+// --- Global Helpers for Dynamic UI ---
+window._setEditStatus = function (val, btn) {
+    const input = document.getElementById('trip-edit-status');
+    if (input) input.value = val;
+
+    // UI update
+    if (btn && btn.parentElement) {
+        const btns = btn.parentElement.querySelectorAll('.status-choice-btn');
+        btns.forEach(b => {
+            b.style.background = 'transparent';
+            b.style.color = 'var(--text-secondary)';
+            b.classList.remove('active');
+        });
+        btn.style.background = 'var(--accent-primary)';
+        btn.style.color = '#fff';
+        btn.classList.add('active');
+    }
 };

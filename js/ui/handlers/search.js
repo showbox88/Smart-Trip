@@ -151,6 +151,11 @@ export async function searchImages(passedQuery) {
         }
 
         setTimeout(() => {
+            // If user has uploaded a file while we were searching, don't overwrite their preview
+            if (window._isUploadingThumb) {
+                console.log('[searchImages] Blocked overwrite because user is uploading/has uploaded a file.');
+                return;
+            }
             const freshGrid = document.getElementById('image-results-grid') || document.getElementById('image-grid');
             if (freshGrid) {
                 freshGrid.innerHTML = html;
@@ -173,6 +178,12 @@ export function selectImage(event, url) {
 
     document.querySelectorAll('.image-thumb-option').forEach(el => el.classList.remove('selected'));
     if (event && event.target) event.target.classList.add('selected');
+
+    // Update the big modal header for immediate feedback
+    const modalCover = document.querySelector('.edit-trip-modal .modal-cover');
+    if (modalCover) {
+        modalCover.style.backgroundImage = `url('${url}')`;
+    }
 
     // Background: cache the image locally so it doesn't change between sessions
     fetch('/api/upload-image', {

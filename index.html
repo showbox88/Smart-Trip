@@ -15,24 +15,40 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Outfit:wght@300;400;600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@300;400;500;700&family=Outfit:wght@300;400;600;700&display=swap"
         rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/dark.css">
 </head>
 
 <body class="dark-theme">
     <header class="navbar">
-        <div class="logo">Smart<span>Trip</span></div>
+        <div class="logo" onclick="goDashboard()" style="cursor: pointer;">Smart<span>Trip</span></div>
+        <div class="nav-search-bar">
+            <span class="material-symbols-outlined">search</span>
+            <input type="text" placeholder="Search itineraries..." id="main-search">
+        </div>
         <nav>
             <ul>
                 <li><a href="#hero">首页</a></li>
-                <li><a href="#" onclick="startPlanning()">我的行程</a></li>
+                <li><a href="#" onclick="showDashboard()">我的行程</a></li>
                 <li><a href="https://google.com/travel" target="_blank">灵感</a></li>
-                <li class="btn-login"><a href="#">登录</a></li>
-                <li class="btn-primary"><a href="#" onclick="startPlanning()">开始规划</a></li>
             </ul>
         </nav>
+        <div class="nav-right">
+            <button class="nav-icon-btn">
+                <span class="material-symbols-outlined">notifications</span>
+                <span class="nav-dot"></span>
+            </button>
+            <div class="user-avatar">
+                <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAjoN0jmeYMMck49QvhRReRpyFUMWBNKNOgLTI8v4vfAU93GXuQCFDH2qSZbFnILsTz5Kma9z__sMx035_vwxMwphapldySs6-wa2lCwcRkH2HV__E_-F_MtuGPypaQb_GFjrP52_BWn0w2lV1gCEgBNHCcryUksKEBnS0bV0HCh-udwlMkNLJRpJZFd3hTIT8NshkRyUSmXu2zHGSU3OzUBgmBmApUvlzWmUfble9evAzqttWL33_5qyiMEPhedRgvUxV1jOCe5as"
+                    alt="User Profile">
+            </div>
+        </div>
     </header>
 
     <main id="app-container">

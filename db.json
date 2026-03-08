@@ -10,7 +10,7 @@
             "title": "新的神秘冒险",
             "startDate": "2026-05-01",
             "endDate": "2026-05-12",
-            "thumb": "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+            "thumb": "/uploads/upload_b7c10c34bbe17de22ae748da05ad1894.png",
             "activeDayId": "day-1772941929944",
             "days": [
                 {
@@ -18,6 +18,18 @@
                     "title": "第 1 天",
                     "date": "2026年5月1日",
                     "stops": [
+                        {
+                            "id": "l1772952038558",
+                            "type": "list",
+                            "title": "",
+                            "items": []
+                        },
+                        {
+                            "id": "n1772952034284",
+                            "type": "note",
+                            "content": "",
+                            "checked": false
+                        },
                         {
                             "id": "s1772945770411",
                             "location": "Business Hotel Crescent",
@@ -39,34 +51,10 @@
                             "stayId": "stay-1772945777799",
                             "expenseCategory": "活动",
                             "transitToNext": {
-                                "duration": "7 分钟",
-                                "distance": "0.5 公里"
+                                "duration": "6 分钟",
+                                "distance": "1.6 公里"
                             },
-                            "transitMode": "WALK"
-                        },
-                        {
-                            "id": "s1772947590093",
-                            "location": "Yuei",
-                            "desc": "",
-                            "address": "104 1-chōme-6-5 Kōenjiminami, Suginami City, Tokyo 166-0002, Japan",
-                            "phone": "",
-                            "time": "09:00",
-                            "period": "AM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 35.6981985,
-                            "lng": 139.6585402,
-                            "photo": "/uploads/958bd976a6570aafa58eb38ee2ae517d.jpg",
-                            "rating": 4.2,
-                            "category": "餐饮",
-                            "categoryIcon": "🍴",
-                            "placeId": "ChIJkVP5ejqNGGAR96viFCXYOl0",
-                            "transitToNext": {
-                                "duration": "17 分钟",
-                                "distance": "1.2 公里"
-                            },
-                            "transitMode": "WALK"
+                            "transitMode": "DRIVE"
                         },
                         {
                             "id": "s1772947601881",
@@ -109,14 +97,37 @@
                             "category": "餐饮",
                             "categoryIcon": "🍴",
                             "placeId": "ChIJxb5izUXzGGARATweg8oBicg",
+                            "transitToNext": {
+                                "duration": "20 分钟",
+                                "distance": "6.7 公里"
+                            }
+                        },
+                        {
+                            "id": "s1772989870522",
+                            "location": "Tensuke",
+                            "desc": "Hole-in-the-wall joint serving up shrimp, fish & veggie tempura, renowned for its deep-fried eggs.",
+                            "address": "Japan, 〒166-0002 Tokyo, Suginami City, Kōenjikita, 3-chōme−22−７ プラザ高円寺",
+                            "phone": "03-3223-8505",
+                            "time": "03:00   ",
+                            "period": "PM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 35.7058375,
+                            "lng": 139.6487831,
+                            "photo": "/uploads/ec13945525af6227fea48873f41ba61b.jpg",
+                            "rating": 4.5,
+                            "category": "餐饮",
+                            "categoryIcon": "🍴",
+                            "placeId": "ChIJXaZmo33yGGARE9okpsCbz80",
                             "transitToNext": null
                         }
                     ],
                     "color": "#10b981",
                     "transitFromHotel": null,
                     "transitToHotel": {
-                        "duration": "16 分钟",
-                        "distance": "6.3 公里"
+                        "duration": "7 分钟",
+                        "distance": "1.8 公里"
                     },
                     "showReturnRoute": false
                 },
@@ -189,6 +200,29 @@
                             "category": "餐饮",
                             "categoryIcon": "🍴",
                             "placeId": "ChIJQbWaOxiNGGAR2Wr2BfXxEU8",
+                            "transitToNext": {
+                                "duration": "20 分钟",
+                                "distance": "7.1 公里"
+                            }
+                        },
+                        {
+                            "id": "s1772998269305",
+                            "location": "cafe Felice",
+                            "desc": "",
+                            "address": "Japan, 〒176-0025 Tokyo, Nerima City, Nakamuraminami, 1-chōme−27−２０ ガーデンスクウェア １Ｆ",
+                            "phone": "03-3825-2992",
+                            "time": "03:00   ",
+                            "period": "PM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 35.7265397,
+                            "lng": 139.6473034,
+                            "photo": "/uploads/cdf0d6e44d4c0d85756bd3c8cedb85ea.jpg",
+                            "rating": 4.1,
+                            "category": "咖啡馆",
+                            "categoryIcon": "☕",
+                            "placeId": "ChIJ1XHajJ7tGGARcHa4Ui8ZkCM",
                             "transitToNext": null
                         }
                     ],
@@ -198,8 +232,8 @@
                         "distance": "3.5 公里"
                     },
                     "transitToHotel": {
-                        "duration": "21 分钟",
-                        "distance": "5.9 公里"
+                        "duration": "12 分钟",
+                        "distance": "4.5 公里"
                     },
                     "showReturnRoute": false
                 },
@@ -294,9 +328,104 @@
                     ],
                     "color": "#10b981"
                 }
+            ],
+            "status": "planned"
+        },
+        {
+            "id": "trip-1772998297264",
+            "title": "新的神秘冒险",
+            "startDate": "2026-05-01",
+            "endDate": "2026-05-05",
+            "thumb": "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+            "status": "ongoing",
+            "activeDayId": "day-1772998297264-0",
+            "days": [
+                {
+                    "id": "day-1772998297264-0",
+                    "title": "第 1 天",
+                    "date": "2026年5月1日",
+                    "stops": [],
+                    "color": "#5b7a99"
+                },
+                {
+                    "id": "day-1772998297264-1",
+                    "title": "第 2 天",
+                    "date": "2026年5月2日",
+                    "stops": [],
+                    "color": "#ef4444"
+                },
+                {
+                    "id": "day-1772998297264-2",
+                    "title": "第 3 天",
+                    "date": "2026年5月3日",
+                    "stops": [],
+                    "color": "#f59e0b"
+                },
+                {
+                    "id": "day-1772998297264-3",
+                    "title": "第 4 天",
+                    "date": "2026年5月4日",
+                    "stops": [],
+                    "color": "#10b981"
+                },
+                {
+                    "id": "day-1772998297264-4",
+                    "title": "第 5 天",
+                    "date": "2026年5月5日",
+                    "stops": [],
+                    "color": "#8b5cf6"
+                }
+            ]
+        },
+        {
+            "id": "trip-1772998308515",
+            "title": "新的神秘冒险",
+            "startDate": "2026-05-01",
+            "endDate": "2026-05-05",
+            "thumb": "https://loremflickr.com/600/400/travel?lock=302&t=1772998312260",
+            "status": "completed",
+            "activeDayId": "day-1772998308515-0",
+            "days": [
+                {
+                    "id": "day-1772998308515-0",
+                    "title": "第 1 天",
+                    "date": "2026年5月1日",
+                    "stops": [],
+                    "color": "#5b7a99"
+                },
+                {
+                    "id": "day-1772998308515-1",
+                    "title": "第 2 天",
+                    "date": "2026年5月2日",
+                    "stops": [],
+                    "color": "#ef4444"
+                },
+                {
+                    "id": "day-1772998308515-2",
+                    "title": "第 3 天",
+                    "date": "2026年5月3日",
+                    "stops": [],
+                    "color": "#f59e0b"
+                },
+                {
+                    "id": "day-1772998308515-3",
+                    "title": "第 4 天",
+                    "date": "2026年5月4日",
+                    "stops": [],
+                    "color": "#10b981"
+                },
+                {
+                    "id": "day-1772998308515-4",
+                    "title": "第 5 天",
+                    "date": "2026年5月5日",
+                    "stops": [],
+                    "color": "#8b5cf6"
+                }
             ]
         }
     ],
+    "dashboardFilter": "all",
+    "dashboardView": "list",
     "collapsedDays": {
         "day-1772579247304-0": false,
         "day-1772579247304-1": true,

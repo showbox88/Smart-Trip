@@ -6,6 +6,7 @@ import urllib.request
 import urllib.parse
 import hashlib
 import mimetypes
+import base64
 
 PORT = 8000
 DB_FILE = 'db.json'
@@ -150,6 +151,51 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
 
             except Exception as e:
                 print(f"[upload-image] Error: {e}")
+                self.send_response(500)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({"status": "error", "message": str(e)}).encode('utf-8'))
+            return
+
+        if self.path == '/api/upload-local':
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+
+            try:
+                body = json.loads(post_data.decode('utf-8'))
+                image_data = body.get('image', '') # "data:image/png;base64,..."
+                
+                if not image_data or ',' not in image_data:
+                    raise ValueError("Invalid image data format")
+
+                header, encoded = image_data.split(",", 1)
+                img_binary = base64.b64decode(encoded)
+
+                # Detect extension from header
+                ext = ".jpg"
+                if "image/png" in header: ext = ".png"
+                elif "image/webp" in header: ext = ".webp"
+                elif "image/gif" in header: ext = ".gif"
+
+                # Generate unique filename based on content hash
+                content_hash = hashlib.md5(img_binary).hexdigest()
+                filename = f"upload_{content_hash}{ext}"
+                local_path = os.path.join(UPLOADS_DIR, filename)
+
+                # Save file
+                with open(local_path, "wb") as f:
+                    f.write(img_binary)
+                
+                print(f"[upload-local] Saved: {filename}")
+                local_url = f"/uploads/{filename}"
+
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({"status": "success", "localUrl": local_url}).encode('utf-8'))
+
+            except Exception as e:
+                print(f"[upload-local] Error: {e}")
                 self.send_response(500)
                 self.send_header('Content-type', 'application/json')
                 self.end_headers()

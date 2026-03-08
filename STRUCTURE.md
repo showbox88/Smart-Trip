@@ -21,6 +21,7 @@
         - `GET /api/data`: 读取 `db.json` 全量数据。
         - `POST /api/save`: 全量保存 `state` 到 `db.json`。
         - `POST /api/upload-image`: 本地缓存远程图片。
+        - `POST /api/upload-local`: 通过 Base64 上传并转存本地物理文件。
         - `POST /api/delete-image`: 删除指定的本地缓存图片。
         - `GET /api/cleanup-images`: 管理员功能，清理孤立的图片资源。
 

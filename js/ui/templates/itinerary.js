@@ -406,7 +406,7 @@ export function getTripHTML(trip) {
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <div style="display:flex; align-items:center; gap: 1rem;">
                             <!-- Compact thumbnail -->
-                            <div style="width:56px; height:56px; border-radius:10px; background-image:url('${trip.thumb}'); background-size:cover; background-position:center; border:1px solid var(--glass-border); flex-shrink:0;"></div>
+                            <div id="itinerary-header-thumb" style="width:56px; height:56px; border-radius:10px; background-image:url('${trip.thumb}'); background-size:cover; background-position:center; border:1px solid var(--glass-border); flex-shrink:0;"></div>
                             <div>
                                 <h2 style="margin:0; font-size:1.25rem; line-height:1.2;">${trip.title}</h2>
                                 <div style="display:flex; align-items:center; gap:0.6rem; margin-top:0.3rem; flex-wrap:wrap;">

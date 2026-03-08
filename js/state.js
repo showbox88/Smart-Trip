@@ -3,7 +3,9 @@ let state = {
     user: null,
     currentView: 'login',
     activeTripId: null,
-    trips: []
+    trips: [],
+    dashboardFilter: 'all', // 'all', 'ongoing', 'planned', 'completed'
+    dashboardView: 'grid'   // 'grid', 'list'
 };
 
 // Modal Edit State
