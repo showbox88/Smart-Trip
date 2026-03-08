@@ -221,59 +221,15 @@
             "id": "trip-1772827496784",
             "title": "新的神秘冒险",
             "startDate": "2026-05-01",
-            "endDate": "2026-05-05",
+            "endDate": "2026-05-07",
             "thumb": "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-            "activeDayId": "day-1772827496784-0",
+            "activeDayId": "day-1772833059103",
             "days": [
                 {
                     "id": "day-1772827496784-0",
                     "title": "第 1 天",
                     "date": "2026年5月1日",
                     "stops": [
-                        {
-                            "id": "s1772827553729",
-                            "location": "John F. Kennedy International Airport",
-                            "desc": "New York City hub offering flights from 80+ airlines, plus a variety of shops & eateries.",
-                            "address": "Queens, NY 11430, USA",
-                            "phone": "(718) 244-4444",
-                            "time": "09:00",
-                            "period": "AM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 40.6446124,
-                            "lng": -73.7797278,
-                            "photo": "/uploads/be9dd02186bcdae52d3720f017540cad.jpg",
-                            "rating": 3.8,
-                            "category": "机场",
-                            "categoryIcon": "✈️",
-                            "transitToNext": {
-                                "duration": "26 分钟",
-                                "distance": "17.0 公里"
-                            }
-                        },
-                        {
-                            "id": "s1772827574931",
-                            "location": "Queens Center",
-                            "desc": "This coliseum-like indoor shopping mall houses dozens of retail stores plus a food court.",
-                            "address": "90-15 Queens Blvd, Elmhurst, NY 11373, USA",
-                            "phone": "(718) 592-3900",
-                            "time": "11:00 ",
-                            "period": "AM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 40.7347872,
-                            "lng": -73.8688409,
-                            "photo": "/uploads/ca3a10320c634c54a0d53961829b8e63.jpg",
-                            "rating": 4.4,
-                            "category": "购物中心",
-                            "categoryIcon": "🛍️",
-                            "transitToNext": {
-                                "duration": "19 分钟",
-                                "distance": "10.0 公里"
-                            }
-                        },
                         {
                             "id": "s1772827587480",
                             "location": "Sybil's",
@@ -291,7 +247,111 @@
                             "rating": 4.3,
                             "category": "面包房",
                             "categoryIcon": "🥐",
-                            "transitToNext": null
+                            "transitToNext": {
+                                "duration": "14 分钟",
+                                "distance": "3.8 公里"
+                            }
+                        },
+                        {
+                            "id": "l1772832703339",
+                            "type": "list",
+                            "title": "",
+                            "items": []
+                        },
+                        {
+                            "id": "s1772831424023",
+                            "location": "IHOP",
+                            "desc": "Long-standing chain serving a wide variety of pancakes & other American breakfast & diner fare.",
+                            "address": "170-19 Hillside Ave., Jamaica, NY 11432, USA",
+                            "phone": "(718) 523-4561",
+                            "time": "03:00   ",
+                            "period": "PM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 40.7114952,
+                            "lng": -73.7915144,
+                            "photo": "https://places.googleapis.com/v1/places/ChIJlVdhircr6IkRVmAfra3VMEo/photos/ATCDNfUZpTVElU5jCY6lvArRrY0iioJjdPyxOIMUw75_8TPbukihhF3KpC7CGfp7Zyrl1e3cUCIhvUBpxjeBAoZE85xRf_2giArm8YgCO-cXySqiyPKTVAcELdD9jRTIfug7ztIeH0SldGcWP4r3H-GnpkfTNcwr7VOouh9FrBgFU5w6SZ_ffUQvAlHgjtNx11HkWj4KaIBs9YDVRjF7o6ModIAqtYyPEFotnXTwE-vrPnhH8cAhEQ9yJSR6WTx__yU2iLRMylobEYGne73HASkPxcZXRkAQzH0QWEYNpGKi6uiG--RVZjDcvown_xB4_OzNSNge7GqZ_POJzQzZt7PsjQUgNRrECinfMg_IjvUHJedeNneVryE7f3fIZZ2f3m3M_ZTM7jGeeM53T7h6J-M9Bfa9lrpM4S2HBYNqApSJHdtktdgFHN-RcJWeiKU_dA/media?maxWidthPx=600&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k",
+                            "rating": 3.9,
+                            "category": "餐饮",
+                            "categoryIcon": "🍴",
+                            "placeId": "ChIJ0xzx9x5hwokRJXGnTo9wbeM",
+                            "transitToNext": {
+                                "duration": "16 分钟",
+                                "distance": "10.4 公里"
+                            }
+                        },
+                        {
+                            "id": "n1772832699864",
+                            "type": "note",
+                            "content": "",
+                            "checked": false
+                        },
+                        {
+                            "id": "s1772827574931",
+                            "location": "Queens Center",
+                            "desc": "This coliseum-like indoor shopping mall houses dozens of retail stores plus a food court.",
+                            "address": "90-15 Queens Blvd, Elmhurst, NY 11373, USA",
+                            "phone": "(718) 592-3900",
+                            "time": "11:00 ",
+                            "period": "AM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 40.7347872,
+                            "lng": -73.8688409,
+                            "photo": "https://places.googleapis.com/v1/places/ChIJA7Ciw0tewokRWJrqRqhFJBs/photos/ATCDNfVhmvd_s9Zeo-vSNegptQAVqvh7-iyd5jJn-kkyRWD7Sk0XLDFRFD0b_TOXZ1skDf8fvZelRRTvAWx8Ojnc_X9mKLtcl-Ckis3E3uXRYw31Fc7mJ8Ikeo-lH0n4KoqGe2V4syh_V2orrxoGxZK36y6lcYpO-kZMZmEcqNrjxiBz5qJEWZ9VGfw2Y-E3mEm43FqmO9K2d76T72GzbybvQwAZ2Txpx4G6qKDjsS7iN4r28_yEtTX0efdwhkSapXtL3fLMuHJb0tmqXsi65uh1OGnUn_X5Vd1ESARDaAbkQST_JmDNMo1cFvqsPJESmjv25TcLqjK76dSF55c7_QtYuAm7cq6w2Se84-jNPNXK_wUMj6qmn67_2bUxpdK_IXfXvs7LcEDu7CuO-x03tAnLlCNRgtGzUlx9qiQ81Xjmq4o/media?maxWidthPx=600&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k",
+                            "rating": 4.4,
+                            "category": "购物中心",
+                            "categoryIcon": "🛍️",
+                            "transitToNext": {
+                                "duration": "15 分钟",
+                                "distance": "10.3 公里"
+                            }
+                        },
+                        {
+                            "id": "s1772831429895",
+                            "location": "IHOP",
+                            "desc": "Long-standing chain serving a wide variety of pancakes & other American breakfast & diner fare.",
+                            "address": "170-19 Hillside Ave., Jamaica, NY 11432, USA",
+                            "phone": "(718) 523-4561",
+                            "time": "09:00",
+                            "period": "AM",
+                            "note": "",
+                            "price": "220",
+                            "type": "location",
+                            "lat": 40.7114952,
+                            "lng": -73.7915144,
+                            "photo": "/uploads/b738544a6f79388959b5fe64447f74c3.jpg",
+                            "rating": 3.9,
+                            "category": "餐饮",
+                            "categoryIcon": "🍴",
+                            "placeId": "ChIJ0xzx9x5hwokRJXGnTo9wbeM",
+                            "expenseCategory": "活动",
+                            "transitToNext": {
+                                "duration": "23 分钟",
+                                "distance": "11.3 公里"
+                            }
+                        },
+                        {
+                            "id": "s1772827553729",
+                            "location": "John F. Kennedy International Airport",
+                            "desc": "New York City hub offering flights from 80+ airlines, plus a variety of shops & eateries.",
+                            "address": "Queens, NY 11430, USA",
+                            "phone": "(718) 244-4444",
+                            "time": "09:00",
+                            "period": "AM",
+                            "note": "",
+                            "price": "120",
+                            "type": "location",
+                            "lat": 40.6446124,
+                            "lng": -73.7797278,
+                            "photo": "/uploads/be9dd02186bcdae52d3720f017540cad.jpg",
+                            "rating": 3.8,
+                            "category": "机场",
+                            "categoryIcon": "✈️",
+                            "transitToNext": null,
+                            "expenseCategory": "活动"
                         }
                     ],
                     "color": "#5b7a99"
@@ -300,15 +360,77 @@
                     "id": "day-1772827496784-1",
                     "title": "第 2 天",
                     "date": "2026年5月2日",
-                    "stops": [],
-                    "color": "#ef4444"
+                    "stops": [
+                        {
+                            "id": "n1772835199113",
+                            "type": "note",
+                            "content": "",
+                            "checked": false
+                        },
+                        {
+                            "id": "l1772835200042",
+                            "type": "list",
+                            "title": "",
+                            "items": []
+                        },
+                        {
+                            "id": "s1772832724133",
+                            "location": "McDonald's",
+                            "desc": "Classic, long-running fast-food chain known for its burgers & fries.",
+                            "address": "114-01 Sutphin Blvd, Jamaica, NY 11434, USA",
+                            "phone": "(718) 845-0581",
+                            "time": "09:00",
+                            "period": "AM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 40.6861836,
+                            "lng": -73.7933352,
+                            "photo": "https://places.googleapis.com/v1/places/ChIJVbvl6qrU6YkRLysouCaANvA/photos/ATCDNfXeLBCAxJeMwYCYB_i8WDnEmy8M24OdSbD1jQhtpwOonxbrZnY6qf27z0_Bc3Fb-lR7JBdKLVd1FjCgKCVLlrGZbX7zsYO3GE8mJ9EpruWacKVUPuE9Yq24huTr7g6aqtldSqFH_6UJqs0dQvAFI5lGWdRPp-JTlKgxNkVFApY3n_8eOsXVGAuSam5DY104PHQNoSiPhhVV_VnyNAwHFD_I3JNdHAZpzB6faO8WKPYVJod1q_S5L_QyUEndq0f6Vep2uk6PLGAgkXHh3SLFZnQMhTnpCDdlYpoHhoNfvjyb1w/media?maxWidthPx=600&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k",
+                            "rating": 3.6,
+                            "category": "咖啡馆",
+                            "categoryIcon": "☕",
+                            "placeId": "ChIJQ5HhCtVmwokRQS2Ud6mH9Xs",
+                            "transitToNext": {
+                                "duration": "7 分钟",
+                                "distance": "1.9 公里"
+                            }
+                        },
+                        {
+                            "id": "s1772832925043",
+                            "location": "Domino's Pizza",
+                            "desc": "Delivery/carryout chain offering a wide range of pizzas & a variety of other dishes & sides.",
+                            "address": "109-50 Merrick Blvd, Queens, NY 11433, USA",
+                            "phone": "(718) 658-4200",
+                            "time": "11:00 ",
+                            "period": "AM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 40.696017600000005,
+                            "lng": -73.783345,
+                            "photo": "https://places.googleapis.com/v1/places/ChIJXfOcKnAs6IkRK2J-wmarls4/photos/ATCDNfV5cYV2jOj9u2aaa5ZGquVU6bXn1UI77XZoCY8a2p0v8NwY0RGj_hj-28aZcPb7qgmMyCQ1-JJ5fDE8BibmAvXnDBSpqvuwzEtorJJyhEcTYUjOntb0MOLTGuAUz5vi_-qF0teiBOXIJPvP8VZGKVUlpaoUgBrlGqOC_kOiDOxWNkdyfg6RIbE-VqvE2wMxMDCX6oLCeBc9EMcyDtyzwPcxSqRHzVlkeAEP8xX2mziWL2sejHLX8PJby3K5XRkhBXsecMr8phugECl8Y6exscAvfLSYHQcZLdRzXB9rY_-Axg/media?maxWidthPx=600&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k",
+                            "rating": 3,
+                            "category": "外卖",
+                            "categoryIcon": "🥡",
+                            "placeId": "ChIJ4Ur7hSZhwokRMQMUk1GAYwQ",
+                            "transitToNext": null
+                        },
+                        {
+                            "id": "n1772835198448",
+                            "type": "note",
+                            "content": "",
+                            "checked": false
+                        }
+                    ],
+                    "color": "#10b981"
                 },
                 {
                     "id": "day-1772827496784-2",
                     "title": "第 3 天",
                     "date": "2026年5月3日",
                     "stops": [],
-                    "color": "#f59e0b"
+                    "color": "#ef4444"
                 },
                 {
                     "id": "day-1772827496784-3",
@@ -323,6 +445,20 @@
                     "date": "2026年5月5日",
                     "stops": [],
                     "color": "#8b5cf6"
+                },
+                {
+                    "id": "day-1772833052389",
+                    "title": "第 6 天",
+                    "date": "2026年5月6日",
+                    "stops": [],
+                    "color": "#ec4899"
+                },
+                {
+                    "id": "day-1772833059103",
+                    "title": "第 7 天",
+                    "date": "2026年5月7日",
+                    "stops": [],
+                    "color": "#5b7a99"
                 }
             ]
         }
@@ -344,6 +480,11 @@
         "day-1772653870970-1": true,
         "day-1772653870970-2": true,
         "day-1772653870970-3": true,
-        "day-1772653870970-4": true
+        "day-1772653870970-4": true,
+        "day-1772827496784-0": true,
+        "day-1772827496784-1": false,
+        "day-1772827496784-2": true,
+        "day-1772827496784-3": true,
+        "day-1772827496784-4": true
     }
 }

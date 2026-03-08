@@ -192,40 +192,51 @@ export function initRealMap() {
                     // Use img + SVG data-URI for custom marker:
                     // This bypasses the AdvancedMarkerElement shadow-DOM white background wrapper.
                     console.log(`[maps] Creating custom SVG marker #${pinCount} color:${dayColor}`);
-                    const encodedSvg = encodeURIComponent(`<svg width="36" height="44" viewBox="0 0 36 44" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M18 0 C8.06 0 0 8.06 0 18 C0 31.5 18 44 18 44 C18 44 36 31.5 36 18 C36 8.06 27.94 0 18 0Z" fill="${dayColor}" stroke="white" stroke-width="1.5" opacity="0.95"/>
-                        <circle cx="18" cy="18" r="11" fill="#1a2235" opacity="0.9"/>
-                        <text x="18" y="23" text-anchor="middle" fill="white" font-size="13" font-weight="800" font-family="Arial, sans-serif">${pinCount}</text>
-                    </svg>`);
-                    const markerImg = document.createElement('img');
-                    markerImg.src = `data:image/svg+xml,${encodedSvg}`;
-                    markerImg.width = 36;
-                    markerImg.height = 44;
-                    markerImg.style.cssText = `
+                    const markerContent = document.createElement('div');
+                    markerContent.style.cssText = `
+                        width: 36px; height: 44px;
                         cursor: pointer;
                         transition: transform 0.2s;
                         filter: drop-shadow(0 3px 6px rgba(0,0,0,0.7));
                         display: block;
                     `;
-                    markerImg.onmouseenter = () => markerImg.style.transform = 'scale(1.2) translateY(-4px)';
-                    markerImg.onmouseleave = () => markerImg.style.transform = 'scale(1) translateY(0)';
+                    markerContent.innerHTML = `<svg width="36" height="44" viewBox="0 0 36 44" xmlns="http://www.w3.org/2000/svg" style="pointer-events: none;">
+                        <path d="M18 0 C8.06 0 0 8.06 0 18 C0 31.5 18 44 18 44 C18 44 36 31.5 36 18 C36 8.06 27.94 0 18 0Z" fill="${dayColor}" stroke="white" stroke-width="1.5" opacity="0.95" style="pointer-events: auto;"/>
+                        <circle cx="18" cy="18" r="11" fill="#1a2235" opacity="0.9" style="pointer-events: none;"/>
+                        <text x="18" y="23" text-anchor="middle" fill="white" font-size="13" font-weight="800" font-family="Arial, sans-serif" style="pointer-events: none;">${pinCount}</text>
+                    </svg>`;
+
+                    markerContent.onmouseenter = () => markerContent.style.transform = 'scale(1.2) translateY(-4px)';
+                    markerContent.onmouseleave = () => markerContent.style.transform = 'scale(1) translateY(0)';
+
+                    // Direct click listener on the content div as a secondary fallback for 100% reliability
+                    markerContent.onclick = (e) => {
+                        e.stopPropagation();
+                        console.log('[marker-content-click] Direct content click for:', stop.location);
+                        if (stop.placeId) {
+                            window._openPlacePanel(stop.placeId);
+                        } else {
+                            window.openLocationInMapPanel(stop.location, stop.lat, stop.lng);
+                        }
+                    };
 
                     const marker = new google.maps.marker.AdvancedMarkerElement({
                         position: pos,
                         map: googleMapInstance,
                         title: stop.location,
-                        content: markerImg
+                        content: markerContent
                     });
 
                     // Explicit click listener to fix sensitivity issues in the center of the marker
-                    marker.addListener('click', () => {
+                    // Using addEventListener('gmp-click') as recommended for AdvancedMarkerElement
+                    marker.addEventListener('gmp-click', () => {
                         console.log('[marker-click] Stop marker clicked:', stop.location);
                         if (stop.placeId) {
-                            google.maps.event.trigger(googleMapInstance, 'click', { placeId: stop.placeId, stop: () => { } });
+                            window._openPlacePanel(stop.placeId);
                         } else {
-                            // If no placeId (older data), we can't open a rich panel easily without a re-search,
-                            // but we can at least center the map or show a basic info panel if needed.
-                            // For now, satisfy the click feedback.
+                            // Fallback for older data: search by name and coordinates
+                            console.log('[marker-click] No placeId, using search fallback for:', stop.location);
+                            window.openLocationInMapPanel(stop.location, stop.lat, stop.lng);
                         }
                     });
 
@@ -278,17 +289,12 @@ export function initRealMap() {
 
         // Map click → show place info panel
         googleMapInstance.addListener('click', async (e) => {
-            closeMapInfoPanel();
-            if (!e.placeId) return;
-            e.stop(); // prevent default Google infowindow
-            try {
-                const { Place } = await google.maps.importLibrary('places');
-                const place = new Place({ id: e.placeId });
-                await place.fetchFields({ fields: ['displayName', 'formattedAddress', 'rating', 'userRatingCount', 'types', 'photos', 'priceLevel', 'regularOpeningHours', 'nationalPhoneNumber', 'internationalPhoneNumber', 'websiteURI', 'reviews'] });
-                await showMapInfoPanel(place, e.placeId);
-            } catch (err) {
-                console.warn('[map-click] fetchFields failed:', err);
+            if (!e.placeId) {
+                closeMapInfoPanel();
+                return;
             }
+            e.stop(); // prevent default Google infowindow
+            window._openPlacePanel(e.placeId);
         });
 
     } catch (e) {
@@ -456,15 +462,30 @@ window.triggerMapSearch = async function (query, typeRestraint = null) {
             const bounds = new google.maps.LatLngBounds();
 
             places.forEach(place => {
+                const markerContent = document.createElement('div');
+                markerContent.style.cssText = `
+                    width: 24px; height: 24px;
+                    background: #f97316;
+                    border: 2px solid white;
+                    border-radius: 50%;
+                    cursor: pointer;
+                    box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+                `;
+                markerContent.onclick = (e) => {
+                    e.stopPropagation();
+                    window._openPlacePanel(place.id);
+                };
+
                 const marker = new google.maps.marker.AdvancedMarkerElement({
                     position: place.location,
                     map: googleMapInstance,
-                    title: place.displayName || query
+                    title: place.displayName || query,
+                    content: markerContent
                 });
 
                 // Clicking the marker opens the side info panel natively
-                marker.addListener("click", () => {
-                    google.maps.event.trigger(googleMapInstance, 'click', { placeId: place.id, stop: () => { } });
+                marker.addEventListener("gmp-click", () => {
+                    window._openPlacePanel(place.id);
                 });
 
                 window._searchMarkers.push(marker);
@@ -481,7 +502,7 @@ window.triggerMapSearch = async function (query, typeRestraint = null) {
 
             // Trigger click event to pop open the side panel automatically for the first hit
             const firstPlace = places[0];
-            google.maps.event.trigger(googleMapInstance, 'click', { placeId: firstPlace.id, stop: () => { } });
+            window._openPlacePanel(firstPlace.id);
         } else {
             if (debugEl) debugEl.innerText = `Map Status: No results for ${query}`;
         }
@@ -534,7 +555,7 @@ window.openLocationInMapPanel = async function (query, lat, lng) {
                 googleMapInstance.panTo(bestPlace.location);
             }
             // Trigger native map info panel explicitly with the resolved place data
-            google.maps.event.trigger(googleMapInstance, 'click', { placeId: bestPlace.id, stop: () => { } });
+            window._openPlacePanel(bestPlace.id);
 
             if (debugEl) debugEl.innerText = `Map Status: Showing ${bestPlace.displayName || query}`;
         } else {
@@ -547,6 +568,23 @@ window.openLocationInMapPanel = async function (query, lat, lng) {
     } catch (err) {
         console.error('[map-search] Failed to open location in map panel:', err);
         if (debugEl) debugEl.innerText = "Map Status: Error retrieving place info";
+    }
+};
+
+// Centralized helper to fetch place data and show the info panel
+window._openPlacePanel = async function (placeId) {
+    console.log('[_openPlacePanel] Request for ID:', placeId);
+    if (!placeId) {
+        console.warn('[_openPlacePanel] Aborted: No placeId provided.');
+        return;
+    }
+    try {
+        const { Place } = await google.maps.importLibrary('places');
+        const place = new Place({ id: placeId });
+        await place.fetchFields({ fields: ['displayName', 'formattedAddress', 'rating', 'userRatingCount', 'types', 'photos', 'priceLevel', 'regularOpeningHours', 'nationalPhoneNumber', 'internationalPhoneNumber', 'websiteURI', 'reviews'] });
+        await showMapInfoPanel(place, placeId);
+    } catch (err) {
+        console.warn('[_openPlacePanel] fetchFields failed:', err);
     }
 };
 
@@ -938,7 +976,7 @@ async function showMapInfoPanel(place, placeId) {
                                 triggerBtn.disabled = false;
                             }
                             // Re-render the panel to show the new "Added" badge state
-                            showMapInfoPanel(place, placeId);
+                            window._openPlacePanel(placeId);
                         }, 600);
                     } catch (error) {
                         console.error('[maps] Error adding location:', error);
