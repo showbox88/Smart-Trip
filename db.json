@@ -2,7 +2,7 @@
     "user": {
         "name": "旅行者"
     },
-    "currentView": "trip",
+    "currentView": "dashboard",
     "activeTripId": "trip-1772941902922",
     "trips": [
         {
@@ -10,8 +10,8 @@
             "title": "新的神秘冒险",
             "startDate": "2026-05-01",
             "endDate": "2026-05-24",
-            "thumb": "/uploads/upload_b7c10c34bbe17de22ae748da05ad1894.png",
-            "activeDayId": "day-1772941902922-2",
+            "thumb": "/uploads/a6a8bb47b94929fbede655e379a8f97b.jpg",
+            "activeDayId": "day-1772941902922-0",
             "days": [
                 {
                     "id": "day-1772941902922-0",
@@ -39,12 +39,37 @@
                             "stayId": "stay-1772945777799",
                             "expenseCategory": "活动",
                             "transitToNext": {
-                                "duration": "6 分钟",
-                                "distance": "1.6 公里",
-                                "durationSeconds": 367,
-                                "distanceMeters": 1566
+                                "duration": "8 分钟",
+                                "distance": "1.8 公里",
+                                "durationSeconds": 506,
+                                "distanceMeters": 1778
                             },
                             "transitMode": "DRIVE"
+                        },
+                        {
+                            "id": "s1772989870522",
+                            "location": "Tensuke",
+                            "desc": "Hole-in-the-wall joint serving up shrimp, fish & veggie tempura, renowned for its deep-fried eggs.",
+                            "address": "Japan, 〒166-0002 Tokyo, Suginami City, Kōenjikita, 3-chōme−22−７ プラザ高円寺",
+                            "phone": "03-3223-8505",
+                            "time": "03:00   ",
+                            "period": "PM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 35.7058375,
+                            "lng": 139.6487831,
+                            "photo": "/uploads/ec13945525af6227fea48873f41ba61b.jpg",
+                            "rating": 4.5,
+                            "category": "餐饮",
+                            "categoryIcon": "🍴",
+                            "placeId": "ChIJXaZmo33yGGARE9okpsCbz80",
+                            "transitToNext": {
+                                "duration": "11 分钟",
+                                "distance": "3.1 公里",
+                                "durationSeconds": 707,
+                                "distanceMeters": 3066
+                            }
                         },
                         {
                             "id": "s1772947601881",
@@ -90,37 +115,16 @@
                             "category": "餐饮",
                             "categoryIcon": "🍴",
                             "placeId": "ChIJxb5izUXzGGARATweg8oBicg",
-                            "transitToNext": {
-                                "duration": "20 分钟",
-                                "distance": "6.7 公里"
-                            }
-                        },
-                        {
-                            "id": "s1772989870522",
-                            "location": "Tensuke",
-                            "desc": "Hole-in-the-wall joint serving up shrimp, fish & veggie tempura, renowned for its deep-fried eggs.",
-                            "address": "Japan, 〒166-0002 Tokyo, Suginami City, Kōenjikita, 3-chōme−22−７ プラザ高円寺",
-                            "phone": "03-3223-8505",
-                            "time": "03:00   ",
-                            "period": "PM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 35.7058375,
-                            "lng": 139.6487831,
-                            "photo": "/uploads/ec13945525af6227fea48873f41ba61b.jpg",
-                            "rating": 4.5,
-                            "category": "餐饮",
-                            "categoryIcon": "🍴",
-                            "placeId": "ChIJXaZmo33yGGARE9okpsCbz80",
                             "transitToNext": null
                         }
                     ],
                     "color": "#10b981",
                     "transitFromHotel": null,
                     "transitToHotel": {
-                        "duration": "7 分钟",
-                        "distance": "1.8 公里"
+                        "duration": "16 分钟",
+                        "distance": "6.3 公里",
+                        "durationSeconds": 996,
+                        "distanceMeters": 6266
                     },
                     "showReturnRoute": false
                 },
@@ -468,10 +472,10 @@
         }
     ],
     "dashboardFilter": "all",
-    "dashboardView": "grid",
+    "dashboardView": "list",
     "sidebarCollapsed": true,
     "settings": {
-        "language": "en",
+        "language": "zh",
         "unitDistance": "mi",
         "unitTemp": "f",
         "currency": "USD"
@@ -500,8 +504,8 @@
         "day-1772827496784-3": false,
         "day-1772827496784-4": true,
         "day-1772941902922-0": false,
-        "day-1772941902922-1": false,
-        "day-1772941902922-2": false,
+        "day-1772941902922-1": true,
+        "day-1772941902922-2": true,
         "day-1772941902922-3": true,
         "day-1772941902922-4": true,
         "day-1772941926274": true,

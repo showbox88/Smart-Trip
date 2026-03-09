@@ -1367,8 +1367,13 @@ if (!window._glowListenerBound) {
 }
 
 function initSidebarGlow() {
-    // JS-driven glow is managed by global listener above.
-    // This function exists for compatibility.
+    // Initialize glow layer immediately when itinerary loads
+    // (don't wait for first mousemove)
+    invalidateGlowCache();
+    // Small delay to ensure DOM is fully rendered
+    setTimeout(() => {
+        applyGlow();
+    }, 100);
 }
 
 // --- Settings Modal ---

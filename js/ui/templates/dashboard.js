@@ -26,9 +26,9 @@ const getStatus = (trip) => {
 export function getTripGridHTML() {
     const isList = state.dashboardView === 'list';
 
-    const filteredTrips = state.trips.filter(t => {
+    const filteredTrips = state.trips.filter(trip => {
         if (state.dashboardFilter === 'all' || !state.dashboardFilter) return true;
-        const s = getStatus(t);
+        const s = getStatus(trip);
         const statusMap = { [t('common.ongoing')]: 'ongoing', [t('common.planned')]: 'planned', [t('common.completed')]: 'completed' };
         return (statusMap[s.label] || 'planned') === state.dashboardFilter.toLowerCase();
     });
@@ -189,11 +189,11 @@ export function getDashboardHTML() {
                             </div>
                             <div class="summary-stat">
                                 <div style="font-size:0.65rem; text-transform:uppercase; color:var(--text-muted); font-weight:700; letter-spacing:0.05em; margin-bottom:4px;">${t('dashboard.stat_destinations')}</div>
-                                <div style="font-size:1.75rem; font-weight:800; color:white;">${new Set(state.trips.map(t => t.title)).size}</div>
+                                <div style="font-size:1.75rem; font-weight:800; color:white;">${new Set(state.trips.map(tr => tr.title)).size}</div>
                             </div>
                             <div class="summary-stat">
                                 <div style="font-size:0.65rem; text-transform:uppercase; color:var(--text-muted); font-weight:700; letter-spacing:0.05em; margin-bottom:4px;">${t('dashboard.stat_completed')}</div>
-                                <div style="font-size:1.75rem; font-weight:800; color:#10b981;">${state.trips.filter(t => today > t.endDate).length}</div>
+                                <div style="font-size:1.75rem; font-weight:800; color:#10b981;">${state.trips.filter(tr => today > tr.endDate).length}</div>
                             </div>
                         </div>
                     </div>
