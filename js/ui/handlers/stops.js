@@ -52,43 +52,7 @@ export function addDay() {
     trip.days.push(newDay);
     trip.activeDayId = newDayId;
     saveData();
-
-    // 1. Update Header
-    const datesSpan = document.getElementById('trip-header-dates');
-    if (datesSpan) datesSpan.innerText = `${trip.startDate} 至 ${trip.endDate}`;
-
-    const durationSpan = document.getElementById('trip-header-duration');
-    if (durationSpan) durationSpan.innerText = `${calculateDays(trip.startDate, trip.endDate)} 天`;
-
-    // 2. Inject day to Sidebar
-    const sidebarNav = document.getElementById('sidebar-nav');
-    if (sidebarNav) {
-        Array.from(sidebarNav.children).forEach(li => li.classList.remove('active'));
-        const newLi = document.createElement('li');
-        newLi.className = 'active';
-        newLi.style.cssText = "display:flex; flex-direction:column; padding-right:10px; margin-bottom:0.5rem; cursor:pointer;";
-        let dateStr = newDateStr.includes('年') ? newDateStr.split('年')[1] : newDateStr;
-        newLi.innerHTML = `
-            <div style="display:flex; align-items:center; gap: 6px; min-width:0;">
-                <div style="width:8px; height:8px; border-radius:50%; background:${newColor}; flex-shrink:0;"></div>
-                <span style="white-space:nowrap; font-size:0.85rem; color:${newColor}; font-weight:600;">${newDay.title}</span>
-                <span style="font-size:0.85rem; color:${newColor}; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${dateStr}</span>
-            </div>
-            <div style="padding-left:14px; margin-top:4px;">
-                <span id="sidebar-count-${newDayId}" style="font-size:0.75rem; color:var(--text-secondary); white-space:nowrap;">共 0 站行程</span>
-            </div>
-        `;
-        newLi.onclick = () => scrollToDay(newDayId);
-        sidebarNav.appendChild(newLi);
-    }
-
-    // 3. Inject day HTML to Timeline
-    const timeline = document.querySelector('.itinerary-timeline');
-    if (timeline) {
-        const temp = document.createElement('div');
-        temp.innerHTML = getDayHTML(newDay, trip.days.length - 1, state.activeTripId);
-        timeline.appendChild(temp.firstElementChild);
-    }
+    renderApp();
 
     setTimeout(() => {
         // Scroll main timeline
@@ -98,12 +62,14 @@ export function addDay() {
         }
 
         // Scroll sidebar to bottom to keep "Add Day" button visible
-        const sidebar = document.querySelector('.sidebar');
-        if (sidebar) {
+        const sidebarNav = document.getElementById('sidebar-nav');
+        if (sidebarNav && sidebarNav.parentElement) {
+            const sidebar = sidebarNav.parentElement;
             sidebar.scrollTo({ top: sidebar.scrollHeight, behavior: 'smooth' });
         }
-    }, 50);
+    }, 100);
 }
+
 
 export function deleteDay(event, dayId) {
     event.stopPropagation();

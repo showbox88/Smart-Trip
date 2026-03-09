@@ -202,17 +202,178 @@ nav a:hover {
     /* Adjust based on navbar height */
 }
 
+/* --- Sidebar Layout & Transitions --- */
 .sidebar {
     width: 210px;
     background: var(--bg-deep);
     border-right: 1px solid var(--glass-border);
-    padding: 2rem 1.2rem;
+    padding: 0.5rem 0;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
+    position: relative;
 }
 
-/* Custom Scrollbar for Sidebar */
+.sidebar.collapsed {
+    width: 72px;
+}
+
+/* --- Sidebar Toggle --- */
+.sidebar-toggle {
+    padding: 0.5rem 1.2rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    transition: all 0.3s;
+}
+
+.sidebar.collapsed .sidebar-toggle {
+    justify-content: center;
+    padding: 0.5rem 0;
+}
+
+.sidebar-toggle span {
+    transition: transform 0.3s;
+}
+
+.sidebar.collapsed .sidebar-toggle span {
+    transform: rotate(180deg);
+}
+
+/* --- Navigation Items --- */
+.sidebar #sidebar-nav {
+    flex: 1;
+    list-style: none;
+    padding: 0 10px;
+    margin: 0;
+}
+
+.sidebar.collapsed #sidebar-nav {
+    padding: 0;
+}
+
+.sidebar #sidebar-nav li,
+.add-day-btn {
+    display: flex;
+    flex-direction: column;
+    padding: 0.6rem 8px;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    border-radius: 12px;
+    transition: all 0.2s;
+    position: relative;
+    border-left: 3px solid transparent;
+}
+
+.add-day-btn {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    border: 1.5px dashed var(--glass-border);
+    background: transparent;
+    padding: 0.6rem 0;
+    color: var(--text-secondary);
+}
+
+.add-day-btn:hover {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+}
+
+.add-day-text {
+    margin-left: 8px;
+    font-size: 0.9rem;
+}
+
+.sidebar #sidebar-nav li.active {
+    background: rgba(255, 255, 255, 0.05);
+    border-left-color: var(--active-color, var(--accent-primary));
+}
+
+.sidebar.collapsed #sidebar-nav li,
+.sidebar.collapsed .add-day-btn {
+    width: 44px;
+    height: 44px;
+    margin: 0 auto 12px auto;
+    padding: 0;
+    border-left: none !important;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+}
+
+.sidebar.collapsed .add-day-btn span {
+    margin: 0 !important;
+}
+
+.sidebar.collapsed #sidebar-nav li.active {
+    background: var(--bg-itinerary);
+    box-shadow: 0 0 20px rgba(60, 131, 246, 0.8);
+}
+
+/* --- Elements Visibility --- */
+.sidebar .nav-day-short {
+    display: none;
+}
+
+.sidebar .sidebar-color-dot {
+    display: block;
+}
+
+.sidebar.collapsed .nav-day-short {
+    display: flex;
+    color: white;
+    font-weight: 700;
+    font-size: 0.9rem;
+    align-items: center;
+    justify-content: center;
+}
+
+.sidebar.collapsed .sidebar-header-wrapper,
+.sidebar.collapsed .overview-section,
+.sidebar.collapsed .nav-day-title,
+.sidebar.collapsed .nav-day-date,
+.sidebar.collapsed .nav-day-info,
+.sidebar.collapsed .add-day-text {
+    display: none !important;
+}
+
+.sidebar.collapsed .nav-day-main {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    width: 100%;
+}
+
+.sidebar.collapsed .sidebar-color-dot {
+    display: block !important;
+    width: 6px !important;
+    height: 6px !important;
+    border-radius: 50%;
+}
+
+.sidebar.collapsed .nav-day-short {
+    display: flex;
+    color: white;
+    font-weight: 700;
+    font-size: 0.85rem;
+    width: auto !important;
+    height: auto !important;
+}
+
+.sidebar-footer {
+    padding: 1rem 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+}
+
 .sidebar::-webkit-scrollbar {
     width: 4px;
 }

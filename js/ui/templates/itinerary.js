@@ -247,7 +247,7 @@ export function getDayHTML(day, dayIndex, activeDayId) {
                 <span id="day-subtitle-${day.id}" onclick="editDaySubtitle('${day.id}')">${day.subtitle || '添加副标题'}</span>
             </div>
             
-            <div id="day-content-${day.id}" style="${state.collapsedDays && state.collapsedDays[day.id] ? 'display:none;' : 'display:block;'}; padding-left: 0;">
+                <div id="day-content-${day.id}" style="${state.collapsedDays && state.collapsedDays[day.id] ? 'display:none;' : 'display:block;'}; padding-left: 0;">
                 <div style="display:flex; gap: 15px; align-items:center; margin-bottom: 0.8rem; font-size: 0.85rem; color: var(--text-secondary); padding-left: 36px;">
                     <button style="background:none; border:none; color: var(--accent-primary); cursor:pointer; font-weight:600; display:flex; align-items:center; gap:5px;">
                         <span style="font-size:1.1rem;">🪄</span> 自动填充日程
@@ -256,7 +256,71 @@ export function getDayHTML(day, dayIndex, activeDayId) {
                         <span style="font-size:1.1rem;">📍</span> 优化路线 <span style="background:var(--accent-primary); color:#FFF; font-size:0.65rem; padding: 1px 4px; border-radius:4px;">PRO</span>
                     </button>
                     <span>·</span>
-                    <span>3 小时 49 分钟, 251英里</span>
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <span>${(() => {
+            let totalSeconds = 0;
+            let totalMeters = 0;
+            let hasData = false;
+
+            const parseTransit = (obj) => {
+                if (!obj) return;
+                if (obj.durationSeconds !== undefined && obj.distanceMeters !== undefined) {
+                    totalSeconds += (Number(obj.durationSeconds) || 0);
+                    totalMeters += (Number(obj.distanceMeters) || 0);
+                    hasData = true;
+                } else if (obj.duration && obj.distance) {
+                    let s = 0;
+                    const hMatch = String(obj.duration).match(/(\d+)\s*小时/);
+                    const mMatch = String(obj.duration).match(/(\d+)\s*分钟/);
+                    if (hMatch) s += parseInt(hMatch[1]) * 3600;
+                    if (mMatch) s += parseInt(mMatch[1]) * 60;
+                    else if (!hMatch) {
+                        const minOnlyMatch = String(obj.duration).match(/(\d+)/);
+                        if (minOnlyMatch && !String(obj.duration).includes('小时')) s += parseInt(minOnlyMatch[1]) * 60;
+                    }
+
+                    let d = 0;
+                    const distMatch = String(obj.distance).match(/([\d.]+)/);
+                    if (distMatch) {
+                        const val = parseFloat(distMatch[1]);
+                        const distStr = String(obj.distance);
+                        if (distStr.includes('公里') || distStr.includes('km')) d = val * 1000;
+                        else if (distStr.includes('英里') || distStr.includes('mile') || distStr.includes('mi')) d = val * 1609.34;
+                        else d = val * 1000;
+                    }
+
+                    if (s > 0 || d > 0) {
+                        totalSeconds += s;
+                        totalMeters += d;
+                        hasData = true;
+                    }
+                }
+            };
+
+            parseTransit(day.transitFromHotel);
+            if (day.stops) {
+                day.stops.forEach(stop => parseTransit(stop.transitToNext));
+            }
+            if (day.showReturnRoute) {
+                parseTransit(day.transitToHotel);
+            }
+
+            if (!hasData) return '暂无路程数据';
+
+            const h = Math.floor(totalSeconds / 3600);
+            const m = Math.floor((totalSeconds % 3600) / 60);
+            const durStr = h > 0 ? `${h} 小时 ${m} 分钟` : `${m} 分钟`;
+            const distStr = `${(totalMeters / 1000).toFixed(1)} 公里`;
+            return `${durStr}, ${distStr}`;
+        })()}</span>
+                        <div style="display:flex; align-items:center; gap:6px; margin-left:4px;">
+                            <label class="switch">
+                                <input type="checkbox" ${day.showReturnRoute ? 'checked' : ''} onclick="toggleReturnRoute('${day.id}')">
+                                <span class="slider"></span>
+                            </label>
+                            <span class="switch-label" onclick="toggleReturnRoute('${day.id}')" style="font-size: 0.8rem; color: var(--text-secondary); cursor:pointer;">显示回程</span>
+                        </div>
+                    </div>
                 </div>
 
             <div class="timeline-container" style="position: relative;">
@@ -289,22 +353,22 @@ export function getDayHTML(day, dayIndex, activeDayId) {
                 </div>
                 ` : ''}
                 ${day.stops.map((stop, index) => {
-        const isLocationStop = stop.type === 'location' || !stop.type;
-        const isHotelStop = stop.type === 'hotel_checkin' || stop.type === 'hotel_checkout';
+            const isLocationStop = stop.type === 'location' || !stop.type;
+            const isHotelStop = stop.type === 'hotel_checkin' || stop.type === 'hotel_checkout';
 
-        // locationIdx should only increment for actual 'location' types (to keep marker numbers correct)
-        const locationIdx = day.stops.slice(0, index).filter(s => s.type === 'location' || !s.type).length;
+            // locationIdx should only increment for actual 'location' types (to keep marker numbers correct)
+            const locationIdx = day.stops.slice(0, index).filter(s => s.type === 'location' || !s.type).length;
 
-        // Transit info should show if CURRENT stop is a point-of-interest (loc or hotel)
-        // AND there's ANOTHER point-of-interest after it.
-        const isPoi = isLocationStop || isHotelStop;
-        const hasNextPoi = day.stops.slice(index + 1).some(
-            s => s.type === 'location' || !s.type || s.type === 'hotel_checkin' || s.type === 'hotel_checkout'
-        );
-        const hasNextLocationStop = isPoi && hasNextPoi;
-        const showAddRow = index < day.stops.length - 1;
-        return getTimelineItemHTML(day, stop, index, locationIdx, hasNextLocationStop, showAddRow);
-    }).join('')}
+            // Transit info should show if CURRENT stop is a point-of-interest (loc or hotel)
+            // AND there's ANOTHER point-of-interest after it.
+            const isPoi = isLocationStop || isHotelStop;
+            const hasNextPoi = day.stops.slice(index + 1).some(
+                s => s.type === 'location' || !s.type || s.type === 'hotel_checkin' || s.type === 'hotel_checkout'
+            );
+            const hasNextLocationStop = isPoi && hasNextPoi;
+            const showAddRow = index < day.stops.length - 1;
+            return getTimelineItemHTML(day, stop, index, locationIdx, hasNextLocationStop, showAddRow);
+        }).join('')}
             
                 <!-- Hotel Return Hint -->
                 ${(isBetween || isCinOnly || isSameDayStay) ? `
@@ -319,9 +383,6 @@ export function getDayHTML(day, dayIndex, activeDayId) {
                             <div style="display:flex; align-items:center; gap: 6px;">
                                 <span>🏨</span> <span>返回酒店 ${currentDayStay.location}</span>
                             </div>
-                            <button onclick="toggleReturnRoute('${day.id}')" style="background: var(--bg-secondary); border: 1px solid var(--glass-border); color: var(--text-secondary); font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; cursor: pointer; transition: all 0.2s; font-weight: normal;" onmouseover="this.style.background='var(--accent-primary)'; this.style.color='#fff';" onmouseout="this.style.background='var(--bg-secondary)'; this.style.color='var(--text-secondary)';">
-                                ${day.showReturnRoute ? '隐藏回程' : '显示回程'}
-                            </button>
                         </div>
                     </div>
                 ` : ''}
@@ -360,45 +421,54 @@ export function getTripHTML(trip) {
 
     return `
         <div class="dashboard-view fade-in">
-            <aside class="sidebar" style="padding-top: 1rem;">
-                <h3 style="margin-bottom: 0.5rem;">${trip.title}</h3>
-                
-                <!-- New Overview Section -->
-                <div class="overview-section" style="margin-bottom: 1.5rem;">
-                    <button class="btn-secondary" style="width:100%; border:none; text-align:left; padding-left:0; font-weight: 600;" onclick="toggleOverview()">
-                        <span id="overview-icon" style="display:inline-block; width:15px;">▼</span> 总览
-                    </button>
-                    <ul class="trip-navigation" id="sidebar-overview" style="padding-left: 15px; margin-top: 0.5rem;">
-                        <li>发现</li>
-                        <li>备注</li>
-                        <li>要参观的地方</li>
-                        <li>无标题</li>
-                    </ul>
+            <aside class="sidebar ${state.sidebarCollapsed ? 'collapsed' : ''}">
+                <!-- Sidebar Toggle Button -->
+                <div class="sidebar-toggle" onclick="toggleSidebar()">
+                    <span class="material-symbols-outlined">chevron_left</span>
                 </div>
 
-                <ul class="trip-navigation" id="sidebar-nav">
-                    ${trip.days.map(day => {
+                <ul class="trip-navigation" id="sidebar-nav" style="flex: 1; margin-top: 1rem;">
+                    ${trip.days.map((day, index) => {
         const activeColor = day.color || '#5b7a99';
         let dateStr = day.date || '';
         if (dateStr.includes('年')) {
             dateStr = dateStr.split('年')[1];
         }
         const stopsCount = day.stops ? day.stops.filter(s => s.type === 'location' || !s.type).length : 0;
+        const shortLabel = `D${index + 1}`;
+
         return `
-                        <li id="nav-day-${day.id}" class="${day.id === trip.activeDayId ? 'active' : ''}" onclick="scrollToDay('${day.id}')" style="display:flex; flex-direction:column; padding: 0.6rem 10px 0.6rem 8px; margin-bottom:0.2rem; cursor:pointer; border-radius: 6px; border-left: 3px solid ${day.id === trip.activeDayId ? activeColor : 'transparent'}; background: ${day.id === trip.activeDayId ? 'rgba(255,255,255,0.05)' : 'transparent'}; transition: all 0.2s;" onmouseover="if(!this.classList.contains('active')) this.style.background='rgba(255,255,255,0.05)'" onmouseout="if(!this.classList.contains('active')) this.style.background='transparent'">
-                            <div style="display:flex; align-items:center; gap: 10px; min-width:0;">
-                                <div id="sidebar-color-dot-${day.id}" style="width:10px; height:10px; border-radius:50%; background:${activeColor}; flex-shrink:0;"></div>
-                                <span style="white-space:nowrap; font-size:0.9rem; color:var(--text-primary); font-weight:600;">${day.title}</span>
-                                <span style="font-size:0.75rem; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-left: auto;">${dateStr}</span>
+                        <li id="nav-day-${day.id}" 
+                            class="${day.id === trip.activeDayId ? 'active' : ''}" 
+                            onclick="scrollToDay('${day.id}')" 
+                            style="--active-color: ${activeColor};"
+                            onmouseover="if(!this.classList.contains('active')) this.style.background='rgba(255,255,255,0.05)'" 
+                            onmouseout="if(!this.classList.contains('active')) this.style.background='transparent'">
+                            <div class="nav-day-main" style="display:flex; align-items:center; gap: 10px; min-width:0; width: 100%;">
+                                <div class="sidebar-color-dot" style="width:10px; height:10px; border-radius:50%; background:${activeColor}; flex-shrink:0;"></div>
+                                <span class="nav-day-short">${shortLabel}</span>
+                                <span class="nav-day-title" style="white-space:nowrap; font-size:0.9rem; color:var(--text-primary); font-weight:600;">${day.title}</span>
+                                <span class="nav-day-date" style="font-size:0.75rem; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-left: auto;">${dateStr}</span>
                             </div>
-                            <div style="padding-left:20px; margin-top:4px;">
-                                <span id="sidebar-count-${day.id}" style="font-size:0.75rem; color:var(--text-secondary); white-space:nowrap;">共 ${stopsCount} 站行程</span>
+                            <div class="nav-day-info" style="padding-left:20px; margin-top:4px;">
+                                <span style="font-size:0.75rem; color:var(--text-secondary); white-space:nowrap;">共 ${stopsCount} 站行程</span>
                             </div>
                         </li>
                         `;
     }).join('')}
+                    <li class="add-day-btn" onclick="addDay()" title="添加新日期">
+                        <span class="material-symbols-outlined">add</span>
+                        <span class="add-day-text">添加新日期</span>
+                    </li>
                 </ul>
-                <button class="btn-secondary" style="width:100%; border:none; text-align:left; padding-left:0; margin-top:0.5rem;" onclick="addDay()">+ 添加新日期</button>
+
+                <!-- Sidebar Footer -->
+                <div class="sidebar-footer">
+                    <div class="footer-icon" style="cursor: pointer; color: var(--text-secondary);">
+                        <span class="material-symbols-outlined">settings</span>
+                    </div>
+                    <div style="width: 1px; height: 40px; background: var(--glass-border); opacity: 0.5;"></div>
+                </div>
             </aside>
             
             <section class="main-itinerary" id="itinerary-scroll-container" style="padding-top: 0; padding-left: 0; padding-right: 0;">
@@ -445,5 +515,5 @@ export function getTripHTML(trip) {
                 </div>
             </section>
         </div>
-    `;
+        `;
 }

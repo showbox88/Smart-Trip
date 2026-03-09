@@ -2,34 +2,22 @@
     "user": {
         "name": "旅行者"
     },
-    "currentView": "trip",
-    "activeTripId": "trip-1772941902922",
+    "currentView": "dashboard",
+    "activeTripId": "trip-1772998308515",
     "trips": [
         {
             "id": "trip-1772941902922",
             "title": "新的神秘冒险",
             "startDate": "2026-05-01",
-            "endDate": "2026-05-12",
+            "endDate": "2026-05-23",
             "thumb": "/uploads/upload_b7c10c34bbe17de22ae748da05ad1894.png",
-            "activeDayId": "day-1772941929944",
+            "activeDayId": "day-1772941902922-1",
             "days": [
                 {
                     "id": "day-1772941902922-0",
                     "title": "第 1 天",
                     "date": "2026年5月1日",
                     "stops": [
-                        {
-                            "id": "l1772952038558",
-                            "type": "list",
-                            "title": "",
-                            "items": []
-                        },
-                        {
-                            "id": "n1772952034284",
-                            "type": "note",
-                            "content": "",
-                            "checked": false
-                        },
                         {
                             "id": "s1772945770411",
                             "location": "Business Hotel Crescent",
@@ -156,7 +144,9 @@
                             "placeId": "ChIJVbZOnrbyGGARzSe1BTQULvI",
                             "transitToNext": {
                                 "duration": "7 分钟",
-                                "distance": "2.6 公里"
+                                "distance": "2.6 公里",
+                                "durationSeconds": 475,
+                                "distanceMeters": 2589
                             }
                         },
                         {
@@ -168,7 +158,7 @@
                             "time": "11:00 ",
                             "period": "AM",
                             "note": "",
-                            "price": "0",
+                            "price": "200",
                             "type": "location",
                             "lat": 35.7224674,
                             "lng": 139.7006317,
@@ -179,8 +169,11 @@
                             "placeId": "ChIJEQmRkU-NGGAR2GD7JadI6qg",
                             "transitToNext": {
                                 "duration": "8 分钟",
-                                "distance": "2.8 公里"
-                            }
+                                "distance": "2.8 公里",
+                                "durationSeconds": 506,
+                                "distanceMeters": 2759
+                            },
+                            "expenseCategory": "活动"
                         },
                         {
                             "id": "s1772947938972",
@@ -202,7 +195,9 @@
                             "placeId": "ChIJQbWaOxiNGGAR2Wr2BfXxEU8",
                             "transitToNext": {
                                 "duration": "20 分钟",
-                                "distance": "7.1 公里"
+                                "distance": "7.1 公里",
+                                "durationSeconds": 1228,
+                                "distanceMeters": 7118
                             }
                         },
                         {
@@ -229,13 +224,18 @@
                     "color": "#ef4444",
                     "transitFromHotel": {
                         "duration": "11 分钟",
-                        "distance": "3.5 公里"
+                        "distance": "3.5 公里",
+                        "durationSeconds": 683,
+                        "distanceMeters": 3533
                     },
                     "transitToHotel": {
                         "duration": "12 分钟",
-                        "distance": "4.5 公里"
+                        "distance": "4.5 公里",
+                        "durationSeconds": 743,
+                        "distanceMeters": 4487
                     },
-                    "showReturnRoute": false
+                    "showReturnRoute": false,
+                    "transitFromHotelMode": "DRIVE"
                 },
                 {
                     "id": "day-1772941902922-2",
@@ -327,6 +327,83 @@
                         }
                     ],
                     "color": "#10b981"
+                },
+                {
+                    "id": "day-1773016269450",
+                    "title": "第 13 天",
+                    "date": "2026年5月13日",
+                    "stops": [],
+                    "color": "#5b7a99"
+                },
+                {
+                    "id": "day-1773016356814",
+                    "title": "第 14 天",
+                    "date": "2026年5月14日",
+                    "stops": [],
+                    "color": "#ef4444"
+                },
+                {
+                    "id": "day-1773016514943",
+                    "title": "第 15 天",
+                    "date": "2026年5月15日",
+                    "stops": [],
+                    "color": "#f59e0b"
+                },
+                {
+                    "id": "day-1773016524150",
+                    "title": "第 16 天",
+                    "date": "2026年5月16日",
+                    "stops": [],
+                    "color": "#10b981"
+                },
+                {
+                    "id": "day-1773016618035",
+                    "title": "第 17 天",
+                    "date": "2026年5月17日",
+                    "stops": [],
+                    "color": "#8b5cf6"
+                },
+                {
+                    "id": "day-1773016624975",
+                    "title": "第 18 天",
+                    "date": "2026年5月18日",
+                    "stops": [],
+                    "color": "#ec4899"
+                },
+                {
+                    "id": "day-1773016634720",
+                    "title": "第 19 天",
+                    "date": "2026年5月19日",
+                    "stops": [],
+                    "color": "#5b7a99"
+                },
+                {
+                    "id": "day-1773016705421",
+                    "title": "第 20 天",
+                    "date": "2026年5月20日",
+                    "stops": [],
+                    "color": "#ef4444"
+                },
+                {
+                    "id": "day-1773016706650",
+                    "title": "第 21 天",
+                    "date": "2026年5月21日",
+                    "stops": [],
+                    "color": "#f59e0b"
+                },
+                {
+                    "id": "day-1773016713241",
+                    "title": "第 22 天",
+                    "date": "2026年5月22日",
+                    "stops": [],
+                    "color": "#10b981"
+                },
+                {
+                    "id": "day-1773016713946",
+                    "title": "第 23 天",
+                    "date": "2026年5月23日",
+                    "stops": [],
+                    "color": "#8b5cf6"
                 }
             ],
             "status": "planned"
@@ -376,56 +453,11 @@
                     "color": "#8b5cf6"
                 }
             ]
-        },
-        {
-            "id": "trip-1772998308515",
-            "title": "新的神秘冒险",
-            "startDate": "2026-05-01",
-            "endDate": "2026-05-05",
-            "thumb": "https://loremflickr.com/600/400/travel?lock=302&t=1772998312260",
-            "status": "completed",
-            "activeDayId": "day-1772998308515-0",
-            "days": [
-                {
-                    "id": "day-1772998308515-0",
-                    "title": "第 1 天",
-                    "date": "2026年5月1日",
-                    "stops": [],
-                    "color": "#5b7a99"
-                },
-                {
-                    "id": "day-1772998308515-1",
-                    "title": "第 2 天",
-                    "date": "2026年5月2日",
-                    "stops": [],
-                    "color": "#ef4444"
-                },
-                {
-                    "id": "day-1772998308515-2",
-                    "title": "第 3 天",
-                    "date": "2026年5月3日",
-                    "stops": [],
-                    "color": "#f59e0b"
-                },
-                {
-                    "id": "day-1772998308515-3",
-                    "title": "第 4 天",
-                    "date": "2026年5月4日",
-                    "stops": [],
-                    "color": "#10b981"
-                },
-                {
-                    "id": "day-1772998308515-4",
-                    "title": "第 5 天",
-                    "date": "2026年5月5日",
-                    "stops": [],
-                    "color": "#8b5cf6"
-                }
-            ]
         }
     ],
     "dashboardFilter": "all",
     "dashboardView": "list",
+    "sidebarCollapsed": true,
     "collapsedDays": {
         "day-1772579247304-0": false,
         "day-1772579247304-1": true,
@@ -451,7 +483,7 @@
         "day-1772827496784-4": true,
         "day-1772941902922-0": false,
         "day-1772941902922-1": false,
-        "day-1772941902922-2": false,
+        "day-1772941902922-2": true,
         "day-1772941902922-3": true,
         "day-1772941902922-4": true,
         "day-1772941926274": true,
@@ -459,7 +491,18 @@
         "day-1772941927821": true,
         "day-1772941928492": true,
         "day-1772941929263": true,
-        "day-1772941929944": false,
-        "day-1772941930794": false
+        "day-1772941929944": true,
+        "day-1772941930794": true,
+        "day-1773016269450": true,
+        "day-1773016356814": true,
+        "day-1773016514943": true,
+        "day-1773016524150": true,
+        "day-1773016618035": true,
+        "day-1773016624975": true,
+        "day-1773016634720": true,
+        "day-1773016705421": true,
+        "day-1773016706650": true,
+        "day-1773016713241": true,
+        "day-1773016713946": true
     }
 }

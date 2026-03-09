@@ -1205,3 +1205,19 @@ window._setEditStatus = function (val, btn) {
         btn.classList.add('active');
     }
 };
+
+// --- Sidebar Collapse ---
+window.toggleSidebar = function () {
+    state.sidebarCollapsed = !state.sidebarCollapsed;
+    const sidebar = document.querySelector('.sidebar');
+    if (sidebar) {
+        if (state.sidebarCollapsed) {
+            sidebar.classList.add('collapsed');
+        } else {
+            sidebar.classList.remove('collapsed');
+        }
+    }
+    // Re-render only if needed, but CSS handles most of it
+    // If you need to change text (e.g. Day 1 -> D1), you might need a partial re-render
+    // For now, let's try CSS-only transition for smooth feel
+};

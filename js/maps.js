@@ -27,7 +27,9 @@ async function fetchRouteDuration(origin, dest, travelMode = 'DRIVE') {
         const m = Math.floor((seconds % 3600) / 60);
         return {
             duration: h > 0 ? `${h} 小时 ${m} 分钟` : `${m} 分钟`,
-            distance: `${(meters / 1000).toFixed(1)} 公里`
+            distance: `${(meters / 1000).toFixed(1)} 公里`,
+            durationSeconds: seconds,
+            distanceMeters: meters
         };
     } catch (err) {
         console.error('[routes] fetchRouteDuration failed:', err);
