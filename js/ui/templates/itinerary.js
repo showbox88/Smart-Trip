@@ -1,5 +1,5 @@
 import { state } from '../../state.js';
-import { calculateDays, formatDate, formatDistance, formatCurrency } from '../../utils.js';
+import { calculateDays, formatDate, formatDistance, formatCurrency, formatDuration } from '../../utils.js';
 import { t } from '../i18n.js';
 
 // --- Helper ---
@@ -170,7 +170,7 @@ export function getTimelineItemHTML(day, stop, index, locationIdx, showTransit, 
                 ` : ''}
                 ${showTransit ? `
                 <div style="display:flex; align-items:center; gap: 0.6rem;">
-                    <span id="transit-${stop.id}" style="font-size: 0.85rem; color: var(--text-secondary);"><span onclick="toggleTransitMode('${day.id}', '${stop.id}')" style="cursor:pointer; user-select:none; display:inline-block; transition:transform 0.15s;" onmouseover="this.style.transform='scale(1.25)'" onmouseout="this.style.transform='scale(1)'" title="${t('itinerary.toggle_transit')}">${stop.transitMode === 'WALK' ? '🚶' : '🚗'}</span> ${stop.transitToNext ? `${stop.transitToNext.duration.replace('分钟', ' ' + t('itinerary.time_unit_minute')).replace('min', ' ' + t('itinerary.time_unit_minute')).replace('小时', ' ' + t('itinerary.time_unit_hour')).replace('hr', ' ' + t('itinerary.time_unit_hour'))} · ${formatDistance(stop.transitToNext.distanceMeters || 0)}` : `<span style="opacity:0.5;">${t('itinerary.calculating')}</span>`}</span>
+                    <span id="transit-${stop.id}" style="font-size: 0.85rem; color: var(--text-secondary);"><span onclick="toggleTransitMode('${day.id}', '${stop.id}')" style="cursor:pointer; user-select:none; display:inline-block; transition:transform 0.15s;" onmouseover="this.style.transform='scale(1.25)'" onmouseout="this.style.transform='scale(1)'" title="${t('itinerary.toggle_transit')}">${stop.transitMode === 'WALK' ? '🚶' : '🚗'}</span> ${stop.transitToNext ? `${formatDuration(stop.transitToNext.durationSeconds)} · ${formatDistance(stop.transitToNext.distanceMeters || 0)}` : `<span style="opacity:0.5;">${t('itinerary.calculating')}</span>`}</span>
                 </div>
                 ` : ''}
             </div>
@@ -348,7 +348,7 @@ export function getDayHTML(day, dayIndex, activeDayId) {
                         ${day.transitFromHotel ? `
                         <div style="margin-left: 22px; font-weight: normal; color: var(--text-secondary); font-size: 0.8rem; display:flex; align-items:center; gap: 0.6rem;">
                              <span style="cursor:pointer; user-select:none; display:inline-block; transition:transform 0.15s;" onmouseover="this.style.transform='scale(1.25)'" onmouseout="this.style.transform='scale(1)'" onclick="toggleHotelTransitMode('${day.id}', 'from')" title="${t('itinerary.toggle_transit')}">${day.transitFromHotelMode === 'WALK' ? '🚶' : '🚗'}</span>
-                             <span>${day.transitFromHotel.duration.replace('分钟', ' ' + t('itinerary.time_unit_minute')).replace('min', ' ' + t('itinerary.time_unit_minute')).replace('小时', ' ' + t('itinerary.time_unit_hour')).replace('hr', ' ' + t('itinerary.time_unit_hour'))} · ${day.transitFromHotel.distance.replace('公里', ' ' + t('itinerary.unit_km')).replace('km', ' ' + t('itinerary.unit_km')).replace('英里', ' ' + t('itinerary.unit_mi')).replace('mi', ' ' + t('itinerary.unit_mi'))}</span>
+                             <span>${formatDuration(day.transitFromHotel.durationSeconds)} · ${formatDistance(day.transitFromHotel.distanceMeters)}</span>
                         </div>
                         ` : ''}
                     </div>
@@ -384,7 +384,7 @@ export function getDayHTML(day, dayIndex, activeDayId) {
                         ${day.transitToHotel ? `
                          <div style="margin-left: 22px; font-weight: normal; color: var(--text-secondary); font-size: 0.8rem; display:flex; align-items:center; gap: 0.6rem; margin-bottom: 4px;">
                             <span style="cursor:pointer; user-select:none; display:inline-block; transition:transform 0.15s;" onmouseover="this.style.transform='scale(1.25)'" onmouseout="this.style.transform='scale(1)'" onclick="toggleHotelTransitMode('${day.id}', 'to')" title="${t('itinerary.toggle_transit')}">${day.transitToHotelMode === 'WALK' ? '🚶' : '🚗'}</span>
-                            <span>${day.transitToHotel.duration.replace('分钟', ' ' + t('itinerary.time_unit_minute')).replace('min', ' ' + t('itinerary.time_unit_minute')).replace('小时', ' ' + t('itinerary.time_unit_hour')).replace('hr', ' ' + t('itinerary.time_unit_hour'))} · ${day.transitToHotel.distance.replace('公里', ' ' + t('itinerary.unit_km')).replace('km', ' ' + t('itinerary.unit_km')).replace('英里', ' ' + t('itinerary.unit_mi')).replace('mi', ' ' + t('itinerary.unit_mi'))}</span>
+                            <span>${formatDuration(day.transitToHotel.durationSeconds)} · ${formatDistance(day.transitToHotel.distanceMeters)}</span>
                         </div>
                         ` : ''}
                         <div style="display:flex; align-items:center; justify-content: space-between; gap: 6px;">

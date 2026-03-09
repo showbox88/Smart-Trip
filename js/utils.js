@@ -12,6 +12,23 @@ export function formatDistance(meters) {
     }
 }
 
+export function formatDuration(seconds) {
+    if (isNaN(seconds)) return seconds;
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+
+    // Use window.t if available (set in main.js or i18n.js)
+    const translator = window.t || ((k) => k);
+
+    const hrUnit = translator('itinerary.time_unit_hour');
+    const minUnit = translator('itinerary.time_unit_minute');
+
+    if (h > 0) {
+        return `${h} ${hrUnit} ${m} ${minUnit}`;
+    }
+    return `${m} ${minUnit}`;
+}
+
 export function formatCurrency(amount) {
     const currency = state.settings.currency || 'USD';
     const amountVal = parseFloat(amount) || 0;

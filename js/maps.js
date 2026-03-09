@@ -1,4 +1,6 @@
 import { state } from './state.js';
+import { formatDistance, formatDuration } from './utils.js';
+import { t } from './ui/i18n.js';
 
 const MAPS_API_KEY = 'AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k';
 
@@ -1262,7 +1264,7 @@ async function toggleTransitMode(dayId, stopId) {
     const iconBtn = (ico) => `<span onclick="toggleTransitMode('${dayId}', '${stopId}')" style="cursor:pointer; user-select:none; display:inline-block; transition:transform 0.15s;" onmouseover="this.style.transform='scale(1.25)'" onmouseout="this.style.transform='scale(1)'" title="点击切换驾车/步行">${ico}</span>`;
     if (transitEl) {
         const icon = newMode === 'WALK' ? '🚶' : '🚗';
-        transitEl.innerHTML = `${iconBtn(icon)} <span style="opacity:0.5;">计算路程中...</span>`;
+        transitEl.innerHTML = `${iconBtn(icon)} <span style="opacity:0.5;">${t('itinerary.calculating')}</span>`;
     }
 
     // Fetch new route data
@@ -1277,9 +1279,9 @@ async function toggleTransitMode(dayId, stopId) {
         if (transitEl) {
             const icon = newMode === 'WALK' ? '🚶' : '🚗';
             if (result) {
-                transitEl.innerHTML = `${iconBtn(icon)} ${result.duration} · ${result.distance}`;
+                transitEl.innerHTML = `${iconBtn(icon)} ${formatDuration(result.durationSeconds)} · ${formatDistance(result.distanceMeters)}`;
             } else {
-                transitEl.innerHTML = `${iconBtn(icon)} <span style="opacity:0.5;">无法计算</span>`;
+                transitEl.innerHTML = `${iconBtn(icon)} <span style="opacity:0.5;">${t('itinerary.no_data')}</span>`;
             }
         }
     }

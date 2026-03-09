@@ -36,6 +36,7 @@ export function t(key) {
     }
     return value;
 }
+window.t = t;
 
 /**
  * Utility to fetch available languages from the API.

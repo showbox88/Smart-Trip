@@ -2,7 +2,7 @@
     "user": {
         "name": "旅行者"
     },
-    "currentView": "dashboard",
+    "currentView": "trip",
     "activeTripId": "trip-1772941902922",
     "trips": [
         {
@@ -117,7 +117,7 @@
                         "duration": "7 分钟",
                         "distance": "1.8 公里"
                     },
-                    "showReturnRoute": true
+                    "showReturnRoute": false
                 },
                 {
                     "id": "day-1772941902922-1",
@@ -466,8 +466,8 @@
     "dashboardView": "grid",
     "sidebarCollapsed": true,
     "settings": {
-        "language": "zh",
-        "unitDistance": "km",
+        "language": "en",
+        "unitDistance": "mi",
         "unitTemp": "f",
         "currency": "USD"
     },
