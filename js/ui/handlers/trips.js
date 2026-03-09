@@ -3,6 +3,7 @@ import { renderApp, renderDashboardPartials } from '../render.js';
 import { saveData } from '../../api.js';
 import { calculateDays, formatDate } from '../../utils.js';
 import { closeModal } from './ux.js';
+import { t } from '../i18n.js';
 
 export function createNewTrip() {
     const newId = 'trip-' + Date.now();
@@ -11,7 +12,7 @@ export function createNewTrip() {
 
     const newTrip = {
         id: newId,
-        title: "新的神秘冒险",
+        title: t('dashboard.new_trip_default_title'),
         startDate: startStr,
         endDate: endStr,
         thumb: "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
@@ -24,13 +25,13 @@ export function createNewTrip() {
     for (let i = 0; i < numDays; i++) {
         let d = new Date(startStr.replace(/-/g, '/'));
         d.setDate(d.getDate() + i);
-        let displayDate = !isNaN(d) ? `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日` : `Unknown`;
+        let displayDate = !isNaN(d) ? formatDate(startStr, i) : `Unknown`;
         const defaultColors = ['#5b7a99', '#ef4444', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899'];
         const newColor = defaultColors[i % defaultColors.length];
 
         newTrip.days.push({
             id: `day-${Date.now()}-${i}`,
-            title: `第 ${i + 1} 天`,
+            title: `${t('itinerary.day_label')}${i + 1}${t('itinerary.day_suffix') || ''}`,
             date: displayDate,
             stops: [],
             color: newColor
@@ -54,7 +55,7 @@ export function openTrip(tripId) {
 
 export function deleteTrip(event, tripId) {
     if (event) event.stopPropagation();
-    window.openConfirmModal("确定要删除这个行程吗？", () => {
+    window.openConfirmModal(t('itinerary.confirm_delete_trip'), () => {
         state.trips = state.trips.filter(t => t.id !== tripId);
         saveData();
         if (state.activeTripId === tripId) {
@@ -68,7 +69,7 @@ export function deleteTrip(event, tripId) {
 
 export function shareTrip(event, tripId) {
     if (event) event.stopPropagation();
-    alert("分享链接已复制！");
+    alert(t('itinerary.share_success'));
 }
 
 export function toggleMenu(event, tripId) {
@@ -107,13 +108,13 @@ export function saveTripMetadata() {
             for (let i = trip.days.length; i < numDays; i++) {
                 let d = new Date(trip.startDate.replace(/-/g, '/'));
                 d.setDate(d.getDate() + i);
-                let displayDate = !isNaN(d) ? `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日` : `Unknown`;
+                let displayDate = !isNaN(d) ? formatDate(trip.startDate, i) : `Unknown`;
                 const defaultColors = ['#5b7a99', '#ef4444', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899'];
                 const newColor = defaultColors[i % defaultColors.length];
 
                 trip.days.push({
                     id: `day-${Date.now()}-${i}`,
-                    title: `第 ${i + 1} 天`,
+                    title: `${t('itinerary.day_label')}${i + 1}${t('itinerary.day_suffix') || ''}`,
                     date: displayDate,
                     stops: [],
                     color: newColor
@@ -122,19 +123,15 @@ export function saveTripMetadata() {
         }
         // Handle shortening days
         else if (numDays < trip.days.length) {
-            if (confirm(`行程天数缩短为 ${numDays} 天，多出的日期及行程将被删除。确认吗？`)) {
+            if (confirm(t('itinerary.confirm_shorten_trip'))) {
                 trip.days.length = numDays;
             }
         }
 
         // Re-align all dates based on new startDate
         for (let i = 0; i < trip.days.length; i++) {
-            let d = new Date(trip.startDate.replace(/-/g, '/'));
-            d.setDate(d.getDate() + i);
-            if (!isNaN(d)) {
-                trip.days[i].date = `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
-            }
-            trip.days[i].title = `第 ${i + 1} 天`;
+            trip.days[i].date = formatDate(trip.startDate, i);
+            trip.days[i].title = `${t('itinerary.day_label')}${i + 1}${t('itinerary.day_suffix') || ''}`;
         }
     }
 

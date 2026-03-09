@@ -2,6 +2,7 @@ import { state } from './state.js';
 import { loadData, saveData } from './api.js';
 import { renderApp } from './ui/render.js';
 import { initRealMap, setGoogleMapsReady, toggleMapDarkMode } from './maps.js';
+import { loadLanguage } from './ui/i18n.js';
 
 // Handler Imports
 import * as AuthHandlers from './ui/handlers/auth.js';
@@ -44,6 +45,7 @@ window.saveTripMetadata = TripHandlers.saveTripMetadata;
 window.filterDashboard = TripHandlers.filterDashboard;
 window.switchViewMode = TripHandlers.switchViewMode;
 window.handleTripThumbUpload = UXHandlers.handleTripThumbUpload;
+window.openSettingsModal = UXHandlers.openSettingsModal;
 
 // Stops & Day Management
 window.addDay = StopHandlers.addDay;
@@ -271,8 +273,10 @@ document.addEventListener('click', (e) => {
 
 // --- Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
-    loadData().then(() => {
+    loadData().then(async () => {
         try {
+            const lang = state.settings?.language || 'zh';
+            await loadLanguage(lang);
             renderApp();
         } catch (e) {
             console.error("Render crash:", e);

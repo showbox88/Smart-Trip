@@ -1221,3 +1221,72 @@ window.toggleSidebar = function () {
     // If you need to change text (e.g. Day 1 -> D1), you might need a partial re-render
     // For now, let's try CSS-only transition for smooth feel
 };
+
+// --- Settings Modal ---
+export async function openSettingsModal() {
+    const { getAvailableLanguages, t } = await import('../i18n.js');
+    const langs = await getAvailableLanguages();
+
+    const title = document.getElementById('modal-title');
+    const body = document.getElementById('modal-body');
+    title.innerText = t('itinerary.settings');
+
+    const curLang = state.settings.language;
+    const curDist = state.settings.unitDistance;
+    const curTemp = state.settings.unitTemp;
+    const curCurrency = state.settings.currency;
+
+    body.innerHTML = `
+        <div class="settings-grid" style="display:grid; gap:1.5rem; padding:0.5rem 0;">
+            <div class="form-group">
+                <label>语言 / Language</label>
+                <select id="setting-lang" class="custom-select" onchange="window._updateSetting('language', this.value)" style="width:100%; background:var(--bg-primary); color:white; border:1px solid var(--glass-border); padding:0.8rem; border-radius:8px;">
+                    ${langs.map(l => `<option value="${l.code}" ${l.code === curLang ? 'selected' : ''}>${l.name}</option>`).join('')}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>距离单位 / Distance Unit</label>
+                <select id="setting-distance" class="custom-select" onchange="window._updateSetting('unitDistance', this.value)" style="width:100%; background:var(--bg-primary); color:white; border:1px solid var(--glass-border); padding:0.8rem; border-radius:8px;">
+                    <option value="km" ${curDist === 'km' ? 'selected' : ''}>公制 (Kilometers)</option>
+                    <option value="mi" ${curDist === 'mi' ? 'selected' : ''}>英制 (Miles)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>温度单位 / Temperature Unit</label>
+                <select id="setting-temp" class="custom-select" onchange="window._updateSetting('unitTemp', this.value)" style="width:100%; background:var(--bg-primary); color:white; border:1px solid var(--glass-border); padding:0.8rem; border-radius:8px;">
+                    <option value="c" ${curTemp === 'c' ? 'selected' : ''}>摄氏度 (°C)</option>
+                    <option value="f" ${curTemp === 'f' ? 'selected' : ''}>华氏度 (°F)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>货币单位 / Currency</label>
+                <select id="setting-currency" class="custom-select" onchange="window._updateSetting('currency', this.value)" style="width:100%; background:var(--bg-primary); color:white; border:1px solid var(--glass-border); padding:0.8rem; border-radius:8px;">
+                    <option value="USD" ${curCurrency === 'USD' ? 'selected' : ''}>USD ($)</option>
+                    <option value="CNY" ${curCurrency === 'CNY' ? 'selected' : ''}>CNY (¥)</option>
+                    <option value="EUR" ${curCurrency === 'EUR' ? 'selected' : ''}>EUR (€)</option>
+                    <option value="JPY" ${curCurrency === 'JPY' ? 'selected' : ''}>JPY (¥)</option>
+                    <option value="GBP" ${curCurrency === 'GBP' ? 'selected' : ''}>GBP (£)</option>
+                </select>
+            </div>
+        </div>
+        <div style="margin-top:2rem; text-align:right;">
+            <button class="submit-btn" onclick="closeModal()" style="min-width:120px;">完成</button>
+        </div>
+    `;
+
+    openModal(t('itinerary.settings'), body.innerHTML);
+}
+
+window._updateSetting = async (key, value) => {
+    state.settings[key] = value;
+    if (key === 'language') {
+        const { loadLanguage } = await import('../i18n.js');
+        await loadLanguage(value);
+    }
+    const { saveData } = await import('../../api.js');
+    const { renderApp } = await import('../render.js');
+    saveData();
+    renderApp();
+    // Re-open settings to show updated lang
+    if (key === 'language') openSettingsModal();
+};

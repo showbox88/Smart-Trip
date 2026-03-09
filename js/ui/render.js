@@ -1,4 +1,5 @@
 import { state } from '../state.js';
+import { t } from './i18n.js';
 import { getLoginHTML } from './templates/auth.js';
 import { getDashboardHTML, getTripGridHTML } from './templates/dashboard.js';
 import { getTripHTML } from './templates/itinerary.js';
@@ -24,12 +25,13 @@ function updateNavLinks() {
     if (!nav) return;
     if (!state.user) {
         nav.innerHTML = `
-            <li><a href="#" class="btn-primary" onclick="state.currentView='login'; renderApp()">登录 / 注册</a></li>
+            <li><a href="#" class="btn-primary" onclick="state.currentView='login'; renderApp()">${t('common.login_register')}</a></li>
         `;
     } else {
         nav.innerHTML = `
-            <li><a href="#" onclick="goDashboard()">我的行程</a></li>
-            <li><a href="https://google.com/travel" target="_blank">灵感</a></li>
+            <li><a href="#" onclick="goDashboard()">${t('dashboard.filter_all')}</a></li>
+            <li><a href="#" onclick="openSettingsModal()" style="display:flex; align-items:center; gap:5px;"><span class="material-symbols-outlined" style="font-size:20px;">settings</span></a></li>
+            <li><a href="https://google.com/travel" target="_blank">${t('common.inspiration')}</a></li>
         `;
     }
 }
@@ -80,9 +82,9 @@ export function renderApp() {
         console.error("Critical Render Error:", err);
         document.getElementById('app-container').innerHTML = `
             <div style="padding: 2rem; color: white;">
-                <h2>渲染出错 (Render Error)</h2>
+                <h2>${t('common.render_error')}</h2>
                 <pre>${err.stack}</pre>
-                <button onclick="state.currentView='dashboard'; renderApp()">返回首页</button>
+                <button onclick="state.currentView='dashboard'; renderApp()">${t('common.back_to_home')}</button>
             </div>
         `;
     }

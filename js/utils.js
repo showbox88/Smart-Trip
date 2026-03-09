@@ -1,21 +1,56 @@
-import { PLACE_CATEGORY_MAP } from './constants.js';
+import { state } from './state.js';
 
-export function getCategoryFromTypes(types) {
-    if (!types || !types.length) return { icon: '📍', label: '地点' };
-    for (const type of types) {
-        if (PLACE_CATEGORY_MAP[type]) return PLACE_CATEGORY_MAP[type];
+export function formatDistance(meters) {
+    if (isNaN(meters)) return meters;
+    const isKm = state.settings.unitDistance === 'km';
+    if (isKm) {
+        const km = meters / 1000;
+        return `${km.toFixed(1)} km`;
+    } else {
+        const miles = meters * 0.000621371;
+        return `${miles.toFixed(1)} mi`;
     }
-    return { icon: '📍', label: '地点' };
+}
+
+export function formatCurrency(amount) {
+    const currency = state.settings.currency || 'USD';
+    const amountVal = parseFloat(amount) || 0;
+    const symbols = { 'USD': '$', 'CNY': '¥', 'EUR': '€', 'JPY': '¥', 'GBP': '£' };
+    const symbol = symbols[currency] || '$';
+    return `${symbol}${amountVal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+export function formatTemp(c) {
+    if (isNaN(c)) return c;
+    const isC = state.settings.unitTemp === 'c';
+    if (isC) return `${c}°C`;
+    const f = (c * 9 / 5) + 32;
+    return `${Math.round(f)}°F`;
 }
 
 export function generateId(prefix = 'id') {
     return prefix + '-' + Date.now() + Math.random().toString(36).substr(2, 5);
 }
 
-export function formatDate(dateStr) {
-    const d = new Date(dateStr.replace(/-/g, '/'));
-    return !isNaN(d) ? `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日` : dateStr;
+export function formatDate(dateStr, dayIndex = 0) {
+    if (!dateStr) return '';
+    // Normalize date string if it contains Chinese characters
+    let normalized = dateStr;
+    if (dateStr.includes('年')) {
+        normalized = dateStr.replace('年', '-').replace('月', '-').replace('日', '');
+    }
+    const d = new Date(normalized.replace(/-/g, '/'));
+    if (isNaN(d)) return dateStr;
+    if (dayIndex !== 0) {
+        d.setDate(d.getDate() + dayIndex);
+    }
+    const isEn = state.settings.language === 'en';
+    if (isEn) {
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+    return `${d.getMonth() + 1}月${d.getDate()}日`;
 }
+
 export function calculateDays(start, end) {
     const d1 = new Date(start.replace(/-/g, '/'));
     const d2 = new Date(end.replace(/-/g, '/'));

@@ -6,7 +6,13 @@ let state = {
     trips: [],
     dashboardFilter: 'all', // 'all', 'ongoing', 'planned', 'completed'
     dashboardView: 'grid',   // 'grid', 'list'
-    sidebarCollapsed: false
+    sidebarCollapsed: false,
+    settings: {
+        language: 'zh',
+        unitDistance: 'km',
+        unitTemp: 'c',
+        currency: 'USD'
+    }
 };
 
 // Modal Edit State

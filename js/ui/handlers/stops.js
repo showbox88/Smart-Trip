@@ -947,7 +947,7 @@ export function saveStayInfo(originalStopId) {
     stop.type = 'hotel_checkin';
     stop.time = cinTime;
     stop.period = cinPeriod;
-    stop.note = stop.note || '入住登记';
+    stop.note = stop.note || 'Check-in';
 
     if (originalDay.id !== cinDay.id) {
         // Remove from current day
@@ -964,7 +964,7 @@ export function saveStayInfo(originalStopId) {
         stayId: stayId,
         time: coutTime,
         period: coutPeriod,
-        note: '办理退房'
+        note: 'Check-out'
     };
     coutDay.stops.push(coutStop);
 

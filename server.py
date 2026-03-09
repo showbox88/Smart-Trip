@@ -81,6 +81,26 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(json.dumps({'status': 'error', 'message': str(e)}).encode('utf-8'))
             return
 
+        if self.path == '/api/languages':
+            lang_dir = os.path.join(os.getcwd(), 'i18n')
+            langs = []
+            if os.path.exists(lang_dir):
+                for f in os.listdir(lang_dir):
+                    if f.endswith('.json'):
+                        code = f.replace('.json', '')
+                        try:
+                            with open(os.path.join(lang_dir, f), 'r', encoding='utf-8') as lf:
+                                data = json.load(lf)
+                                langs.append({'code': code, 'name': data.get('lang_name', code)})
+                        except Exception as e:
+                            print(f"[api/languages] Error reading {f}: {e}")
+                            langs.append({'code': code, 'name': code})
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps(langs).encode('utf-8'))
+            return
+
         # Fallback to normal file serving
         return super().do_GET()
 
