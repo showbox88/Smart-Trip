@@ -170,7 +170,18 @@ export function getTimelineItemHTML(day, stop, index, locationIdx, showTransit, 
                 ` : ''}
                 ${showTransit ? `
                 <div style="display:flex; align-items:center; gap: 0.6rem;">
-                    <span id="transit-${stop.id}" style="font-size: 0.85rem; color: var(--text-secondary);"><span onclick="toggleTransitMode('${day.id}', '${stop.id}')" style="cursor:pointer; user-select:none; display:inline-block; transition:transform 0.15s;" onmouseover="this.style.transform='scale(1.25)'" onmouseout="this.style.transform='scale(1)'" title="${t('itinerary.toggle_transit')}">${stop.transitMode === 'WALK' ? '🚶' : '🚗'}</span> ${stop.transitToNext ? `${formatDuration(stop.transitToNext.durationSeconds)} · ${formatDistance(stop.transitToNext.distanceMeters || 0)}` : `<span style="opacity:0.5;">${t('itinerary.calculating')}</span>`}</span>
+                    <span id="transit-${stop.id}" style="font-size: 0.85rem; color: var(--text-secondary);">
+                        <span onclick="toggleTransitMode('${day.id}', '${stop.id}')" style="cursor:pointer; user-select:none; display:inline-block; transition:transform 0.15s;" onmouseover="this.style.transform='scale(1.25)'" onmouseout="this.style.transform='scale(1)'" title="${t('itinerary.toggle_transit')}">
+                            ${stop.transitMode === 'WALK' ? '🚶' : '🚗'}
+                        </span> 
+                        ${(() => {
+                    const transit = stop.transitToNext;
+                    if (!transit) return `<span style="opacity:0.5;">${t('itinerary.calculating')}</span>`;
+                    const dur = transit.durationSeconds !== undefined ? formatDuration(transit.durationSeconds) : (transit.duration || '');
+                    const dist = transit.distanceMeters !== undefined ? formatDistance(transit.distanceMeters) : (transit.distance || '');
+                    return `${dur}${dur && dist ? ' · ' : ''}${dist}`;
+                })()}
+                    </span>
                 </div>
                 ` : ''}
             </div>
@@ -269,26 +280,32 @@ export function getDayHTML(day, dayIndex, activeDayId) {
 
             const parseTransit = (obj) => {
                 if (!obj) return;
-                if (obj.durationSeconds !== undefined && obj.distanceMeters !== undefined) {
+
+                // Direct numeric values (preferred)
+                if (obj.durationSeconds !== undefined || obj.distanceMeters !== undefined) {
                     totalSeconds += (Number(obj.durationSeconds) || 0);
                     totalMeters += (Number(obj.distanceMeters) || 0);
-                    hasData = true;
-                } else if (obj.duration && obj.distance) {
+                    if (obj.durationSeconds !== undefined || obj.distanceMeters !== undefined) hasData = true;
+                }
+                // Legacy string values
+                else if (obj.duration || obj.distance) {
+                    // Use fallbacks from utils.js by temporary conversion logic if needed, 
+                    // but here we just do a quick local parse for the summary.
                     let s = 0;
-                    const hMatch = String(obj.duration).match(/(\d+)\s*小时/);
-                    const mMatch = String(obj.duration).match(/(\d+)\s*分钟/);
+                    const hMatch = String(obj.duration).match(/(\d+)\s*(小时|hr|h)/i);
+                    const mMatch = String(obj.duration).match(/(\d+)\s*(分钟|min|m)/i);
                     if (hMatch) s += parseInt(hMatch[1]) * 3600;
                     if (mMatch) s += parseInt(mMatch[1]) * 60;
                     else if (!hMatch) {
                         const minOnlyMatch = String(obj.duration).match(/(\d+)/);
-                        if (minOnlyMatch && !String(obj.duration).includes('小时')) s += parseInt(minOnlyMatch[1]) * 60;
+                        if (minOnlyMatch) s += parseInt(minOnlyMatch[1]) * 60;
                     }
 
                     let d = 0;
                     const distMatch = String(obj.distance).match(/([\d.]+)/);
                     if (distMatch) {
-                        const val = parseFloat(distMatch[1]);
-                        const distStr = String(obj.distance);
+                        const val = parseFloat(distMatch[1].replace(/,/g, ''));
+                        const distStr = String(obj.distance).toLowerCase();
                         if (distStr.includes('公里') || distStr.includes('km')) d = val * 1000;
                         else if (distStr.includes('英里') || distStr.includes('mile') || distStr.includes('mi')) d = val * 1609.34;
                         else d = val * 1000;
@@ -312,11 +329,7 @@ export function getDayHTML(day, dayIndex, activeDayId) {
 
             if (!hasData) return t('itinerary.no_data');
 
-            const h = Math.floor(totalSeconds / 3600);
-            const m = Math.floor((totalSeconds % 3600) / 60);
-            const hrUnit = t('itinerary.time_unit_hour');
-            const minUnit = t('itinerary.time_unit_minute');
-            const durStr = h > 0 ? `${h} ${hrUnit} ${m} ${minUnit}` : `${m} ${minUnit}`;
+            const durStr = formatDuration(totalSeconds);
             const distStr = formatDistance(totalMeters);
             return `${durStr}, ${distStr}`;
         })()}</span>
@@ -345,12 +358,16 @@ export function getDayHTML(day, dayIndex, activeDayId) {
                         <div style="display:flex; align-items:center; gap: 6px;">
                             <span>🏨</span> <span>${t('itinerary.from_hotel')} ${currentDayStay.location}</span>
                         </div>
-                        ${day.transitFromHotel ? `
                         <div style="margin-left: 22px; font-weight: normal; color: var(--text-secondary); font-size: 0.8rem; display:flex; align-items:center; gap: 0.6rem;">
                              <span style="cursor:pointer; user-select:none; display:inline-block; transition:transform 0.15s;" onmouseover="this.style.transform='scale(1.25)'" onmouseout="this.style.transform='scale(1)'" onclick="toggleHotelTransitMode('${day.id}', 'from')" title="${t('itinerary.toggle_transit')}">${day.transitFromHotelMode === 'WALK' ? '🚶' : '🚗'}</span>
-                             <span>${formatDuration(day.transitFromHotel.durationSeconds)} · ${formatDistance(day.transitFromHotel.distanceMeters)}</span>
+                             <span>${(() => {
+                const tr = day.transitFromHotel;
+                if (!tr) return '';
+                const dur = tr.durationSeconds !== undefined ? formatDuration(tr.durationSeconds) : (tr.duration || '');
+                const dist = tr.distanceMeters !== undefined ? formatDistance(tr.distanceMeters) : (tr.distance || '');
+                return `${dur}${dur && dist ? ' · ' : ''}${dist}`;
+            })()}</span>
                         </div>
-                        ` : ''}
                     </div>
                 ` : ''}
 
@@ -361,32 +378,36 @@ export function getDayHTML(day, dayIndex, activeDayId) {
                 </div>
                 ` : ''}
                 ${day.stops.map((stop, index) => {
-            const isLocationStop = stop.type === 'location' || !stop.type;
-            const isHotelStop = stop.type === 'hotel_checkin' || stop.type === 'hotel_checkout';
+                const isLocationStop = stop.type === 'location' || !stop.type;
+                const isHotelStop = stop.type === 'hotel_checkin' || stop.type === 'hotel_checkout';
 
-            // locationIdx should only increment for actual 'location' types (to keep marker numbers correct)
-            const locationIdx = day.stops.slice(0, index).filter(s => s.type === 'location' || !s.type).length;
+                // locationIdx should only increment for actual 'location' types (to keep marker numbers correct)
+                const locationIdx = day.stops.slice(0, index).filter(s => s.type === 'location' || !s.type).length;
 
-            // Transit info should show if CURRENT stop is a point-of-interest (loc or hotel)
-            // AND there's ANOTHER point-of-interest after it.
-            const isPoi = isLocationStop || isHotelStop;
-            const hasNextPoi = day.stops.slice(index + 1).some(
-                s => s.type === 'location' || !s.type || s.type === 'hotel_checkin' || s.type === 'hotel_checkout'
-            );
-            const hasNextLocationStop = isPoi && hasNextPoi;
-            const showAddRow = index < day.stops.length - 1;
-            return getTimelineItemHTML(day, stop, index, locationIdx, hasNextLocationStop, showAddRow);
-        }).join('')}
+                // Transit info should show if CURRENT stop is a point-of-interest (loc or hotel)
+                // AND there's ANOTHER point-of-interest after it.
+                const isPoi = isLocationStop || isHotelStop;
+                const hasNextPoi = day.stops.slice(index + 1).some(
+                    s => s.type === 'location' || !s.type || s.type === 'hotel_checkin' || s.type === 'hotel_checkout'
+                );
+                const hasNextLocationStop = isPoi && hasNextPoi;
+                const showAddRow = index < day.stops.length - 1;
+                return getTimelineItemHTML(day, stop, index, locationIdx, hasNextLocationStop, showAddRow);
+            }).join('')}
             
                 <!-- Hotel Return Hint -->
                 ${(isBetween || isCinOnly || isSameDayStay) ? `
                     <div style="padding-left: 36px; margin-top: 0.8rem; color: #f59e0b; font-size: 0.85rem; font-weight: 600; display: flex; flex-direction:column; gap: 4px;">
-                        ${day.transitToHotel ? `
                          <div style="margin-left: 22px; font-weight: normal; color: var(--text-secondary); font-size: 0.8rem; display:flex; align-items:center; gap: 0.6rem; margin-bottom: 4px;">
                             <span style="cursor:pointer; user-select:none; display:inline-block; transition:transform 0.15s;" onmouseover="this.style.transform='scale(1.25)'" onmouseout="this.style.transform='scale(1)'" onclick="toggleHotelTransitMode('${day.id}', 'to')" title="${t('itinerary.toggle_transit')}">${day.transitToHotelMode === 'WALK' ? '🚶' : '🚗'}</span>
-                            <span>${formatDuration(day.transitToHotel.durationSeconds)} · ${formatDistance(day.transitToHotel.distanceMeters)}</span>
+                            <span>${(() => {
+                const tr = day.transitToHotel;
+                if (!tr) return '';
+                const dur = tr.durationSeconds !== undefined ? formatDuration(tr.durationSeconds) : (tr.duration || '');
+                const dist = tr.distanceMeters !== undefined ? formatDistance(tr.distanceMeters) : (tr.distance || '');
+                return `${dur}${dur && dist ? ' · ' : ''}${dist}`;
+            })()}</span>
                         </div>
-                        ` : ''}
                         <div style="display:flex; align-items:center; justify-content: space-between; gap: 6px;">
                             <div style="display:flex; align-items:center; gap: 6px;">
                                 <span>🏨</span> <span>${t('itinerary.return_hotel')} ${currentDayStay.location}</span>
@@ -448,9 +469,7 @@ export function getTripHTML(trip) {
                         <li id="nav-day-${day.id}" 
                             class="${day.id === trip.activeDayId ? 'active' : ''}" 
                             onclick="scrollToDay('${day.id}')" 
-                            style="--active-color: ${activeColor};"
-                            onmouseover="if(!this.classList.contains('active')) this.style.background='rgba(255,255,255,0.05)'" 
-                            onmouseout="if(!this.classList.contains('active')) this.style.background='transparent'">
+                            style="--active-color: ${activeColor};">
                             <div class="nav-day-main" style="display:flex; align-items:center; gap: 10px; min-width:0; width: 100%;">
                                 <div class="sidebar-color-dot" style="width:10px; height:10px; border-radius:50%; background:${activeColor}; flex-shrink:0;"></div>
                                 <span class="nav-day-short">${shortLabel}</span>

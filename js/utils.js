@@ -1,7 +1,22 @@
 import { state } from './state.js';
 
 export function formatDistance(meters) {
-    if (isNaN(meters)) return meters;
+    if (meters === undefined || meters === null) return '';
+
+    // Fallback: if meters is actually an old unparsed string (like "1.5 公里" or "2.0 mi")
+    if (typeof meters === 'string' && isNaN(Number(meters))) {
+        let val = parseFloat(meters.replace(/,/g, ''));
+        if (isNaN(val)) return meters; // Cannot parse, return original string
+        if (meters.toLowerCase().includes('mi') || meters.includes('英里')) {
+            meters = val / 0.000621371;
+        } else {
+            meters = val * 1000;
+        }
+    }
+
+    meters = Number(meters);
+    if (isNaN(meters)) return '';
+
     const isKm = state.settings.unitDistance === 'km';
     if (isKm) {
         const km = meters / 1000;
@@ -13,7 +28,22 @@ export function formatDistance(meters) {
 }
 
 export function formatDuration(seconds) {
-    if (isNaN(seconds)) return seconds;
+    if (seconds === undefined || seconds === null) return '';
+
+    // Fallback: if seconds is actually an old string (like "1 小时 30 分钟" or "45 分钟")
+    if (typeof seconds === 'string' && isNaN(Number(seconds))) {
+        let h = 0, m = 0;
+        const hMatch = seconds.match(/(\d+)\s*(小时|hr|h|:)/i);
+        const mMatch = seconds.match(/(\d+)\s*(分钟|min|m)/i);
+        if (hMatch) h = parseInt(hMatch[1]);
+        if (mMatch) m = parseInt(mMatch[1]);
+        if (!hMatch && !mMatch) return seconds; // Cannot parse
+        seconds = h * 3600 + m * 60;
+    }
+
+    seconds = Number(seconds);
+    if (isNaN(seconds)) return '';
+
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
 

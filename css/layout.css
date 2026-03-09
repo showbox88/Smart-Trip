@@ -216,6 +216,63 @@ nav a:hover {
     position: relative;
 }
 
+/* --- Sidebar Glow Effect (Refined) --- */
+:root {
+    --x: 0;
+    --y: 0;
+    --xp: 0;
+}
+
+.sidebar.collapsed #sidebar-nav li,
+.sidebar.collapsed .add-day-btn {
+    position: relative;
+    overflow: visible;
+    /* box-shadow renders outside the element, must not be clipped */
+    background: #1a1c1e;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: box-shadow 0.15s ease, all 0.3s ease;
+    z-index: 2;
+}
+
+/* Hide any pseudo-element surface glow */
+.sidebar.collapsed #sidebar-nav li::before,
+.sidebar.collapsed .add-day-btn::before {
+    display: none !important;
+}
+
+/* Old CSS ::after glow is removed - now handled by JS box-shadow in ux.js */
+
+/* Active state keeps the same solid dark background */
+.sidebar.collapsed #sidebar-nav li.active {
+    background: #1a1c1e;
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Enable local highlight when hovering anywhere in sidebar */
+/* .sidebar:hover #sidebar-nav li::before,
+.sidebar:hover .add-day-btn::before {
+    opacity: 1;
+} */
+
+/* Active item keeps a separate indicator, not a surface glow */
+.sidebar #sidebar-nav li.active {
+    border-left: 3px solid var(--accent-primary);
+    background: #1a1c1e;
+    /* Match standard dark background to keep backlight behind */
+}
+
+/* .sidebar #sidebar-nav li.active::before {
+    opacity: 1 !important;
+} */
+
+.sidebar.collapsed #sidebar-nav li span,
+.sidebar.collapsed .add-day-btn span,
+.sidebar.collapsed #sidebar-nav li div {
+    position: relative;
+    z-index: 2;
+    pointer-events: none;
+}
+
 .sidebar.collapsed {
     width: 72px;
 }
@@ -249,6 +306,10 @@ nav a:hover {
     list-style: none;
     padding: 0 10px;
     margin: 0;
+    position: relative;
+    /* z-index removed: it was creating a container-level stacking context
+       that blocked the ::after glow even in the GAPS between buttons.
+       Individual li items have their own z-index: 2 which is sufficient. */
 }
 
 .sidebar.collapsed #sidebar-nav {
@@ -266,6 +327,8 @@ nav a:hover {
     transition: all 0.2s;
     position: relative;
     border-left: 3px solid transparent;
+    z-index: 2;
+    /* Lower to ensure it's above ::after(1) but NOT blocking it via global stack */
 }
 
 .add-day-btn {
@@ -278,10 +341,10 @@ nav a:hover {
     color: var(--text-secondary);
 }
 
-.add-day-btn:hover {
+/* .add-day-btn:hover {
     border-color: var(--accent-primary);
     color: var(--accent-primary);
-}
+} */
 
 .add-day-text {
     margin-left: 8px;
@@ -289,7 +352,8 @@ nav a:hover {
 }
 
 .sidebar #sidebar-nav li.active {
-    background: rgba(255, 255, 255, 0.05);
+    background: #1a1c1e;
+    /* Keep it dark and opaque */
     border-left-color: var(--active-color, var(--accent-primary));
 }
 
@@ -310,8 +374,8 @@ nav a:hover {
 }
 
 .sidebar.collapsed #sidebar-nav li.active {
-    background: var(--bg-itinerary);
-    box-shadow: 0 0 20px rgba(60, 131, 246, 0.8);
+    background: #1a1c1e !important;
+    /* Must be opaque to block light from surface */
 }
 
 /* --- Elements Visibility --- */

@@ -278,12 +278,11 @@ function scrollToDay(id) {
     if (sidebarNav) {
         Array.from(sidebarNav.children).forEach(li => {
             li.classList.remove('active');
-            li.style.background = 'transparent';
             li.style.borderLeftColor = 'transparent';
+            li.style.boxShadow = ''; // Clear any legacy box-shadow
 
             if (li.getAttribute('onclick') && li.getAttribute('onclick').includes(id)) {
                 li.classList.add('active');
-                li.style.background = 'rgba(255,255,255,0.05)';
                 // Extract color from the inner dot
                 const dot = li.querySelector('div[style*="border-radius"]');
                 if (dot && dot.style.backgroundColor) {
@@ -291,6 +290,12 @@ function scrollToDay(id) {
                 }
             }
         });
+        // Invalidate glow cache and trigger update for new active state
+        if (typeof invalidateGlowCache === 'function') invalidateGlowCache();
+        window.dispatchEvent(new MouseEvent('mousemove', {
+            clientX: parseInt(document.documentElement.style.getPropertyValue('--x')) || 0,
+            clientY: parseInt(document.documentElement.style.getPropertyValue('--y')) || 0
+        }));
     }
 
     // Auto-expand clicked day, collapse all others
@@ -1184,7 +1189,8 @@ export {
     changeStopImage,
     saveStopImage,
     selectStopThumb,
-    confirmStopImage
+    confirmStopImage,
+    initSidebarGlow
 };
 
 // --- Global Helpers for Dynamic UI ---
@@ -1217,10 +1223,153 @@ window.toggleSidebar = function () {
             sidebar.classList.remove('collapsed');
         }
     }
-    // Re-render only if needed, but CSS handles most of it
-    // If you need to change text (e.g. Day 1 -> D1), you might need a partial re-render
-    // For now, let's try CSS-only transition for smooth feel
+    // CSS handles smooth width transition. Initialization of glow effect:
+    initSidebarGlow();
+    // Invalidate glow and keep refreshing during CSS transition (typically 300ms)
+    if (typeof invalidateGlowCache === 'function') invalidateGlowCache();
+    // Hide glow layer immediately when expanding
+    if (!state.sidebarCollapsed) {
+        requestAnimationFrame(() => { if (typeof applyGlow === 'function') applyGlow(); });
+    }
+    // After transition ends, rebuild cache with final positions
+    setTimeout(() => {
+        if (typeof invalidateGlowCache === 'function') invalidateGlowCache();
+        requestAnimationFrame(() => { if (typeof applyGlow === 'function') applyGlow(); });
+    }, 350);
 };
+
+// --- Sidebar Glow Tracking Effect (V4: Performance-optimized separate layer) ---
+let _glowCache = null; // Cache DOM refs + positions
+let _rafId = null;
+let _lastPointerX = 0, _lastPointerY = 0;
+
+function buildGlowCache(sidebar) {
+    let layer = sidebar.querySelector('.sidebar-glow-layer');
+    if (!layer) {
+        layer = document.createElement('div');
+        layer.className = 'sidebar-glow-layer';
+        layer.style.cssText = 'position:absolute;inset:0;z-index:0;pointer-events:none;overflow:visible;';
+        sidebar.prepend(layer);
+    }
+
+    const sidebarRect = sidebar.getBoundingClientRect();
+    const items = sidebar.querySelectorAll('#sidebar-nav li, .add-day-btn');
+    const dots = [];
+
+    items.forEach((item, i) => {
+        let dot = layer.children[i];
+        if (!dot) {
+            dot = document.createElement('div');
+            dot.style.cssText = 'position:absolute;border-radius:12px;pointer-events:none;';
+            layer.appendChild(dot);
+        }
+        const r = item.getBoundingClientRect();
+        dot.style.left = (r.left - sidebarRect.left) + 'px';
+        dot.style.top = (r.top - sidebarRect.top) + 'px';
+        dot.style.width = r.width + 'px';
+        dot.style.height = r.height + 'px';
+        dots.push({ dot, item, centerY: r.top + r.height / 2 });
+    });
+
+    // Remove extra dots if items decreased
+    while (layer.children.length > items.length) {
+        layer.removeChild(layer.lastChild);
+    }
+
+    return { sidebar, layer, sidebarRight: sidebarRect.right, dots };
+}
+
+function invalidateGlowCache() { _glowCache = null; }
+
+function applyGlow() {
+    const pointerX = _lastPointerX;
+    const pointerY = _lastPointerY;
+
+    const sidebar = document.querySelector('.sidebar.collapsed');
+    if (!sidebar) {
+        // Sidebar is expanded - hide any leftover glow layer
+        _glowCache = null;
+        const expanded = document.querySelector('.sidebar');
+        if (expanded) {
+            const layer = expanded.querySelector('.sidebar-glow-layer');
+            if (layer) layer.style.display = 'none';
+        }
+        return;
+    }
+    // Ensure glow layer is visible when collapsed
+    const existingLayer = sidebar.querySelector('.sidebar-glow-layer');
+    if (existingLayer) existingLayer.style.display = '';
+
+    // Rebuild cache if needed (first run, or after invalidation)
+    if (!_glowCache || _glowCache.sidebar !== sidebar) {
+        _glowCache = buildGlowCache(sidebar);
+    }
+
+    const { sidebarRight, dots } = _glowCache;
+    const isNear = pointerX < sidebarRight + 40;
+
+    for (let i = 0; i < dots.length; i++) {
+        const { dot, item, centerY } = dots[i];
+        const isActive = item.classList.contains('active');
+
+        if (!isNear) {
+            dot.style.boxShadow = isActive
+                ? '0 0 30px 12px rgba(96, 165, 250, 0.7)'
+                : 'none';
+            continue;
+        }
+
+        const dist = Math.abs(pointerY - centerY);
+        if (dist < 120) {
+            const t = 1 - dist / 120;
+            const a = isActive ? Math.max(0.7, t * 0.8) : t * 0.8;
+            const s = isActive ? Math.max(12, (t * 14) | 0) : (t * 14) | 0;
+            const b = isActive ? Math.max(30, (12 + t * 18) | 0) : (12 + t * 18) | 0;
+            dot.style.boxShadow = `0 0 ${b}px ${s}px rgba(96,165,250,${a.toFixed(2)})`;
+        } else {
+            dot.style.boxShadow = isActive
+                ? '0 0 30px 12px rgba(96, 165, 250, 0.7)'
+                : 'none';
+        }
+    }
+    _rafId = null;
+}
+
+const syncPointer = (e) => {
+    _lastPointerX = e.clientX;
+    _lastPointerY = e.clientY;
+
+    // Update CSS vars
+    const root = document.documentElement;
+    root.style.setProperty('--x', _lastPointerX.toFixed(2));
+    root.style.setProperty('--y', _lastPointerY.toFixed(2));
+    root.style.setProperty('--xp', (_lastPointerX / window.innerWidth).toFixed(2));
+
+    // Throttle glow updates to one per animation frame
+    if (!_rafId) {
+        _rafId = requestAnimationFrame(applyGlow);
+    }
+};
+
+// Initialize the global pointer listener once
+if (!window._glowListenerBound) {
+    window.addEventListener('mousemove', syncPointer);
+    window.addEventListener('pointermove', syncPointer);
+    // Clear glow when mouse leaves the window
+    window.addEventListener('mouseleave', () => {
+        _lastPointerX = -9999; // Move pointer "offscreen"
+        requestAnimationFrame(applyGlow);
+    });
+    // Invalidate position cache on scroll/resize
+    window.addEventListener('scroll', invalidateGlowCache, true);
+    window.addEventListener('resize', invalidateGlowCache);
+    window._glowListenerBound = true;
+}
+
+function initSidebarGlow() {
+    // JS-driven glow is managed by global listener above.
+    // This function exists for compatibility.
+}
 
 // --- Settings Modal ---
 export async function openSettingsModal() {
@@ -1290,3 +1439,6 @@ window._updateSetting = async (key, value) => {
     // Re-open settings to show updated lang
     if (key === 'language') openSettingsModal();
 };
+
+// Initialize features on load
+// (Handled by renderApp in render.js for dynamic DOM persistence)

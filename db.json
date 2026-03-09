@@ -40,7 +40,9 @@
                             "expenseCategory": "活动",
                             "transitToNext": {
                                 "duration": "6 分钟",
-                                "distance": "1.6 公里"
+                                "distance": "1.6 公里",
+                                "durationSeconds": 367,
+                                "distanceMeters": 1566
                             },
                             "transitMode": "DRIVE"
                         },
@@ -64,8 +66,11 @@
                             "placeId": "ChIJZcEaU-jyGGARfCGpedkJEM8",
                             "transitToNext": {
                                 "duration": "13 分钟",
-                                "distance": "3.8 公里"
-                            }
+                                "distance": "3.8 公里",
+                                "durationSeconds": 820,
+                                "distanceMeters": 3838
+                            },
+                            "transitMode": "DRIVE"
                         },
                         {
                             "id": "s1772947616701",

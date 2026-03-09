@@ -23,9 +23,9 @@
     margin-bottom: 0.2rem;
 }
 
-.trip-navigation li:hover {
+/* .trip-navigation li:hover {
     background-color: rgba(255, 255, 255, 0.05);
-}
+} */
 
 .trip-navigation li.active {
     background-color: rgba(255, 255, 255, 0.1);

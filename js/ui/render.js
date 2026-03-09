@@ -4,8 +4,9 @@ import { getLoginHTML } from './templates/auth.js';
 import { getDashboardHTML, getTripGridHTML } from './templates/dashboard.js';
 import { getTripHTML } from './templates/itinerary.js';
 import { initRealMap } from '../maps.js';
+import { initSidebarGlow } from './handlers/ux.js';
 
-// Inject global styles for hover effects
+// --- Modal Management (for initial usage) ---
 const existingStyle = document.getElementById('dynamic-styles');
 if (existingStyle) existingStyle.remove();
 
@@ -14,8 +15,8 @@ styleEl.id = 'dynamic-styles';
 styleEl.textContent = `
     .fade-in { animation: fadeIn 0.4s forwards ease-in-out; }
     @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(5px); }
-        to { opacity: 1; transform: translateY(0); }
+        from { opacity: 0; }
+        to { opacity: 1; }
     }
 `;
 document.head.appendChild(styleEl);
@@ -76,6 +77,7 @@ export function renderApp() {
                 if (window.googleMapsReady) {
                     initRealMap();
                 }
+                initSidebarGlow(); // Ensure sidebar glow effect is initialized after render
             }, 50);
         }
     } catch (err) {
