@@ -1,6 +1,8 @@
 {
     "user": {
-        "name": "旅行者"
+        "name": "Alex Traveller",
+        "avatar": "https://lh3.googleusercontent.com/a/ACg8ocL-fH-2jH6M6B-V9eM7f8A9_j4z8=s96-c",
+        "email": "alex.traveller@gmail.com"
     },
     "currentView": "trip",
     "activeTripId": "trip-1772941902922",
@@ -10,7 +12,7 @@
             "title": "新的神秘冒险",
             "startDate": "2026-05-01",
             "endDate": "2026-05-24",
-            "thumb": "/uploads/f7da9fa93cbd5c451a9c7e86d187c181.jpg",
+            "thumb": "/uploads/9e1e621f17bd42bc942ed38787099b49.jpg",
             "activeDayId": "day-1772941902922-1",
             "days": [
                 {
@@ -19,16 +21,31 @@
                     "date": "2026年5月1日",
                     "stops": [
                         {
-                            "id": "l1773159820375",
-                            "type": "list",
-                            "title": "",
-                            "items": []
-                        },
-                        {
-                            "id": "n1773159818275",
-                            "type": "note",
-                            "content": "",
-                            "checked": false
+                            "id": "s1773167038943",
+                            "location": "Premier Hotel Cabin Shinjuku",
+                            "desc": "Casual lodging offering simple rooms with minifridges, plus a relaxed buffet restaurant.",
+                            "address": "2-chōme-40-3 Kabukichō, Shinjuku City, Tokyo 160-0021, Japan",
+                            "phone": "03-3205-6300",
+                            "time": "05:00    ",
+                            "period": "PM",
+                            "note": "Check-in",
+                            "price": "0",
+                            "type": "hotel_checkin",
+                            "lat": 35.697258,
+                            "lng": 139.70203999999998,
+                            "photo": "https://places.googleapis.com/v1/places/ChIJ9e5O9yeNGGAR7mIlmgv8MSA/photos/ATCDNfXpxtoardRpvJhXtQWFIkXYRT_hK715Jyy0zlaxiTl7h-6UK8DzPaoiGbSufSCG5QO-NxfrBdn0Kiv2q4Cg0q4ZcWV2uQm3iUI_bE5UCoipgtE0t8MQrksRlSKhvM2RkIvG4f0R8b7JuW5nikHITLGOqoCHyk3PQuXkj7Oo80T76x85ICLvXs6Y8hcxn10RSCOymkVZcIMAdfDhV_X2r7fYg5qqFbQGHoPvaZbC88ZcJrETwis2NW9cffpD9EmUMVuWziV0enXzlUpa-uMcw4APVkAIzOo89qHZV5KzcJ59MA/media?maxWidthPx=600&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k",
+                            "rating": 3.9,
+                            "category": "酒店",
+                            "categoryIcon": "🏨",
+                            "placeId": "ChIJ9e5O9yeNGGAR7mIlmgv8MSA",
+                            "transitToNext": {
+                                "duration": "1 小时 13 分钟",
+                                "distance": "5.1 公里",
+                                "durationSeconds": 4411,
+                                "distanceMeters": 5133
+                            },
+                            "stayId": "stay-1773167051354",
+                            "transitMode": "WALK"
                         },
                         {
                             "id": "s1772947616701",
@@ -49,63 +66,12 @@
                             "categoryIcon": "🍴",
                             "placeId": "ChIJxb5izUXzGGARATweg8oBicg",
                             "transitToNext": {
-                                "duration": "15 分钟",
-                                "distance": "5.9 公里",
-                                "durationSeconds": 917,
-                                "distanceMeters": 5877
+                                "duration": "14 分钟",
+                                "distance": "4.0 公里",
+                                "durationSeconds": 843,
+                                "distanceMeters": 3975
                             },
                             "expenseCategory": "活动"
-                        },
-                        {
-                            "id": "s1773160906357",
-                            "location": "HOTEL MYSTAYS Nishi Shinjuku",
-                            "desc": "Streamlined rooms in a casual property featuring a low-key restaurant/bar & free coffee.",
-                            "address": "7-chōme-14-14 Nishishinjuku, Shinjuku City, Tokyo 160-0023, Japan",
-                            "phone": "03-6853-7717",
-                            "time": "05:00    ",
-                            "period": "PM",
-                            "note": "Check-in",
-                            "price": "0",
-                            "type": "hotel_checkin",
-                            "lat": 35.6949249,
-                            "lng": 139.6973203,
-                            "photo": "https://places.googleapis.com/v1/places/ChIJP95WHtaMGGARXUH4nc7FwvQ/photos/ATCDNfXA0kzvqgfpCkCGwZycNm9A8e2IhypGEmCqIHR523ZDwFkZBS3i43nHqkUwf-8242a2prBdxHts0qJ4EaPc9KLcYxySZ8fT3BHDeMKNH3R42wwlop1ittPzA-d01o0DFRatVKSHPasTVSFFB3GxMR0yrzcAT8cBX2pD8TlNB9N4dWBpIwRnfaKGM_brAD0-JTVl12Xfdv0EGT4Q2Yrh7GQvbrduTHNuaWcyHGS-p5Y15oVLAc86bWqklD1I8Wqe4uVklWcSTJC4ihbWB22jZBHHz13cQtC3DlyjfzGOtbqmiw/media?maxWidthPx=600&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k",
-                            "rating": 3.8,
-                            "category": "酒店",
-                            "categoryIcon": "🏨",
-                            "placeId": "ChIJP95WHtaMGGARXUH4nc7FwvQ",
-                            "transitToNext": {
-                                "duration": "21 分钟",
-                                "distance": "5.8 公里",
-                                "durationSeconds": 1275,
-                                "distanceMeters": 5775
-                            },
-                            "stayId": "stay-1773160917781"
-                        },
-                        {
-                            "id": "s1772989870522",
-                            "location": "Tensuke",
-                            "desc": "Hole-in-the-wall joint serving up shrimp, fish & veggie tempura, renowned for its deep-fried eggs.",
-                            "address": "Japan, 〒166-0002 Tokyo, Suginami City, Kōenjikita, 3-chōme−22−７ プラザ高円寺",
-                            "phone": "03-3223-8505",
-                            "time": "03:00   ",
-                            "period": "PM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 35.7058375,
-                            "lng": 139.6487831,
-                            "photo": "https://places.googleapis.com/v1/places/ChIJXaZmo33yGGARE9okpsCbz80/photos/ATCDNfWsVtpJsxdhKvruWOI2BKaBYPuvd7TbUk_Rc3yJnhLC-BVPS7gVTmRqDDNJfikwAL4wVES5et5CfzJkeDq56VXg-Kq1XRQtEsERAqRsBTX9mb2kUlc5FjdYepBHXFi3-3SF1U_eNbjwcxbAQFY-Z4U8wF8yKihWGsAb_BK3_0iYm6cANINN1AFNyeRacCtBpNBD6wg1-JjDIhGzlEJknCpB7Ecs5xejlc252oEQtpz59et82Z3VJEr6RaRPb5E3PI-eGLdHHWBvx0YrfrSlITBcdHCsXuG8PECxy1M8e6UHyrZSO0j-wcMUcm902PINwqXkqRMfVNIQAdbLcTfz74WO_M39RXNhJYwKXK95XfUAXKdoWiAodD150Qodw6Y3JmmI2IBSFuBhgOgDeEhmq63xKSx-rmJA_fNZ5zHfGqFEGnrb2GY-TaAD2wjLL02M/media?maxWidthPx=600&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k",
-                            "rating": 4.5,
-                            "category": "餐饮",
-                            "categoryIcon": "🍴",
-                            "placeId": "ChIJXaZmo33yGGARE9okpsCbz80",
-                            "transitToNext": {
-                                "duration": "15 分钟",
-                                "distance": "4.6 公里",
-                                "durationSeconds": 906,
-                                "distanceMeters": 4560
-                            }
                         },
                         {
                             "id": "s1773153592639",
@@ -125,25 +91,56 @@
                             "category": "餐饮",
                             "categoryIcon": "🍴",
                             "placeId": "ChIJL85fBdzyGGARbM304hTZQ8o",
+                            "transitToNext": {
+                                "duration": "15 分钟",
+                                "distance": "4.0 公里",
+                                "durationSeconds": 954,
+                                "distanceMeters": 4006
+                            }
+                        },
+                        {
+                            "id": "n1773167095038",
+                            "type": "note",
+                            "content": "",
+                            "checked": false
+                        },
+                        {
+                            "id": "s1772989870522",
+                            "location": "Tensuke",
+                            "desc": "Hole-in-the-wall joint serving up shrimp, fish & veggie tempura, renowned for its deep-fried eggs.",
+                            "address": "Japan, 〒166-0002 Tokyo, Suginami City, Kōenjikita, 3-chōme−22−７ プラザ高円寺",
+                            "phone": "03-3223-8505",
+                            "time": "03:00   ",
+                            "period": "PM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 35.7058375,
+                            "lng": 139.6487831,
+                            "photo": "https://places.googleapis.com/v1/places/ChIJXaZmo33yGGARE9okpsCbz80/photos/ATCDNfWsVtpJsxdhKvruWOI2BKaBYPuvd7TbUk_Rc3yJnhLC-BVPS7gVTmRqDDNJfikwAL4wVES5et5CfzJkeDq56VXg-Kq1XRQtEsERAqRsBTX9mb2kUlc5FjdYepBHXFi3-3SF1U_eNbjwcxbAQFY-Z4U8wF8yKihWGsAb_BK3_0iYm6cANINN1AFNyeRacCtBpNBD6wg1-JjDIhGzlEJknCpB7Ecs5xejlc252oEQtpz59et82Z3VJEr6RaRPb5E3PI-eGLdHHWBvx0YrfrSlITBcdHCsXuG8PECxy1M8e6UHyrZSO0j-wcMUcm902PINwqXkqRMfVNIQAdbLcTfz74WO_M39RXNhJYwKXK95XfUAXKdoWiAodD150Qodw6Y3JmmI2IBSFuBhgOgDeEhmq63xKSx-rmJA_fNZ5zHfGqFEGnrb2GY-TaAD2wjLL02M/media?maxWidthPx=600&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k",
+                            "rating": 4.5,
+                            "category": "餐饮",
+                            "categoryIcon": "🍴",
+                            "placeId": "ChIJXaZmo33yGGARE9okpsCbz80",
                             "transitToNext": null
                         }
                     ],
                     "color": "#10b981",
                     "transitFromHotel": null,
                     "transitToHotel": {
-                        "duration": "8 分钟",
-                        "distance": "2.8 公里",
-                        "durationSeconds": 535,
-                        "distanceMeters": 2762
+                        "duration": "20 分钟",
+                        "distance": "5.9 公里",
+                        "durationSeconds": 1211,
+                        "distanceMeters": 5885
                     },
                     "showReturnRoute": false,
                     "currentDayStay": {
-                        "id": "stay-1773160917781",
+                        "id": "stay-1773167051354",
                         "checkinDayId": "day-1772941902922-0",
                         "checkoutDayId": "day-1772941902922-4",
-                        "checkinStopId": "s1773160906357",
-                        "checkoutStopId": "cout-1773160917781",
-                        "location": "HOTEL MYSTAYS Nishi Shinjuku"
+                        "checkinStopId": "s1773167038943",
+                        "checkoutStopId": "cout-1773167051354",
+                        "location": "Premier Hotel Cabin Shinjuku"
                     },
                     "isCinOnly": true,
                     "isCoutOnly": false,
@@ -169,7 +166,7 @@
                             "type": "location",
                             "lat": 35.712151,
                             "lng": 139.6859451,
-                            "photo": "/uploads/5a50f405768a0fa0beed166811ca8e2f.jpg",
+                            "photo": "https://places.googleapis.com/v1/places/ChIJVbZOnrbyGGARzSe1BTQULvI/photos/ATCDNfUirfTO5aMVVf6dAWdwVVOBmJ8cpEifTozhjN-5yufVt0clpVUwYh-2BSLshJQwBgx-7ky5qWtj3QeOR0T949385dmeBDr-KyTH2JdIRwQQHXRlvy68iPUDGwFcgubdHeUSieAJC0oJQJaRxZs7BMNZtbms7F-7mXyLLcKuq4yy6QNJK71YshytXkA0SL6MQXAQUGmZjjRrU_CJmEA9OdPMtR5V-KpzWm3CcW9E9iKtkoMvDVdt2-Cd46W6xV6WBF6MAt_1x7Tf9JOqm-mlnEN_uYh1SPoF6K5hoWwDVpYVNQ/media?maxWidthPx=600&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k",
                             "rating": 3.9,
                             "category": "外卖",
                             "categoryIcon": "🥡",
@@ -194,7 +191,7 @@
                             "type": "location",
                             "lat": 35.7224674,
                             "lng": 139.7006317,
-                            "photo": "/uploads/427ad2b6d4bed74b6aa56e993b247ef2.jpg",
+                            "photo": "https://places.googleapis.com/v1/places/ChIJEQmRkU-NGGAR2GD7JadI6qg/photos/ATCDNfXpmrkPD2bUg5uuJQie6p0q8hLUipib2gqPEaUOoVVamJbBjOyqqbu19Z1AvqNJZ4xNxwt_La1i4KuQOfvrr9Wf-h0R8uJrNDDN5IAjLJlia1mkezc-4i5981sxvBZbqUbYh4M7u8Z6hYYPY0p3VUFrkLCh24dATuxxir5rre1LSt4WfXJLA6tT0f0cxwddkJ8JRm2zbe22EvdRpoDpXMFPdaHD2CObMuUnSOsqJwq2L4CJ3YEawDEUD2-YXpXGAoSK5dHxaNQeeHXWgk_AcRS4AHmOHLiE2VpodNW13k26ryBQXA087gLEHIdFTi28bK9R92Pnb6D95NEPqtlpd1Lf5Z1AP5ubAxiddFNKROajaUAhdI389bGblYYDxAjABXWzWbXlCyGzPRkRXvXbgNEZ8B2nPc4NEZxWnNdcutn2LYuN/media?maxWidthPx=600&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k",
                             "rating": 4.4,
                             "category": "面包房",
                             "categoryIcon": "🥐",
@@ -269,12 +266,12 @@
                     "showReturnRoute": false,
                     "transitFromHotelMode": "DRIVE",
                     "currentDayStay": {
-                        "id": "stay-1773160917781",
+                        "id": "stay-1773167051354",
                         "checkinDayId": "day-1772941902922-0",
                         "checkoutDayId": "day-1772941902922-4",
-                        "checkinStopId": "s1773160906357",
-                        "checkoutStopId": "cout-1773160917781",
-                        "location": "HOTEL MYSTAYS Nishi Shinjuku"
+                        "checkinStopId": "s1773167038943",
+                        "checkoutStopId": "cout-1773167051354",
+                        "location": "Premier Hotel Cabin Shinjuku"
                     },
                     "isCinOnly": false,
                     "isCoutOnly": false,
@@ -288,12 +285,12 @@
                     "stops": [],
                     "color": "#f59e0b",
                     "currentDayStay": {
-                        "id": "stay-1773160917781",
+                        "id": "stay-1773167051354",
                         "checkinDayId": "day-1772941902922-0",
                         "checkoutDayId": "day-1772941902922-4",
-                        "checkinStopId": "s1773160906357",
-                        "checkoutStopId": "cout-1773160917781",
-                        "location": "HOTEL MYSTAYS Nishi Shinjuku"
+                        "checkinStopId": "s1773167038943",
+                        "checkoutStopId": "cout-1773167051354",
+                        "location": "Premier Hotel Cabin Shinjuku"
                     },
                     "isCinOnly": false,
                     "isCoutOnly": false,
@@ -307,12 +304,12 @@
                     "stops": [],
                     "color": "#10b981",
                     "currentDayStay": {
-                        "id": "stay-1773160917781",
+                        "id": "stay-1773167051354",
                         "checkinDayId": "day-1772941902922-0",
                         "checkoutDayId": "day-1772941902922-4",
-                        "checkinStopId": "s1773160906357",
-                        "checkoutStopId": "cout-1773160917781",
-                        "location": "HOTEL MYSTAYS Nishi Shinjuku"
+                        "checkinStopId": "s1773167038943",
+                        "checkoutStopId": "cout-1773167051354",
+                        "location": "Premier Hotel Cabin Shinjuku"
                     },
                     "isCinOnly": false,
                     "isCoutOnly": false,
@@ -331,32 +328,6 @@
                     "date": "2026年5月5日",
                     "stops": [
                         {
-                            "id": "cout-1773160917781",
-                            "location": "HOTEL MYSTAYS Nishi Shinjuku",
-                            "desc": "Streamlined rooms in a casual property featuring a low-key restaurant/bar & free coffee.",
-                            "address": "7-chōme-14-14 Nishishinjuku, Shinjuku City, Tokyo 160-0023, Japan",
-                            "phone": "03-6853-7717",
-                            "time": "12:00",
-                            "period": "PM",
-                            "note": "Check-out",
-                            "price": "0",
-                            "type": "hotel_checkout",
-                            "lat": 35.6949249,
-                            "lng": 139.6973203,
-                            "photo": "/uploads/12fd2a63f006627ca3ebab94b3a7c435.jpg",
-                            "rating": 3.8,
-                            "category": "酒店",
-                            "categoryIcon": "🏨",
-                            "placeId": "ChIJP95WHtaMGGARXUH4nc7FwvQ",
-                            "transitToNext": {
-                                "duration": "6 分钟",
-                                "distance": "1.6 公里",
-                                "durationSeconds": 419,
-                                "distanceMeters": 1558
-                            },
-                            "stayId": "stay-1773160917781"
-                        },
-                        {
                             "id": "s1773161200953",
                             "location": "Jinkoge",
                             "desc": "",
@@ -374,26 +345,53 @@
                             "category": "餐饮",
                             "categoryIcon": "🍴",
                             "placeId": "ChIJD44fqC6NGGAR3-A2jLXpl40",
-                            "transitToNext": null
+                            "transitToNext": {
+                                "duration": "5 分钟",
+                                "distance": "1.0 公里",
+                                "durationSeconds": 318,
+                                "distanceMeters": 1044
+                            }
+                        },
+                        {
+                            "id": "cout-1773167051354",
+                            "location": "Premier Hotel Cabin Shinjuku",
+                            "desc": "Casual lodging offering simple rooms with minifridges, plus a relaxed buffet restaurant.",
+                            "address": "2-chōme-40-3 Kabukichō, Shinjuku City, Tokyo 160-0021, Japan",
+                            "phone": "03-3205-6300",
+                            "time": "12:00",
+                            "period": "PM",
+                            "note": "Check-out",
+                            "price": "0",
+                            "type": "hotel_checkout",
+                            "lat": 35.697258,
+                            "lng": 139.70203999999998,
+                            "photo": "/uploads/9955a95baaf44b484c93e0889f24c915.jpg",
+                            "rating": 3.9,
+                            "category": "酒店",
+                            "categoryIcon": "🏨",
+                            "placeId": "ChIJ9e5O9yeNGGAR7mIlmgv8MSA",
+                            "transitToNext": null,
+                            "stayId": "stay-1773167051354"
                         }
                     ],
                     "color": "#8b5cf6",
                     "currentDayStay": {
-                        "id": "stay-1773160917781",
+                        "id": "stay-1773167051354",
                         "checkinDayId": "day-1772941902922-0",
                         "checkoutDayId": "day-1772941902922-4",
-                        "checkinStopId": "s1773160906357",
-                        "checkoutStopId": "cout-1773160917781",
-                        "location": "HOTEL MYSTAYS Nishi Shinjuku"
+                        "checkinStopId": "s1773167038943",
+                        "checkoutStopId": "cout-1773167051354",
+                        "location": "Premier Hotel Cabin Shinjuku"
                     },
                     "isCinOnly": false,
                     "isCoutOnly": true,
                     "isBetween": false,
                     "isSameDayStay": false,
                     "transitFromHotel": {
-                        "duration": "0 分钟",
-                        "distance": "NaN 公里",
-                        "durationSeconds": 0
+                        "duration": "5 分钟",
+                        "distance": "1.2 公里",
+                        "durationSeconds": 341,
+                        "distanceMeters": 1154
                     },
                     "transitToHotel": null
                 },
@@ -630,13 +628,59 @@
                     "color": "#8b5cf6"
                 }
             ]
+        },
+        {
+            "id": "trip-1773166311687",
+            "title": "New Adventure",
+            "startDate": "2026-05-01",
+            "endDate": "2026-05-05",
+            "thumb": "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+            "status": "planned",
+            "activeDayId": "day-1773166311688-0",
+            "days": [
+                {
+                    "id": "day-1773166311688-0",
+                    "title": "Day 1",
+                    "date": "May 1, 2026",
+                    "stops": [],
+                    "color": "#5b7a99"
+                },
+                {
+                    "id": "day-1773166311688-1",
+                    "title": "Day 2",
+                    "date": "May 2, 2026",
+                    "stops": [],
+                    "color": "#ef4444"
+                },
+                {
+                    "id": "day-1773166311688-2",
+                    "title": "Day 3",
+                    "date": "May 3, 2026",
+                    "stops": [],
+                    "color": "#f59e0b"
+                },
+                {
+                    "id": "day-1773166311688-3",
+                    "title": "Day 4",
+                    "date": "May 4, 2026",
+                    "stops": [],
+                    "color": "#10b981"
+                },
+                {
+                    "id": "day-1773166311688-4",
+                    "title": "Day 5",
+                    "date": "May 5, 2026",
+                    "stops": [],
+                    "color": "#8b5cf6"
+                }
+            ]
         }
     ],
     "dashboardFilter": "all",
-    "dashboardView": "grid",
+    "dashboardView": "list",
     "sidebarCollapsed": true,
     "settings": {
-        "language": "en",
+        "language": "zh",
         "unitDistance": "mi",
         "unitTemp": "f",
         "currency": "USD"
@@ -666,9 +710,9 @@
         "day-1772827496784-4": true,
         "day-1772941902922-0": false,
         "day-1772941902922-1": false,
-        "day-1772941902922-2": true,
+        "day-1772941902922-2": false,
         "day-1772941902922-3": true,
-        "day-1772941902922-4": true,
+        "day-1772941902922-4": false,
         "day-1772941926274": true,
         "day-1772941927086": true,
         "day-1772941927821": true,

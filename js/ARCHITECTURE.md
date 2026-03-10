@@ -92,4 +92,4 @@ maps.js 联动更新地图图钉
 3. **新增 API**：在 `server.py` 添加路由，`api.js` 添加对应函数
 
 ---
-*Updated 2026-03-06 by Antigravity AI Assistant.*
+*Updated 2026-03-11 by Antigravity AI Assistant.*

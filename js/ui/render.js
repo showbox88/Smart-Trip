@@ -24,16 +24,35 @@ document.head.appendChild(styleEl);
 function updateNavLinks() {
     const nav = document.querySelector('.navbar nav ul');
     if (!nav) return;
+
+    const dropdown = document.getElementById('user-dropdown');
+    const avatarContainer = document.querySelector('.user-profile-container');
+
     if (!state.user) {
         nav.innerHTML = `
-            <li><a href="#" class="btn-primary" onclick="state.currentView='login'; renderApp()">${t('common.login_register')}</a></li>
+            <li><a href="#" class="btn-primary" onclick="gotoLogin()">${t('common.login_register')}</a></li>
         `;
+        if (avatarContainer) avatarContainer.style.display = 'none';
+        if (dropdown) dropdown.innerHTML = '';
     } else {
         nav.innerHTML = `
             <li><a href="#" onclick="goDashboard()">${t('dashboard.filter_all')}</a></li>
-            <li><a href="#" onclick="openSettingsModal()" style="display:flex; align-items:center; gap:5px;"><span class="material-symbols-outlined" style="font-size:20px;">settings</span></a></li>
-            <li><a href="https://google.com/travel" target="_blank">${t('common.inspiration')}</a></li>
         `;
+        if (avatarContainer) avatarContainer.style.display = 'flex';
+
+        if (dropdown) {
+            dropdown.innerHTML = `
+                <a href="#" onclick="openSettingsModal(); toggleUserDropdown()">
+                    <span class="material-symbols-outlined">settings</span>
+                    ${t('itinerary.settings')}
+                </a>
+                <div style="height: 1px; background: var(--glass-border); margin: 4px 0;"></div>
+                <a href="#" onclick="handleLogout(); toggleUserDropdown()" style="color:var(--text-muted);">
+                    <span class="material-symbols-outlined">logout</span>
+                    ${t('common.logout')}
+                </a>
+            `;
+        }
     }
 }
 

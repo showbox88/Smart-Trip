@@ -195,7 +195,9 @@ export function getTimelineItemHTML(day, stop, index, locationIdx, showTransit, 
                         <span onclick="openExpenseDirectly(event, '${day.id}', '${stop.id}')" style="color: ${stop.price && stop.price !== '0' ? '#22c55e' : 'var(--text-secondary)'}; background: ${stop.price && stop.price !== '0' ? 'rgba(34, 197, 94, 0.1)' : 'var(--bg-secondary)'}; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; cursor:pointer;" title="${t('itinerary.edit_expense')}">${stop.price && stop.price !== '0' ? formatCurrency(parseFloat(stop.price)) : t('itinerary.add_expense')}</span>
                     </div>
                 </div>
-                <div onclick="window.changeStopImage('${day.id}', '${stop.id}')" style="cursor: pointer; width: 100px; height: 75px; border-radius: 6px; background-image: url('${stop.photo || 'https://picsum.photos/seed/' + stop.id + '/300/200'}'); background-size: cover; background-position: center; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.2);" title="${t('stops.change_img')}"></div>
+                <div onclick="window.changeStopImage('${day.id}', '${stop.id}')" style="cursor: pointer; width: 100px; height: 75px; border-radius: 6px; background-image: url('${stop.photo || 'https://picsum.photos/seed/' + stop.id + '/300/200'}'); background-size: cover; background-position: center; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.2); position: relative;" title="${t('stops.change_img')}">
+                    <img src="${stop.photo || ''}" style="display:none;" onerror="this.parentElement.style.backgroundImage='url(https://picsum.photos/seed/${stop.id}/300/200)'">
+                </div>
             </div>
         `;
     }
@@ -551,7 +553,9 @@ export function getTripHTML(trip) {
                 <div class="itinerary-header" id="trip-header-bar" style="padding: 0.75rem 1.5rem; background: var(--bg-primary); border-bottom: 1px solid var(--glass-border); position: sticky; top: 0; z-index: 100;">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <div style="display:flex; align-items:center; gap: 1rem;">
-                            <div id="itinerary-header-thumb" style="width:56px; height:56px; border-radius:10px; background-image:url('${trip.thumb}'); background-size:cover; background-position:center; border:1px solid var(--glass-border); flex-shrink:0;"></div>
+                            <div id="itinerary-header-thumb" style="width:56px; height:56px; border-radius:10px; background-image:url('${trip.thumb}'); background-size:cover; background-position:center; border:1px solid var(--glass-border); flex-shrink:0;">
+                                <img src="${trip.thumb || ''}" style="display:none;" onerror="this.parentElement.style.backgroundImage='url(https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80)'">
+                            </div>
                             <div>
                                 <h2 style="margin:0; font-size:1.25rem; line-height:1.2;">${trip.title}</h2>
                                 <div style="display:flex; align-items:center; gap:0.6rem; margin-top:0.3rem; flex-wrap:wrap;">

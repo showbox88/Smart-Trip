@@ -104,6 +104,7 @@
         "pm": "PM",
         "login_register": "Login / Register",
         "inspiration": "Inspiration",
+        "logout": "Logout",
         "render_error": "Render Error",
         "back_to_home": "Back to Home"
     },

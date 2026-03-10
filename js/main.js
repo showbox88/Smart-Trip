@@ -32,7 +32,11 @@ window.onerror = function (msg, url, line, col, error) {
 // Auth
 window.handleLogin = AuthHandlers.handleLogin;
 window.handleLoginKey = AuthHandlers.handleLoginKey;
+window.handleLogout = AuthHandlers.handleLogout;
+window.handleGoogleLogin = AuthHandlers.handleGoogleLogin;
+window.gotoLogin = AuthHandlers.gotoLogin;
 window.goDashboard = AuthHandlers.goDashboard;
+window.renderApp = renderApp;
 window.startPlanning = AuthHandlers.startPlanning;
 
 // Trips
@@ -46,6 +50,11 @@ window.filterDashboard = TripHandlers.filterDashboard;
 window.switchViewMode = TripHandlers.switchViewMode;
 window.handleTripThumbUpload = UXHandlers.handleTripThumbUpload;
 window.openSettingsModal = UXHandlers.openSettingsModal;
+window.toggleUserDropdown = function (e) {
+    if (e) e.stopPropagation();
+    const dd = document.getElementById('user-dropdown');
+    if (dd) dd.classList.toggle('hidden');
+};
 
 // Stops & Day Management
 window.addDay = StopHandlers.addDay;
@@ -268,6 +277,10 @@ document.addEventListener('click', (e) => {
     document.querySelectorAll('.menu-dropdown').forEach(d => d.classList.remove('active'));
     if (!e.target.closest('.location-search-container')) {
         document.querySelectorAll('.location-autocomplete-dropdown').forEach(d => d.classList.remove('active'));
+    }
+    const userDD = document.getElementById('user-dropdown');
+    if (userDD && !e.target.closest('.user-profile-container')) {
+        userDD.classList.add('hidden');
     }
 });
 

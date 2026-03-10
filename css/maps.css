@@ -121,3 +121,34 @@ gmp-advanced-marker::part(pin) {
 #map-dark-toggle:active {
     transform: scale(0.95);
 }
+
+/* --- Custom InfoWindow Styling (Strips default padding/close button) --- */
+.gm-style-iw {
+    padding: 0 !important;
+    max-height: none !important;
+    max-width: none !important;
+}
+
+.gm-style-iw-c {
+    padding: 0 !important;
+    border-radius: 12px !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    max-height: none !important;
+}
+
+.gm-style-iw-d {
+    overflow: hidden !important;
+    padding: 0 !important;
+    max-height: none !important;
+}
+
+/* Hide the close button */
+.gm-ui-hover-effect {
+    display: none !important;
+}
+
+/* Hide the arrow/stem of the InfoWindow for a cleaner look */
+.gm-style-iw-tc::after {
+    display: none !important;
+}

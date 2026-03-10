@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="css/layout.css">
     <link rel="stylesheet" href="css/itinerary.css">
     <link rel="stylesheet" href="css/maps.css">
+    <link rel="stylesheet" href="css/auth.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -36,7 +37,6 @@
             <ul>
                 <li><a href="#hero">首页</a></li>
                 <li><a href="#" onclick="showDashboard()">我的行程</a></li>
-                <li><a href="https://google.com/travel" target="_blank">灵感</a></li>
             </ul>
         </nav>
         <div class="nav-right">
@@ -44,9 +44,14 @@
                 <span class="material-symbols-outlined">notifications</span>
                 <span class="nav-dot"></span>
             </button>
-            <div class="user-avatar">
-                <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAjoN0jmeYMMck49QvhRReRpyFUMWBNKNOgLTI8v4vfAU93GXuQCFDH2qSZbFnILsTz5Kma9z__sMx035_vwxMwphapldySs6-wa2lCwcRkH2HV__E_-F_MtuGPypaQb_GFjrP52_BWn0w2lV1gCEgBNHCcryUksKEBnS0bV0HCh-udwlMkNLJRpJZFd3hTIT8NshkRyUSmXu2zHGSU3OzUBgmBmApUvlzWmUfble9evAzqttWL33_5qyiMEPhedRgvUxV1jOCe5as"
-                    alt="User Profile">
+            <div class="user-profile-container">
+                <div class="user-avatar" id="user-avatar-trigger" onclick="toggleUserDropdown(event)">
+                    <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAjoN0jmeYMMck49QvhRReRpyFUMWBNKNOgLTI8v4vfAU93GXuQCFDH2qSZbFnILsTz5Kma9z__sMx035_vwxMwphapldySs6-wa2lCwcRkH2HV__E_-F_MtuGPypaQb_GFjrP52_BWn0w2lV1gCEgBNHCcryUksKEBnS0bV0HCh-udwlMkNLJRpJZFd3hTIT8NshkRyUSmXu2zHGSU3OzUBgmBmApUvlzWmUfble9evAzqttWL33_5qyiMEPhedRgvUxV1jOCe5as"
+                        alt="User Profile">
+                </div>
+                <div id="user-dropdown" class="user-dropdown hidden">
+                    <!-- Dropdown items will be injected by JS or kept static if preferred -->
+                </div>
             </div>
         </div>
     </header>

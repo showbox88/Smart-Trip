@@ -1,5 +1,5 @@
 import { state } from './state.js';
-import { formatDistance, formatDuration } from './utils.js';
+import { formatDistance, formatDuration, formatCurrency, calculateDays } from './utils.js';
 import { t } from './ui/i18n.js';
 
 const MAPS_API_KEY = 'AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k';
@@ -73,6 +73,197 @@ export let googleMapInstance = null;
 export let googleMapMarkers = [];
 export let googleMapsReady = false;
 let mapDarkMode = true;
+let hoverInfoWindow = null;
+
+function showMarkerHoverInfo(stop, marker, trip) {
+    if (!googleMapInstance) return;
+    if (!hoverInfoWindow) {
+        hoverInfoWindow = new google.maps.InfoWindow({
+            disableAutoPan: true
+        });
+    }
+
+    // Theme definition based on map mode
+    const theme = mapDarkMode ? {
+        bg: '#0d111b',       // Deep navy/black from address card
+        title: '#ffffff',
+        text: '#ffffff',
+        muted: '#94a3b8',
+        border: 'rgba(255,255,255,0.1)',
+        // Chips
+        timeBg: 'rgba(88, 80, 236, 0.15)',
+        timeText: '#a5b4fc',
+        priceBg: 'rgba(34, 197, 94, 0.15)',
+        priceText: '#4ade80',
+        accentBg: 'rgba(249, 115, 22, 0.15)',
+        accentText: '#fb923c'
+    } : {
+        bg: '#ffffff',
+        title: '#0f172a',
+        text: '#334155',
+        muted: '#64748b',
+        border: '#f1f5f9',
+        // Chips
+        timeBg: '#f5f3ff',     // Light purple bg
+        timeText: '#5b21b6',   // Deep purple text
+        priceBg: '#f0fdf4',    // Light green bg
+        priceText: '#15803d',  // Deep green text
+        accentBg: '#fff7ed',   // Light orange bg
+        accentText: '#c2410c'  // Deep orange text
+    };
+
+    // Calculate smart positioning
+    let yOffset = -10; // Default: above
+    try {
+        const bounds = googleMapInstance.getBounds();
+        const pos = marker.getPosition();
+        if (bounds && pos) {
+            const latRange = bounds.getNorthEast().lat() - bounds.getSouthWest().lat();
+            const threshold = bounds.getNorthEast().lat() - (latRange * 0.4);
+            if (pos.lat() > threshold) {
+                yOffset = 50; // Below the marker
+            }
+        }
+    } catch (e) { /* Silent catch */ }
+
+    hoverInfoWindow.setOptions({
+        pixelOffset: new google.maps.Size(0, yOffset),
+        disableAutoPan: true
+    });
+
+    const reverseFilter = mapDarkMode ? 'filter: invert(1) hue-rotate(180deg);' : '';
+    const displayType = stop.category || (stop.type === 'hotel_checkin' || stop.type === 'hotel_checkout' ? '住宿' : '地点');
+    const isHotel = stop.type === 'hotel_checkin' || stop.type === 'hotel_checkout';
+
+    // Choose icon based on type
+    let categoryIcon = 'restaurant';
+    if (isHotel) categoryIcon = 'hotel';
+    else if (stop.category === '购物') categoryIcon = 'shopping_bag';
+    else if (stop.category === '景点') categoryIcon = 'attractions';
+
+    // Hotel logic: find pair and calculate stay
+    let stayInfo = null;
+    if (isHotel) {
+        const allStops = trip.days.flatMap(d => d.stops.map(s => ({ ...s, day: d })));
+        const cin = allStops.find(s => s.stayId === stop.stayId && s.type === 'hotel_checkin');
+        const cout = allStops.find(s => s.stayId === stop.stayId && s.type === 'hotel_checkout');
+        if (cin && cout) {
+            const cinIdx = trip.days.findIndex(d => d.id === cin.day.id);
+            const coutIdx = trip.days.findIndex(d => d.id === cout.day.id);
+            stayInfo = {
+                cin: { date: cin.day.date, time: cin.time },
+                cout: { date: cout.day.date, time: cout.time },
+                nights: Math.max(0, coutIdx - cinIdx),
+                price: cin.price || stop.price || 0
+            };
+        }
+    }
+
+    // Dynamic Font Size for title to prevent pushing other elements
+    const titleLength = stop.location.length;
+    let titleFontSize = '1.4rem';
+    if (titleLength > 18) titleFontSize = '1.1rem';
+    else if (titleLength > 12) titleFontSize = '1.25rem';
+
+    const popupHeight = isHotel ? '250px' : 'auto';
+    let contentStr = `<div style="display: flex; width: 540px; min-height: 160px; height: ${popupHeight}; font-family: 'Plus Jakarta Sans', sans-serif; background: ${theme.bg}; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.4); overflow: hidden; ${reverseFilter}">`;
+
+    // 1. Info Side (Left)
+    contentStr += `
+        <div style="flex: 1; padding: 20px; display: flex; flex-direction: column; min-width: 0;">
+            <!-- Header Row: Name + Category + Rating -->
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+                <div style="flex: 1; min-width: 0; font-weight: 800; font-size: ${titleFontSize}; color: ${theme.title}; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${stop.location}</div>
+                <div style="display: flex; align-items: center; gap: 4px; color: ${theme.muted}; font-size: 0.85rem; flex-shrink: 0;">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">${categoryIcon}</span>
+                    <span style="font-weight: 500;">${displayType}</span>
+                </div>
+                ${stop.rating ? `<span style="font-size: 0.95rem; color: #f97316; font-weight: 800; flex-shrink: 0;">★ ${stop.rating}</span>` : ''}
+            </div>
+
+            ${isHotel && stayInfo ? `
+                <!-- Hotel Details -->
+                <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px; color: ${theme.text}; font-size: 0.9rem;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span class="material-symbols-outlined" style="font-size: 16px; color: #6366f1;">login</span>
+                        <span style="color: ${theme.muted}; width: 50px;">入住:</span>
+                        <span style="font-weight: 600;">${stayInfo.cin.date} <span style="opacity: 0.7; font-size: 0.8rem;">${stayInfo.cin.time}</span></span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span class="material-symbols-outlined" style="font-size: 16px; color: #f43f5e;">logout</span>
+                        <span style="color: ${theme.muted}; width: 50px;">退房:</span>
+                        <span style="font-weight: 600;">${stayInfo.cout.date} <span style="opacity: 0.7; font-size: 0.8rem;">${stayInfo.cout.time}</span></span>
+                    </div>
+                    ${stop.address ? `
+                    <div style="display: flex; align-items: flex-start; gap: 10px; margin-top: 4px; border-top: 1px solid ${theme.border}; padding-top: 8px;">
+                        <span class="material-symbols-outlined" style="font-size: 16px; color: #f97316;">location_on</span>
+                        <span style="opacity: 0.8; font-size: 0.85rem; line-height: 1.4;">${stop.address}</span>
+                    </div>` : ''}
+                </div>
+            ` : `
+                <!-- Address Line (Normal stop) -->
+                ${stop.address ? `
+                <div style="display: flex; align-items: flex-start; gap: 8px; margin-top: 8px; color: ${theme.text}; font-size: 0.9rem;">
+                    <span class="material-symbols-outlined" style="font-size: 18px; color: #f97316;">location_on</span>
+                    <div style="line-height: 1.4; opacity: 0.9;">${stop.address}</div>
+                </div>` : ''}
+            `}
+
+            <!-- Phone Line -->
+            ${stop.phone ? `
+            <div style="display: flex; align-items: center; gap: 8px; margin-top: 6px; color: ${theme.text}; font-size: 0.9rem;">
+                <span class="material-symbols-outlined" style="font-size: 18px; color: #f97316;">call</span>
+                <span style="font-weight: 500; opacity: 0.9;">${stop.phone}</span>
+            </div>` : ''}
+
+            <!-- Bottom Row: Chips -->
+            <div style="display: flex; gap: 10px; margin-top: auto; padding-top: 15px;">
+                ${isHotel && stayInfo ? `
+                    <div style="padding: 5px 14px; border-radius: 6px; background: ${theme.accentBg}; color: ${theme.accentText}; font-weight: 700; font-size: 0.85rem; display: flex; align-items: center;">
+                        ${stayInfo.nights} 晚
+                    </div>
+                    <div style="padding: 5px 14px; border-radius: 6px; background: ${theme.priceBg}; color: ${theme.priceText}; font-weight: 700; font-size: 0.85rem; display: flex; align-items: center;">
+                        ${formatCurrency(parseFloat(stayInfo.price))}
+                    </div>
+                ` : `
+                    <div style="padding: 5px 14px; border-radius: 6px; background: ${theme.timeBg}; color: ${theme.timeText}; font-weight: 700; font-size: 0.85rem; display: flex; align-items: center;">
+                        ${stop.time} ${stop.period === 'AM' ? '上午' : '下午'}
+                    </div>
+                    ${stop.price && stop.price !== '0' ? `
+                    <div style="padding: 5px 14px; border-radius: 6px; background: ${theme.priceBg}; color: ${theme.priceText}; font-weight: 700; font-size: 0.85rem; display: flex; align-items: center;">
+                        ${formatCurrency(parseFloat(stop.price))}
+                    </div>` : ''}
+                `}
+            </div>
+        </div>`;
+
+    // 2. Image Side (Right Side - FULL FILL)
+    if (stop.photo) {
+        let photoUrl = stop.photo;
+        if (photoUrl && !photoUrl.startsWith('http') && !photoUrl.startsWith('/') && !photoUrl.startsWith('./')) {
+            photoUrl = '/uploads/' + photoUrl;
+        }
+        const finalPhoto = photoUrl || `https://picsum.photos/seed/${stop.id}/500/500`;
+
+        contentStr += `
+            <div style="width: 180px; height: 100%; flex-shrink: 0; overflow: hidden; position: relative;">
+                <img src="${finalPhoto}" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.src='https://picsum.photos/seed/${stop.id}/500/500'; this.onerror=null;">
+                <!-- Subtle overlay to blend if needed -->
+                <div style="position: absolute; inset: 0; background: linear-gradient(to right, rgba(0,0,0,0.1), transparent 20%); pointer-events: none;"></div>
+            </div>`;
+    }
+
+    contentStr += `</div>`;
+
+    contentStr += `</div>`;
+
+    hoverInfoWindow.setContent(contentStr);
+    hoverInfoWindow.open({
+        anchor: marker,
+        map: googleMapInstance,
+        shouldFocus: false
+    });
+}
 
 const DARK_STYLES = [
     { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
@@ -148,7 +339,7 @@ export function initRealMap() {
 
         // Apply dark mode overlay via CSS since styles[] is incompatible with mapId
         if (mapDarkMode) {
-            mapDiv.style.filter = 'invert(90%) hue-rotate(180deg)';
+            mapDiv.style.filter = 'invert(100%) hue-rotate(180deg)';
         } else {
             mapDiv.style.filter = '';
         }
@@ -259,8 +450,14 @@ export function initRealMap() {
                         <text x="18" y="24" text-anchor="middle" fill="${iconColor}" font-size="15" font-weight="900" font-family="Arial, sans-serif" style="pointer-events: none;">${markerIcon}</text>
                     </svg>`;
 
-                    markerContent.onmouseenter = () => markerContent.style.transform = 'scale(1.2) translateY(-4px)';
-                    markerContent.onmouseleave = () => markerContent.style.transform = 'scale(1) translateY(0)';
+                    markerContent.onmouseenter = () => {
+                        markerContent.style.transform = 'scale(1.2) translateY(-4px)';
+                        showMarkerHoverInfo(stop, marker, trip);
+                    };
+                    markerContent.onmouseleave = () => {
+                        markerContent.style.transform = 'scale(1) translateY(0)';
+                        if (hoverInfoWindow) hoverInfoWindow.close();
+                    };
 
                     markerContent.onclick = (e) => {
                         e.stopPropagation();
