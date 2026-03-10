@@ -621,6 +621,7 @@ input:checked+.slider:before {
     cursor: pointer;
     vertical-align: middle;
 }
+
 /* --- Labeled Switch (Text Inside) --- */
 .switch-labeled {
     position: relative;
@@ -679,16 +680,117 @@ input:checked+.slider:before {
     letter-spacing: 0.02em;
 }
 
-input:checked + .slider-labeled {
+input:checked+.slider-labeled {
     background-color: var(--accent-primary);
     border-color: var(--accent-primary);
 }
 
-input:checked + .slider-labeled:before {
+input:checked+.slider-labeled:before {
     transform: translateX(75px);
 }
 
-input:checked + .slider-labeled .label-text {
+input:checked+.slider-labeled .label-text {
     color: white;
     margin-left: -14px;
+}
+
+/* --- ComfyUI Style Node Connectors --- */
+.comfy-node-link {
+    position: relative;
+    --hotel-accent: #8b6b3b;
+    /* Dim brownish orange */
+    --hotel-glow: none;
+    border-color: var(--hotel-accent) !important;
+    transition: all 0.3s ease;
+}
+
+.comfy-node-link:hover {
+    --hotel-accent: #ffb400;
+    /* Bright glowing orange */
+    --hotel-glow: 0 0 15px rgba(245, 158, 11, 0.5);
+    border-color: var(--hotel-accent) !important;
+    box-shadow: var(--hotel-glow), 0 5px 15px rgba(0, 0, 0, 0.4) !important;
+}
+
+.comfy-node-link::before {
+    content: '';
+    position: absolute;
+    left: -2px;
+    /* Position on the left border */
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 10px;
+    height: 10px;
+    background: #fff;
+    border: 2px solid var(--hotel-accent);
+    border-radius: 50%;
+    z-index: 10;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.3), 0 0 4px rgba(255, 255, 255, 0.8);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.comfy-node-link:hover::before {
+    transform: translate(-50%, -50%) scale(1.3);
+    border-color: var(--hotel-accent);
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.8), 0 0 6px rgba(255, 255, 255, 1);
+}
+
+.comfy-node-link::after {
+    content: '';
+    position: absolute;
+    left: -30px;
+    /* 26px to vertical line + 4px overlap */
+    top: 50%;
+    transform: translateY(-50%);
+    width: 30px;
+    height: 4px;
+    /* Matches vertical stay line thickness */
+    background: var(--hotel-accent);
+    z-index: 5;
+    pointer-events: none;
+    transition: all 0.3s ease;
+}
+
+.comfy-node-link:hover::after {
+    height: 4px;
+    background-color: var(--hotel-accent);
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.6);
+}
+
+/* Shared Stay Highlight Logic (Managed via JS adding .stay-hover) */
+.stay-line-segment.stay-hover {
+    opacity: 1 !important;
+    background-color: #ffb400 !important;
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.8) !important;
+    width: 5px !important;
+}
+
+.comfy-node-link.stay-hover {
+    --hotel-accent: #ffb400 !important;
+    --hotel-glow: 0 0 15px rgba(245, 158, 11, 0.5) !important;
+    border-color: var(--hotel-accent) !important;
+    box-shadow: var(--hotel-glow), 0 5px 15px rgba(0, 0, 0, 0.4) !important;
+}
+
+.comfy-node-link.stay-hover::before {
+    transform: translate(-50%, -50%) scale(1.3) !important;
+    border-color: var(--hotel-accent) !important;
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.8), 0 0 6px rgba(255, 255, 255, 1) !important;
+}
+
+.comfy-node-link.stay-hover::after {
+    height: 4px !important;
+    background-color: var(--hotel-accent) !important;
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.6) !important;
+}
+
+.stay-line-segment {
+    background-color: #8b6b3b;
+    /* Initial dim color */
+    transition: all 0.3s ease;
+}
+
+/* Ensure special hotel cards have specific highlight border */
+.special-hotel-card {
+    border-left-width: 4px !important;
 }

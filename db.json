@@ -2,7 +2,7 @@
     "user": {
         "name": "旅行者"
     },
-    "currentView": "dashboard",
+    "currentView": "trip",
     "activeTripId": "trip-1772941902922",
     "trips": [
         {
@@ -10,7 +10,7 @@
             "title": "新的神秘冒险",
             "startDate": "2026-05-01",
             "endDate": "2026-05-24",
-            "thumb": "/uploads/a6a8bb47b94929fbede655e379a8f97b.jpg",
+            "thumb": "/uploads/f7da9fa93cbd5c451a9c7e86d187c181.jpg",
             "activeDayId": "day-1772941902922-0",
             "days": [
                 {
@@ -31,7 +31,7 @@
                             "type": "hotel_checkin",
                             "lat": 35.7003322,
                             "lng": 139.662131,
-                            "photo": "/uploads/dd7d346bcdc679fdb20f4d3e48630224.jpg",
+                            "photo": "https://places.googleapis.com/v1/places/ChIJrYD4wZLyGGARPGs_tL_ilwI/photos/ATCDNfW0aaJ1tOBuTW1VWXGPsRShKZA--UtGeviU3_GpKxAh_HTFFVnG18JnTG6CFSvJLPA4ujkXyUL3z9W5pCK6XLMu0mdsmgoLLy1bxWr_V8AZ7F4aCJeHzFMPe_o1XpORr14Euk2j7-p7MKRXKVLGpv8muzBAujkaECZNNKDDCkqos3oO7ZubnwmHWCFykxNEBYe8YXNZZch1NbJR2pgdtmxlOzKAUIHODFz2ve3_zD8w2VfcKK6excGaM4ChW6Hw6EI9GGuFW4QJAzbMfGNOuQ7ESRtDZBJwmnBIQ7LH0QLkNQ/media?maxWidthPx=600&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k",
                             "rating": 3.4,
                             "category": "酒店",
                             "categoryIcon": "🏨",
@@ -39,61 +39,10 @@
                             "stayId": "stay-1772945777799",
                             "expenseCategory": "活动",
                             "transitToNext": {
-                                "duration": "8 分钟",
-                                "distance": "1.8 公里",
-                                "durationSeconds": 506,
-                                "distanceMeters": 1778
-                            },
-                            "transitMode": "DRIVE"
-                        },
-                        {
-                            "id": "s1772989870522",
-                            "location": "Tensuke",
-                            "desc": "Hole-in-the-wall joint serving up shrimp, fish & veggie tempura, renowned for its deep-fried eggs.",
-                            "address": "Japan, 〒166-0002 Tokyo, Suginami City, Kōenjikita, 3-chōme−22−７ プラザ高円寺",
-                            "phone": "03-3223-8505",
-                            "time": "03:00   ",
-                            "period": "PM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 35.7058375,
-                            "lng": 139.6487831,
-                            "photo": "/uploads/ec13945525af6227fea48873f41ba61b.jpg",
-                            "rating": 4.5,
-                            "category": "餐饮",
-                            "categoryIcon": "🍴",
-                            "placeId": "ChIJXaZmo33yGGARE9okpsCbz80",
-                            "transitToNext": {
-                                "duration": "11 分钟",
-                                "distance": "3.1 公里",
-                                "durationSeconds": 707,
-                                "distanceMeters": 3066
-                            }
-                        },
-                        {
-                            "id": "s1772947601881",
-                            "location": "Milk Roll",
-                            "desc": "",
-                            "address": "4-chōme-37-25 Honchō, Nakano City, Tokyo 164-0012, Japan",
-                            "phone": "03-3381-5541",
-                            "time": "11:00 ",
-                            "period": "AM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 35.6948405,
-                            "lng": 139.66866710000002,
-                            "photo": "/uploads/d212284968600fd2c333a1c297077420.jpg",
-                            "rating": 4.5,
-                            "category": "面包房",
-                            "categoryIcon": "🥐",
-                            "placeId": "ChIJZcEaU-jyGGARfCGpedkJEM8",
-                            "transitToNext": {
-                                "duration": "13 分钟",
-                                "distance": "3.8 公里",
-                                "durationSeconds": 820,
-                                "distanceMeters": 3838
+                                "duration": "17 分钟",
+                                "distance": "6.3 公里",
+                                "durationSeconds": 1020,
+                                "distanceMeters": 6252
                             },
                             "transitMode": "DRIVE"
                         },
@@ -110,23 +59,129 @@
                             "type": "location",
                             "lat": 35.6640124,
                             "lng": 139.6784917,
-                            "photo": "/uploads/9940443d6eee97eb340e50627aa4faee.jpg",
+                            "photo": "https://places.googleapis.com/v1/places/ChIJxb5izUXzGGARATweg8oBicg/photos/ATCDNfWoIUsobulU58p_S7XFHU1EIoCYG3qJX1GJNsOA6adDOYKNzUtFTttkZE-MJlqUSHwwq_xPerhKXSLzrEDLc1bjePRSkxx2j-h4EF0CKDTfGr5XwTiLMmZNtM03oMe_7ioUpnULGydJcoxyGnQ3eaOea6Zhiy54wqvPac1O6B8yfQQ9ZzchoBxgTyzj5hMi8nccdN7X1EbTYp6juWu_MuXhBjPmpyI5TPOY_IaCrwsQNrPRJr5zHh6BD8uUPlxGmi9EgHmHTgu-WClAAh7VCzHwSVHWbR97CLXHmnXIbtg2o7IM7fdXBA1_Hk94FzEz1zjecZXVrROk6KvmF8ZsovcTGRnIqlAuw1WlPBT200ZYizul76jAI3-NKJnSl2adCigOeSGzJZdqLj-4fMTEjJ1DOwdXrpGCM3Qr_ERVQ4Wbz4_4rdF4cNuRK15Ptdy9/media?maxWidthPx=600&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k",
                             "rating": 3.9,
                             "category": "餐饮",
                             "categoryIcon": "🍴",
                             "placeId": "ChIJxb5izUXzGGARATweg8oBicg",
+                            "transitToNext": {
+                                "duration": "13 分钟",
+                                "distance": "3.8 公里",
+                                "durationSeconds": 809,
+                                "distanceMeters": 3838
+                            }
+                        },
+                        {
+                            "id": "s1772947601881",
+                            "location": "Milk Roll",
+                            "desc": "",
+                            "address": "4-chōme-37-25 Honchō, Nakano City, Tokyo 164-0012, Japan",
+                            "phone": "03-3381-5541",
+                            "time": "11:00 ",
+                            "period": "AM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 35.6948405,
+                            "lng": 139.66866710000002,
+                            "photo": "https://places.googleapis.com/v1/places/ChIJZcEaU-jyGGARfCGpedkJEM8/photos/ATCDNfXUlurXwjvovivR5nuGZg1CnHgcwyn3olBKiBS-cS06ut631li6dba9QaC9IM9ss6UZ5wdQBKIQ5k7Shy3urCZJw2vX32zNdB3vsg_LglSTCpW3dw_6uqwRD0KSXEB_bS7n44lQjTihEg-8ePgR9XKWr_P1mZnptvwOw7Cr0r0mVOBsoJPxBX3uasa9B2rMGzH3oSckekuihYArwRPAFI0uH8OZYwA97IIc6G4vh92gk_PRy8cHQLGpGYXY8BgdvvtmiYpTUcYx5ROorzoX8L0cSsrKWyfXnzhXXLaKTqZNstUqbr71MM17XQyrXzHn6SUCsDYUximiRkzswJjiqUgiicgEFEbUYX66BxUjQ63HQJHHIokUQ4SJv5Fksl-KDVxzGpGg8eGfDK-KXKm7R7doiBfZKAbFCIcJq-gMv1Q/media?maxWidthPx=600&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k",
+                            "rating": 4.5,
+                            "category": "面包房",
+                            "categoryIcon": "🥐",
+                            "placeId": "ChIJZcEaU-jyGGARfCGpedkJEM8",
+                            "transitToNext": {
+                                "duration": "12 分钟",
+                                "distance": "3.1 公里",
+                                "durationSeconds": 754,
+                                "distanceMeters": 3068
+                            },
+                            "transitMode": "DRIVE"
+                        },
+                        {
+                            "id": "l1773159820375",
+                            "type": "list",
+                            "title": "",
+                            "items": []
+                        },
+                        {
+                            "id": "n1773159818275",
+                            "type": "note",
+                            "content": "",
+                            "checked": false
+                        },
+                        {
+                            "id": "n1773159816041",
+                            "type": "note",
+                            "content": "",
+                            "checked": false
+                        },
+                        {
+                            "id": "s1772989870522",
+                            "location": "Tensuke",
+                            "desc": "Hole-in-the-wall joint serving up shrimp, fish & veggie tempura, renowned for its deep-fried eggs.",
+                            "address": "Japan, 〒166-0002 Tokyo, Suginami City, Kōenjikita, 3-chōme−22−７ プラザ高円寺",
+                            "phone": "03-3223-8505",
+                            "time": "03:00   ",
+                            "period": "PM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 35.7058375,
+                            "lng": 139.6487831,
+                            "photo": "https://places.googleapis.com/v1/places/ChIJHzjbd2iNOIgRcudsnSTmMsg/photos/ATCDNfVmYRzya6ofq1p-vY8D84l_KSqV90grs_kn_fXHf0CIaS9-tyP3k42UNjoowXRbULxwE__CP_JbaOE91s1VhGhY3VTS78xkfdQm6cCTJ48m-2_yzSzpg98hq9x93Mn0GGJF4oqAouiYyT6jgwgduM5tRT5l1YJZxCaatPhmJ35n8tmdWcRl3edLQLt8apo2leQTwn8nxjsIztupfMtNbhM7tXiOcj6DhZC-6t6C7luIwTr3yozcFCOlig4mX0SgF3KQfuVPo5_TebUcW1ZChdPNBK31nYIpFaEnN4u_f3yX-AiOUSPNpGd8L2TpCtgvZcbx-C1u9jskmPU1WwvKLlJHT76ASA7WpODQSpOXC0oy3lYYo_JFRhYj69I2pi_Z-PFJoxG3FNK4TwZOb4rTpo-xcENtceEfKgVy_dFU9qmoYNzoIX8xt5dO-5YmkXs_/media?maxWidthPx=600&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k",
+                            "rating": 4.5,
+                            "category": "餐饮",
+                            "categoryIcon": "🍴",
+                            "placeId": "ChIJXaZmo33yGGARE9okpsCbz80",
+                            "transitToNext": {
+                                "duration": "15 分钟",
+                                "distance": "4.6 公里",
+                                "durationSeconds": 906,
+                                "distanceMeters": 4560
+                            }
+                        },
+                        {
+                            "id": "s1773153592639",
+                            "location": "Yakiniku Yappa. Nakano Shinbashi Main Branch",
+                            "desc": "",
+                            "address": "Japan, 〒164-0013 Tokyo, Nakano City, Yayoichō, 2-chōme−19−１６ 弥生ペガサスビル2階",
+                            "phone": "03-6276-3160",
+                            "time": "03:00   ",
+                            "period": "PM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 35.6913788,
+                            "lng": 139.6753655,
+                            "photo": "https://places.googleapis.com/v1/places/ChIJL85fBdzyGGARbM304hTZQ8o/photos/ATCDNfUolaeCoA3ssznh6UsTXr_I2YqRsE4451RbuSxu5iHti_Atf5002NhDSLmJNKNivsxZtcC_AKWQnpQ_5nekxhNJzvzWuQhi8dQ3q_3KoPM1rx8h3uf9t7Dh298alYO32W-hOGy6BcTCynbFf275s2UToa3cgsT9agAo1NyOmz3uzStQnypudWjtewAwJb_qmw_p3vPDetjL3rUVzDFis32Haz5nggrVK-jgqYipf_FDol1X1xAeWvcdqpQtZqgnMlBdelBS5SNvGxLZpKX391P4-n8gTyizohQt4QtVcS5lugTwED1tuSrwM349y-Ke9PwrHzpcPzwbSMx-5cX3Q2-yf6rs0tuk1Oy7FFWoIXCNsqPuXR65paF5HzgGSbJIAWJkqVzSCpmp_4Dj4r8iAq2eGzYbzYEQRjB9gMrTjrg/media?maxWidthPx=600&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k",
+                            "rating": 4.3,
+                            "category": "餐饮",
+                            "categoryIcon": "🍴",
+                            "placeId": "ChIJL85fBdzyGGARbM304hTZQ8o",
                             "transitToNext": null
                         }
                     ],
                     "color": "#10b981",
                     "transitFromHotel": null,
                     "transitToHotel": {
-                        "duration": "16 分钟",
-                        "distance": "6.3 公里",
-                        "durationSeconds": 996,
-                        "distanceMeters": 6266
+                        "duration": "9 分钟",
+                        "distance": "2.5 公里",
+                        "durationSeconds": 592,
+                        "distanceMeters": 2473
                     },
-                    "showReturnRoute": false
+                    "showReturnRoute": false,
+                    "currentDayStay": {
+                        "id": "stay-1772945777799",
+                        "checkinDayId": "day-1772941902922-0",
+                        "checkoutDayId": "day-1772941902922-1",
+                        "checkinStopId": "s1772945770411",
+                        "checkoutStopId": "cout-1772945782037",
+                        "location": "Business Hotel Crescent"
+                    },
+                    "isCinOnly": true,
+                    "isCoutOnly": false,
+                    "isBetween": false,
+                    "isSameDayStay": false
                 },
                 {
                     "id": "day-1772941902922-1",
@@ -152,10 +207,36 @@
                             "categoryIcon": "🥡",
                             "placeId": "ChIJVbZOnrbyGGARzSe1BTQULvI",
                             "transitToNext": {
-                                "duration": "7 分钟",
-                                "distance": "2.6 公里",
-                                "durationSeconds": 475,
-                                "distanceMeters": 2589
+                                "duration": "11 分钟",
+                                "distance": "3.2 公里",
+                                "durationSeconds": 693,
+                                "distanceMeters": 3210
+                            }
+                        },
+                        {
+                            "id": "cout-1772945782037",
+                            "location": "Business Hotel Crescent",
+                            "desc": "Low-key rooms with minifridges in a no-nonsense hotel featuring Wi-Fi.",
+                            "address": "3-chōme-3-4 Nakano, Nakano City, Tokyo 164-0001, Japan",
+                            "phone": "03-5385-0300",
+                            "time": "12:00",
+                            "period": "PM",
+                            "note": "办理退房",
+                            "price": "0",
+                            "type": "hotel_checkout",
+                            "lat": 35.7003322,
+                            "lng": 139.662131,
+                            "photo": "/uploads/dd7d346bcdc679fdb20f4d3e48630224.jpg",
+                            "rating": 3.4,
+                            "category": "酒店",
+                            "categoryIcon": "🏨",
+                            "placeId": "ChIJrYD4wZLyGGARPGs_tL_ilwI",
+                            "stayId": "stay-1772945777799",
+                            "transitToNext": {
+                                "duration": "16 分钟",
+                                "distance": "5.5 公里",
+                                "durationSeconds": 964,
+                                "distanceMeters": 5465
                             }
                         },
                         {
@@ -237,14 +318,21 @@
                         "durationSeconds": 683,
                         "distanceMeters": 3533
                     },
-                    "transitToHotel": {
-                        "duration": "12 分钟",
-                        "distance": "4.5 公里",
-                        "durationSeconds": 743,
-                        "distanceMeters": 4487
-                    },
+                    "transitToHotel": null,
                     "showReturnRoute": false,
-                    "transitFromHotelMode": "DRIVE"
+                    "transitFromHotelMode": "DRIVE",
+                    "currentDayStay": {
+                        "id": "stay-1772945777799",
+                        "checkinDayId": "day-1772941902922-0",
+                        "checkoutDayId": "day-1772941902922-1",
+                        "checkinStopId": "s1772945770411",
+                        "checkoutStopId": "cout-1772945782037",
+                        "location": "Business Hotel Crescent"
+                    },
+                    "isCinOnly": false,
+                    "isCoutOnly": true,
+                    "isBetween": false,
+                    "isSameDayStay": false
                 },
                 {
                     "id": "day-1772941902922-2",
@@ -313,28 +401,7 @@
                     "id": "day-1772941930794",
                     "title": "第 12 天",
                     "date": "2026年5月12日",
-                    "stops": [
-                        {
-                            "id": "cout-1772945782037",
-                            "location": "Business Hotel Crescent",
-                            "desc": "Low-key rooms with minifridges in a no-nonsense hotel featuring Wi-Fi.",
-                            "address": "3-chōme-3-4 Nakano, Nakano City, Tokyo 164-0001, Japan",
-                            "phone": "03-5385-0300",
-                            "time": "12:00",
-                            "period": "PM",
-                            "note": "办理退房",
-                            "price": "0",
-                            "type": "hotel_checkout",
-                            "lat": 35.7003322,
-                            "lng": 139.662131,
-                            "photo": "/uploads/dd7d346bcdc679fdb20f4d3e48630224.jpg",
-                            "rating": 3.4,
-                            "category": "酒店",
-                            "categoryIcon": "🏨",
-                            "placeId": "ChIJrYD4wZLyGGARPGs_tL_ilwI",
-                            "stayId": "stay-1772945777799"
-                        }
-                    ],
+                    "stops": [],
                     "color": "#10b981"
                 },
                 {

@@ -205,33 +205,66 @@ export function selectImage(event, url) {
 // Google Maps Places Photo Search for Stops
 export async function searchGoogleStopImages(dayId, stopId, query) {
     const trip = state.trips.find(t => t.id === state.activeTripId);
+    if (!trip) return;
+    const day = trip.days.find(d => d.id === dayId);
+    if (!day) return;
+    const stop = day.stops.find(s => s.id === stopId);
+    if (!stop) return;
+
     const grid = document.getElementById('image-grid');
     if (!grid) return;
 
     grid.innerHTML = '<p style="grid-column: span 3; color: var(--text-secondary); text-align:center; padding: 2rem 0; font-size:0.9rem;">正在从 Google Maps 获取该地点的实拍图...</p>';
 
     try {
-        const { Place, SearchNearbyPriority } = await google.maps.importLibrary("places");
+        const { Place } = await google.maps.importLibrary("places");
+        let photos = [];
 
-        // Use Text Search to find the specific place
-        const { places } = await google.maps.places.Place.searchByText({
-            textQuery: query,
-            fields: ['photos', 'displayName', 'id'],
-            maxResultCount: 1
-        });
+        // 1. If we have a placeId and the query is the original location (or no query), use Place ID directly (Map Logic)
+        const isInitialSearch = !query || query === stop.location;
+        if (stop.placeId && isInitialSearch) {
+            console.log('[searchGoogleStopImages] Using Place ID for accurate photos:', stop.placeId);
+            const place = new Place({ id: stop.placeId });
+            await place.fetchFields({ fields: ['photos'] });
+            photos = place.photos || [];
+        }
 
-        if (!places || places.length === 0 || !places[0].photos || places[0].photos.length === 0) {
-            grid.innerHTML = '<p style="grid-column: span 3; color: var(--text-secondary); text-align:center; padding: 2rem 0; font-size:0.9rem;">未在 Google Maps 上找到该地点的照片，请尝试更换关键词。</p>';
+        // 2. Otherwise (or if placeId fetch returned no photos), use Text Search with location bias
+        if (photos.length === 0) {
+            let searchTerm = query || stop.location;
+            // Add address to the search term for initial searches to be more specific (Chain stores, etc.)
+            if (isInitialSearch && stop.address && !searchTerm.includes(stop.address)) {
+                searchTerm += ' ' + stop.address;
+            }
+
+            console.log('[searchGoogleStopImages] Falling back to Text Search:', searchTerm);
+
+            const searchRequest = {
+                textQuery: searchTerm,
+                fields: ['photos', 'id'],
+                maxResultCount: 1,
+                language: 'zh-CN'
+            };
+
+            // Add location bias if we have coordinates to help find the correct branch/location
+            if (stop.lat && stop.lng) {
+                searchRequest.locationBias = new google.maps.LatLng(Number(stop.lat), Number(stop.lng));
+            }
+
+            const { places } = await Place.searchByText(searchRequest);
+            if (places && places.length > 0 && places[0].photos) {
+                photos = places[0].photos;
+            }
+        }
+
+        if (photos.length === 0) {
+            grid.innerHTML = `<p style="grid-column: span 3; color: var(--text-secondary); text-align:center; padding: 2rem 0; font-size:0.9rem;">未在 Google Maps 上找到 "${query || stop.location}" 的照片，请尝试更换关键词。</p>`;
             return;
         }
 
-        const place = places[0];
-        let html = '';
-
         // Limit to 9 photos for the grid
-        const photos = place.photos.slice(0, 9);
-
-        photos.forEach((photo, idx) => {
+        let html = '';
+        photos.slice(0, 9).forEach((photo, idx) => {
             const url = photo.getURI({ maxWidth: 600 });
             html += `
                 <div class="image-thumb-option" 

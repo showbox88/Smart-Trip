@@ -137,10 +137,18 @@
 
 .rich-stop-card:hover {
     background: rgba(255, 255, 255, 0.08) !important;
-    border-color: var(--glass-border) !important;
     backdrop-filter: blur(8px) saturate(180%);
-    /* Added backdrop filter */
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
     transition: all 0.3s;
-    /* Added transition */
+}
+
+/* For non-hotel cards, still show the glass border on hover */
+.rich-stop-card:not(.comfy-node-link):hover {
+    border-color: var(--glass-border) !important;
+}
+
+/* Hotel specific hover: Keep border and add glow */
+.comfy-node-link:hover {
+    border-color: #f59e0b !important;
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.4), 0 5px 15px rgba(0, 0, 0, 0.4) !important;
 }
