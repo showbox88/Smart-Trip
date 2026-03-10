@@ -83,3 +83,41 @@ gmp-advanced-marker::part(pin) {
     border: none !important;
     box-shadow: none !important;
 }
+
+/* --- Map Dark Mode Toggle --- */
+#map-dark-toggle {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 44px;
+    height: 44px;
+    background: rgba(13, 17, 27, 0.85);
+    /* Dark semi-transparent */
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    z-index: 1001;
+    /* Above map and info panels */
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    line-height: 1;
+    padding: 0;
+    overflow: hidden;
+}
+
+#map-dark-toggle:hover {
+    transform: scale(1.1);
+    background: #1a2235;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 15px rgba(249, 115, 22, 0.4);
+}
+
+#map-dark-toggle:active {
+    transform: scale(0.95);
+}

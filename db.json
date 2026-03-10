@@ -11,92 +11,13 @@
             "startDate": "2026-05-01",
             "endDate": "2026-05-24",
             "thumb": "/uploads/f7da9fa93cbd5c451a9c7e86d187c181.jpg",
-            "activeDayId": "day-1772941902922-0",
+            "activeDayId": "day-1772941902922-1",
             "days": [
                 {
                     "id": "day-1772941902922-0",
                     "title": "第 1 天",
                     "date": "2026年5月1日",
                     "stops": [
-                        {
-                            "id": "s1772945770411",
-                            "location": "Business Hotel Crescent",
-                            "desc": "Low-key rooms with minifridges in a no-nonsense hotel featuring Wi-Fi.",
-                            "address": "3-chōme-3-4 Nakano, Nakano City, Tokyo 164-0001, Japan",
-                            "phone": "03-5385-0300",
-                            "time": "09:00",
-                            "period": "AM",
-                            "note": "入住登记",
-                            "price": "120",
-                            "type": "hotel_checkin",
-                            "lat": 35.7003322,
-                            "lng": 139.662131,
-                            "photo": "https://places.googleapis.com/v1/places/ChIJrYD4wZLyGGARPGs_tL_ilwI/photos/ATCDNfW0aaJ1tOBuTW1VWXGPsRShKZA--UtGeviU3_GpKxAh_HTFFVnG18JnTG6CFSvJLPA4ujkXyUL3z9W5pCK6XLMu0mdsmgoLLy1bxWr_V8AZ7F4aCJeHzFMPe_o1XpORr14Euk2j7-p7MKRXKVLGpv8muzBAujkaECZNNKDDCkqos3oO7ZubnwmHWCFykxNEBYe8YXNZZch1NbJR2pgdtmxlOzKAUIHODFz2ve3_zD8w2VfcKK6excGaM4ChW6Hw6EI9GGuFW4QJAzbMfGNOuQ7ESRtDZBJwmnBIQ7LH0QLkNQ/media?maxWidthPx=600&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k",
-                            "rating": 3.4,
-                            "category": "酒店",
-                            "categoryIcon": "🏨",
-                            "placeId": "ChIJrYD4wZLyGGARPGs_tL_ilwI",
-                            "stayId": "stay-1772945777799",
-                            "expenseCategory": "活动",
-                            "transitToNext": {
-                                "duration": "17 分钟",
-                                "distance": "6.3 公里",
-                                "durationSeconds": 1020,
-                                "distanceMeters": 6252
-                            },
-                            "transitMode": "DRIVE"
-                        },
-                        {
-                            "id": "s1772947616701",
-                            "location": "Senrigan",
-                            "desc": "Modest eatery for Jiro-style ramen noodles, with counter seating alongside the open kitchen.",
-                            "address": "4-chōme-6-8 Komaba, Meguro City, Tokyo 153-0041, Japan",
-                            "phone": "03-3481-5773",
-                            "time": "01:00  ",
-                            "period": "PM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 35.6640124,
-                            "lng": 139.6784917,
-                            "photo": "https://places.googleapis.com/v1/places/ChIJxb5izUXzGGARATweg8oBicg/photos/ATCDNfWoIUsobulU58p_S7XFHU1EIoCYG3qJX1GJNsOA6adDOYKNzUtFTttkZE-MJlqUSHwwq_xPerhKXSLzrEDLc1bjePRSkxx2j-h4EF0CKDTfGr5XwTiLMmZNtM03oMe_7ioUpnULGydJcoxyGnQ3eaOea6Zhiy54wqvPac1O6B8yfQQ9ZzchoBxgTyzj5hMi8nccdN7X1EbTYp6juWu_MuXhBjPmpyI5TPOY_IaCrwsQNrPRJr5zHh6BD8uUPlxGmi9EgHmHTgu-WClAAh7VCzHwSVHWbR97CLXHmnXIbtg2o7IM7fdXBA1_Hk94FzEz1zjecZXVrROk6KvmF8ZsovcTGRnIqlAuw1WlPBT200ZYizul76jAI3-NKJnSl2adCigOeSGzJZdqLj-4fMTEjJ1DOwdXrpGCM3Qr_ERVQ4Wbz4_4rdF4cNuRK15Ptdy9/media?maxWidthPx=600&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k",
-                            "rating": 3.9,
-                            "category": "餐饮",
-                            "categoryIcon": "🍴",
-                            "placeId": "ChIJxb5izUXzGGARATweg8oBicg",
-                            "transitToNext": {
-                                "duration": "13 分钟",
-                                "distance": "3.8 公里",
-                                "durationSeconds": 809,
-                                "distanceMeters": 3838
-                            }
-                        },
-                        {
-                            "id": "s1772947601881",
-                            "location": "Milk Roll",
-                            "desc": "",
-                            "address": "4-chōme-37-25 Honchō, Nakano City, Tokyo 164-0012, Japan",
-                            "phone": "03-3381-5541",
-                            "time": "11:00 ",
-                            "period": "AM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 35.6948405,
-                            "lng": 139.66866710000002,
-                            "photo": "https://places.googleapis.com/v1/places/ChIJZcEaU-jyGGARfCGpedkJEM8/photos/ATCDNfXUlurXwjvovivR5nuGZg1CnHgcwyn3olBKiBS-cS06ut631li6dba9QaC9IM9ss6UZ5wdQBKIQ5k7Shy3urCZJw2vX32zNdB3vsg_LglSTCpW3dw_6uqwRD0KSXEB_bS7n44lQjTihEg-8ePgR9XKWr_P1mZnptvwOw7Cr0r0mVOBsoJPxBX3uasa9B2rMGzH3oSckekuihYArwRPAFI0uH8OZYwA97IIc6G4vh92gk_PRy8cHQLGpGYXY8BgdvvtmiYpTUcYx5ROorzoX8L0cSsrKWyfXnzhXXLaKTqZNstUqbr71MM17XQyrXzHn6SUCsDYUximiRkzswJjiqUgiicgEFEbUYX66BxUjQ63HQJHHIokUQ4SJv5Fksl-KDVxzGpGg8eGfDK-KXKm7R7doiBfZKAbFCIcJq-gMv1Q/media?maxWidthPx=600&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k",
-                            "rating": 4.5,
-                            "category": "面包房",
-                            "categoryIcon": "🥐",
-                            "placeId": "ChIJZcEaU-jyGGARfCGpedkJEM8",
-                            "transitToNext": {
-                                "duration": "12 分钟",
-                                "distance": "3.1 公里",
-                                "durationSeconds": 754,
-                                "distanceMeters": 3068
-                            },
-                            "transitMode": "DRIVE"
-                        },
                         {
                             "id": "l1773159820375",
                             "type": "list",
@@ -110,10 +31,56 @@
                             "checked": false
                         },
                         {
-                            "id": "n1773159816041",
-                            "type": "note",
-                            "content": "",
-                            "checked": false
+                            "id": "s1772947616701",
+                            "location": "Senrigan",
+                            "desc": "Modest eatery for Jiro-style ramen noodles, with counter seating alongside the open kitchen.",
+                            "address": "4-chōme-6-8 Komaba, Meguro City, Tokyo 153-0041, Japan",
+                            "phone": "03-3481-5773",
+                            "time": "01:00  ",
+                            "period": "PM",
+                            "note": "",
+                            "price": "100",
+                            "type": "location",
+                            "lat": 35.6640124,
+                            "lng": 139.6784917,
+                            "photo": "https://places.googleapis.com/v1/places/ChIJxb5izUXzGGARATweg8oBicg/photos/ATCDNfWoIUsobulU58p_S7XFHU1EIoCYG3qJX1GJNsOA6adDOYKNzUtFTttkZE-MJlqUSHwwq_xPerhKXSLzrEDLc1bjePRSkxx2j-h4EF0CKDTfGr5XwTiLMmZNtM03oMe_7ioUpnULGydJcoxyGnQ3eaOea6Zhiy54wqvPac1O6B8yfQQ9ZzchoBxgTyzj5hMi8nccdN7X1EbTYp6juWu_MuXhBjPmpyI5TPOY_IaCrwsQNrPRJr5zHh6BD8uUPlxGmi9EgHmHTgu-WClAAh7VCzHwSVHWbR97CLXHmnXIbtg2o7IM7fdXBA1_Hk94FzEz1zjecZXVrROk6KvmF8ZsovcTGRnIqlAuw1WlPBT200ZYizul76jAI3-NKJnSl2adCigOeSGzJZdqLj-4fMTEjJ1DOwdXrpGCM3Qr_ERVQ4Wbz4_4rdF4cNuRK15Ptdy9/media?maxWidthPx=600&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k",
+                            "rating": 3.9,
+                            "category": "餐饮",
+                            "categoryIcon": "🍴",
+                            "placeId": "ChIJxb5izUXzGGARATweg8oBicg",
+                            "transitToNext": {
+                                "duration": "15 分钟",
+                                "distance": "5.9 公里",
+                                "durationSeconds": 917,
+                                "distanceMeters": 5877
+                            },
+                            "expenseCategory": "活动"
+                        },
+                        {
+                            "id": "s1773160906357",
+                            "location": "HOTEL MYSTAYS Nishi Shinjuku",
+                            "desc": "Streamlined rooms in a casual property featuring a low-key restaurant/bar & free coffee.",
+                            "address": "7-chōme-14-14 Nishishinjuku, Shinjuku City, Tokyo 160-0023, Japan",
+                            "phone": "03-6853-7717",
+                            "time": "05:00    ",
+                            "period": "PM",
+                            "note": "Check-in",
+                            "price": "0",
+                            "type": "hotel_checkin",
+                            "lat": 35.6949249,
+                            "lng": 139.6973203,
+                            "photo": "https://places.googleapis.com/v1/places/ChIJP95WHtaMGGARXUH4nc7FwvQ/photos/ATCDNfXA0kzvqgfpCkCGwZycNm9A8e2IhypGEmCqIHR523ZDwFkZBS3i43nHqkUwf-8242a2prBdxHts0qJ4EaPc9KLcYxySZ8fT3BHDeMKNH3R42wwlop1ittPzA-d01o0DFRatVKSHPasTVSFFB3GxMR0yrzcAT8cBX2pD8TlNB9N4dWBpIwRnfaKGM_brAD0-JTVl12Xfdv0EGT4Q2Yrh7GQvbrduTHNuaWcyHGS-p5Y15oVLAc86bWqklD1I8Wqe4uVklWcSTJC4ihbWB22jZBHHz13cQtC3DlyjfzGOtbqmiw/media?maxWidthPx=600&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k",
+                            "rating": 3.8,
+                            "category": "酒店",
+                            "categoryIcon": "🏨",
+                            "placeId": "ChIJP95WHtaMGGARXUH4nc7FwvQ",
+                            "transitToNext": {
+                                "duration": "21 分钟",
+                                "distance": "5.8 公里",
+                                "durationSeconds": 1275,
+                                "distanceMeters": 5775
+                            },
+                            "stayId": "stay-1773160917781"
                         },
                         {
                             "id": "s1772989870522",
@@ -128,7 +95,7 @@
                             "type": "location",
                             "lat": 35.7058375,
                             "lng": 139.6487831,
-                            "photo": "https://places.googleapis.com/v1/places/ChIJHzjbd2iNOIgRcudsnSTmMsg/photos/ATCDNfVmYRzya6ofq1p-vY8D84l_KSqV90grs_kn_fXHf0CIaS9-tyP3k42UNjoowXRbULxwE__CP_JbaOE91s1VhGhY3VTS78xkfdQm6cCTJ48m-2_yzSzpg98hq9x93Mn0GGJF4oqAouiYyT6jgwgduM5tRT5l1YJZxCaatPhmJ35n8tmdWcRl3edLQLt8apo2leQTwn8nxjsIztupfMtNbhM7tXiOcj6DhZC-6t6C7luIwTr3yozcFCOlig4mX0SgF3KQfuVPo5_TebUcW1ZChdPNBK31nYIpFaEnN4u_f3yX-AiOUSPNpGd8L2TpCtgvZcbx-C1u9jskmPU1WwvKLlJHT76ASA7WpODQSpOXC0oy3lYYo_JFRhYj69I2pi_Z-PFJoxG3FNK4TwZOb4rTpo-xcENtceEfKgVy_dFU9qmoYNzoIX8xt5dO-5YmkXs_/media?maxWidthPx=600&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k",
+                            "photo": "https://places.googleapis.com/v1/places/ChIJXaZmo33yGGARE9okpsCbz80/photos/ATCDNfWsVtpJsxdhKvruWOI2BKaBYPuvd7TbUk_Rc3yJnhLC-BVPS7gVTmRqDDNJfikwAL4wVES5et5CfzJkeDq56VXg-Kq1XRQtEsERAqRsBTX9mb2kUlc5FjdYepBHXFi3-3SF1U_eNbjwcxbAQFY-Z4U8wF8yKihWGsAb_BK3_0iYm6cANINN1AFNyeRacCtBpNBD6wg1-JjDIhGzlEJknCpB7Ecs5xejlc252oEQtpz59et82Z3VJEr6RaRPb5E3PI-eGLdHHWBvx0YrfrSlITBcdHCsXuG8PECxy1M8e6UHyrZSO0j-wcMUcm902PINwqXkqRMfVNIQAdbLcTfz74WO_M39RXNhJYwKXK95XfUAXKdoWiAodD150Qodw6Y3JmmI2IBSFuBhgOgDeEhmq63xKSx-rmJA_fNZ5zHfGqFEGnrb2GY-TaAD2wjLL02M/media?maxWidthPx=600&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k",
                             "rating": 4.5,
                             "category": "餐饮",
                             "categoryIcon": "🍴",
@@ -164,24 +131,25 @@
                     "color": "#10b981",
                     "transitFromHotel": null,
                     "transitToHotel": {
-                        "duration": "9 分钟",
-                        "distance": "2.5 公里",
-                        "durationSeconds": 592,
-                        "distanceMeters": 2473
+                        "duration": "8 分钟",
+                        "distance": "2.8 公里",
+                        "durationSeconds": 535,
+                        "distanceMeters": 2762
                     },
                     "showReturnRoute": false,
                     "currentDayStay": {
-                        "id": "stay-1772945777799",
+                        "id": "stay-1773160917781",
                         "checkinDayId": "day-1772941902922-0",
-                        "checkoutDayId": "day-1772941902922-1",
-                        "checkinStopId": "s1772945770411",
-                        "checkoutStopId": "cout-1772945782037",
-                        "location": "Business Hotel Crescent"
+                        "checkoutDayId": "day-1772941902922-4",
+                        "checkinStopId": "s1773160906357",
+                        "checkoutStopId": "cout-1773160917781",
+                        "location": "HOTEL MYSTAYS Nishi Shinjuku"
                     },
                     "isCinOnly": true,
                     "isCoutOnly": false,
                     "isBetween": false,
-                    "isSameDayStay": false
+                    "isSameDayStay": false,
+                    "subtitle": ""
                 },
                 {
                     "id": "day-1772941902922-1",
@@ -207,36 +175,10 @@
                             "categoryIcon": "🥡",
                             "placeId": "ChIJVbZOnrbyGGARzSe1BTQULvI",
                             "transitToNext": {
-                                "duration": "11 分钟",
-                                "distance": "3.2 公里",
-                                "durationSeconds": 693,
-                                "distanceMeters": 3210
-                            }
-                        },
-                        {
-                            "id": "cout-1772945782037",
-                            "location": "Business Hotel Crescent",
-                            "desc": "Low-key rooms with minifridges in a no-nonsense hotel featuring Wi-Fi.",
-                            "address": "3-chōme-3-4 Nakano, Nakano City, Tokyo 164-0001, Japan",
-                            "phone": "03-5385-0300",
-                            "time": "12:00",
-                            "period": "PM",
-                            "note": "办理退房",
-                            "price": "0",
-                            "type": "hotel_checkout",
-                            "lat": 35.7003322,
-                            "lng": 139.662131,
-                            "photo": "/uploads/dd7d346bcdc679fdb20f4d3e48630224.jpg",
-                            "rating": 3.4,
-                            "category": "酒店",
-                            "categoryIcon": "🏨",
-                            "placeId": "ChIJrYD4wZLyGGARPGs_tL_ilwI",
-                            "stayId": "stay-1772945777799",
-                            "transitToNext": {
-                                "duration": "16 分钟",
-                                "distance": "5.5 公里",
-                                "durationSeconds": 964,
-                                "distanceMeters": 5465
+                                "duration": "7 分钟",
+                                "distance": "2.6 公里",
+                                "durationSeconds": 475,
+                                "distanceMeters": 2589
                             }
                         },
                         {
@@ -313,25 +255,30 @@
                     ],
                     "color": "#ef4444",
                     "transitFromHotel": {
-                        "duration": "11 分钟",
-                        "distance": "3.5 公里",
-                        "durationSeconds": 683,
-                        "distanceMeters": 3533
+                        "duration": "12 分钟",
+                        "distance": "3.2 公里",
+                        "durationSeconds": 740,
+                        "distanceMeters": 3172
                     },
-                    "transitToHotel": null,
+                    "transitToHotel": {
+                        "duration": "25 分钟",
+                        "distance": "8.6 公里",
+                        "durationSeconds": 1504,
+                        "distanceMeters": 8634
+                    },
                     "showReturnRoute": false,
                     "transitFromHotelMode": "DRIVE",
                     "currentDayStay": {
-                        "id": "stay-1772945777799",
+                        "id": "stay-1773160917781",
                         "checkinDayId": "day-1772941902922-0",
-                        "checkoutDayId": "day-1772941902922-1",
-                        "checkinStopId": "s1772945770411",
-                        "checkoutStopId": "cout-1772945782037",
-                        "location": "Business Hotel Crescent"
+                        "checkoutDayId": "day-1772941902922-4",
+                        "checkinStopId": "s1773160906357",
+                        "checkoutStopId": "cout-1773160917781",
+                        "location": "HOTEL MYSTAYS Nishi Shinjuku"
                     },
                     "isCinOnly": false,
-                    "isCoutOnly": true,
-                    "isBetween": false,
+                    "isCoutOnly": false,
+                    "isBetween": true,
                     "isSameDayStay": false
                 },
                 {
@@ -339,28 +286,129 @@
                     "title": "第 3 天",
                     "date": "2026年5月3日",
                     "stops": [],
-                    "color": "#f59e0b"
+                    "color": "#f59e0b",
+                    "currentDayStay": {
+                        "id": "stay-1773160917781",
+                        "checkinDayId": "day-1772941902922-0",
+                        "checkoutDayId": "day-1772941902922-4",
+                        "checkinStopId": "s1773160906357",
+                        "checkoutStopId": "cout-1773160917781",
+                        "location": "HOTEL MYSTAYS Nishi Shinjuku"
+                    },
+                    "isCinOnly": false,
+                    "isCoutOnly": false,
+                    "isBetween": true,
+                    "isSameDayStay": false
                 },
                 {
                     "id": "day-1772941902922-3",
                     "title": "第 4 天",
                     "date": "2026年5月4日",
                     "stops": [],
-                    "color": "#10b981"
+                    "color": "#10b981",
+                    "currentDayStay": {
+                        "id": "stay-1773160917781",
+                        "checkinDayId": "day-1772941902922-0",
+                        "checkoutDayId": "day-1772941902922-4",
+                        "checkinStopId": "s1773160906357",
+                        "checkoutStopId": "cout-1773160917781",
+                        "location": "HOTEL MYSTAYS Nishi Shinjuku"
+                    },
+                    "isCinOnly": false,
+                    "isCoutOnly": false,
+                    "isBetween": true,
+                    "isSameDayStay": false,
+                    "transitFromHotel": {
+                        "duration": "0 分钟",
+                        "distance": "NaN 公里",
+                        "durationSeconds": 0
+                    },
+                    "transitToHotel": null
                 },
                 {
                     "id": "day-1772941902922-4",
                     "title": "第 5 天",
                     "date": "2026年5月5日",
-                    "stops": [],
-                    "color": "#8b5cf6"
+                    "stops": [
+                        {
+                            "id": "cout-1773160917781",
+                            "location": "HOTEL MYSTAYS Nishi Shinjuku",
+                            "desc": "Streamlined rooms in a casual property featuring a low-key restaurant/bar & free coffee.",
+                            "address": "7-chōme-14-14 Nishishinjuku, Shinjuku City, Tokyo 160-0023, Japan",
+                            "phone": "03-6853-7717",
+                            "time": "12:00",
+                            "period": "PM",
+                            "note": "Check-out",
+                            "price": "0",
+                            "type": "hotel_checkout",
+                            "lat": 35.6949249,
+                            "lng": 139.6973203,
+                            "photo": "/uploads/12fd2a63f006627ca3ebab94b3a7c435.jpg",
+                            "rating": 3.8,
+                            "category": "酒店",
+                            "categoryIcon": "🏨",
+                            "placeId": "ChIJP95WHtaMGGARXUH4nc7FwvQ",
+                            "transitToNext": {
+                                "duration": "6 分钟",
+                                "distance": "1.6 公里",
+                                "durationSeconds": 419,
+                                "distanceMeters": 1558
+                            },
+                            "stayId": "stay-1773160917781"
+                        },
+                        {
+                            "id": "s1773161200953",
+                            "location": "Jinkoge",
+                            "desc": "",
+                            "address": "Japan, 〒169-0072 Tokyo, Shinjuku City, Ōkubo, 2-chōme−19−１０ 東和ビル",
+                            "phone": "03-3203-6773",
+                            "time": "09:00",
+                            "period": "AM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 35.7020951,
+                            "lng": 139.7046928,
+                            "photo": "/uploads/e99fc8f70fc86b1193f30ae5076ccaed.jpg",
+                            "rating": 4.5,
+                            "category": "餐饮",
+                            "categoryIcon": "🍴",
+                            "placeId": "ChIJD44fqC6NGGAR3-A2jLXpl40",
+                            "transitToNext": null
+                        }
+                    ],
+                    "color": "#8b5cf6",
+                    "currentDayStay": {
+                        "id": "stay-1773160917781",
+                        "checkinDayId": "day-1772941902922-0",
+                        "checkoutDayId": "day-1772941902922-4",
+                        "checkinStopId": "s1773160906357",
+                        "checkoutStopId": "cout-1773160917781",
+                        "location": "HOTEL MYSTAYS Nishi Shinjuku"
+                    },
+                    "isCinOnly": false,
+                    "isCoutOnly": true,
+                    "isBetween": false,
+                    "isSameDayStay": false,
+                    "transitFromHotel": {
+                        "duration": "0 分钟",
+                        "distance": "NaN 公里",
+                        "durationSeconds": 0
+                    },
+                    "transitToHotel": null
                 },
                 {
                     "id": "day-1772941926274",
                     "title": "第 6 天",
                     "date": "2026年5月6日",
                     "stops": [],
-                    "color": "#ec4899"
+                    "color": "#ec4899",
+                    "transitFromHotel": {
+                        "duration": "0 分钟",
+                        "distance": "NaN 公里",
+                        "durationSeconds": 0
+                    },
+                    "transitToHotel": null
                 },
                 {
                     "id": "day-1772941927086",
@@ -536,13 +584,59 @@
                     "color": "#8b5cf6"
                 }
             ]
+        },
+        {
+            "id": "trip-1773159986397",
+            "title": "新的神秘冒险",
+            "startDate": "2026-05-01",
+            "endDate": "2026-05-05",
+            "thumb": "/uploads/b2b3a98e125b37ed910143c769170cd1.jpg",
+            "status": "completed",
+            "activeDayId": "day-1773159986397-0",
+            "days": [
+                {
+                    "id": "day-1773159986397-0",
+                    "title": "第1天",
+                    "date": "5月1日",
+                    "stops": [],
+                    "color": "#5b7a99"
+                },
+                {
+                    "id": "day-1773159986397-1",
+                    "title": "第2天",
+                    "date": "5月2日",
+                    "stops": [],
+                    "color": "#ef4444"
+                },
+                {
+                    "id": "day-1773159986397-2",
+                    "title": "第3天",
+                    "date": "5月3日",
+                    "stops": [],
+                    "color": "#f59e0b"
+                },
+                {
+                    "id": "day-1773159986397-3",
+                    "title": "第4天",
+                    "date": "5月4日",
+                    "stops": [],
+                    "color": "#10b981"
+                },
+                {
+                    "id": "day-1773159986397-4",
+                    "title": "第5天",
+                    "date": "5月5日",
+                    "stops": [],
+                    "color": "#8b5cf6"
+                }
+            ]
         }
     ],
     "dashboardFilter": "all",
-    "dashboardView": "list",
+    "dashboardView": "grid",
     "sidebarCollapsed": true,
     "settings": {
-        "language": "zh",
+        "language": "en",
         "unitDistance": "mi",
         "unitTemp": "f",
         "currency": "USD"
@@ -571,7 +665,7 @@
         "day-1772827496784-3": false,
         "day-1772827496784-4": true,
         "day-1772941902922-0": false,
-        "day-1772941902922-1": true,
+        "day-1772941902922-1": false,
         "day-1772941902922-2": true,
         "day-1772941902922-3": true,
         "day-1772941902922-4": true,

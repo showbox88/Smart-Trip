@@ -174,6 +174,10 @@ export function deleteTimelineItem(event, dayId, itemId) {
         event.preventDefault();
     }
 
+    const day = getDay(dayId);
+    const stopToDelete = day?.stops.find(s => s.id === itemId);
+    const isHotelStay = stopToDelete && (stopToDelete.type === 'hotel_checkin' || stopToDelete.type === 'hotel_checkout') && stopToDelete.stayId;
+
     // Check if a prompt already exists and remove it to prevent duplicates
     const existingPrompt = document.getElementById('light-confirm-prompt');
     if (existingPrompt) existingPrompt.remove();
@@ -184,15 +188,13 @@ export function deleteTimelineItem(event, dayId, itemId) {
     let transformStyle = 'translate(-50%, -50%)';
 
     if (event && event.clientX) {
-        // Position slightly to the left of the cursor, vertically aligned
-        const proposedLeft = event.clientX - 280; // Width of modal is ~220px, give some padding
+        const proposedLeft = event.clientX - 280;
         leftPos = `${Math.max(20, proposedLeft)}px`;
-        const proposedTop = event.clientY - 25; // Center vertically with cursor
+        const proposedTop = event.clientY - 25;
         topPos = `${Math.max(20, proposedTop)}px`;
         transformStyle = 'none';
     }
 
-    // Create a lightweight, non-dimming confirmation prompt
     const prompt = document.createElement('div');
     prompt.id = 'light-confirm-prompt';
     prompt.style.cssText = `
@@ -214,7 +216,6 @@ export function deleteTimelineItem(event, dayId, itemId) {
         animation: popIn 0.15s cubic-bezier(0.18, 0.89, 0.32, 1.28);
     `;
 
-    // Add animation style if not present
     if (!document.getElementById('light-prompt-style')) {
         const style = document.createElement('style');
         style.id = 'light-prompt-style';
@@ -228,7 +229,7 @@ export function deleteTimelineItem(event, dayId, itemId) {
     }
 
     prompt.innerHTML = `
-        <span>确定要删除吗？</span>
+        <span>${isHotelStay ? '确定要删除这条住宿（包括入住和退房）吗？' : '确定要删除吗？'}</span>
         <div style="display:flex; gap: 0.6rem;">
             <button id="light-confirm-cancel" style="background:transparent; border:1px solid var(--text-secondary); color:var(--text-secondary); padding:0.3rem 0.8rem; border-radius:6px; cursor:pointer;">取消</button>
             <button id="light-confirm-ok" style="background:#ef4444; border:none; color:white; padding:0.3rem 0.8rem; border-radius:6px; cursor:pointer; font-weight:bold;">确定</button>
@@ -237,40 +238,49 @@ export function deleteTimelineItem(event, dayId, itemId) {
 
     document.body.appendChild(prompt);
 
-    // Cancel handler
-    document.getElementById('light-confirm-cancel').onclick = () => {
-        prompt.remove();
-    };
+    document.getElementById('light-confirm-cancel').onclick = () => prompt.remove();
 
-    // Confirm handler
     document.getElementById('light-confirm-ok').onclick = () => {
         prompt.remove();
-        const day = getDay(dayId);
         if (!day) return;
-        day.stops = day.stops.filter(s => s.id !== itemId);
-        saveData();
+
         const trip = state.trips.find(t => t.id === state.activeTripId);
+        if (!trip) return;
 
-        // Update sidebar count before rendering
-        const countSpan = document.getElementById(`sidebar-count-${dayId}`);
-        if (countSpan) {
-            const locationStops = day.stops.filter(s => s.type === 'location' || !s.type).length;
-            countSpan.innerText = `共 ${locationStops} 站行程`;
-        }
-
-        // Re-render only the affected day
-        const dayIndex = trip.days.findIndex(d => d.id === dayId);
-        const temp = document.createElement('div');
-        temp.innerHTML = getDayHTML(day, dayIndex, state.activeTripId);
-        const dayEl = document.getElementById(dayId);
-        if (dayEl) dayEl.replaceWith(temp.firstElementChild);
-
-        // Refresh map markers if necessary
-        if (window.googleMapsReady) {
-            import('../../maps.js').then(m => {
-                m.initRealMap();
-                m.computeTransitData(dayId);
+        if (isHotelStay) {
+            const stayId = stopToDelete.stayId;
+            // Delete all stops with the same stayId across all days
+            trip.days.forEach(d => {
+                d.stops = d.stops.filter(s => s.stayId !== stayId);
             });
+            saveData();
+            renderApp();
+        } else {
+            // Normal deletion logic
+            day.stops = day.stops.filter(s => s.id !== itemId);
+            saveData();
+
+            // Update sidebar count before partial re-render
+            const countSpan = document.getElementById(`sidebar-count-${dayId}`);
+            if (countSpan) {
+                const locationStops = day.stops.filter(s => s.type === 'location' || !s.type).length;
+                countSpan.innerText = `共 ${locationStops} 站行程`;
+            }
+
+            // Re-render only the affected day
+            const dayIndex = trip.days.findIndex(d => d.id === dayId);
+            const temp = document.createElement('div');
+            temp.innerHTML = getDayHTML(day, dayIndex, state.activeTripId);
+            const dayEl = document.getElementById(dayId);
+            if (dayEl) dayEl.replaceWith(temp.firstElementChild);
+
+            // Refresh map markers
+            if (window.googleMapsReady) {
+                import('../../maps.js').then(m => {
+                    m.initRealMap();
+                    m.computeTransitData(dayId);
+                });
+            }
         }
     };
 }
@@ -329,7 +339,8 @@ export function saveStop() {
         });
     }
 
-    // Sort stops by time
+    // (Removed auto-sort to preserve manual drag-and-drop order)
+    /*
     day.stops.sort((a, b) => {
         const parseTime = (time, period) => {
             if (!time) return 0;
@@ -340,6 +351,7 @@ export function saveStop() {
         };
         return parseTime(a.time, a.period) - parseTime(b.time, b.period);
     });
+    */
 
     saveData();
     closeModal();
@@ -968,23 +980,14 @@ export function saveStayInfo(originalStopId) {
     };
     coutDay.stops.push(coutStop);
 
-    // 4. Sort affected days
-    const sortFn = (a, b) => {
-        const parseTime = (time, p) => {
-            if (!time) return 0;
-            let [h, m] = time.split(':').map(Number);
-            if (p === 'PM' && h !== 12) h += 12;
-            if (p === 'AM' && h === 12) h = 0;
-            return h * 60 + (m || 0);
-        };
-        return parseTime(a.time, a.period) - parseTime(b.time, b.period);
-    };
-
+    // (Removed auto-sort to preserve manual drag-and-drop order)
+    /*
     cinDay.stops.sort(sortFn);
     coutDay.stops.sort(sortFn);
     if (originalDay.id !== cinDay.id && originalDay.id !== coutDay.id) {
         originalDay.stops.sort(sortFn);
     }
+    */
 
     saveData();
     closeModal();
