@@ -43,10 +43,11 @@ window.t = t;
  */
 export async function getAvailableLanguages() {
     try {
-        const response = await fetch('/api/languages');
-        return await response.json();
+        const { getAvailableLanguages: fetchLangs } = await import('../api.js');
+        return await fetchLangs();
     } catch (e) {
         console.error("Failed to fetch languages:", e);
         return [{ code: 'zh', name: '简体中文' }, { code: 'en', name: 'English' }];
     }
 }
+

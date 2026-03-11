@@ -1,14 +1,20 @@
 import { state, editState } from '../../state.js';
 import { renderApp, renderDashboardPartials } from '../render.js';
-import { saveData } from '../../api.js';
+import { saveData, deleteTripById } from '../../api.js';
 import { calculateDays, formatDate } from '../../utils.js';
 import { closeModal } from './ux.js';
 import { t } from '../i18n.js';
 
 export function createNewTrip() {
     const newId = 'trip-' + Date.now();
-    const startStr = "2026-05-01";
-    const endStr = "2026-05-05";
+
+    // Default dates: today → today + 5 days
+    const today = new Date();
+    const endDay = new Date(today);
+    endDay.setDate(today.getDate() + 5);
+    const pad = n => String(n).padStart(2, '0');
+    const startStr = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
+    const endStr   = `${endDay.getFullYear()}-${pad(endDay.getMonth() + 1)}-${pad(endDay.getDate())}`;
 
     const newTrip = {
         id: newId,
@@ -25,7 +31,7 @@ export function createNewTrip() {
     for (let i = 0; i < numDays; i++) {
         let d = new Date(startStr.replace(/-/g, '/'));
         d.setDate(d.getDate() + i);
-        let displayDate = !isNaN(d) ? formatDate(startStr, i) : `Unknown`;
+        let displayDate = !isNaN(d) ? formatDate(startStr, i) : t('itinerary.unknown_date');
         const defaultColors = ['#5b7a99', '#ef4444', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899'];
         const newColor = defaultColors[i % defaultColors.length];
 
@@ -55,15 +61,19 @@ export function openTrip(tripId) {
 
 export function deleteTrip(event, tripId) {
     if (event) event.stopPropagation();
-    window.openConfirmModal(t('itinerary.confirm_delete_trip'), () => {
+    window.openConfirmModal(t('itinerary.confirm_delete_trip'), async () => {
+        // Remove from local state immediately for instant UI feedback
         state.trips = state.trips.filter(t => t.id !== tripId);
-        saveData();
+
+        // If the deleted trip was the active one, go back to dashboard
         if (state.activeTripId === tripId) {
+            state.activeTripId = null;
             state.currentView = 'dashboard';
-            renderApp();
-        } else {
-            renderApp();
         }
+        renderApp();
+
+        // Delete the row from Supabase (this is the key fix — saveData() never deletes)
+        await deleteTripById(tripId);
     });
 }
 
@@ -108,7 +118,7 @@ export function saveTripMetadata() {
             for (let i = trip.days.length; i < numDays; i++) {
                 let d = new Date(trip.startDate.replace(/-/g, '/'));
                 d.setDate(d.getDate() + i);
-                let displayDate = !isNaN(d) ? formatDate(trip.startDate, i) : `Unknown`;
+                let displayDate = !isNaN(d) ? formatDate(trip.startDate, i) : t('itinerary.unknown_date');
                 const defaultColors = ['#5b7a99', '#ef4444', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899'];
                 const newColor = defaultColors[i % defaultColors.length];
 

@@ -17,11 +17,11 @@ window.onerror = function (msg, url, line, col, error) {
     if (container) {
         container.innerHTML = `
             <div style="padding: 2rem; background: #450a0a; color: #fca5a5; border: 1px solid #ef4444; margin: 2rem; border-radius: 12px; font-family: monospace;">
-                <h3>⚠️ 系统运行错误 (Runtime Error)</h3>
+                <h3>⚠️ ${t('common.render_error')}</h3>
                 <p>${msg}</p>
                 <p style="font-size: 0.8rem; opacity: 0.7;">Line: ${line}, Col: ${col}</p>
-                <button onclick="location.reload()" style="margin-top: 1rem; padding: 0.5rem 1rem; background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer;">刷新页面</button>
-                <button onclick="localStorage.clear(); location.reload();" style="margin-top: 1rem; margin-left:1rem; padding: 0.5rem 1rem; background: transparent; color: white; border: 1px solid white; border-radius: 4px; cursor: pointer;">清除并重置</button>
+                <button onclick="location.reload()" style="margin-top: 1rem; padding: 0.5rem 1rem; background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer;">${t('common.refresh') || 'Refresh'}</button>
+                <button onclick="localStorage.clear(); location.reload();" style="margin-top: 1rem; margin-left:1rem; padding: 0.5rem 1rem; background: transparent; color: white; border: 1px solid white; border-radius: 4px; cursor: pointer;">${t('common.clear_reset') || 'Clear & Reset'}</button>
             </div>
         `;
     }
@@ -30,7 +30,8 @@ window.onerror = function (msg, url, line, col, error) {
 
 // --- Bridge Functions for HTML Attributes ---
 // Auth
-window.handleLogin = AuthHandlers.handleLogin;
+window.handleAuthSubmit = AuthHandlers.handleAuthSubmit;
+window.switchAuthTab = AuthHandlers.switchAuthTab;
 window.handleLoginKey = AuthHandlers.handleLoginKey;
 window.handleLogout = AuthHandlers.handleLogout;
 window.handleGoogleLogin = AuthHandlers.handleGoogleLogin;
@@ -83,19 +84,19 @@ window.saveStayInfo = StopHandlers.saveStayInfo;
 window.cleanupImages = async function () {
     const btn = document.activeElement;
     const origText = btn ? btn.innerHTML : '';
-    if (btn) { btn.innerHTML = '⏳ 清理中...'; btn.disabled = true; }
+    if (btn) { btn.innerHTML = `⏳ ${t('common.loading')}`; btn.disabled = true; }
     try {
         const data = await cleanupImages();
         if (data.status === 'success') {
             const n = data.deleted_count;
             alert(n > 0
-                ? `✅ 已清理 ${n} 张孤立缓存图片。`
-                : `✅ 图片缓存已是最新，无需清理。`);
+                ? `✅ ${t('dashboard.cleanup_success_prefix') || 'Deleted'} ${n} ${t('dashboard.cleanup_success_suffix') || 'images'}.`
+                : t('dashboard.cleanup_no_need'));
         } else {
-            alert('❌ 清理失败：' + (data.message || '未知错误'));
+            alert('❌ ' + (t('common.fetch_error') || 'Error') + ': ' + (data.message || ''));
         }
     } catch (e) {
-        alert('❌ 无法连接到服务器。');
+        alert('❌ ' + t('common.fetch_error'));
     } finally {
         if (btn) { btn.innerHTML = origText; btn.disabled = false; }
     }
@@ -127,7 +128,7 @@ window.showInlineSearchAt = function (dayId, afterStopId) {
             <span style="position:absolute; left:1rem; top:50%; transform:translateY(-50%); color:var(--text-secondary); pointer-events:none;">📍</span>
             <input type="text" class="inline-search-input"
                 style="width:100%; padding:0.6rem 1rem 0.6rem 2.8rem; background:var(--bg-secondary); border:1.5px solid var(--accent-primary); border-radius:8px; color:var(--text-primary); font-size:0.95rem; outline:none; box-sizing:border-box;"
-                placeholder="搜索地点后插入..." autocomplete="off" />
+                placeholder="${t('itinerary.add_stop')}..." autocomplete="off" />
             <ul id="${dropdownId}" class="location-autocomplete-dropdown"></ul>
         </div>
         <button onclick="document.querySelectorAll('.inline-search-row').forEach(el=>el.remove())"
@@ -165,7 +166,7 @@ window.showInlineSearchAt = function (dayId, afterStopId) {
                 const { AutocompleteSuggestion } = await google.maps.importLibrary('places');
                 const { suggestions } = await AutocompleteSuggestion.fetchAutocompleteSuggestions({ input: query });
                 if (!suggestions || !suggestions.length) {
-                    dropdown.innerHTML = '<li style="color:var(--text-secondary);padding:1rem;text-align:center;">未找到结果</li>';
+                    dropdown.innerHTML = `<li style="color:var(--text-secondary);padding:1rem;text-align:center;">${t('common.not_found')}</li>`;
                     _preds = [];
                     dropdown.classList.add('active'); return;
                 }
@@ -250,7 +251,7 @@ window.toggleMapDarkMode = toggleMapDarkMode;
 // Placeholder handlers referenced in template but not critical
 window.editDay = UXHandlers.editDay;
 window.saveEditDay = UXHandlers.saveEditDay;
-window.shareDay = function (event, dayId) { if (event) event.stopPropagation(); alert(`分享日期: ${dayId}`); };
+window.shareDay = function (event, dayId) { if (event) event.stopPropagation(); alert(`${t('itinerary.share_trip')}: ${dayId}`); };
 
 // Maps Bridge — register as _realInitGoogleMaps so the inline stub in index.html can call it
 // (ES modules are deferred, so window.initGoogleMaps may fire before this module runs)
@@ -284,16 +285,37 @@ document.addEventListener('click', (e) => {
 });
 
 // --- Initialization ---
-document.addEventListener('DOMContentLoaded', () => {
-    loadData().then(async () => {
-        try {
-            const lang = state.settings?.language || 'zh';
-            await loadLanguage(lang);
-            renderApp();
-        } catch (e) {
-            console.error("Render crash:", e);
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log("[Main] 🚀 Initializing App...");
+    try {
+        // 1. Load language immediately using the last known preference in localStorage
+        //    (this gives us an instant first paint in the right language even before auth)
+        const cachedLang = localStorage.getItem('smart-trip-lang') || 'zh';
+        await loadLanguage(cachedLang);
+
+        // 2. Initialize Data (Check Session + load user settings from Supabase)
+        //    Give the Supabase SDK a tiny head start if it was loaded via script tag
+        await new Promise(r => setTimeout(r, 100));
+        await loadData();
+
+        // 3. After loadData(), state.settings is now populated from the DB.
+        //    If the language stored in the DB differs from what we used for the initial
+        //    paint, reload the correct language pack and cache it for next time.
+        const userLang = state.settings?.language || cachedLang;
+        if (userLang !== cachedLang) {
+            await loadLanguage(userLang);
         }
-    });
+        // Always sync the cached lang key so next cold boot is instant & correct
+        localStorage.setItem('smart-trip-lang', userLang);
+
+        // 4. Final Render — now with the correct language loaded
+        renderApp();
+        console.log("[Main] ✨ App Ready.");
+    } catch (e) {
+        console.error("[Main] Initialization crash:", e);
+        renderApp(); // Fallback to login if something breaks
+    }
 });
+
 
 

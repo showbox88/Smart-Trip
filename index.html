@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Trip | 智能旅行规划</title>
+    <title id="page-title">Smart Trip</title>
     <!-- Modular CSS -->
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/base.css">
@@ -31,12 +31,12 @@
         <div class="logo" onclick="goDashboard()" style="cursor: pointer;">Smart<span>Trip</span></div>
         <div class="nav-search-bar">
             <span class="material-symbols-outlined">search</span>
-            <input type="text" placeholder="Search itineraries..." id="main-search">
+            <input type="text" placeholder="Search..." id="main-search">
         </div>
         <nav>
             <ul>
-                <li><a href="#hero">首页</a></li>
-                <li><a href="#" onclick="showDashboard()">我的行程</a></li>
+                <li><a href="#hero" id="nav-home">Home</a></li>
+                <li><a href="#" onclick="goDashboard()" id="nav-trips">My Trips</a></li>
             </ul>
         </nav>
         <div class="nav-right">

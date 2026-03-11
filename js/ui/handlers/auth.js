@@ -1,30 +1,65 @@
 import { state, updateState } from '../../state.js';
 import { renderApp } from '../render.js';
-import { saveData } from '../../api.js';
-import { createNewTrip } from './trips.js';
-import { openTrip } from './trips.js';
+import { signIn, signUp, signOut, loadData } from '../../api.js';
+import { createNewTrip, openTrip } from './trips.js';
 
-export function handleLogin() {
-    const nameInput = document.getElementById('login-name').value.trim();
-    if (!nameInput) {
-        alert("请输入名字");
+let authMode = 'signin';
+
+export function switchAuthTab(mode) {
+    authMode = mode;
+    const tabSignin = document.getElementById('tab-signin');
+    const tabSignup = document.getElementById('tab-signup');
+    const btnText = document.querySelector('#auth-submit-btn span:first-child');
+    
+    if (mode === 'signin') {
+        tabSignin.classList.add('active');
+        tabSignup.classList.remove('active');
+        btnText.innerText = '立即登录';
+    } else {
+        tabSignup.classList.add('active');
+        tabSignin.classList.remove('active');
+        btnText.innerText = '注册并开启之旅';
+    }
+}
+
+export async function handleAuthSubmit() {
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value.trim();
+    const stayLoggedIn = document.getElementById('stay-logged-in').checked;
+
+    if (!email || !password) {
+        alert("请完整填写邮箱和密码");
         return;
     }
 
-    const btn = document.querySelector('.auth-btn-main');
-    if (btn) {
-        btn.innerHTML = '<span>进入中...</span> <span class="material-symbols-outlined" style="font-size:18px;">hourglass_empty</span>';
-        btn.disabled = true;
-    }
+    const btn = document.getElementById('auth-submit-btn');
+    const originalContent = btn.innerHTML;
+    btn.innerHTML = '<span>进行中...</span> <span class="material-symbols-outlined" style="animation: spin 1s infinite linear;">sync</span>';
+    btn.disabled = true;
 
-    setTimeout(() => {
-        updateState({ user: { name: nameInput }, currentView: 'dashboard' });
+    try {
+        if (authMode === 'signin') {
+            await signIn(email, password);
+        } else {
+            await signUp(email, password, { full_name: email.split('@')[0] });
+            alert("注册成功！已自动登录。");
+        }
+
+        // Auth success: Load user data
+        await loadData();
+        
+        updateState({ currentView: 'dashboard' });
         renderApp();
-    }, 600);
+    } catch (err) {
+        console.error("Auth Error:", err);
+        alert("验证失败: " + (err.message || "请检查邮箱格式或网络连接"));
+        btn.innerHTML = originalContent;
+        btn.disabled = false;
+    }
 }
 
 export function handleLoginKey(e) {
-    if (e.key === 'Enter') handleLogin();
+    if (e.key === 'Enter') handleAuthSubmit();
 }
 
 export function goDashboard() {
@@ -33,13 +68,10 @@ export function goDashboard() {
 }
 
 export function startPlanning() {
-    if (!state.user) {
-        updateState({ user: { name: "旅行者" } });
-    }
     state.currentView = 'dashboard';
     const newTrip = createNewTrip();
     if (newTrip) openTrip(newTrip.id);
-    saveData();
+    renderApp();
 }
 
 export function gotoLogin() {
@@ -47,48 +79,20 @@ export function gotoLogin() {
     renderApp();
 }
 
-export function handleLogout() {
-    if (confirm("确定要退出并返回登录页面吗？")) {
-        state.user = null;
-        state.currentView = 'login';
-        saveData();
-        renderApp();
+export async function handleLogout() {
+    if (confirm("确定要退出并清除登录状态吗？")) {
+        try {
+            await signOut();
+            updateState({ user: null, currentView: 'login', trips: [] });
+            renderApp();
+        } catch (e) {
+            console.error("Logout error:", e);
+        }
     }
 }
 
-export function handleGoogleLogin() {
-    const btn = document.querySelector('.auth-btn-google');
-    if (!btn) return;
-
-    const originalHtml = btn.innerHTML;
-    btn.innerHTML = '<span class="material-symbols-outlined" style="animation: spin 1s infinite linear;">sync</span> 正在安全验证...';
-    btn.disabled = true;
-
-    // Inject a quick animation for the button if not exists
-    if (!document.getElementById('auth-extra-styles')) {
-        const s = document.createElement('style');
-        s.id = 'auth-extra-styles';
-        s.textContent = '@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }';
-        document.head.appendChild(s);
-    }
-
-    // Simulate "Google Account Prompt" delay
-    setTimeout(() => {
-        // Here we simulate a successful login with a default profile
-        updateState({
-            user: {
-                name: "Alex Traveller",
-                avatar: "https://lh3.googleusercontent.com/a/ACg8ocL-fH-2jH6M6B-V9eM7f8A9_j4z8=s96-c",
-                email: "alex.traveller@gmail.com"
-            },
-            currentView: 'dashboard'
-        });
-
-        btn.innerHTML = '<span class="material-symbols-outlined" style="color:#22c55e;">check_circle</span> 验证成功';
-
-        setTimeout(() => {
-            renderApp();
-            saveData();
-        }, 500);
-    }, 1500);
+export async function handleGoogleLogin() {
+    // Supabase native Google login usually requires a redirect. 
+    // We'll keep it simple for now or implement if requested.
+    alert("Google 登录正在配置中，目前请使用邮箱登录。");
 }

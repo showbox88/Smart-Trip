@@ -3,6 +3,7 @@ import { renderApp } from '../render.js';
 import { saveData } from '../../api.js';
 import { searchImages, searchGoogleStopImages } from './search.js';
 import { getDayHTML } from '../templates/itinerary.js';
+import { t } from '../i18n.js';
 
 // --- Modal Management ---
 function closeModal() {
@@ -17,14 +18,14 @@ function openConfirmModal(message, onConfirm) {
     const title = document.getElementById('modal-title');
     const body = document.getElementById('modal-body');
 
-    title.innerText = "确认操作";
+    title.innerText = t('common.confirm');
     body.innerHTML = `
         <div style="padding: 1rem 0; font-size: 1.1rem; color: var(--text-primary); text-align: center;">
             ${message}
         </div>
         <div style="display:flex; justify-content:center; gap:15px; margin-top:1.5rem;">
-            <button class="submit-btn" style="background:var(--bg-secondary); border:1px solid var(--glass-border); color:var(--text-primary); min-width:100px;" onclick="closeModal()">取消</button>
-            <button class="submit-btn danger" style="background:#ef4444; color:white; border:none; min-width:100px;" id="confirm-yes-btn">确定</button>
+            <button class="submit-btn" style="background:var(--bg-secondary); border:1px solid var(--glass-border); color:var(--text-primary); min-width:100px;" onclick="closeModal()">${t('common.cancel')}</button>
+            <button class="submit-btn danger" style="background:#ef4444; color:white; border:none; min-width:100px;" id="confirm-yes-btn">${t('common.confirm')}</button>
         </div>
     `;
 
@@ -67,29 +68,29 @@ function openEditTripModal(tripId) {
 
     const title = document.getElementById('modal-title');
     const body = document.getElementById('modal-body');
-    title.innerText = `编辑行程信息`;
+    title.innerText = t('itinerary.edit_trip');
 
     body.innerHTML = `
         <div class="form-group">
-            <label>行程名称</label>
+            <label>${t('itinerary.edit_trip')}</label>
             <input type="text" id="trip-edit-title" value="${trip.title}">
         </div>
         <div class="form-group">
-            <label>行程状态</label>
+            <label>${t('dashboard.stat_trips')}</label>
             <div class="status-selector-group" style="display:flex; background:var(--bg-primary); padding:4px; border-radius:10px; border:1px solid var(--glass-border); gap:4px;">
-                <button type="button" onclick="window._setEditStatus('ongoing', this)" class="status-choice-btn ${trip.status === 'ongoing' ? 'active' : ''}" style="flex:1; padding:8px; border:none; border-radius:7px; cursor:pointer; font-size:0.85rem; transition:all 0.2s; background:${trip.status === 'ongoing' ? 'var(--accent-primary)' : 'transparent'}; color:${trip.status === 'ongoing' ? '#fff' : 'var(--text-secondary)'};">进行中</button>
-                <button type="button" onclick="window._setEditStatus('planned', this)" class="status-choice-btn ${trip.status === 'planned' || !trip.status ? 'active' : ''}" style="flex:1; padding:8px; border:none; border-radius:7px; cursor:pointer; font-size:0.85rem; transition:all 0.2s; background:${(trip.status === 'planned' || !trip.status) ? 'var(--accent-primary)' : 'transparent'}; color:${(trip.status === 'planned' || !trip.status) ? '#fff' : 'var(--text-secondary)'};">计划中</button>
-                <button type="button" onclick="window._setEditStatus('completed', this)" class="status-choice-btn ${trip.status === 'completed' ? 'active' : ''}" style="flex:1; padding:8px; border:none; border-radius:7px; cursor:pointer; font-size:0.85rem; transition:all 0.2s; background:${trip.status === 'completed' ? 'var(--accent-primary)' : 'transparent'}; color:${trip.status === 'completed' ? '#fff' : 'var(--text-secondary)'};">已完成</button>
+                <button type="button" onclick="window._setEditStatus('ongoing', this)" class="status-choice-btn ${trip.status === 'ongoing' ? 'active' : ''}" style="flex:1; padding:8px; border:none; border-radius:7px; cursor:pointer; font-size:0.85rem; transition:all 0.2s; background:${trip.status === 'ongoing' ? 'var(--accent-primary)' : 'transparent'}; color:${trip.status === 'ongoing' ? '#fff' : 'var(--text-secondary)'};">${t('common.ongoing')}</button>
+                <button type="button" onclick="window._setEditStatus('planned', this)" class="status-choice-btn ${trip.status === 'planned' || !trip.status ? 'active' : ''}" style="flex:1; padding:8px; border:none; border-radius:7px; cursor:pointer; font-size:0.85rem; transition:all 0.2s; background:${(trip.status === 'planned' || !trip.status) ? 'var(--accent-primary)' : 'transparent'}; color:${(trip.status === 'planned' || !trip.status) ? '#fff' : 'var(--text-secondary)'};">${t('common.planned')}</button>
+                <button type="button" onclick="window._setEditStatus('completed', this)" class="status-choice-btn ${trip.status === 'completed' ? 'active' : ''}" style="flex:1; padding:8px; border:none; border-radius:7px; cursor:pointer; font-size:0.85rem; transition:all 0.2s; background:${trip.status === 'completed' ? 'var(--accent-primary)' : 'transparent'}; color:${trip.status === 'completed' ? '#fff' : 'var(--text-secondary)'};">${t('common.completed')}</button>
             </div>
             <input type="hidden" id="trip-edit-status" value="${trip.status || 'planned'}">
         </div>
         <div class="form-group" style="margin-bottom: 0.5rem;">
-            <label>封面图片</label>
+            <label>${t('stops.change_img')}</label>
             <div style="display:flex; gap:0.5rem; margin-bottom:0.8rem;">
-                <button class="btn-primary" onclick="document.getElementById('thumb-upload-input').click()" style="padding:0 1rem; font-size: 0.85rem; background: var(--bg-secondary); border: 1px solid var(--glass-border);">上传本地图片</button>
+                <button class="btn-primary" onclick="document.getElementById('thumb-upload-input').click()" style="padding:0 1rem; font-size: 0.85rem; background: var(--bg-secondary); border: 1px solid var(--glass-border);">${t('stops.upload_local')}</button>
                 <input type="file" id="thumb-upload-input" style="display:none;" accept="image/*" onchange="handleTripThumbUpload(event)">
-                <input type="text" id="trip-edit-search" placeholder="或搜索在线图片..." style="flex:1; background:var(--bg-primary); border:1px solid var(--glass-border); padding:0.6rem 0.8rem; border-radius:8px; color:var(--text-primary);" onkeydown="if(event.key === 'Enter') searchImages()">
-                <button class="btn-primary" onclick="searchImages()" style="padding:0 1rem; font-size: 0.85rem;">搜索</button>
+                <input type="text" id="trip-edit-search" placeholder="${t('common.search_placeholder')}" style="flex:1; background:var(--bg-primary); border:1px solid var(--glass-border); padding:0.6rem 0.8rem; border-radius:8px; color:var(--text-primary);" onkeydown="if(event.key === 'Enter') searchImages()">
+                <button class="btn-primary" onclick="searchImages()" style="padding:0 1rem; font-size: 0.85rem;">${t('common.search')}</button>
             </div>
             <input type="hidden" id="trip-edit-thumb" value="${trip.thumb}">
             <div id="image-grid" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:0.5rem; max-height:220px; overflow-y:auto; padding-right:4px;">
@@ -97,16 +98,16 @@ function openEditTripModal(tripId) {
             </div>
         </div>
         <div class="form-group" style="margin-top: 1rem;">
-            <label>开始日期</label>
+            <label>${t('itinerary.stay_checkin_date')}</label>
             <input type="text" id="trip-edit-start" class="date-picker-input" value="${trip.startDate}">
         </div>
         <div class="form-group">
-            <label>结束日期</label>
+            <label>${t('itinerary.stay_checkout_date')}</label>
             <input type="text" id="trip-edit-end" class="date-picker-input" value="${trip.endDate}">
         </div>
         <div style="display:flex; gap:10px; margin-top:20px;">
-            <button class="submit-btn" style="background:var(--bg-secondary); border:1px solid var(--glass-border); color:var(--text-primary)" onclick="closeModal()">取消</button>
-            <button class="submit-btn" onclick="saveTripMetadata()">保存更改</button>
+            <button class="submit-btn" style="background:var(--bg-secondary); border:1px solid var(--glass-border); color:var(--text-primary)" onclick="closeModal()">${t('common.cancel')}</button>
+            <button class="submit-btn" onclick="saveTripMetadata()">${t('common.save')}</button>
         </div>
     `;
 
@@ -116,16 +117,21 @@ function openEditTripModal(tripId) {
 
     // Init Flatpickr Calendar
     if (typeof flatpickr !== 'undefined') {
+        const lang = state.settings.language || 'zh';
         flatpickr(".date-picker-input", {
-            locale: "zh",
+            locale: lang,
             dateFormat: "Y-m-d",
             theme: "dark"
         });
     }
 
-    // Auto-load some images based on the trip title
-    const initialQuery = (trip.title || "travel").replace(/[^a-zA-Z\s]/g, '') || "travel";
-    searchImages(initialQuery);
+    // Show a localized label in the input box ("旅行" for ZH, "Trip" for EN).
+    // The API call always uses the English equivalent so loremflickr returns relevant travel photos.
+    const searchLabel      = t('itinerary.image_search_label') || 'Trip';
+    const searchApiKeyword = t('itinerary.image_search_api_keyword') || 'trip';
+    const searchInput = document.getElementById('trip-edit-search');
+    if (searchInput) searchInput.value = searchLabel;
+    searchImages(searchApiKeyword);
 }
 
 function handleTripThumbUpload(event) {
@@ -149,51 +155,45 @@ function handleTripThumbUpload(event) {
             grid.innerHTML = `<p style="grid-column: span 3; text-align:center; color:var(--text-secondary);">正在持久化存储图片...</p>`;
         }
 
-        // --- Step 2: Send to Backend to convert Base64 to physical file ---
+        // --- Step 2: Use API Gateway to persist image ---
         import('../../api.js').then(api => {
-            fetch(api.endpoints.uploadLocal, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ image: base64Data })
-            })
-                .then(r => r.json())
+            api.uploadLocal(base64Data)
                 .then(result => {
                     if (result.status === 'success' && result.localUrl) {
-                    const finalUrl = result.localUrl;
-                    const thumbInput = document.getElementById('trip-edit-thumb');
-                    if (thumbInput) thumbInput.value = finalUrl;
+                        const finalUrl = result.localUrl;
+                        const thumbInput = document.getElementById('trip-edit-thumb');
+                        if (thumbInput) thumbInput.value = finalUrl;
 
-                    const trip = state.trips.find(t => t.id === state.activeTripId);
-                    if (trip) {
-                        trip.thumb = finalUrl;
-                        // Persist state with the new local URL
-                        import('../../api.js').then(m => m.saveData());
-                        import('../render.js').then(m => m.renderApp());
+                        const trip = state.trips.find(t => t.id === state.activeTripId);
+                        if (trip) {
+                            trip.thumb = finalUrl;
+                            api.saveData(); 
+                            import('../render.js').then(m => m.renderApp());
+                        }
+
+                        // Update all UI previews
+                        if (grid) {
+                            grid.innerHTML = `
+                            <div class="image-option selected" style="position:relative; width:100%; aspect-ratio:3/2; overflow:hidden; border-radius:8px; border:2px solid var(--accent-primary); background:#000;">
+                                <img src="${finalUrl}" style="width:100%; height:100%; object-fit:contain;">
+                                <div style="position:absolute; top:4px; right:4px; background:var(--accent-primary); color:white; border-radius:50%; width:20px; height:20px; display:flex; align-items:center; justify-content:center; font-size:12px;">✓</div>
+                            </div>
+                        `;
+                        }
+
+                        const modalCover = document.querySelector('.edit-trip-modal .modal-cover');
+                        if (modalCover) modalCover.style.backgroundImage = `url('${finalUrl}')`;
+
+                        const itineraryThumb = document.getElementById('itinerary-header-thumb');
+                        if (itineraryThumb) itineraryThumb.style.backgroundImage = `url('${finalUrl}')`;
+                    } else {
+                        alert('图片上传失败: ' + (result.message || '未知错误'));
                     }
-
-                    // Update all UI previews
-                    if (grid) {
-                        grid.innerHTML = `
-                        <div class="image-option selected" style="position:relative; width:100%; aspect-ratio:3/2; overflow:hidden; border-radius:8px; border:2px solid var(--accent-primary); background:#000;">
-                            <img src="${finalUrl}" style="width:100%; height:100%; object-fit:contain;">
-                            <div style="position:absolute; top:4px; right:4px; background:var(--accent-primary); color:white; border-radius:50%; width:20px; height:20px; display:flex; align-items:center; justify-content:center; font-size:12px;">✓</div>
-                        </div>
-                    `;
-                    }
-
-                    const modalCover = document.querySelector('.edit-trip-modal .modal-cover');
-                    if (modalCover) modalCover.style.backgroundImage = `url('${finalUrl}')`;
-
-                    const itineraryThumb = document.getElementById('itinerary-header-thumb');
-                    if (itineraryThumb) itineraryThumb.style.backgroundImage = `url('${finalUrl}')`;
-                } else {
-                    alert('图片上传失败: ' + (result.message || '未知错误'));
-                }
-            })
-            .catch(err => {
-                console.error('[Upload-Local] failed:', err);
-                alert('服务器连接失败，请确认网络连接且文件大小未超限。');
-            });
+                })
+                .catch(err => {
+                    console.error('[Upload-Local] failed:', err);
+                    alert('图片上传失败，请检查连接或文件大小。');
+                });
         });
     };
     reader.readAsDataURL(file);
@@ -209,7 +209,7 @@ function openEditModal(dayId, stopId) {
 
     const title = document.getElementById('modal-title');
     const body = document.getElementById('modal-body');
-    title.innerText = `Add more about your visit`;
+    title.innerText = t('stops.edit_modal_title');
 
     const mockThumb = `https://picsum.photos/seed/${stop.id}/150/100`;
 
@@ -222,7 +222,7 @@ function openEditModal(dayId, stopId) {
                 </div>
                 <div style="display:flex; gap:0.5rem;">
                     <button class="visit-detail-chip" style="background: rgba(167, 139, 250, 0.1); color: var(--accent-secondary); padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.9rem; font-weight: 600; border:none; cursor:pointer;" onclick="openTimePickerModal()">${day.date.substring(0, 5)}</button>
-                    <button class="visit-detail-chip time-chip" style="background: rgba(167, 139, 250, 0.1); color: var(--accent-secondary); padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.9rem; font-weight: 600; border:none; cursor:pointer;" onclick="openTimePickerModal()" data-vtime="${stop.time}" data-vperiod="${stop.period}">${stop.time} ${stop.period === 'AM' ? '上午' : '下午'}</button>
+                    <button class="visit-detail-chip time-chip" style="background: rgba(167, 139, 250, 0.1); color: var(--accent-secondary); padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.9rem; font-weight: 600; border:none; cursor:pointer;" onclick="openTimePickerModal()" data-vtime="${stop.time}" data-vperiod="${stop.period}">${stop.time} ${stop.period === 'AM' ? t('common.am') : t('common.pm')}</button>
                 </div>
             </div>
             <div style="position:relative; width:100px; height:65px; border-radius:8px; overflow:hidden; border: 1px solid var(--glass-border); flex-shrink:0;">
@@ -233,35 +233,35 @@ function openEditModal(dayId, stopId) {
 
         <div style="border: 2px dashed var(--glass-border); border-radius: 12px; padding: 2rem 1rem; text-align:center; color: var(--text-secondary); margin-bottom: 1.5rem; cursor:pointer; min-height:120px; display:flex; flex-direction:column; justify-content:center;">
             <div style="font-size: 2.5rem; margin-bottom:0.5rem; font-weight:300;">+</div>
-            <div style="font-size: 1.1rem;">Pick media from your gallery</div>
-            <div style="font-size:0.85rem; opacity:0.6; margin-top:0.5rem;">👥 Only your mutual followers can see your photos</div>
+            <div style="font-size: 1.1rem;">${t('stops.upload_desc')}</div>
+            <div style="font-size:0.85rem; opacity:0.6; margin-top:0.5rem;">${t('stops.upload_privacy')}</div>
         </div>
 
         <div class="form-group" style="margin-bottom: 1.5rem;">
-            <label style="font-size:0.95rem; font-weight:bold; margin-bottom:0.8rem; display:block;">地址</label>
-            <input type="text" id="stop-address" value="${stop.address || ''}" placeholder="添加地址" style="width:100%; padding:0.8rem; background:transparent; border:1px solid var(--glass-border); border-radius:8px; color:var(--text-primary); outline:none;">
+            <label style="font-size:0.95rem; font-weight:bold; margin-bottom:0.8rem; display:block;">${t('stops.location')}</label>
+            <input type="text" id="stop-address" value="${stop.address || ''}" placeholder="${t('itinerary.add_stop')}" style="width:100%; padding:0.8rem; background:transparent; border:1px solid var(--glass-border); border-radius:8px; color:var(--text-primary); outline:none;">
         </div>
 
         <div class="form-group" style="margin-bottom: 1.5rem;">
-            <label style="font-size:0.95rem; font-weight:bold; margin-bottom:0.8rem; display:block;">电话</label>
-            <input type="text" id="stop-phone" value="${stop.phone || ''}" placeholder="添加电话号码" style="width:100%; padding:0.8rem; background:transparent; border:1px solid var(--glass-border); border-radius:8px; color:var(--text-primary); outline:none;">
+            <label style="font-size:0.95rem; font-weight:bold; margin-bottom:0.8rem; display:block;">${t('stops.phone')}</label>
+            <input type="text" id="stop-phone" value="${stop.phone || ''}" placeholder="${t('stops.phone_placeholder')}" style="width:100%; padding:0.8rem; background:transparent; border:1px solid var(--glass-border); border-radius:8px; color:var(--text-primary); outline:none;">
         </div>
 
         <div class="form-group" style="margin-bottom: 1.5rem;">
-            <label style="font-size:0.95rem; font-weight:bold; margin-bottom:0.8rem; display:block;">备注</label>
-            <textarea id="stop-note" placeholder="Add notes about your visit" style="min-height: 100px; font-size:1rem; padding: 1rem;">${stop.note || ''}</textarea>
+            <label style="font-size:0.95rem; font-weight:bold; margin-bottom:0.8rem; display:block;">${t('stops.note')}</label>
+            <textarea id="stop-note" placeholder="${t('itinerary.add_note')}" style="min-height: 100px; font-size:1rem; padding: 1rem;">${stop.note || ''}</textarea>
         </div>
 
         <div style="display:flex; justify-content:space-between; align-items:center; padding-top: 1rem; margin-top: 1.5rem;">
             <div style="display:flex; gap:1.2rem;">
-                <button style="background:none; border:none; color:var(--text-secondary); cursor:pointer; display:flex; align-items:center; gap:5px; font-size:0.95rem;" onclick="openTimePickerModal()"><span style="font-size:1.1rem;">🕛</span> 添加时间</button>
-                <button style="background:none; border:none; color:var(--text-secondary); cursor:pointer; display:flex; align-items:center; gap:5px; font-size:0.95rem;"><span style="font-size:1.1rem;">📎</span> 附加 <span style="background:var(--accent-primary); color:#FFF; font-size:0.65rem; padding: 2px 6px; border-radius:4px;">PRO</span></button>
-                <button style="background:none; border:none; color:var(--text-secondary); cursor:pointer; display:flex; align-items:center; gap:5px; font-size:0.95rem;" onclick="openExpenseModal()"><span style="font-size:1.1rem;">💲</span> 添加费用</button>
+                <button style="background:none; border:none; color:var(--text-secondary); cursor:pointer; display:flex; align-items:center; gap:5px; font-size:0.95rem;" onclick="openTimePickerModal()"><span style="font-size:1.1rem;">🕛</span> ${t('stops.edit_time')}</button>
+                <button style="background:none; border:none; color:var(--text-secondary); cursor:pointer; display:flex; align-items:center; gap:5px; font-size:0.95rem;"><span style="font-size:1.1rem;">📎</span> ${t('stops.attach_btn') || 'Attach'} <span style="background:var(--accent-primary); color:#FFF; font-size:0.65rem; padding: 2px 6px; border-radius:4px;">PRO</span></button>
+                <button style="background:none; border:none; color:var(--text-secondary); cursor:pointer; display:flex; align-items:center; gap:5px; font-size:0.95rem;" onclick="openExpenseModal()"><span style="font-size:1.1rem;">💲</span> ${t('stops.add_expense')}</button>
             </div>
             <button class="menu-dots text-danger" style="position:static; margin:0; padding:5px;" onclick="deleteStop()"><span style="font-size:1.4rem;">🗑️</span></button>
         </div>
 
-        <button class="submit-btn" style="background: #f05252; color: white; margin-top: 2rem; border-radius: 30px; padding: 1rem; font-size:1.1rem; font-weight:bold;" onclick="saveStop()">保存</button>
+        <button class="submit-btn" style="background: #f05252; color: white; margin-top: 2rem; border-radius: 30px; padding: 1rem; font-size:1.1rem; font-weight:bold;" onclick="saveStop()">${t('common.save')}</button>
     `;
 
     const overlay = document.getElementById('modal-overlay');
@@ -341,7 +341,7 @@ function editDay(event, dayId) {
 
     const title = document.getElementById('sub-modal-title');
     const body = document.getElementById('sub-modal-body');
-    title.innerText = '修改日期';
+    title.innerText = t('itinerary.edit_day_label');
 
     // Parse date for flatpickr
     let defaultDate = "today";
@@ -351,10 +351,10 @@ function editDay(event, dayId) {
 
     body.innerHTML = `
         <div class="form-group" style="margin-bottom: 1.5rem;">
-            <label style="font-size:0.95rem; font-weight:bold; margin-bottom:0.8rem; display:block;">选择新日期</label>
-            <input type="text" id="edit-day-date" class="date-picker-input" value="${defaultDate}" placeholder="选择日期" style="width:100%; padding:0.8rem; background:var(--bg-primary); border:1px solid var(--glass-border); border-radius:8px; color:var(--text-primary); outline:none;">
+            <label style="font-size:0.95rem; font-weight:bold; margin-bottom:0.8rem; display:block;">${t('itinerary.edit_day_label')}</label>
+            <input type="text" id="edit-day-date" class="date-picker-input" value="${defaultDate}" placeholder="${t('common.search')}" style="width:100%; padding:0.8rem; background:var(--bg-primary); border:1px solid var(--glass-border); border-radius:8px; color:var(--text-primary); outline:none;">
         </div>
-        <button class="submit-btn" style="background: var(--accent-primary); color: white; width: 100%; border-radius: 8px; padding: 0.8rem; margin-bottom: 1.5rem; font-size:1rem; font-weight:bold; border:none; cursor:pointer;" onclick="saveEditDay('${dayId}')">保存修改</button>
+        <button class="submit-btn" style="background: var(--accent-primary); color: white; width: 100%; border-radius: 8px; padding: 0.8rem; margin-bottom: 1.5rem; font-size:1rem; font-weight:bold; border:none; cursor:pointer;" onclick="saveEditDay('${dayId}')">${t('common.save')}</button>
     `;
 
     const overlay = document.getElementById('sub-modal-overlay');
@@ -382,7 +382,7 @@ function saveEditDay(dayId) {
 
     const dObj = new Date(dp.value.replace(/-/g, '/'));
     if (!isNaN(dObj.getTime())) {
-        day.date = `${dObj.getFullYear()}年${dObj.getMonth() + 1}月${dObj.getDate()}日`;
+        day.date = formatDate(dp.value);
         saveData();
         renderApp();
     }
@@ -403,7 +403,7 @@ function editDaySubtitle(event, dayId) {
     if (subSpan.querySelector('input')) return;
 
     const currentText = day.subtitle || '';
-    subSpan.innerHTML = `<input type="text" value="${currentText}" style="background:transparent; border:none; border-bottom:1px solid var(--accent-primary); outline:none; color:var(--text-primary); font-size:inherit; font-family:inherit; padding: 0; min-width: 250px;" placeholder="添加副标题">`;
+    subSpan.innerHTML = `<input type="text" value="${currentText}" style="background:transparent; border:none; border-bottom:1px solid var(--accent-primary); outline:none; color:var(--text-primary); font-size:inherit; font-family:inherit; padding: 0; min-width: 250px;" placeholder="${t('itinerary.add_subtitle')}">`;
 
     const inputField = subSpan.querySelector('input');
     inputField.focus();
@@ -778,18 +778,18 @@ function openTimePickerModal() {
     const startHour = 8;
     for (let i = 0; i < 12; i++) {
         let h = startHour + i;
-        let period = h >= 12 ? '下午' : '上午';
+        let period = h >= 12 ? t('common.pm') : t('common.am');
         let displayH = h > 12 ? h - 12 : h;
         let padH = (displayH < 10 ? '0' : '') + displayH;
-        timeHtml += `<li style="padding: 1rem 1.5rem; cursor:pointer; border-bottom: 1px solid var(--glass-border); font-size:1.1rem; transition: background 0.2s;" onmouseover="this.style.background='var(--glass-border)'" onmouseout="this.style.background='none'" onclick="selectMockTime('${padH}:00', '${period === '上午' ? 'AM' : 'PM'}')">${displayH}:00 ${period}</li>`;
-        timeHtml += `<li style="padding: 1rem 1.5rem; cursor:pointer; border-bottom: 1px solid var(--glass-border); font-size:1.1rem; transition: background 0.2s;" onmouseover="this.style.background='var(--glass-border)'" onmouseout="this.style.background='none'" onclick="selectMockTime('${padH}:30', '${period === '上午' ? 'AM' : 'PM'}')">${displayH}:30 ${period}</li>`;
+        timeHtml += `<li style="padding: 1rem 1.5rem; cursor:pointer; border-bottom: 1px solid var(--glass-border); font-size:1.1rem; transition: background 0.2s;" onmouseover="this.style.background='var(--glass-border)'" onmouseout="this.style.background='none'" onclick="selectMockTime('${padH}:00', '${h >= 12 ? 'PM' : 'AM'}')">${displayH}:00 ${period}</li>`;
+        timeHtml += `<li style="padding: 1rem 1.5rem; cursor:pointer; border-bottom: 1px solid var(--glass-border); font-size:1.1rem; transition: background 0.2s;" onmouseover="this.style.background='var(--glass-border)'" onmouseout="this.style.background='none'" onclick="selectMockTime('${padH}:30', '${h >= 12 ? 'PM' : 'AM'}')">${displayH}:30 ${period}</li>`;
     }
 
     body.innerHTML = `
         <div style="display:flex; justify-content:center; align-items:center; gap:1rem; margin-bottom: 1.5rem;">
-            <div style="background: rgba(167, 139, 250, 0.1); color: var(--accent-secondary); border: 2px solid var(--accent-primary); padding: 0.6rem 1.5rem; border-radius: 8px; font-weight:bold; font-size:1.1rem;">开始时间</div>
+            <div style="background: rgba(167, 139, 250, 0.1); color: var(--accent-secondary); border: 2px solid var(--accent-primary); padding: 0.6rem 1.5rem; border-radius: 8px; font-weight:bold; font-size:1.1rem;">${t('itinerary.stay_checkin_time')}</div>
             <span style="color:var(--text-secondary)">—</span>
-            <div style="background: var(--bg-primary); padding: 0.6rem 1.5rem; border-radius: 8px; color:var(--text-secondary); font-size:1.1rem;">结束时间</div>
+            <div style="background: var(--bg-primary); padding: 0.6rem 1.5rem; border-radius: 8px; color:var(--text-secondary); font-size:1.1rem;">${t('itinerary.stay_checkout_time')}</div>
         </div>
         <div style="max-height: 300px; overflow-y:auto; border: 1px solid var(--glass-border); border-radius: 8px; margin-bottom: 1.5rem; background: var(--bg-primary);">
             <ul style="list-style:none; padding:0; margin:0; color:var(--text-primary);">
@@ -797,8 +797,8 @@ function openTimePickerModal() {
             </ul>
         </div>
         <div style="display:flex; gap:1rem; justify-content:center;">
-            <button class="submit-btn" style="background:var(--bg-primary); color:var(--text-primary); flex:1; font-size:1.1rem;" onclick="closeSubModal()">清除</button>
-            <button class="submit-btn" style="background:#f05252; flex:1; font-weight:bold; font-size:1.1rem;" onclick="closeSubModal()">保存</button>
+            <button class="submit-btn" style="background:var(--bg-primary); color:var(--text-primary); flex:1; font-size:1.1rem;" onclick="closeSubModal()">${t('common.delete')}</button>
+            <button class="submit-btn" style="background:#f05252; flex:1; font-weight:bold; font-size:1.1rem;" onclick="closeSubModal()">${t('common.save')}</button>
         </div>
     `;
 
@@ -833,21 +833,28 @@ function selectMockTime(time, period) {
 function openExpenseModal() {
     const title = document.getElementById('sub-modal-title');
     const body = document.getElementById('sub-modal-body');
-    title.innerText = '添加费用';
+    title.innerText = t('itinerary.add_expense');
 
     const trip = state.trips.find(t => t.id === state.activeTripId);
     const day = trip.days.find(d => d.id === editState.editingDayId);
     const stop = editState.editingStopId ? day.stops.find(s => s.id === editState.editingStopId) : { location: '', price: '' };
 
-    // Get formatted date like "10/26"
-    const dateStr = day.date.split('月');
-    let formattedDate = '添加日期';
-    if (dateStr.length > 1) {
-        const month = parseInt(dateStr[0].replace(/[^0-9]/g, '')).toString().padStart(2, '0');
-        const dStr = dateStr[1].split('日');
-        const d = parseInt(dStr[0].replace(/[^0-9]/g, '')).toString().padStart(2, '0');
-        formattedDate = `${month}/${d}`;
-    }
+    // Format the day date robustly for both English ("Mar 11, 2026") and Chinese ("3月11日") formats
+    let formattedDate = t('stops.expense_add_date') || 'Date';
+    try {
+        // Normalize Chinese date separators to slashes so Date() can parse
+        const normalized = day.date
+            .replace(/年/g, '/')
+            .replace(/月/g, '/')
+            .replace(/日/g, '')
+            .trim();
+        const parsed = new Date(normalized);
+        if (!isNaN(parsed.getTime())) {
+            const m = String(parsed.getMonth() + 1).padStart(2, '0');
+            const d = String(parsed.getDate()).padStart(2, '0');
+            formattedDate = `${m}/${d}`;
+        }
+    } catch(e) { /* keep default */ }
 
     // Category Icons Map
     const categoryIcons = {
@@ -949,7 +956,7 @@ function openExpenseModal() {
                     <span id="expense-selected-icon-container" style="display:flex; align-items:center; justify-content:center; width:24px; height:24px; border-radius:6px; background:#94a3b8; margin-right:4px;">
                         ${currentIcon}
                     </span>
-                    <span id="expense-selected-label">${currentCat}</span>
+                    <span id="expense-selected-label">${t('dashboard.categories.' + currentCat) || currentCat}</span>
                 </div>
                 <span style="color:var(--text-secondary); font-weight:bold;">›</span>
             </div>
@@ -959,7 +966,7 @@ function openExpenseModal() {
                         <div class="expense-cat-icon" id="icon-bg-${cat}" style="background: ${currentCat === cat ? 'var(--accent-primary)' : '#94a3b8'};">
                             ${categoryIcons[cat]}
                         </div>
-                        <span class="expense-cat-label">${cat}</span>
+                        <span class="expense-cat-label">${t('dashboard.categories.' + cat) || cat}</span>
                     </div>
                 `).join('')}
             </div>
@@ -968,40 +975,40 @@ function openExpenseModal() {
 
         <div class="expense-modal-group">
             <div style="padding: 12px 16px;">
-                <label style="font-size:0.8rem; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">添加描述</label>
-                <textarea style="width:100%; padding:4px 0; border:none; outline:none; resize:none; font-size:1rem; color:var(--text-primary); background:transparent; min-height:48px;" placeholder="在此输入描述">${stop.location || ''}</textarea>
+                <label style="font-size:0.8rem; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">${t('stops.expense_desc') || 'Add Description'}</label>
+                <textarea style="width:100%; padding:4px 0; border:none; outline:none; resize:none; font-size:1rem; color:var(--text-primary); background:transparent; min-height:48px;" placeholder="${t('stops.expense_desc_placeholder') || 'Enter description'}">${stop.location || ''}</textarea>
             </div>
         </div>
 
         <div class="expense-modal-group">
             <div class="expense-modal-row" style="cursor:pointer;">
-                <div style="font-weight:700;">付款人</div>
+                <div style="font-weight:700;">${t('stops.expense_payer') || 'Payer'}</div>
                 <div class="expense-dropdown-text" style="color:var(--text-secondary); font-weight:normal;">
                     <div style="width:24px; height:24px; border-radius:50%; background:var(--bg-secondary); display:inline-block; vertical-align:middle; background-image:url('https://picsum.photos/50'); background-size:cover;"></div>
-                    ${state.user?.name || '您（Show Box）'} <span style="font-size:0.8rem; opacity:0.6; margin-left:4px;">▼</span>
+                    ${state.user?.name || (t('common.you') + '（' + (state.user?.displayName || 'Show Box') + '）')} <span style="font-size:0.8rem; opacity:0.6; margin-left:4px;">▼</span>
                 </div>
             </div>
         </div>
 
         <div class="expense-modal-group">
             <div class="expense-modal-row" style="cursor:pointer;">
-                <div style="font-weight:700;">分摊</div>
+                <div style="font-weight:700;">${t('stops.expense_split') || 'Split'}</div>
                 <div class="expense-dropdown-text" style="color:var(--text-secondary); font-weight:normal;">
-                    不分摊 <span style="font-size:0.8rem; opacity:0.6; margin-left:4px;">▼</span>
+                    ${t('stops.no_split') || 'No Split'} <span style="font-size:0.8rem; opacity:0.6; margin-left:4px;">▼</span>
                 </div>
             </div>
         </div>
 
         <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top: 1rem; margin-bottom: 0.5rem; padding: 0 4px;">
-            <div style="color:var(--text-secondary); font-weight:700; font-size:0.95rem; cursor:pointer;" title="修改日期">
-                日期: <span style="color:var(--text-secondary); font-weight:normal;">${formattedDate} ▼</span>
+            <div style="color:var(--text-secondary); font-weight:700; font-size:0.95rem; cursor:pointer;" title="${t('common.edit')}">
+                ${t('common.date')}: <span style="color:var(--text-secondary); font-weight:normal;">${formattedDate} ▼</span>
             </div>
             <div style="display:flex; gap: 1rem;">
                 <button onclick="closeSubModal()" style="background:var(--bg-secondary); color:var(--text-secondary); border:none; border-radius:20px; padding: 10px 24px; font-weight:700; display:flex; align-items:center; gap:6px; cursor:pointer; font-size:0.9rem;">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6"/></svg> 删除
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6"/></svg> ${t('common.delete')}
                 </button>
                 <button onclick="saveMockExpense()" style="background:#ef4444; color:white; border:none; border-radius:20px; padding: 10px 42px; font-weight:700; cursor:pointer; font-size:1rem; box-shadow:0 4px 10px rgba(239, 68, 68, 0.3);">
-                    保存
+                    ${t('common.save')}
                 </button>
             </div>
         </div>
@@ -1024,7 +1031,10 @@ function openExpenseModal() {
 window.selectExpenseCategory = function (evt, cat) {
     if (evt) evt.stopPropagation();
     document.getElementById('expense-category-input').value = cat;
-    document.getElementById('expense-selected-label').innerText = cat;
+    // Display the translated category name, fall back to raw key if no translation found
+    const translatedCat = t('dashboard.categories.' + cat);
+    document.getElementById('expense-selected-label').innerText =
+        (translatedCat && translatedCat !== 'dashboard.categories.' + cat) ? translatedCat : cat;
 
     // Update the selected category icon
     const iconHTML = document.getElementById(`icon-bg-${cat}`).innerHTML;
@@ -1092,17 +1102,17 @@ function changeStopImage(dayId, stopId) {
 
     const title = document.getElementById('sub-modal-title');
     const body = document.getElementById('sub-modal-body');
-    title.innerText = '修改地点照片';
+    title.innerText = t('itinerary.change_photo_title');
 
     body.innerHTML = `
         <div style="padding: 10px 0;">
-            <p style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:1rem;">从 Google Maps 搜索实拍图:</p>
+            <p style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:1rem;">${t('itinerary.search_photos_hint')}</p>
             <div style="display:flex; gap:8px; margin-bottom:16px;">
-                <input type="text" id="stop-image-search-input" value="${stop.location}" placeholder="输入地名或关键词" 
+                <input type="text" id="stop-image-search-input" value="${stop.location}" placeholder="${t('itinerary.search_photos_placeholder')}" 
                     style="flex:1; padding:12px; border:1.5px solid var(--glass-border); border-radius:10px; background:var(--bg-secondary); color:var(--text-primary); outline:none; font-size:1rem;" 
                     onkeydown="if(event.key === 'Enter') window.searchGoogleStopImages('${dayId}', '${stopId}', this.value)">
                 <button onclick="window.searchGoogleStopImages('${dayId}', '${stopId}', document.getElementById('stop-image-search-input').value)" 
-                    style="padding:0 20px; border-radius:10px; border:none; background:var(--accent-primary); color:white; cursor:pointer; font-weight:600;">搜索</button>
+                    style="padding:0 20px; border-radius:10px; border:none; background:var(--accent-primary); color:white; cursor:pointer; font-weight:600;">${t('itinerary.search')}</button>
             </div>
             
             <div id="image-grid" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; min-height:220px; max-height:350px; overflow-y:auto; padding:4px;">
@@ -1112,8 +1122,8 @@ function changeStopImage(dayId, stopId) {
             <input type="hidden" id="selected-stop-image-url" value="${stop.photo || ''}">
             
             <div style="margin-top:24px; display:flex; gap:12px; justify-content:flex-end;">
-                <button onclick="closeSubModal()" style="padding:10px 24px; border-radius:20px; border:none; background:var(--bg-secondary); color:var(--text-secondary); cursor:pointer; font-weight:600; font-size:0.95rem;">取消</button>
-                <button onclick="window.confirmStopImage('${dayId}', '${stopId}')" style="padding:10px 32px; border-radius:20px; border:none; background:var(--accent-primary); color:white; cursor:pointer; font-weight:600; font-size:0.95rem; box-shadow:0 4px 12px rgba(79, 70, 229, 0.3);">确定更换</button>
+                <button onclick="closeSubModal()" style="padding:10px 24px; border-radius:20px; border:none; background:var(--bg-secondary); color:var(--text-secondary); cursor:pointer; font-weight:600; font-size:0.95rem;">${t('itinerary.cancel')}</button>
+                <button onclick="window.confirmStopImage('${dayId}', '${stopId}')" style="padding:10px 32px; border-radius:20px; border:none; background:var(--accent-primary); color:white; cursor:pointer; font-weight:600; font-size:0.95rem; box-shadow:0 4px 12px rgba(79, 70, 229, 0.3);">${t('itinerary.confirm_change')}</button>
             </div>
         </div>
     `;
@@ -1397,27 +1407,27 @@ export async function openSettingsModal() {
     body.innerHTML = `
         <div class="settings-grid" style="display:grid; gap:1.5rem; padding:0.5rem 0;">
             <div class="form-group">
-                <label>语言 / Language</label>
+                <label>${t('itinerary.settings_lang')}</label>
                 <select id="setting-lang" class="custom-select" onchange="window._updateSetting('language', this.value)" style="width:100%; background:var(--bg-primary); color:white; border:1px solid var(--glass-border); padding:0.8rem; border-radius:8px;">
                     ${langs.map(l => `<option value="${l.code}" ${l.code === curLang ? 'selected' : ''}>${l.name}</option>`).join('')}
                 </select>
             </div>
             <div class="form-group">
-                <label>距离单位 / Distance Unit</label>
+                <label>${t('itinerary.settings_distance')}</label>
                 <select id="setting-distance" class="custom-select" onchange="window._updateSetting('unitDistance', this.value)" style="width:100%; background:var(--bg-primary); color:white; border:1px solid var(--glass-border); padding:0.8rem; border-radius:8px;">
-                    <option value="km" ${curDist === 'km' ? 'selected' : ''}>公制 (Kilometers)</option>
-                    <option value="mi" ${curDist === 'mi' ? 'selected' : ''}>英制 (Miles)</option>
+                    <option value="km" ${curDist === 'km' ? 'selected' : ''}>${t('itinerary.unit_metric')}</option>
+                    <option value="mi" ${curDist === 'mi' ? 'selected' : ''}>${t('itinerary.unit_imperial')}</option>
                 </select>
             </div>
             <div class="form-group">
-                <label>温度单位 / Temperature Unit</label>
+                <label>${t('itinerary.settings_temp')}</label>
                 <select id="setting-temp" class="custom-select" onchange="window._updateSetting('unitTemp', this.value)" style="width:100%; background:var(--bg-primary); color:white; border:1px solid var(--glass-border); padding:0.8rem; border-radius:8px;">
-                    <option value="c" ${curTemp === 'c' ? 'selected' : ''}>摄氏度 (°C)</option>
-                    <option value="f" ${curTemp === 'f' ? 'selected' : ''}>华氏度 (°F)</option>
+                    <option value="c" ${curTemp === 'c' ? 'selected' : ''}>${t('itinerary.unit_celsius')}</option>
+                    <option value="f" ${curTemp === 'f' ? 'selected' : ''}>${t('itinerary.unit_fahrenheit')}</option>
                 </select>
             </div>
             <div class="form-group">
-                <label>货币单位 / Currency</label>
+                <label>${t('itinerary.settings_currency')}</label>
                 <select id="setting-currency" class="custom-select" onchange="window._updateSetting('currency', this.value)" style="width:100%; background:var(--bg-primary); color:white; border:1px solid var(--glass-border); padding:0.8rem; border-radius:8px;">
                     <option value="USD" ${curCurrency === 'USD' ? 'selected' : ''}>USD ($)</option>
                     <option value="CNY" ${curCurrency === 'CNY' ? 'selected' : ''}>CNY (¥)</option>
@@ -1428,7 +1438,7 @@ export async function openSettingsModal() {
             </div>
         </div>
         <div style="margin-top:2rem; text-align:right;">
-            <button class="submit-btn" onclick="closeModal()" style="min-width:120px;">完成</button>
+            <button class="submit-btn" onclick="closeModal()" style="min-width:120px;">${t('itinerary.settings_done')}</button>
         </div>
     `;
 
@@ -1440,6 +1450,8 @@ window._updateSetting = async (key, value) => {
     if (key === 'language') {
         const { loadLanguage } = await import('../i18n.js');
         await loadLanguage(value);
+        // Cache the selected language locally so the next session loads it instantly
+        localStorage.setItem('smart-trip-lang', value);
     }
     const { saveData } = await import('../../api.js');
     const { renderApp } = await import('../render.js');

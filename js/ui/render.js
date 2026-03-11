@@ -20,6 +20,20 @@ styleEl.textContent = `
     }
 `;
 document.head.appendChild(styleEl);
+function localizeStaticContent() {
+    // Update navbar and title
+    const title = document.getElementById('page-title');
+    if (title) title.innerText = `Smart Trip | ${t('common.tagline')}`;
+    
+    const searchInput = document.getElementById('main-search');
+    if (searchInput) searchInput.placeholder = t('common.search');
+    
+    const homeNav = document.getElementById('nav-home');
+    if (homeNav) homeNav.innerText = t('common.home');
+    
+    const tripsNav = document.getElementById('nav-trips');
+    if (tripsNav) tripsNav.innerText = t('common.my_trips');
+}
 
 function updateNavLinks() {
     const nav = document.querySelector('.navbar nav ul');
@@ -54,6 +68,7 @@ function updateNavLinks() {
             `;
         }
     }
+    localizeStaticContent();
 }
 
 export function renderApp() {
@@ -61,15 +76,25 @@ export function renderApp() {
         const container = document.getElementById('app-container');
         if (!container) return;
 
-        // Auto-routing based on state
+        // Auto-routing based on state (Only redirect IF initialization is finished)
         if (!state.user && state.currentView !== 'login') {
+            // Check if we are still in the middle of a boot-up sync
+            console.log("[Render] 🔍 Checking auth status before routing...");
+            // Non-blocking wait for session check if needed, but for now 
+            // the simple fix is to ensure main.js orchestration is respected.
             state.currentView = 'login';
+        }
+
+        if (state.currentView === 'login' && state.user) {
+            // Recovery: if we have a user but are stuck on login view, go to dashboard
+            state.currentView = 'dashboard';
         }
 
         if (state.currentView === 'login') {
             container.innerHTML = getLoginHTML();
             updateNavLinks();
         } else if (state.currentView === 'dashboard') {
+
             container.innerHTML = getDashboardHTML();
             updateNavLinks();
         } else if (state.currentView === 'trip') {

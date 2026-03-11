@@ -30,12 +30,12 @@ export function addDay() {
     const newDayNum = trip.days.length + 1;
     const newDayId = `day-${Date.now()}`;
 
-    let newDateStr = '未知日期';
+    let newDateStr = t('itinerary.unknown_date');
     if (trip.startDate) {
         let d = new Date(trip.startDate.replace(/-/g, '/'));
         d.setDate(d.getDate() + trip.days.length);
         if (!isNaN(d)) {
-            newDateStr = `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
+            newDateStr = formatDate(trip.startDate, trip.days.length);
         }
     }
 
@@ -44,7 +44,7 @@ export function addDay() {
 
     const newDay = {
         id: newDayId,
-        title: `第 ${newDayNum} 天`,
+        title: `${t('itinerary.day_label')}${newDayNum}${t('itinerary.day_suffix') || ''}`,
         date: newDateStr,
         stops: [],
         color: newColor
@@ -73,7 +73,7 @@ export function addDay() {
 
 export function deleteDay(event, dayId) {
     event.stopPropagation();
-    window.openConfirmModal('确定要清空这一天所有的行程安排吗？', () => {
+    window.openConfirmModal(t('common.clear_day_confirm'), () => {
         const trip = state.trips.find(t => t.id === state.activeTripId);
         if (trip) {
             const day = trip.days.find(d => d.id === dayId);
@@ -149,7 +149,7 @@ export function setDayColor(dayId, colorHex) {
 export function deleteStop(event, dayId, stopId) {
     if (event && dayId && stopId) {
         if (event) event.stopPropagation();
-        window.openConfirmModal("确定要删除这项内容吗？", () => {
+        window.openConfirmModal(t('common.delete_confirm'), () => {
             const trip = state.trips.find(t => t.id === state.activeTripId);
             const day = trip.days.find(d => d.id === dayId);
             day.stops = day.stops.filter(s => s.id !== stopId);
@@ -157,7 +157,7 @@ export function deleteStop(event, dayId, stopId) {
             renderApp();
         });
     } else {
-        window.openConfirmModal("确定删除这个目的地吗？", () => {
+        window.openConfirmModal(t('common.delete_confirm'), () => {
             const trip = state.trips.find(t => t.id === state.activeTripId);
             const day = trip.days.find(d => d.id === editState.editingDayId);
             day.stops = day.stops.filter(s => s.id !== editState.editingStopId);
@@ -229,10 +229,10 @@ export function deleteTimelineItem(event, dayId, itemId) {
     }
 
     prompt.innerHTML = `
-        <span>${isHotelStay ? '确定要删除这条住宿（包括入住和退房）吗？' : '确定要删除吗？'}</span>
+        <span>${isHotelStay ? t('common.delete_hotel_confirm') : t('common.delete_confirm')}</span>
         <div style="display:flex; gap: 0.6rem;">
-            <button id="light-confirm-cancel" style="background:transparent; border:1px solid var(--text-secondary); color:var(--text-secondary); padding:0.3rem 0.8rem; border-radius:6px; cursor:pointer;">取消</button>
-            <button id="light-confirm-ok" style="background:#ef4444; border:none; color:white; padding:0.3rem 0.8rem; border-radius:6px; cursor:pointer; font-weight:bold;">确定</button>
+            <button id="light-confirm-cancel" style="background:transparent; border:1px solid var(--text-secondary); color:var(--text-secondary); padding:0.3rem 0.8rem; border-radius:6px; cursor:pointer;">${t('common.cancel')}</button>
+            <button id="light-confirm-ok" style="background:#ef4444; border:none; color:white; padding:0.3rem 0.8rem; border-radius:6px; cursor:pointer; font-weight:bold;">${t('common.confirm')}</button>
         </div>
     `;
 
@@ -264,7 +264,7 @@ export function deleteTimelineItem(event, dayId, itemId) {
             const countSpan = document.getElementById(`sidebar-count-${dayId}`);
             if (countSpan) {
                 const locationStops = day.stops.filter(s => s.type === 'location' || !s.type).length;
-                countSpan.innerText = `共 ${locationStops} 站行程`;
+                countSpan.innerText = t('itinerary.total_stops').replace('{count}', locationStops);
             }
 
             // Re-render only the affected day
@@ -308,7 +308,7 @@ export function saveStop() {
     }
 
     if (!loc) {
-        alert("请输入地点名称");
+        alert(t('common.input_location_hint'));
         return;
     }
 
@@ -714,7 +714,7 @@ export async function autoAddStop(dayId, placeId, afterStopId) {
             }
             const countSpan = document.getElementById(`sidebar-count-${dayId}`);
             const locationStops = day.stops.filter(s => s.type === 'location' || !s.type).length;
-            if (countSpan) countSpan.innerText = `共 ${locationStops} 站行程`;
+            if (countSpan) countSpan.innerText = t('itinerary.total_stops').replace('{count}', locationStops);
         };
         renderDay();
 
@@ -733,18 +733,13 @@ export async function autoAddStop(dayId, placeId, afterStopId) {
 
         if (remotePhotoUrl) {
             import('../../api.js').then(api => {
-                fetch(api.endpoints.uploadImage, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url: remotePhotoUrl })
-                })
-                    .then(r => r.json())
+                api.uploadImage(remotePhotoUrl)
                     .then(result => {
                         if (result.status === 'success' && result.localUrl) {
                             newStop.photo = result.localUrl;
-                            saveData();
+                            api.saveData();
                             renderDay();
-                            console.log('[image-cache] Saved to cloud:', result.localUrl);
+                            console.log('[image-cache] Stop photo cached:', result.localUrl);
                         }
                     })
                     .catch(err => {
@@ -755,7 +750,7 @@ export async function autoAddStop(dayId, placeId, afterStopId) {
 
     } catch (err) {
         console.error('[autoAddStop] Place.fetchFields failed:', err);
-        alert('无法获取地点信息，请重试');
+        alert(t('common.fetch_error'));
     }
 }
 

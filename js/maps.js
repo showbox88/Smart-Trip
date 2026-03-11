@@ -21,15 +21,19 @@ async function fetchRouteDuration(origin, dest, travelMode = 'DRIVE') {
             })
         });
         const data = await res.json();
-        if (!data.routes || !data.routes[0]) return null;
+        if (!data.routes || !data.routes[0]) {
+            console.warn('[routes] API returned no routes. Response:', JSON.stringify(data).slice(0, 300));
+            return null;
+        }
         const route = data.routes[0];
-        const seconds = parseInt(route.duration);  // e.g. "3600s" → 3600
+        // Routes v2 API returns duration as a string like "1234s" — strip the trailing 's'
+        const durationStr = route.duration || '0s';
+        const seconds = parseInt(durationStr.toString().replace(/[^0-9]/g, ''), 10);
         const meters = route.distanceMeters;
-        const h = Math.floor(seconds / 3600);
-        const m = Math.floor((seconds % 3600) / 60);
+
         return {
-            duration: h > 0 ? `${h} 小时 ${m} 分钟` : `${m} 分钟`,
-            distance: `${(meters / 1000).toFixed(1)} 公里`,
+            duration: formatDuration(seconds),
+            distance: formatDistance(meters),
             durationSeconds: seconds,
             distanceMeters: meters
         };
@@ -77,6 +81,7 @@ let hoverInfoWindow = null;
 
 function showMarkerHoverInfo(stop, marker, trip) {
     if (!googleMapInstance) return;
+    const isHotel = stop.type === 'hotel_checkin' || stop.type === 'hotel_checkout';
     if (!hoverInfoWindow) {
         hoverInfoWindow = new google.maps.InfoWindow({
             disableAutoPan: true
@@ -132,14 +137,13 @@ function showMarkerHoverInfo(stop, marker, trip) {
     });
 
     const reverseFilter = mapDarkMode ? 'filter: invert(1) hue-rotate(180deg);' : '';
-    const displayType = stop.category || (stop.type === 'hotel_checkin' || stop.type === 'hotel_checkout' ? '住宿' : '地点');
-    const isHotel = stop.type === 'hotel_checkin' || stop.type === 'hotel_checkout';
-
+    const displayType = stop.category || (isHotel ? t('dashboard.categories.住宿') : t('dashboard.categories.地点'));
+    
     // Choose icon based on type
     let categoryIcon = 'restaurant';
     if (isHotel) categoryIcon = 'hotel';
-    else if (stop.category === '购物') categoryIcon = 'shopping_bag';
-    else if (stop.category === '景点') categoryIcon = 'attractions';
+    else if (stop.category === t('dashboard.categories.购物')) categoryIcon = 'shopping_bag';
+    else if (stop.category === t('dashboard.categories.景点')) categoryIcon = 'attractions';
 
     // Hotel logic: find pair and calculate stay
     let stayInfo = null;
@@ -186,12 +190,12 @@ function showMarkerHoverInfo(stop, marker, trip) {
                 <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px; color: ${theme.text}; font-size: 0.9rem;">
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <span class="material-symbols-outlined" style="font-size: 16px; color: #6366f1;">login</span>
-                        <span style="color: #ffffff; width: 50px;">入住:</span>
+                        <span style="color: #ffffff; width: 65px;">${t('map.checkin')}:</span>
                         <span style="font-weight: 600;"><span style="display: inline-block; width: 120px;">${stayInfo.cin.date}</span> <span style="color: #4ade80; font-size: 0.8rem;">${stayInfo.cin.time}</span></span>
                     </div>
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <span class="material-symbols-outlined" style="font-size: 16px; color: #f43f5e;">logout</span>
-                        <span style="color: #ffffff; width: 50px;">退房:</span>
+                        <span style="color: #ffffff; width: 65px;">${t('map.checkout')}:</span>
                         <span style="font-weight: 600;"><span style="display: inline-block; width: 120px;">${stayInfo.cout.date}</span> <span style="color: #f43f5e; font-size: 0.8rem;">${stayInfo.cout.time}</span></span>
                     </div>
                     ${stop.address ? `
@@ -220,14 +224,14 @@ function showMarkerHoverInfo(stop, marker, trip) {
             <div style="display: flex; gap: 10px; margin-top: auto; padding-top: 15px;">
                 ${isHotel && stayInfo ? `
                     <div style="padding: 5px 14px; border-radius: 6px; background: ${theme.accentBg}; color: ${theme.accentText}; font-weight: 700; font-size: 0.85rem; display: flex; align-items: center;">
-                        ${stayInfo.nights} 晚
+                        ${stayInfo.nights} ${t('map.nights')}
                     </div>
                     <div style="padding: 5px 14px; border-radius: 6px; background: ${theme.priceBg}; color: ${theme.priceText}; font-weight: 700; font-size: 0.85rem; display: flex; align-items: center;">
                         ${formatCurrency(parseFloat(stayInfo.price))}
                     </div>
                 ` : `
                     <div style="padding: 5px 14px; border-radius: 6px; background: ${theme.timeBg}; color: ${theme.timeText}; font-weight: 700; font-size: 0.85rem; display: flex; align-items: center;">
-                        ${stop.time} ${stop.period === 'AM' ? '上午' : '下午'}
+                        ${stop.time} ${stop.period === 'AM' ? t('common.am') : t('common.pm')}
                     </div>
                     ${stop.price && stop.price !== '0' ? `
                     <div style="padding: 5px 14px; border-radius: 6px; background: ${theme.priceBg}; color: ${theme.priceText}; font-weight: 700; font-size: 0.85rem; display: flex; align-items: center;">
@@ -297,10 +301,9 @@ export function toggleMapDarkMode() {
     if (mapDiv) {
         mapDiv.style.filter = mapDarkMode ? 'invert(90%) hue-rotate(180deg)' : '';
     }
-    const btn = document.getElementById('map-dark-toggle');
     if (btn) {
         btn.innerText = mapDarkMode ? '☀️' : '🌙';
-        btn.title = mapDarkMode ? '切换日间模式' : '切换夜间模式';
+        btn.title = mapDarkMode ? t('map.toggle_day') : t('map.toggle_night');
     }
 }
 
@@ -309,6 +312,7 @@ export function initRealMap() {
     const debugEl = document.getElementById('map-debug-status');
 
     try {
+        let totalPins = 0;
         if (!googleMapsReady || typeof google === 'undefined') {
             if (debugEl) debugEl.innerText = "Map Status: Google Maps API Not Loaded";
             return;
@@ -318,7 +322,8 @@ export function initRealMap() {
             console.error("real-map div not found");
             return;
         }
-        if (debugEl) debugEl.innerText = "Map Status: Initializing Google Map Instance...";
+        if (debugEl) debugEl.innerText = t('map.status_ready').replace('{count}', totalPins);
+
 
         // If real-map is a freshly rendered empty div (has no Google Maps panes injected yet), 
         // the old instance is detached. We must recreate it.
@@ -365,7 +370,7 @@ export function initRealMap() {
 
         const bounds = new google.maps.LatLngBounds();
         let hasValidPins = false;
-        let totalPins = 0;
+        totalPins = 0;
 
         trip.days.forEach(day => {
             // Skip collapsed days
@@ -527,12 +532,12 @@ export function initRealMap() {
 
         if (hasValidPins) {
             googleMapInstance.fitBounds(bounds);
-            if (debugEl) debugEl.innerText = `Map Status: Ready (${totalPins} pins)`;
+            if (debugEl) debugEl.innerText = t('map.status_ready').replace('{count}', totalPins);
             if (googleMapMarkers.length === 1) {
                 setTimeout(() => { if (googleMapInstance) googleMapInstance.setZoom(15); }, 200);
             }
         } else {
-            if (debugEl) debugEl.innerText = "Map Status: Ready (No locations to show)";
+            if (debugEl) debugEl.innerText = t('map.status_ready').replace('{count}', 0);
         }
 
         // --- Custom Search Control Injection ---
@@ -585,7 +590,7 @@ function initMapSearchControl(mapInstance) {
 
     const searchInput = document.createElement('input');
     searchInput.type = 'text';
-    searchInput.placeholder = '搜索地点';
+    searchInput.placeholder = t('map.search_placeholder');
     searchInput.style.border = 'none';
     searchInput.style.outline = 'none';
     searchInput.style.flex = '1';
@@ -610,11 +615,11 @@ function initMapSearchControl(mapInstance) {
     dropdown.style.fontFamily = 'var(--font-primary)';
 
     const categories = [
-        { label: '餐饮', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M11 9H9V2H7v7H5V2H3v7c0 2.12 1.66 3.84 3.75 3.97V22h2.5v-9.03C11.34 12.84 13 11.12 13 9V2h-2v7zm5-3v8h2.5v8H21V2c-2.76 0-5 2.24-5 4z"/></svg>', type: ['restaurant', 'cafe', 'fast_food', 'bakery', 'coffee_shop', 'sandwich_shop', 'steak_house', 'american_restaurant', 'chinese_restaurant', 'pizza_restaurant', 'seafood_restaurant'] },
-        { label: '旅游景点', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>', type: ['tourist_attraction', 'museum', 'park', 'national_park', 'historical_landmark', 'amusement_center', 'aquarium', 'art_gallery'] },
-        { label: '加油站', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19.77 7.23l.01-.01-3.72-3.72L15 4.56l2.11 2.11C16.17 7 15.5 8.22 15.5 9.61c0 2.54 1.95 4.62 4.45 4.86V20h2v-5.5h-2.5V9.61c0-1.01-.48-1.92-1.22-2.5l.38-.38-.34-.5-1 1M12 10H6v4h6v-4m0-6H6c-1.1 0-2 .9-2 2v14h8V4z"/></svg>', type: ['gas_station'] },
-        { label: '电动车充电', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M14.5 11l-3 6v-4h-2l3-6v4h2z M17 3H7c-1.1 0-2 .9-2 2v16h14V5c0-1.1-.9-2-2-2zm0 16H7V5h10v14z"/></svg>', type: ['electric_vehicle_charging_station'] },
-        { label: '休息站', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M7 13c1.66 0 3-1.34 3-3S8.66 7 7 7s-3 1.34-3 3 1.34 3 3 3zm12-6h-8v7H3V5H1v15h2v-3h18v3h2v-9c0-2.21-1.79-4-4-4z"/></svg>', type: ['lodging', 'hotel', 'motel', 'bed_and_breakfast', 'guest_house', 'hostel', 'resort_hotel', 'rv_park'] }
+        { label: t('map.category_dining'), icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M11 9H9V2H7v7H5V2H3v7c0 2.12 1.66 3.84 3.75 3.97V22h2.5v-9.03C11.34 12.84 13 11.12 13 9V2h-2v7zm5-3v8h2.5v8H21V2c-2.76 0-5 2.24-5 4z"/></svg>', type: ['restaurant', 'cafe', 'fast_food', 'bakery', 'coffee_shop', 'sandwich_shop', 'steak_house', 'american_restaurant', 'chinese_restaurant', 'pizza_restaurant', 'seafood_restaurant'] },
+        { label: t('map.category_attractions'), icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>', type: ['tourist_attraction', 'museum', 'park', 'national_park', 'historical_landmark', 'amusement_center', 'aquarium', 'art_gallery'] },
+        { label: t('map.category_gas'), icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19.77 7.23l.01-.01-3.72-3.72L15 4.56l2.11 2.11C16.17 7 15.5 8.22 15.5 9.61c0 2.54 1.95 4.62 4.45 4.86V20h2v-5.5h-2.5V9.61c0-1.01-.48-1.92-1.22-2.5l.38-.38-.34-.5-1 1M12 10H6v4h6v-4m0-6H6c-1.1 0-2 .9-2 2v14h8V4z"/></svg>', type: ['gas_station'] },
+        { label: t('map.category_charging'), icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M14.5 11l-3 6v-4h-2l3-6v4h2z M17 3H7c-1.1 0-2 .9-2 2v16h14V5c0-1.1-.9-2-2-2zm0 16H7V5h10v14z"/></svg>', type: ['electric_vehicle_charging_station'] },
+        { label: t('map.category_lodging'), icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M7 13c1.66 0 3-1.34 3-3S8.66 7 7 7s-3 1.34-3 3 1.34 3 3 3zm12-6h-8v7H3V5H1v15h2v-3h18v3h2v-9c0-2.21-1.79-4-4-4z"/></svg>', type: ['lodging', 'hotel', 'motel', 'bed_and_breakfast', 'guest_house', 'hostel', 'resort_hotel', 'rv_park'] }
     ];
 
     categories.forEach((cat, idx) => {
@@ -681,7 +686,7 @@ window.triggerMapSearch = async function (query, typeRestraint = null) {
 
         const searchRequest = {
             fields: ['id', 'location', 'displayName'],
-            language: 'zh-CN', // enforce Chinese metadata response
+            language: state.settings.language === 'zh' ? 'zh-CN' : 'en-US',
             maxResultCount: 20 // Max out the results to give user the full picture
         };
 
@@ -744,18 +749,13 @@ window.triggerMapSearch = async function (query, typeRestraint = null) {
             });
 
             googleMapInstance.fitBounds(bounds);
-            if (places.length === 1) {
-                // If only one result, zoom in a bit closer manually
-                googleMapInstance.setZoom(16);
-            }
-
-            if (debugEl) debugEl.innerText = `Map Status: Found ${places.length} results for ${query}`;
+            if (debugEl) debugEl.innerText = t('map.status_found').replace('{count}', places.length);
 
             // Trigger click event to pop open the side panel automatically for the first hit
             const firstPlace = places[0];
             window._openPlacePanel(firstPlace.id);
         } else {
-            if (debugEl) debugEl.innerText = `Map Status: No results for ${query}`;
+            if (debugEl) debugEl.innerText = t('map.status_no_results').replace('{query}', query);
         }
     } catch (err) {
         console.error("Map search error:", err);
@@ -775,7 +775,7 @@ window.openLocationInMapPanel = async function (query, lat, lng) {
         const searchRequest = {
             textQuery: query,
             fields: ['id', 'displayName', 'formattedAddress', 'rating', 'userRatingCount', 'types', 'photos', 'priceLevel', 'regularOpeningHours', 'nationalPhoneNumber', 'internationalPhoneNumber', 'websiteURI', 'reviews', 'location'],
-            language: 'zh-CN',
+            language: state.settings.language === 'zh' ? 'zh-CN' : 'en-US',
             maxResultCount: 3
         };
 
@@ -905,13 +905,13 @@ async function showMapInfoPanel(place, placeId) {
         </div>`;
     }
     // Default placeholder if no reviews
-    let reviewsHtml = '<div style="color:var(--text-secondary);text-align:center;padding:1rem;">暂无评价</div>';
+    let reviewsHtml = `<div style="color:var(--text-secondary);text-align:center;padding:1rem;">${t('map.no_reviews')}</div>`;
     if (place.reviews && place.reviews.length > 0) {
         reviewsHtml = place.reviews.map(r => `
             <div style="border-bottom:1px solid var(--glass-border); padding-bottom:1rem; margin-bottom:1rem;">
                 <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
                     ${r.authorURI ? `<img src="${r.authorPhotoURI}" style="width:28px;height:28px;border-radius:50%;">` : '<div style="width:28px;height:28px;border-radius:50%;background:#5b7a99;display:flex;align-items:center;justify-content:center;font-size:12px;">👤</div>'}
-                    <span style="font-weight:600;font-size:0.9rem;">${r.authorAttribution?.displayName || '匿名用户'}</span>
+                    <span style="font-weight:600;font-size:0.9rem;">${r.authorAttribution?.displayName || t('map.anonymous_user')}</span>
                     <span style="color:#f4b942;font-size:0.8rem;margin-left:auto;">${'★'.repeat(r.rating || 5)}</span>
                 </div>
                 <div style="font-size:0.85rem; color:var(--text-secondary); line-height:1.5; display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; overflow:hidden;">${r.text || ''}</div>
@@ -922,7 +922,7 @@ async function showMapInfoPanel(place, placeId) {
     if (ratingSummaryHtml) reviewsHtml = ratingSummaryHtml + reviewsHtml;
 
     // Photos HTML with lightbox support
-    let photosHtml = '<div style="color:var(--text-secondary);text-align:center;padding:1rem;width:100%;">暂无照片</div>';
+    let photosHtml = `<div style="color:var(--text-secondary);text-align:center;padding:1rem;width:100%;">${t('map.no_photos')}</div>`;
     if (place.photos && place.photos.length > 0) {
         photosHtml = place.photos.map((p, idx) => {
             const thumbUrl = p.getURI({ maxWidth: 300 });
@@ -958,20 +958,21 @@ async function showMapInfoPanel(place, placeId) {
     if (activeTrip && activeTrip.days && activeTrip.days.length > 0) {
         if (!selectedDay) selectedDay = activeTrip.days[0];
 
-        dropdownOptionsHtml = activeTrip.days.map(d => {
+        dropdownOptionsHtml = activeTrip.days.map((d, dIdx) => {
             const dColor = d.color || '#5b7a99';
+            const dayTitle = d.title || (t('itinerary.day_label') + (dIdx + 1) + (t('itinerary.day_suffix') === 'itinerary.day_suffix' ? '' : t('itinerary.day_suffix')));
             // Added white-space: nowrap and adjusted font sizes to ensure one-line display
             return `
-                <div class="global-map-day-option" data-value="${d.id}" data-title="${d.title || ('第' + (activeTrip.days.indexOf(d) + 1) + '天')}" style="padding: 0.6rem 1rem; display:flex; align-items:center; cursor:pointer; border-bottom: 1px solid var(--glass-border); white-space:nowrap;" onmouseover="this.style.background='var(--bg-hover, rgba(255,255,255,0.05))'" onmouseout="this.style.background='transparent'">
+                <div class="global-map-day-option" data-value="${d.id}" data-title="${dayTitle}" style="padding: 0.6rem 1rem; display:flex; align-items:center; cursor:pointer; border-bottom: 1px solid var(--glass-border); white-space:nowrap;" onmouseover="this.style.background='var(--bg-hover, rgba(255,255,255,0.05))'" onmouseout="this.style.background='transparent'">
                     <div style="width: 10px; height: 10px; border-radius: 50%; background: ${dColor}; margin-right: 10px; flex-shrink:0;"></div>
-                    <span style="color:var(--text-primary); font-size:0.9rem; font-weight:600; margin-right: 16px;">${d.title || ('第' + (activeTrip.days.indexOf(d) + 1) + '天')}</span>
+                    <span style="color:var(--text-primary); font-size:0.9rem; font-weight:600; margin-right: 16px;">${dayTitle}</span>
                     <span style="color:var(--text-secondary); font-size:0.75rem; margin-left:auto;">${d.date}</span>
                 </div>
             `;
         }).join('');
     }
 
-    let defaultDayTitle = selectedDay?.title || (selectedDay ? ('第' + (activeTrip.days.indexOf(selectedDay) + 1) + '天') : '选择日期');
+    let defaultDayTitle = selectedDay?.title || (selectedDay ? (t('itinerary.day_label') + (activeTrip.days.indexOf(selectedDay) + 1) + (t('itinerary.day_suffix') === 'itinerary.day_suffix' ? '' : t('itinerary.day_suffix'))) : t('map.select_date'));
 
     // Check if this place is already in the itinerary
     let addedDays = [];
@@ -989,7 +990,7 @@ async function showMapInfoPanel(place, placeId) {
                     return nameMatch && addressMatch;
                 });
                 if (match) {
-                    addedDays.push({ id: day.id, title: day.title || `第${index + 1}天` });
+                    addedDays.push({ id: day.id, title: day.title || (t('itinerary.day_label') + (index + 1) + (t('itinerary.day_suffix') === 'itinerary.day_suffix' ? '' : t('itinerary.day_suffix'))) });
                 }
             }
         });
@@ -1000,10 +1001,10 @@ async function showMapInfoPanel(place, placeId) {
         addedStatusHtml = `
             <div style="position:relative; display:inline-block; margin-left: 10px;">
                 <button onclick="toggleMenu(event, 'map-added-status-${placeId}')" style="background:rgba(34, 197, 94, 0.15); color:#22c55e; border:1px solid rgba(34, 197, 94, 0.3); border-radius:8px; padding:6px 14px; font-weight:700; font-size:0.85rem; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:background 0.15s;" onmouseover="this.style.background='rgba(34, 197, 94, 0.25)'" onmouseout="this.style.background='rgba(34, 197, 94, 0.15)'">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> 已加入
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> ${t('map.added')}
                 </button>
                 <div class="menu-dropdown" id="menu-map-added-status-${placeId}" style="top:2.5rem; left:0; min-width:140px; padding: 0.5rem; z-index: 1000;">
-                    <div style="font-size: 0.75rem; color:var(--text-secondary); margin-bottom: 0.4rem; padding: 0 4px;">已存在于以下行程：</div>
+                    <div style="font-size: 0.75rem; color:var(--text-secondary); margin-bottom: 0.4rem; padding: 0 4px;">${t('map.exists_in_itineraries')}</div>
                     ${addedDays.map(d => `<div style="padding: 4px 8px; font-size: 0.85rem; color:var(--text-primary); background: rgba(255,255,255,0.05); border-radius: 4px; margin-bottom: 4px;">${d.title}</div>`).join('')}
                 </div>
             </div>
@@ -1012,9 +1013,9 @@ async function showMapInfoPanel(place, placeId) {
 
     panel.innerHTML = `
         <div style="display:flex; border-bottom:1px solid rgba(255,255,255,0.1); padding: 0 0.8rem; height: 50px; position:relative; background:#0d111b; flex-shrink:0;">
-            <button class="poi-tab active" data-target="poi-about" style="padding:0 16px; background:none; border:none; color:var(--accent-primary); font-weight:700; border-bottom:2px solid var(--accent-primary); cursor:pointer; font-size:0.95rem; display:flex; align-items:center;">简介 (About)</button>
-            <button class="poi-tab" data-target="poi-reviews" style="padding:0 16px; background:none; border:none; color:var(--text-secondary); font-weight:600; cursor:pointer; font-size:0.95rem; display:flex; align-items:center;">评价 (Reviews)</button>
-            <button class="poi-tab" data-target="poi-photos" style="padding:0 16px; background:none; border:none; color:var(--text-secondary); font-weight:600; cursor:pointer; font-size:0.95rem; display:flex; align-items:center;">照片 (Photos)</button>
+            <button class="poi-tab active" data-target="poi-about" style="padding:0 16px; background:none; border:none; color:var(--accent-primary); font-weight:700; border-bottom:2px solid var(--accent-primary); cursor:pointer; font-size:0.95rem; display:flex; align-items:center;">${t('map.tab_about')}</button>
+            <button class="poi-tab" data-target="poi-reviews" style="padding:0 16px; background:none; border:none; color:var(--text-secondary); font-weight:600; cursor:pointer; font-size:0.95rem; display:flex; align-items:center;">${t('map.tab_reviews')}</button>
+            <button class="poi-tab" data-target="poi-photos" style="padding:0 16px; background:none; border:none; color:var(--text-secondary); font-weight:600; cursor:pointer; font-size:0.95rem; display:flex; align-items:center;">${t('map.tab_photos')}</button>
             <button onclick="closeMapInfoPanel()" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:var(--text-secondary); cursor:pointer; transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='none'">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
@@ -1023,7 +1024,7 @@ async function showMapInfoPanel(place, placeId) {
         <div style="padding: 0.8rem 1.2rem 0 1.2rem; z-index: 10; display: flex; align-items: center;">
             <!-- Single "Add to Trip" button -->
             <button id="map-add-trigger" class="map-custom-select" style="background:var(--accent-primary); color:white; border:none; border-radius:8px; padding:6px 18px; font-weight:700; font-size:0.9rem; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow: 0 4px 12px rgba(249,115,22,0.3); transition:transform 0.15s, background 0.15s;" onmouseover="this.style.transform='translateY(-1px)'; this.style.background='rgba(249,115,22,0.95)'" onmouseout="this.style.transform='translateY(0)'; this.style.background='var(--accent-primary)'">
-                <span style="font-size:1.1rem; margin-top:-1px;">+</span> 添加到行程
+                <span style="font-size:1.1rem; margin-top:-1px;">+</span> ${t('map.add_to_itinerary')}
             </button>
             ${addedStatusHtml}
         </div>
@@ -1037,17 +1038,17 @@ async function showMapInfoPanel(place, placeId) {
 
                     <div style="margin-bottom: 1rem;">
                         <h2 style="margin:0 0 0.2rem 0; font-size:1.5rem; font-weight:800; color:white; word-break:break-word; line-height:1.2;">
-                            ${place.displayName || '未知地点'}
+                            ${place.displayName || t('map.unknown_place')}
                         </h2>
                         <div style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:0.5rem;">
-                            ${placeType || '地点'}
+                            ${placeType || t('map.place')}
                         </div>
                         <div style="display:flex; align-items:center; gap:0.4rem;">
                             ${stars ? `
                             <span style="color:#f97316; font-weight:800; font-size:1rem;">${stars}</span>
                             <span style="color:#f97316; font-size:0.9rem; letter-spacing:1px; line-height:1;">${starsStr}</span>
                             <span style="color:var(--text-secondary); font-size:0.85rem; margin-left:2px;">(${place.userRatingCount || 0} reviews)</span>
-                            ` : '<span style="color:var(--text-secondary); font-size:0.85rem;">暂无评分</span>'}
+                            ` : `<span style="color:var(--text-secondary); font-size:0.85rem;">${t('map.no_rating')}</span>`}
                         </div>
                     </div>
 
@@ -1055,7 +1056,7 @@ async function showMapInfoPanel(place, placeId) {
                         <!-- Address -->
                         <div style="display:flex; align-items:flex-start; gap: 10px;">
                             <span style="color:#f97316; flex-shrink:0; margin-top:2px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></span>
-                            <span style="color:#e2e8f0; font-size:0.9rem; line-height:1.4;">${place.formattedAddress || '未知地址'}</span>
+                            <span style="color:#e2e8f0; font-size:0.9rem; line-height:1.4;">${place.formattedAddress || t('map.unknown_address')}</span>
                         </div>
                         <!-- Hours -->
                         ${todayHours ? `
@@ -1192,18 +1193,19 @@ async function showMapInfoPanel(place, placeId) {
             // Populate list dynamically to fetch latest colors/state
             const currentActiveTrip = state.trips.find(t => t.id === state.activeTripId);
             if (currentActiveTrip && currentActiveTrip.days && currentActiveTrip.days.length > 0) {
-                globalDropdown.innerHTML = currentActiveTrip.days.map(d => {
+                globalDropdown.innerHTML = currentActiveTrip.days.map((d, index) => {
                     const dColor = d.color || '#5b7a99';
+                    const dayTitle = `${t('itinerary.day_label')}${index + 1}${t('itinerary.day_suffix')}`;
                     return `
-                        <div class="global-map-day-option" data-value="${d.id}" data-title="${d.title || ('第' + (currentActiveTrip.days.indexOf(d) + 1) + '天')}" style="padding: 0.6rem 1rem; display:flex; align-items:center; cursor:pointer; border-bottom: 1px solid var(--glass-border); white-space:nowrap;" onmouseover="this.style.background='var(--bg-hover, rgba(255,255,255,0.05))'" onmouseout="this.style.background='transparent'">
+                        <div class="global-map-day-option" data-value="${d.id}" data-title="${dayTitle}" style="padding: 0.6rem 1rem; display:flex; align-items:center; cursor:pointer; border-bottom: 1px solid var(--glass-border); white-space:nowrap;" onmouseover="this.style.background='var(--bg-hover, rgba(255,255,255,0.05))'" onmouseout="this.style.background='transparent'">
                             <div style="width: 10px; height: 10px; border-radius: 50%; background: ${dColor}; margin-right: 10px; flex-shrink:0;"></div>
-                            <span style="color:var(--text-primary); font-size:0.9rem; font-weight:600; margin-right: 16px;">${d.title || ('第' + (currentActiveTrip.days.indexOf(d) + 1) + '天')}</span>
+                            <span style="color:var(--text-primary); font-size:0.9rem; font-weight:600; margin-right: 16px;">${dayTitle}</span>
                             <span style="color:var(--text-secondary); font-size:0.75rem; margin-left:auto;">${d.date}</span>
                         </div>
                     `;
                 }).join('');
             } else {
-                globalDropdown.innerHTML = '<div style="padding: 1rem; color:var(--text-secondary); white-space:nowrap; font-size:0.9rem;">未找到行程天数</div>';
+                globalDropdown.innerHTML = `<div style="padding: 1rem; color:var(--text-secondary); white-space:nowrap; font-size:0.9rem;">${t('map.no_days_found')}</div>`;
             }
 
             // Bind click events directly on the newly injected options to perform Add action instantly
@@ -1216,7 +1218,7 @@ async function showMapInfoPanel(place, placeId) {
 
                     // Trigger the add action using existing place data
                     const originalHtml = triggerBtn.innerHTML;
-                    triggerBtn.innerHTML = '<span>⏳</span> 添加中...';
+                    triggerBtn.innerHTML = `<span>⏳</span> ${t('map.adding')}`;
                     triggerBtn.disabled = true;
 
                     try {
@@ -1229,7 +1231,7 @@ async function showMapInfoPanel(place, placeId) {
 
                         await autoAddStop(targetDayId, placeId);
 
-                        triggerBtn.innerHTML = '<span>✅</span> 已添加';
+                        triggerBtn.innerHTML = `<span>✅</span> ${t('map.added')}`;
                         setTimeout(() => {
                             if (document.body.contains(triggerBtn)) {
                                 triggerBtn.innerHTML = originalHtml;
@@ -1240,7 +1242,7 @@ async function showMapInfoPanel(place, placeId) {
                         }, 600);
                     } catch (error) {
                         console.error('[maps] Error adding location:', error);
-                        triggerBtn.innerHTML = '<span>❌</span> 添加失败';
+                        triggerBtn.innerHTML = `<span>❌</span> ${t('map.add_failed')}`;
                         setTimeout(() => {
                             if (document.body.contains(triggerBtn)) {
                                 triggerBtn.innerHTML = originalHtml;
@@ -1584,10 +1586,20 @@ export async function computeTransitData(dayId) {
 
     // 2. Normal segments between physical stops
     for (let i = 0; i < locationStops.length - 1; i++) {
-        const origin = { lat: Number(locationStops[i].lat), lng: Number(locationStops[i].lng) };
-        const dest = { lat: Number(locationStops[i + 1].lat), lng: Number(locationStops[i + 1].lng) };
-        const result = await fetchRouteDuration(origin, dest, locationStops[i].transitMode || 'DRIVE');
-        locationStops[i].transitToNext = result;
+        const lat1 = Number(locationStops[i].lat);
+        const lng1 = Number(locationStops[i].lng);
+        const lat2 = Number(locationStops[i + 1].lat);
+        const lng2 = Number(locationStops[i + 1].lng);
+
+        if (!isNaN(lat1) && !isNaN(lng1) && !isNaN(lat2) && !isNaN(lng2)) {
+            const origin = { lat: lat1, lng: lng1 };
+            const dest = { lat: lat2, lng: lng2 };
+            const result = await fetchRouteDuration(origin, dest, locationStops[i].transitMode || 'DRIVE');
+            locationStops[i].transitToNext = result;
+        } else {
+            console.warn('[computeTransitData] Invalid coordinates for stop index:', i);
+            locationStops[i].transitToNext = null;
+        }
     }
     if (locationStops.length > 0) {
         locationStops[locationStops.length - 1].transitToNext = null;

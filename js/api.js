@@ -11,42 +11,25 @@ const USE_CLOUD_BACKEND = true;
 // -------------------------------------------------------------
 
 export async function loadData() {
-    if (USE_CLOUD_BACKEND) {
-        return await cloudApi.loadData();
-    } else {
-        return await localApi.loadData();
-    }
+    return USE_CLOUD_BACKEND ? await cloudApi.loadData() : await localApi.loadData();
 }
 
 export async function saveData() {
-    if (USE_CLOUD_BACKEND) {
-        return await cloudApi.saveData();
-    } else {
-        return await localApi.saveData();
-    }
+    return USE_CLOUD_BACKEND ? await cloudApi.saveData() : await localApi.saveData();
 }
 
 export async function deleteImages(urls) {
-    if (USE_CLOUD_BACKEND) {
-        return await cloudApi.deleteImages(urls);
-    } else {
-        return await localApi.deleteImages(urls);
-    }
+    return USE_CLOUD_BACKEND ? await cloudApi.deleteImages(urls) : await localApi.deleteImages(urls);
 }
 
 export async function uploadLocal(base64Data) {
-    if (USE_CLOUD_BACKEND) {
-        return await cloudApi.uploadLocalBase64(base64Data);
-    } else {
-        return await localApi.uploadLocal(base64Data);
-    }
+    return USE_CLOUD_BACKEND ? await cloudApi.uploadLocalBase64(base64Data) : await localApi.uploadLocal(base64Data);
 }
 
 export async function uploadImage(url) {
     if (USE_CLOUD_BACKEND) {
         return await cloudApi.uploadRemoteImage(url);
     } else {
-        // Local: Call the python server's endpoint
         try {
             const response = await fetch('/api/upload-image', {
                 method: 'POST',
@@ -62,22 +45,36 @@ export async function uploadImage(url) {
 }
 
 export async function cleanupImages() {
-    if (USE_CLOUD_BACKEND) {
-        return await cloudApi.cleanupImages();
-    } else {
-        return await localApi.cleanupImages();
-    }
+    return USE_CLOUD_BACKEND ? await cloudApi.cleanupImages() : await localApi.cleanupImages();
+}
+
+export async function deleteTripById(tripId) {
+    if (USE_CLOUD_BACKEND) return await cloudApi.deleteTripById(tripId);
+    // Local fallback: data is fully managed by saveData() writing the whole state,
+    // so no extra step is needed for the local API.
 }
 
 export async function getAvailableLanguages() {
-    if (USE_CLOUD_BACKEND) {
-        return await cloudApi.getAvailableLanguages();
-    } else {
-        return await localApi.getAvailableLanguages();
-    }
+    return USE_CLOUD_BACKEND ? await cloudApi.getAvailableLanguages() : await localApi.getAvailableLanguages();
 }
 
+// Auth Bridge
+export async function signIn(email, password) {
+    if (USE_CLOUD_BACKEND) return await cloudApi.signIn(email, password);
+    // Mock local login
+    return { user: { email } };
+}
 
+export async function signUp(email, password, metadata) {
+    if (USE_CLOUD_BACKEND) return await cloudApi.signUp(email, password, metadata);
+    return { user: { email } };
+}
 
+export async function signOut() {
+    if (USE_CLOUD_BACKEND) return await cloudApi.signOut();
+}
 
-
+export async function getCurrentUser() {
+    if (USE_CLOUD_BACKEND) return await cloudApi.getCurrentUser();
+    return null;
+}

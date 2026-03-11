@@ -17,18 +17,24 @@ export function formatDistance(meters) {
     meters = Number(meters);
     if (isNaN(meters)) return '';
 
+    const translator = window.t || ((k) => k);
     const isKm = state.settings.unitDistance === 'km';
     if (isKm) {
         const km = meters / 1000;
-        return `${km.toFixed(1)} km`;
+        return `${km.toFixed(1)} ${translator('itinerary.unit_km')}`;
     } else {
         const miles = meters * 0.000621371;
-        return `${miles.toFixed(1)} mi`;
+        return `${miles.toFixed(1)} ${translator('itinerary.unit_mi')}`;
     }
 }
 
 export function formatDuration(seconds) {
     if (seconds === undefined || seconds === null) return '';
+
+    // Handle Google Routes v2 API format: "1234s" (duration as a string with 's' suffix)
+    if (typeof seconds === 'string' && seconds.endsWith('s') && !isNaN(Number(seconds.slice(0, -1)))) {
+        seconds = Number(seconds.slice(0, -1));
+    }
 
     // Fallback: if seconds is actually an old string (like "1 小时 30 分钟" or "45 分钟")
     if (typeof seconds === 'string' && isNaN(Number(seconds))) {
@@ -83,19 +89,21 @@ export function formatDate(dateStr, dayIndex = 0) {
     if (!dateStr) return '';
     // Normalize date string if it contains Chinese characters
     let normalized = dateStr;
-    if (dateStr.includes('年')) {
-        normalized = dateStr.replace('年', '-').replace('月', '-').replace('日', '');
+    if (dateStr.includes('年') || dateStr.includes('月') || dateStr.includes('日')) {
+        normalized = dateStr.replace(/[年月日]/g, '/').replace(/\/+$/, '');
+        // If year is missing (e.g. "5/1"), add current year to help parsing
+        if (normalized.split('/').length === 2) {
+            normalized = new Date().getFullYear() + '/' + normalized;
+        }
     }
     const d = new Date(normalized.replace(/-/g, '/'));
     if (isNaN(d)) return dateStr;
     if (dayIndex !== 0) {
         d.setDate(d.getDate() + dayIndex);
     }
-    const isEn = state.settings.language === 'en';
-    if (isEn) {
-        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    }
-    return `${d.getMonth() + 1}月${d.getDate()}日`;
+    const lang = state.settings.language || 'zh';
+    const locale = lang === 'en' ? 'en-US' : 'zh-CN';
+    return d.toLocaleDateString(locale, { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
 export function calculateDays(start, end) {

@@ -127,7 +127,7 @@ export function getTimelineItemHTML(day, stop, index, locationIdx, showTransit, 
                 <div style="width: 24px; height: 24px; border-radius: 50%; background: var(--glass-bg); border: 2px solid var(--glass-border); display:flex; align-items:center; justify-content:center; font-size: 0.85rem; color: var(--text-secondary); flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                     📄
                 </div>
-                <textarea rows="1" oninput="this.style.height='';this.style.height=this.scrollHeight+'px'" onchange="updateNoteContent('${day.id}', '${stop.id}', this.value)" style="flex:1; background:transparent; border:none; outline:none; color:var(--text-primary); font-size:1rem; padding: 0.2rem; resize:none; overflow:hidden;" placeholder="在此处书写 or 粘贴笔记">${stop.content || ''}</textarea>
+                <textarea rows="1" oninput="this.style.height='';this.style.height=this.scrollHeight+'px'" onchange="updateNoteContent('${day.id}', '${stop.id}', this.value)" style="flex:1; background:transparent; border:none; outline:none; color:var(--text-primary); font-size:1rem; padding: 0.2rem; resize:none; overflow:hidden;" placeholder="${t('stops.add_note_placeholder')}">${stop.content || ''}</textarea>
             </div>
             ${stayLineHtml}
         `;
@@ -139,7 +139,7 @@ export function getTimelineItemHTML(day, stop, index, locationIdx, showTransit, 
                 </div>
                 <div style="flex:1;">
                     <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom: 0.8rem;">
-                        <input type="text" value="${stop.title || ''}" onchange="updateListTitle('${day.id}', '${stop.id}', this.value)" style="flex:1; background:transparent; border:none; outline:none; color:var(--text-primary); font-size:1.1rem; font-weight:bold; margin-left:-4px;" placeholder="添加标题">
+                        <input type="text" value="${stop.title || ''}" onchange="updateListTitle('${day.id}', '${stop.id}', this.value)" style="flex:1; background:transparent; border:none; outline:none; color:var(--text-primary); font-size:1.1rem; font-weight:bold; margin-left:-4px;" placeholder="${t('stops.add_list_title')}">
                     </div>
                     <div id="list-items-${stop.id}" style="display:flex; flex-direction:column; gap:0.5rem; padding-left:0.2rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 1rem; margin-bottom: 1rem;">
                         ${(stop.items || []).map((li, i) => `
@@ -159,7 +159,7 @@ export function getTimelineItemHTML(day, stop, index, locationIdx, showTransit, 
     } else {
         const activeColor = day.color || '#5b7a99';
         const pinNumber = locationIdx + 1;
-        const isHotel = stop.category === '酒店' || stop.category === '住宿' || stop.category === 'Hotel' || stop.category === 'Accommodation' || stop.type?.includes('hotel');
+        const isHotel = ['住宿', '酒店', 'Hotel', 'Stay', 'Lodging'].includes(stop.category) || stop.type?.includes('hotel');
         const isCin = stop.type === 'hotel_checkin';
         const isCout = stop.type === 'hotel_checkout';
         const isSpecialHotel = isCin || isCout;
@@ -175,7 +175,12 @@ export function getTimelineItemHTML(day, stop, index, locationIdx, showTransit, 
                         </div>
                         <h4 style="font-size: 1.1rem; margin: 0; color: var(--text-primary); font-weight: 600; border-left: none !important; padding-left: 0 !important; display:flex; align-items:center; gap: 8px; flex-wrap:wrap; flex:1;">
                             <span style="margin-right: 4px;">${stop.location}</span>
-                            ${stop.category && stop.category !== '地点' ? `<span style="color:var(--text-secondary); font-size:0.8rem; font-weight: 500; display:flex; align-items:center; gap:4px; margin-right: 4px;"><span style="opacity: 0.8;">${stop.categoryIcon || '📌'}</span> <span>${t('dashboard.categories.' + stop.category) || stop.category}</span></span>` : ''}
+                            ${stop.category && stop.category !== t('dashboard.categories.地点') ? (() => {
+                                const transKey = 'dashboard.categories.' + stop.category;
+                                const translated = t(transKey);
+                                const displayCat = (translated === transKey) ? stop.category : translated;
+                                return `<span style="color:var(--text-secondary); font-size:0.8rem; font-weight: 500; display:flex; align-items:center; gap:4px; margin-right: 4px;"><span style="opacity: 0.8;">${stop.categoryIcon || '📌'}</span> <span>${displayCat}</span></span>`;
+                            })() : ''}
                             ${stop.rating ? `<span style="font-size:0.85rem; color:#f97316; font-weight:700; display:flex; align-items:center; gap:2px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27l-5.18 3.09 1.34-5.88-4.54-3.95 6.01-.51L12 4.5l2.37 5.52 6.01.51-4.54 3.95 1.34 5.88L12 17.27z"/></svg>${stop.rating}</span>` : ''}
                         </h4>
                     </div>
@@ -185,8 +190,8 @@ export function getTimelineItemHTML(day, stop, index, locationIdx, showTransit, 
                     </div>
                     ${(() => {
                 const note = stop.note || '';
-                if (note === '入住登记' || note === 'Check-in') return `<p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0 0 0.4rem 0; line-height: 1.3;">${t('itinerary.checkin_label')}</p>`;
-                if (note === '办理退房' || note === 'Check-out') return `<p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0 0 0.4rem 0; line-height: 1.3;">${t('itinerary.checkout_label')}</p>`;
+                if (note === t('stops.hotel_checkin')) return `<p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0 0 0.4rem 0; line-height: 1.3;">${t('itinerary.checkin_label')}</p>`;
+                if (note === t('stops.hotel_checkout')) return `<p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0 0 0.4rem 0; line-height: 1.3;">${t('itinerary.checkout_label')}</p>`;
                 return note ? `<p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0 0 0.4rem 0; line-height: 1.3;">${note}</p>` : `<p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0 0 0.4rem 0; opacity: 0.6;">${t('itinerary.add_note')}</p>`;
             })()}
                     <div style="display:flex; gap: 0.8rem; margin-top: 0.6rem; align-items:center; flex-wrap:wrap;">
@@ -258,7 +263,7 @@ export function getTimelineItemHTML(day, stop, index, locationIdx, showTransit, 
                         </span> 
                         ${(() => {
                     const transit = stop.transitToNext;
-                    if (!transit) return `<span style="opacity:0.5;">${t('itinerary.calculating')}</span>`;
+                    if (!transit) return `<span style="opacity:0.35; font-size:0.75rem;">${t('map.no_transit_data')}</span>`;
                     const dur = transit.durationSeconds !== undefined ? formatDuration(transit.durationSeconds) : (transit.duration || '');
                     const dist = transit.distanceMeters !== undefined ? formatDistance(transit.distanceMeters) : (transit.distance || '');
                     return `${dur}${dur && dist ? ' · ' : ''}${dist}`;
@@ -357,7 +362,7 @@ export function getDayHTML(day, dayIndex, activeDayId) {
                     <div class="menu-dropdown" id="menu-day-${day.id}" style="top:2rem; right:0;">
                         <button onclick="editDay(event, '${day.id}')">${t('itinerary.edit_day_label')}</button>
                         <button onclick="shareDay(event, '${day.id}')">${t('itinerary.share_trip')}</button>
-                        <button class="danger" onclick="deleteDay(event, '${day.id}')">${t('itinerary.delete_day')}</button>
+                        <button class="danger" onclick="deleteDay(event, '${day.id}')">${t('common.delete')}</button>
                     </div>
                 </div>
             </div>
@@ -444,7 +449,7 @@ export function getDayHTML(day, dayIndex, activeDayId) {
                                  <span style="cursor:pointer; user-select:none; display:inline-block; transition:transform 0.15s;" onmouseover="this.style.transform='scale(1.25)'" onmouseout="this.style.transform='scale(1)'" onclick="toggleHotelTransitMode('${day.id}', 'from')" title="${t('itinerary.toggle_transit')}">${day.transitFromHotelMode === 'WALK' ? '🚶' : '🚗'}</span>
                                  <span>${(() => {
                 const tr = day.transitFromHotel;
-                if (!tr) return '';
+                if (!tr) return `<span style="opacity:0.35; font-size:0.75rem;">${t('map.no_transit_data')}</span>`;
                 const dur = tr.durationSeconds !== undefined ? formatDuration(tr.durationSeconds) : (tr.duration || '');
                 const dist = tr.distanceMeters !== undefined ? formatDistance(tr.distanceMeters) : (tr.distance || '');
                 return `${dur}${dur && dist ? ' · ' : ''}${dist}`;
@@ -475,7 +480,7 @@ export function getDayHTML(day, dayIndex, activeDayId) {
                                 <span style="cursor:pointer; user-select:none; display:inline-block; transition:transform 0.15s;" onmouseover="this.style.transform='scale(1.25)'" onmouseout="this.style.transform='scale(1)'" onclick="toggleHotelTransitMode('${day.id}', 'to')" title="${t('itinerary.toggle_transit')}">${day.transitToHotelMode === 'WALK' ? '🚶' : '🚗'}</span>
                                 <span>${(() => {
                 const tr = day.transitToHotel;
-                if (!tr) return '';
+                if (!tr) return `<span style="opacity:0.35; font-size:0.75rem;">${t('map.no_transit_data')}</span>`;
                 const dur = tr.durationSeconds !== undefined ? formatDuration(tr.durationSeconds) : (tr.duration || '');
                 const dist = tr.distanceMeters !== undefined ? formatDistance(tr.distanceMeters) : (tr.distance || '');
                 return `${dur}${dur && dist ? ' · ' : ''}${dist}`;
@@ -589,7 +594,7 @@ export function getTripHTML(trip) {
                     <div id="real-map" style="width:100%; height:100%;"></div>
                     <button id="map-dark-toggle" onclick="toggleMapDarkMode()">☀️</button>
                     <div id="map-debug-status" style="position:absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.7); color: white; padding: 5px 10px; border-radius: 4px; font-size: 10px; z-index: 1000;">
-                        Map Status: Initializing...
+                        Map Status...
                     </div>
                 </div>
             </section>

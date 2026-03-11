@@ -1,6 +1,7 @@
 import { state } from '../../state.js';
 import { autoAddStop } from './stops.js';
 import { saveTripMetadata } from './trips.js';
+import { t } from '../i18n.js';
 
 let autocompleteService = null;
 let searchTimeout = null;
@@ -35,7 +36,7 @@ export function handleSearchInput(event, dayId) {
             const { suggestions } = await AutocompleteSuggestion.fetchAutocompleteSuggestions({ input: query });
 
             if (!suggestions || suggestions.length === 0) {
-                dropdown.innerHTML = `<li style="color:var(--text-secondary); padding: 1rem; text-align:center;">未找到结果</li>`;
+                dropdown.innerHTML = `<li style="color:var(--text-secondary); padding: 1rem; text-align:center;">${t('common.not_found')}</li>`;
                 dropdown.classList.add('active');
                 return;
             }
@@ -63,7 +64,7 @@ export function handleSearchInput(event, dayId) {
             dropdown.classList.add('active');
         } catch (err) {
             console.error('[search] AutocompleteSuggestion failed:', err);
-            dropdown.innerHTML = `<li style="color:var(--text-secondary); padding: 1rem; text-align:center;">搜索失败，请重试</li>`;
+            dropdown.innerHTML = `<li style="color:var(--text-secondary); padding: 1rem; text-align:center;">${t('common.fetch_error')}</li>`;
             dropdown.classList.add('active');
         }
     }, 250);
@@ -116,7 +117,7 @@ export function handleDropdownClick(dayId, placeId) {
         if (input) {
             afterStopId = input.dataset.insertAfter || null;
             delete input.dataset.insertAfter; // clear after reading
-            input.value = '加载中 (Loading)...';
+            input.value = `${t('common.loading')} (Loading)...`;
             input.disabled = true;
         }
     }
@@ -140,7 +141,7 @@ export async function searchImages(passedQuery) {
         const grid = document.getElementById('image-results-grid') || document.getElementById('image-grid');
         if (!grid) return;
 
-        grid.innerHTML = '<p style="grid-column: span 3; color: var(--text-secondary); text-align:center; padding: 1rem 0;">搜索高质图片中...</p>';
+        grid.innerHTML = `<p style="grid-column: span 3; color: var(--text-secondary); text-align:center; padding: 1rem 0;">${t('common.loading')}</p>`;
 
         const tags = q.split(/\s+/).join(',');
         let html = '';
@@ -186,18 +187,14 @@ export function selectImage(event, url) {
     }
 
     // Background: cache the image locally so it doesn't change between sessions
+    // Background: cache the image so it doesn't change between sessions
     import('../../api.js').then(api => {
-        fetch(api.endpoints.uploadImage, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ url })
-        })
-            .then(r => r.json())
+        api.uploadImage(url)
             .then(result => {
                 if (result.status === 'success' && result.localUrl && trip) {
                     trip.thumb = result.localUrl;
                     api.saveData(); // persist local URL so it survives browser restarts
-                    console.log('[image-cache] Trip cover saved locally/cloud:', result.localUrl);
+                    console.log('[image-cache] Trip cover cached:', result.localUrl);
                 }
             })
             .catch(err => console.warn('[image-cache] Trip cover cache failed:', err));
@@ -215,7 +212,7 @@ export async function searchGoogleStopImages(dayId, stopId, query) {
     const grid = document.getElementById('image-grid');
     if (!grid) return;
 
-    grid.innerHTML = '<p style="grid-column: span 3; color: var(--text-secondary); text-align:center; padding: 2rem 0; font-size:0.9rem;">正在从 Google Maps 获取该地点的实拍图...</p>';
+    grid.innerHTML = `<p style="grid-column: span 3; color: var(--text-secondary); text-align:center; padding: 2rem 0; font-size:0.9rem;">${t('common.loading')}</p>`;
 
     try {
         const { Place } = await google.maps.importLibrary("places");
@@ -244,7 +241,7 @@ export async function searchGoogleStopImages(dayId, stopId, query) {
                 textQuery: searchTerm,
                 fields: ['photos', 'id'],
                 maxResultCount: 1,
-                language: 'zh-CN'
+                language: state.settings.language === 'en' ? 'en-US' : 'zh-CN'
             };
 
             // Add location bias if we have coordinates to help find the correct branch/location
@@ -259,7 +256,7 @@ export async function searchGoogleStopImages(dayId, stopId, query) {
         }
 
         if (photos.length === 0) {
-            grid.innerHTML = `<p style="grid-column: span 3; color: var(--text-secondary); text-align:center; padding: 2rem 0; font-size:0.9rem;">未在 Google Maps 上找到 "${query || stop.location}" 的照片，请尝试更换关键词。</p>`;
+            grid.innerHTML = `<p style="grid-column: span 3; color: var(--text-secondary); text-align:center; padding: 2rem 0; font-size:0.9rem;">${t('common.not_found')} "${query || stop.location}"</p>`;
             return;
         }
 
@@ -281,6 +278,6 @@ export async function searchGoogleStopImages(dayId, stopId, query) {
 
     } catch (err) {
         console.error('[searchGoogleStopImages] failed:', err);
-        grid.innerHTML = '<p style="grid-column: span 3; color: var(--text-secondary); text-align:center; padding: 2rem 0; font-size:0.9rem;">获取照片失败，请检查网络或重试。</p>';
+        grid.innerHTML = `<p style="grid-column: span 3; color: var(--text-secondary); text-align:center; padding: 2rem 0; font-size:0.9rem;">${t('common.fetch_error')}</p>`;
     }
 }
