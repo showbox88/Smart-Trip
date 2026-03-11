@@ -77,11 +77,6 @@ export async function getAvailableLanguages() {
     }
 }
 
-export async function migrateData() {
-    if (USE_CLOUD_BACKEND && cloudApi.migrateFromV1) {
-        return await cloudApi.migrateFromV1();
-    }
-}
 
 
 

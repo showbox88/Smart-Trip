@@ -1,5 +1,5 @@
 import { state } from './state.js';
-import { loadData, saveData, cleanupImages, migrateData } from './api.js';
+import { loadData, saveData, cleanupImages } from './api.js';
 import { renderApp } from './ui/render.js';
 import { initRealMap, setGoogleMapsReady, toggleMapDarkMode } from './maps.js';
 import { loadLanguage } from './ui/i18n.js';
@@ -98,17 +98,6 @@ window.cleanupImages = async function () {
         alert('❌ 无法连接到服务器。');
     } finally {
         if (btn) { btn.innerHTML = origText; btn.disabled = false; }
-    }
-};
-
-window.migrateData = async function() {
-    if (!confirm("确定要将旧版单文件数据迁移到新版关联表结构吗？此操作不可逆。")) return;
-    try {
-        await migrateData();
-        alert("✅ 数据迁移成功！请刷新页面。");
-        location.reload();
-    } catch (e) {
-        alert("❌ 迁移失败：" + e.message);
     }
 };
 
