@@ -186,21 +186,22 @@ export function selectImage(event, url) {
     }
 
     // Background: cache the image locally so it doesn't change between sessions
-    fetch('/api/upload-image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url })
-    })
-        .then(r => r.json())
-        .then(async result => {
-            if (result.status === 'success' && result.localUrl && trip) {
-                trip.thumb = result.localUrl;
-                const { saveData } = await import('../../api.js');
-                saveData(); // persist local URL so it survives browser restarts
-                console.log('[image-cache] Trip cover saved locally:', result.localUrl);
-            }
+    import('../../api.js').then(api => {
+        fetch(api.endpoints.uploadImage, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url })
         })
-        .catch(err => console.warn('[image-cache] Trip cover cache failed:', err));
+            .then(r => r.json())
+            .then(result => {
+                if (result.status === 'success' && result.localUrl && trip) {
+                    trip.thumb = result.localUrl;
+                    api.saveData(); // persist local URL so it survives browser restarts
+                    console.log('[image-cache] Trip cover saved locally/cloud:', result.localUrl);
+                }
+            })
+            .catch(err => console.warn('[image-cache] Trip cover cache failed:', err));
+    });
 }
 // Google Maps Places Photo Search for Stops
 export async function searchGoogleStopImages(dayId, stopId, query) {

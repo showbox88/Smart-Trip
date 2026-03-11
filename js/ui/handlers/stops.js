@@ -732,23 +732,25 @@ export async function autoAddStop(dayId, placeId, afterStopId) {
         }
 
         if (remotePhotoUrl) {
-            fetch('/api/upload-image', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ url: remotePhotoUrl })
-            })
-                .then(r => r.json())
-                .then(result => {
-                    if (result.status === 'success' && result.localUrl) {
-                        newStop.photo = result.localUrl;
-                        saveData();
-                        renderDay();
-                        console.log('[image-cache] Saved locally:', result.localUrl);
-                    }
+            import('../../api.js').then(api => {
+                fetch(api.endpoints.uploadImage, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: remotePhotoUrl })
                 })
-                .catch(err => {
-                    console.warn('[image-cache] Failed to cache image:', err);
-                });
+                    .then(r => r.json())
+                    .then(result => {
+                        if (result.status === 'success' && result.localUrl) {
+                            newStop.photo = result.localUrl;
+                            saveData();
+                            renderDay();
+                            console.log('[image-cache] Saved to cloud:', result.localUrl);
+                        }
+                    })
+                    .catch(err => {
+                        console.warn('[image-cache] Failed to cache image:', err);
+                    });
+            });
         }
 
     } catch (err) {

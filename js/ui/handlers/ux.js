@@ -150,14 +150,15 @@ function handleTripThumbUpload(event) {
         }
 
         // --- Step 2: Send to Backend to convert Base64 to physical file ---
-        fetch('/api/upload-local', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ image: base64Data })
-        })
-            .then(r => r.json())
-            .then(result => {
-                if (result.status === 'success' && result.localUrl) {
+        import('../../api.js').then(api => {
+            fetch(api.endpoints.uploadLocal, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image: base64Data })
+            })
+                .then(r => r.json())
+                .then(result => {
+                    if (result.status === 'success' && result.localUrl) {
                     const finalUrl = result.localUrl;
                     const thumbInput = document.getElementById('trip-edit-thumb');
                     if (thumbInput) thumbInput.value = finalUrl;
@@ -191,8 +192,9 @@ function handleTripThumbUpload(event) {
             })
             .catch(err => {
                 console.error('[Upload-Local] failed:', err);
-                alert('服务器连接失败，请确认 server.py 正在运行且文件大小未超限。');
+                alert('服务器连接失败，请确认网络连接且文件大小未超限。');
             });
+        });
     };
     reader.readAsDataURL(file);
 }
