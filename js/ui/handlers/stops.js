@@ -849,19 +849,41 @@ export function openStayInfoModal(event, dayId, stopId) {
         }
     }
 
+    const translator = window.t || ((k) => k);
+
     const title = document.getElementById('modal-title');
     const body = document.getElementById('modal-body');
-    title.innerText = '入住信息管理';
+    title.innerText = translator('itinerary.stay_modal_title') || '入住信息管理';
+
+    const lblCinDate = translator('itinerary.stay_checkin_date') || '入住日期';
+    const lblCinTime = translator('itinerary.stay_checkin_time') || '入住时间';
+    const lblCoutDate = translator('itinerary.stay_checkout_date') || '退房日期';
+    const lblCoutTime = translator('itinerary.stay_checkout_time') || '退房时间';
+    const descHint = translator('itinerary.stay_hint') || '系统将自动在选定日期生成“入住”和“退房”卡片，并为您标记住宿期间的行程起点与终点。';
+    const btnCancel = translator('itinerary.cancel') || '取消';
+    const btnSubmit = translator('itinerary.stay_submit') || '完成设置';
+
+    // Format dates correctly depending on language, handling Chinese if needed
+    const formatInputDate = (dStr) => {
+        if(!dStr) return '';
+        let normalized = dStr.replace(/-/g, '/').replace('年', '/').replace('月', '/').replace('日', '');
+        const d = new Date(normalized);
+        if(isNaN(d)) return dStr;
+        return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
+    };
+
+    const formattedCinDate = formatInputDate(checkinDate);
+    const formattedCoutDate = formatInputDate(checkoutDate);
 
     body.innerHTML = `
         <div style="padding: 1rem;">
             <div style="display:flex; gap: 1.5rem; margin-bottom: 2rem;">
                 <div style="flex:1;">
-                    <label style="display:block; font-size:0.9rem; color:var(--text-secondary); margin-bottom:0.5rem;">入住日期</label>
-                    <input type="text" id="stay-checkin-date" class="date-picker-input" value="${checkinDate}" style="width:100%; background:var(--bg-secondary); border:1px solid var(--glass-border); padding:0.8rem; border-radius:8px; color:var(--text-primary);">
+                    <label style="display:block; font-size:0.9rem; color:var(--text-secondary); margin-bottom:0.5rem;">${lblCinDate}</label>
+                    <input type="text" id="stay-checkin-date" class="date-picker-input" value="${formattedCinDate}" style="width:100%; background:var(--bg-secondary); border:1px solid var(--glass-border); padding:0.8rem; border-radius:8px; color:var(--text-primary);">
                 </div>
                 <div style="flex:1;">
-                    <label style="display:block; font-size:0.9rem; color:var(--text-secondary); margin-bottom:0.5rem;">入住时间</label>
+                    <label style="display:block; font-size:0.9rem; color:var(--text-secondary); margin-bottom:0.5rem;">${lblCinTime}</label>
                     <div style="display:flex; gap:5px;">
                         <input type="text" id="stay-checkin-time" value="${checkinTime}" style="flex:1; background:var(--bg-secondary); border:1px solid var(--glass-border); padding:0.8rem; border-radius:8px; color:var(--text-primary); text-align:center;">
                         <select id="stay-checkin-period" style="background:var(--bg-secondary); border:1px solid var(--glass-border); color:var(--text-primary); border-radius:8px; padding:0 0.5rem;">
@@ -874,11 +896,11 @@ export function openStayInfoModal(event, dayId, stopId) {
 
             <div style="display:flex; gap: 1.5rem; margin-bottom: 2rem;">
                 <div style="flex:1;">
-                    <label style="display:block; font-size:0.9rem; color:var(--text-secondary); margin-bottom:0.5rem;">退房日期</label>
-                    <input type="text" id="stay-checkout-date" class="date-picker-input-cout" value="${checkoutDate}" style="width:100%; background:var(--bg-secondary); border:1px solid var(--glass-border); padding:0.8rem; border-radius:8px; color:var(--text-primary);">
+                    <label style="display:block; font-size:0.9rem; color:var(--text-secondary); margin-bottom:0.5rem;">${lblCoutDate}</label>
+                    <input type="text" id="stay-checkout-date" class="date-picker-input-cout" value="${formattedCoutDate}" style="width:100%; background:var(--bg-secondary); border:1px solid var(--glass-border); padding:0.8rem; border-radius:8px; color:var(--text-primary);">
                 </div>
                 <div style="flex:1;">
-                    <label style="display:block; font-size:0.9rem; color:var(--text-secondary); margin-bottom:0.5rem;">退房时间</label>
+                    <label style="display:block; font-size:0.9rem; color:var(--text-secondary); margin-bottom:0.5rem;">${lblCoutTime}</label>
                     <div style="display:flex; gap:5px;">
                         <input type="text" id="stay-checkout-time" value="${checkoutTime}" style="flex:1; background:var(--bg-secondary); border:1px solid var(--glass-border); padding:0.8rem; border-radius:8px; color:var(--text-primary); text-align:center;">
                         <select id="stay-checkout-period" style="background:var(--bg-secondary); border:1px solid var(--glass-border); color:var(--text-primary); border-radius:8px; padding:0 0.5rem;">
@@ -889,11 +911,11 @@ export function openStayInfoModal(event, dayId, stopId) {
                 </div>
             </div>
 
-            <p style="color:var(--text-secondary); font-size:0.85rem; margin-bottom: 2rem; border-left: 3px solid var(--accent-primary); padding-left: 10px;">系统将自动在选定日期生成“入住”和“退房”卡片，并为您标记住宿期间的行程起点与终点。</p>
+            <p style="color:var(--text-secondary); font-size:0.85rem; margin-bottom: 2rem; border-left: 3px solid var(--accent-primary); padding-left: 10px;">${descHint}</p>
 
             <div style="display:flex; gap:10px;">
-                <button class="submit-btn" style="background:var(--bg-secondary); border:1px solid var(--glass-border); color:var(--text-primary); flex:1;" onclick="closeModal()">取消</button>
-                <button class="submit-btn" style="background:var(--accent-primary); color:white; border:none; flex:2; font-weight:bold;" onclick="saveStayInfo('${stopId}')">完成设置</button>
+                <button class="submit-btn" style="background:var(--bg-secondary); border:1px solid var(--glass-border); color:var(--text-primary); flex:1;" onclick="closeModal()">${btnCancel}</button>
+                <button class="submit-btn" style="background:var(--accent-primary); color:white; border:none; flex:2; font-weight:bold;" onclick="saveStayInfo('${stopId}')">${btnSubmit}</button>
             </div>
         </div>
     `;
@@ -903,8 +925,9 @@ export function openStayInfoModal(event, dayId, stopId) {
     overlay.classList.remove('hidden');
 
     if (typeof flatpickr !== 'undefined') {
-        flatpickr(".date-picker-input", { locale: "zh", dateFormat: "Y-m-d", theme: "dark" });
-        flatpickr(".date-picker-input-cout", { locale: "zh", dateFormat: "Y-m-d", theme: "dark" });
+        const lang = state.settings.language === 'en' ? 'en' : 'zh';
+        flatpickr(".date-picker-input", { locale: lang, dateFormat: "Y-m-d", theme: "dark" });
+        flatpickr(".date-picker-input-cout", { locale: lang, dateFormat: "Y-m-d", theme: "dark" });
     }
 }
 
