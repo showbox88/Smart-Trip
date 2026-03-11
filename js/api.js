@@ -4,7 +4,7 @@ import * as cloudApi from './supabase_api.js';
 // Configuration flag: Enable to switch to Supabase Cloud backend
 // False = Uses original Python server (server.py + db.json)
 // True = Uses Supabase BaaS (PostgreSQL + Storage)
-const USE_CLOUD_BACKEND = false;
+const USE_CLOUD_BACKEND = true;
 
 // -------------------------------------------------------------
 // Unified API Gateway
