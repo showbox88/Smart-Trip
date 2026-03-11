@@ -88,7 +88,15 @@
         "time_unit_hour": "hr",
         "time_unit_minute": "min",
         "unit_km": "km",
-        "unit_mi": "mi"
+        "unit_mi": "mi",
+        "stay_modal_title": "Stay Information",
+        "stay_checkin_date": "Check-in Date",
+        "stay_checkin_time": "Check-in Time",
+        "stay_checkout_date": "Check-out Date",
+        "stay_checkout_time": "Check-out Time",
+        "stay_hint": "The system will automatically generate 'Check-in' and 'Check-out' cards on the selected dates.",
+        "stay_submit": "Complete Setup",
+        "cancel": "Cancel"
     },
     "common": {
         "edit": "Edit",

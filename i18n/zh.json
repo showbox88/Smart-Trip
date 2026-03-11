@@ -88,7 +88,15 @@
         "time_unit_hour": "小时",
         "time_unit_minute": "分钟",
         "unit_km": "公里",
-        "unit_mi": "英里"
+        "unit_mi": "英里",
+        "stay_modal_title": "入住信息管理",
+        "stay_checkin_date": "入住日期",
+        "stay_checkin_time": "入住时间",
+        "stay_checkout_date": "退房日期",
+        "stay_checkout_time": "退房时间",
+        "stay_hint": "系统将自动在选定日期生成“入住”和“退房”卡片，并为您标记住宿期间的行程起点与终点。",
+        "stay_submit": "完成设置",
+        "cancel": "取消"
     },
     "common": {
         "edit": "编辑",
