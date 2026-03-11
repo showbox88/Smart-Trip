@@ -936,18 +936,19 @@ export function saveStayInfo(originalStopId) {
     const stayId = stop.stayId || 'stay-' + Date.now();
     stop.stayId = stayId;
 
-    // Helper to format date
-    const formatDateToZh = (iso) => {
-        // Handle if date is already in Zh format
-        let normalized = iso.replace(/-/g, '/').replace('年', '/').replace('月', '/').replace('日', '');
-        const d = new Date(normalized);
-        return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
+    // Bulletproof day matching using date mapping
+    const matchDayByDate = (targetDateStr) => {
+        const target = new Date(targetDateStr.replace(/-/g, '/')).setHours(0,0,0,0);
+        const start = new Date(trip.startDate.replace(/-/g, '/')).setHours(0,0,0,0);
+        const diffDays = Math.round((target - start) / (1000 * 60 * 60 * 24));
+        if (diffDays >= 0 && diffDays < trip.days.length) {
+            return trip.days[diffDays];
+        }
+        return null;
     };
-    const cinZh = formatDateToZh(cinDate);
-    const coutZh = formatDateToZh(coutDate);
 
-    const cinDay = trip.days.find(d => d.date === cinZh);
-    const coutDay = trip.days.find(d => d.date === coutZh);
+    const cinDay = matchDayByDate(cinDate);
+    const coutDay = matchDayByDate(coutDate);
 
     if (!cinDay || !coutDay) return alert('所选日期范围超出行程限制');
 
