@@ -1,48 +1,41 @@
-import { state, updateState } from './state.js';
+import * as localApi from './local_api.js';
+import * as cloudApi from './supabase_api.js';
+
+// Configuration flag: Enable to switch to Supabase Cloud backend
+// False = Uses original Python server (server.py + db.json)
+// True = Uses Supabase BaaS (PostgreSQL + Storage)
+const USE_CLOUD_BACKEND = false;
+
+// -------------------------------------------------------------
+// Unified API Gateway
+// -------------------------------------------------------------
 
 export async function loadData() {
-    try {
-        const response = await fetch('/api/data');
-        if (response.ok) {
-            const data = await response.json();
-            if (data.trips) {
-                updateState(data);
-            }
-        }
-    } catch (e) {
-        console.error("Failed to load DB from server. Running with empty defaults.", e);
+    if (USE_CLOUD_BACKEND) {
+        return await cloudApi.loadData();
+    } else {
+        return await localApi.loadData();
     }
 }
 
 export async function saveData() {
-    try {
-        await fetch('/api/save', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(state)
-        });
-    } catch (e) {
-        console.error("Failed to save data:", e);
+    if (USE_CLOUD_BACKEND) {
+        return await cloudApi.saveData();
+    } else {
+        return await localApi.saveData();
     }
 }
 
-/**
- * Delete one or more locally-cached images from the server.
- * @param {string|string[]} urls - A single URL or array of URLs like "/uploads/abc.jpg"
- */
 export async function deleteImages(urls) {
-    if (!urls) return;
-    const list = (Array.isArray(urls) ? urls : [urls])
-        .filter(u => u && typeof u === 'string' && u.startsWith('/uploads/'));
-    if (list.length === 0) return;
-    try {
-        await fetch('/api/delete-image', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ urls: list })
-        });
-        console.log('[deleteImages] Removed:', list);
-    } catch (e) {
-        console.warn('[deleteImages] Failed:', e);
+    if (USE_CLOUD_BACKEND) {
+        return await cloudApi.deleteImages(urls);
+    } else {
+        return await localApi.deleteImages(urls);
     }
 }
+
+// Map endpoints for direct usage in other files (like image upload routes)
+export const endpoints = {
+    uploadImage: USE_CLOUD_BACKEND ? '/cloud/upload-image' : '/api/upload-image',
+    uploadLocal: USE_CLOUD_BACKEND ? '/cloud/upload-local' : '/api/upload-local',
+};
