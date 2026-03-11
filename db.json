@@ -5,15 +5,15 @@
         "email": "alex.traveller@gmail.com"
     },
     "currentView": "trip",
-    "activeTripId": "trip-1772941902922",
+    "activeTripId": "trip-1773159986397",
     "trips": [
         {
             "id": "trip-1772941902922",
             "title": "新的神秘冒险",
             "startDate": "2026-05-01",
             "endDate": "2026-05-24",
-            "thumb": "/uploads/9e1e621f17bd42bc942ed38787099b49.jpg",
-            "activeDayId": "day-1772941902922-1",
+            "thumb": "/uploads/8ea61d055ce0b62f8d5a82f02ac1e6d1.jpg",
+            "activeDayId": "day-1772941902922-0",
             "days": [
                 {
                     "id": "day-1772941902922-0",
@@ -33,7 +33,7 @@
                             "type": "hotel_checkin",
                             "lat": 35.697258,
                             "lng": 139.70203999999998,
-                            "photo": "https://places.googleapis.com/v1/places/ChIJ9e5O9yeNGGAR7mIlmgv8MSA/photos/ATCDNfXpxtoardRpvJhXtQWFIkXYRT_hK715Jyy0zlaxiTl7h-6UK8DzPaoiGbSufSCG5QO-NxfrBdn0Kiv2q4Cg0q4ZcWV2uQm3iUI_bE5UCoipgtE0t8MQrksRlSKhvM2RkIvG4f0R8b7JuW5nikHITLGOqoCHyk3PQuXkj7Oo80T76x85ICLvXs6Y8hcxn10RSCOymkVZcIMAdfDhV_X2r7fYg5qqFbQGHoPvaZbC88ZcJrETwis2NW9cffpD9EmUMVuWziV0enXzlUpa-uMcw4APVkAIzOo89qHZV5KzcJ59MA/media?maxWidthPx=600&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k",
+                            "photo": "https://places.googleapis.com/v1/places/ChIJ9e5O9yeNGGAR7mIlmgv8MSA/photos/ATCDNfXdaD4b5mkm0Mu3QNSXR8Lew5KDbZ5r7sqo51dFj7BrzN96zU8fa86nv5ry_mzJZhvDrdjwvqevt1qk54YEI-UvVoPoT_yzxGF76bOnAwW9mwQM5MAEVTkRxginr8_j9GsmaztV8xGoR6ITTRVIP_47xdQHWcgM7Hc5qj2x4g8bd0oQmLkmYx7gzbRE-NFxkgN-o72jAboc3ZG9PwxhZh6dYrA-1ypv7E4CoiuyYlKJLtIseXcfqOgcvlsJs8Cxli9dWWsA0MhhM956Qow9FZYm8zD5TsJAWjDrL-X1suGcIA/media?maxWidthPx=600&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k",
                             "rating": 3.9,
                             "category": "酒店",
                             "categoryIcon": "🏨",
@@ -117,7 +117,7 @@
                             "type": "location",
                             "lat": 35.7058375,
                             "lng": 139.6487831,
-                            "photo": "https://places.googleapis.com/v1/places/ChIJXaZmo33yGGARE9okpsCbz80/photos/ATCDNfWsVtpJsxdhKvruWOI2BKaBYPuvd7TbUk_Rc3yJnhLC-BVPS7gVTmRqDDNJfikwAL4wVES5et5CfzJkeDq56VXg-Kq1XRQtEsERAqRsBTX9mb2kUlc5FjdYepBHXFi3-3SF1U_eNbjwcxbAQFY-Z4U8wF8yKihWGsAb_BK3_0iYm6cANINN1AFNyeRacCtBpNBD6wg1-JjDIhGzlEJknCpB7Ecs5xejlc252oEQtpz59et82Z3VJEr6RaRPb5E3PI-eGLdHHWBvx0YrfrSlITBcdHCsXuG8PECxy1M8e6UHyrZSO0j-wcMUcm902PINwqXkqRMfVNIQAdbLcTfz74WO_M39RXNhJYwKXK95XfUAXKdoWiAodD150Qodw6Y3JmmI2IBSFuBhgOgDeEhmq63xKSx-rmJA_fNZ5zHfGqFEGnrb2GY-TaAD2wjLL02M/media?maxWidthPx=600&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k",
+                            "photo": "https://places.googleapis.com/v1/places/ChIJXaZmo33yGGARE9okpsCbz80/photos/ATCDNfXqcyoUBXIZqIQWwpWTeOJ99Q2C-PAf3ZmsyEbLar-YQvbI5YgWIETsvhfbsCx7cDXRbhXuf0x-JphjIswT3n3DAmWVsgpROzehwX3krseiuncHYlfamYYlgiYyq5qmW14KkgPUC84I-nooOj9IfPwQz1wHfN2OGcvvSHVXdW8jk54Y72vq_yaXSqy-DCrYgEivjhm_skMKG9pdgqT2cI_iM1KxBV8UDTY5AwxOUI5lNfTiAzqFta4P87UHweG7lYKv9FbAE36UOo_5Zu8KFjdRHSkTGvu6QVctoxgujEQgoTSNfoYnphcFdv85R_iJDWEM09oIsWZRQKF_3WjP-jn220X3PCosRWYjG80NrH7wGrd1Yxk5OeJ3W0zcbUt8r7L7_WU_gtvGIhu84HlR6fpsvMAr7Idhd8ulv46eti8mRb0sLxokKxCFJXkW5g/media?maxWidthPx=600&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k",
                             "rating": 4.5,
                             "category": "餐饮",
                             "categoryIcon": "🍴",
@@ -276,7 +276,8 @@
                     "isCinOnly": false,
                     "isCoutOnly": false,
                     "isBetween": true,
-                    "isSameDayStay": false
+                    "isSameDayStay": false,
+                    "subtitle": ""
                 },
                 {
                     "id": "day-1772941902922-2",
@@ -328,31 +329,6 @@
                     "date": "2026年5月5日",
                     "stops": [
                         {
-                            "id": "s1773161200953",
-                            "location": "Jinkoge",
-                            "desc": "",
-                            "address": "Japan, 〒169-0072 Tokyo, Shinjuku City, Ōkubo, 2-chōme−19−１０ 東和ビル",
-                            "phone": "03-3203-6773",
-                            "time": "09:00",
-                            "period": "AM",
-                            "note": "",
-                            "price": "0",
-                            "type": "location",
-                            "lat": 35.7020951,
-                            "lng": 139.7046928,
-                            "photo": "/uploads/e99fc8f70fc86b1193f30ae5076ccaed.jpg",
-                            "rating": 4.5,
-                            "category": "餐饮",
-                            "categoryIcon": "🍴",
-                            "placeId": "ChIJD44fqC6NGGAR3-A2jLXpl40",
-                            "transitToNext": {
-                                "duration": "5 分钟",
-                                "distance": "1.0 公里",
-                                "durationSeconds": 318,
-                                "distanceMeters": 1044
-                            }
-                        },
-                        {
                             "id": "cout-1773167051354",
                             "location": "Premier Hotel Cabin Shinjuku",
                             "desc": "Casual lodging offering simple rooms with minifridges, plus a relaxed buffet restaurant.",
@@ -365,13 +341,38 @@
                             "type": "hotel_checkout",
                             "lat": 35.697258,
                             "lng": 139.70203999999998,
-                            "photo": "/uploads/9955a95baaf44b484c93e0889f24c915.jpg",
+                            "photo": "https://places.googleapis.com/v1/places/ChIJ9e5O9yeNGGAR7mIlmgv8MSA/photos/ATCDNfVZGANIbE2HAPoVvdDgk8OI8Cax5rV4SYNk4Mis3Y6MF7zyPIs_lFGaLa4GZaYkR1-8zACweLP1FxdN6QSXks0b832MzzV3Z-a9qv-DB7dOtEDDdVVMK6hKyENAcX-Oo9xpAaig4gAqre2o7gyrbcSxPbQGJQBo8pm-tiiHARnwSIXCzmeYBTiFTuEf_29TRIminL2MYrVcMqL8dZhyBoK6p1z02V627Wh5yIznbJMRGBlV7NorHwYMnWlbELxK9vobav97nvk8CPvfa6bhIxR9q9ass9FAXMM7FN5xfR3KuA/media?maxWidthPx=600&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k",
                             "rating": 3.9,
                             "category": "酒店",
                             "categoryIcon": "🏨",
                             "placeId": "ChIJ9e5O9yeNGGAR7mIlmgv8MSA",
-                            "transitToNext": null,
+                            "transitToNext": {
+                                "duration": "5 分钟",
+                                "distance": "1.2 公里",
+                                "durationSeconds": 341,
+                                "distanceMeters": 1154
+                            },
                             "stayId": "stay-1773167051354"
+                        },
+                        {
+                            "id": "s1773161200953",
+                            "location": "Jinkoge",
+                            "desc": "",
+                            "address": "Japan, 〒169-0072 Tokyo, Shinjuku City, Ōkubo, 2-chōme−19−１０ 東和ビル",
+                            "phone": "03-3203-6773",
+                            "time": "09:00",
+                            "period": "AM",
+                            "note": "",
+                            "price": "0",
+                            "type": "location",
+                            "lat": 35.7020951,
+                            "lng": 139.7046928,
+                            "photo": "https://places.googleapis.com/v1/places/ChIJD44fqC6NGGAR3-A2jLXpl40/photos/ATCDNfVKZjdvQrvf5Aa-0USCE5mJ_L_SJEGL7vMZnlwEqk5ZlxxvM082DOb8iDFDvnIQHr6_ip8ZigpTLLDQMNTYMZkOOEdqvt9szeMo_QKjJeOcM98swJm9YChCcu_JjypDPtY59aJQOXJsOJsQGHjuNyWt-RxDTyux6CEu9H_n5a2lj5hUBl114Cro43RrPridD94HgnGmeeygeEscwxm2gYOHmjlW7DNkAFkXWGjR_iRN9CPKBD4ArOgt_858PoAUG3oQHCCyJsrwoGFHlCuP4QiWnVZIO-xFtazCFWM21XwQO4MeS32D15vwq8HhtqOz0fjzor72we9uFRwaHaZW-31Ngd9J-U7bw7QMk4SlqSaqQm9PaVoL6PqgJQxIFR83R78D-XlfuEGUvufLqdafnd4jzAmFzkbft1c8yQu-RHNf_OIu4d3AKc9e5_pgqJtF/media?maxWidthPx=600&key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k",
+                            "rating": 4.5,
+                            "category": "餐饮",
+                            "categoryIcon": "🍴",
+                            "placeId": "ChIJD44fqC6NGGAR3-A2jLXpl40",
+                            "transitToNext": null
                         }
                     ],
                     "color": "#8b5cf6",
@@ -388,12 +389,12 @@
                     "isBetween": false,
                     "isSameDayStay": false,
                     "transitFromHotel": {
-                        "duration": "5 分钟",
-                        "distance": "1.2 公里",
-                        "durationSeconds": 341,
-                        "distanceMeters": 1154
+                        "duration": "0 分钟",
+                        "distance": "NaN 公里",
+                        "durationSeconds": 0
                     },
-                    "transitToHotel": null
+                    "transitToHotel": null,
+                    "showReturnRoute": false
                 },
                 {
                     "id": "day-1772941926274",
@@ -413,7 +414,8 @@
                     "title": "第 7 天",
                     "date": "2026年5月7日",
                     "stops": [],
-                    "color": "#5b7a99"
+                    "color": "#5b7a99",
+                    "subtitle": ""
                 },
                 {
                     "id": "day-1772941927821",
@@ -588,7 +590,7 @@
             "title": "新的神秘冒险",
             "startDate": "2026-05-01",
             "endDate": "2026-05-05",
-            "thumb": "/uploads/b2b3a98e125b37ed910143c769170cd1.jpg",
+            "thumb": "/uploads/upload_b7c10c34bbe17de22ae748da05ad1894.png",
             "status": "completed",
             "activeDayId": "day-1773159986397-0",
             "days": [
@@ -708,11 +710,11 @@
         "day-1772827496784-2": false,
         "day-1772827496784-3": false,
         "day-1772827496784-4": true,
-        "day-1772941902922-0": false,
-        "day-1772941902922-1": false,
-        "day-1772941902922-2": false,
+        "day-1772941902922-0": true,
+        "day-1772941902922-1": true,
+        "day-1772941902922-2": true,
         "day-1772941902922-3": true,
-        "day-1772941902922-4": false,
+        "day-1772941902922-4": true,
         "day-1772941926274": true,
         "day-1772941927086": true,
         "day-1772941927821": true,

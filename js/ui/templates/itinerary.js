@@ -332,7 +332,7 @@ export function getDayHTML(day, dayIndex, activeDayId) {
     const hoverSyncAttrs = currentDayStay ? `onmouseover="document.querySelectorAll('[data-stay-id=\\'${currentDayStay.id}\\']').forEach(el=>el.classList.add('stay-hover'))" onmouseout="document.querySelectorAll('[data-stay-id=\\'${currentDayStay.id}\\']').forEach(el=>el.classList.remove('stay-hover'))"` : '';
 
     const colorPickerHtml = `
-        <div style="position:relative; margin-left: auto; margin-right: 15px; display:flex; align-items:center;">
+        <div onclick="event.stopPropagation()" style="position:relative; margin-left: auto; margin-right: 15px; display:flex; align-items:center;">
             <div style="width: 14px; height: 14px; border-radius: 50%; background: ${activeColor}; cursor:pointer; border: 2px solid var(--glass-border); box-shadow: 0 1px 3px rgba(0,0,0,0.3); transition: transform 0.1s;" onclick="toggleMenu(event, 'color-${day.id}')" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'" title="${t('itinerary.change_color')}"></div>
             <div class="menu-dropdown" id="menu-color-${day.id}" style="top:1.5rem; right:-0.5rem; flex-direction:row; padding:0.4rem; gap:6px; min-width:auto; border-radius:30px;">
                 ${colors.map(c => `
@@ -349,21 +349,25 @@ export function getDayHTML(day, dayIndex, activeDayId) {
             ondragenter="handleDragEnter(event)"
             ondragleave="handleDragLeave(event)">
             <!-- Day Header -->
-            <div style="display:flex; align-items:center; margin-bottom: 0.5rem; padding-left: 36px; padding-right: 46px;">
+            <div onclick="toggleDayCollapse('${day.id}')" style="display:flex; align-items:center; margin-bottom: 0.5rem; padding-left: 36px; padding-right: 46px; cursor: pointer;">
                 <h3 style="font-size: 1.5rem; margin:0;"><span style="color:var(--accent-primary); font-weight:800; margin-right:8px;">${dayLabel}</span> ${dayName}</h3>
                 ${colorPickerHtml}
-                <div style="position:relative;">
+                <div onclick="event.stopPropagation()" style="position:relative;">
                     <button class="menu-dots" style="position:static; transform:none; padding: 0 5px;" onclick="toggleMenu(event, 'day-${day.id}')">⋮</button>
                     <div class="menu-dropdown" id="menu-day-${day.id}" style="top:2rem; right:0;">
-                        <button onclick="editDay('${day.id}')">${t('itinerary.edit_day_label')}</button>
+                        <button onclick="editDay(event, '${day.id}')">${t('itinerary.edit_day_label')}</button>
                         <button onclick="shareDay(event, '${day.id}')">${t('itinerary.share_trip')}</button>
                         <button class="danger" onclick="deleteDay(event, '${day.id}')">${t('itinerary.delete_day')}</button>
                     </div>
                 </div>
             </div>
-            <div style="color: var(--text-secondary); cursor: pointer; padding-left: 38px; margin-bottom: 0.8rem; font-size: 0.95rem; display:flex; align-items:center;">
-                <span id="collapse-arrow-${day.id}" onclick="toggleDayCollapse('${day.id}')" style="display:inline-block; transform:${state.collapsedDays && state.collapsedDays[day.id] ? 'rotate(-90deg)' : 'rotate(0deg)'}; margin-right:4px; transition: transform 0.2s;">▼</span>
-                <span id="day-subtitle-${day.id}" onclick="editDaySubtitle('${day.id}')">${day.subtitle || t('itinerary.add_subtitle')}</span>
+            <div style="color: var(--text-secondary); padding-left: 38px; margin-bottom: 0.8rem; font-size: 0.95rem; display:flex; align-items:center;">
+                <span id="collapse-arrow-${day.id}" 
+                      onclick="toggleDayCollapse('${day.id}')"
+                      style="cursor: pointer; display:inline-block; transform:${state.collapsedDays && state.collapsedDays[day.id] ? 'rotate(-90deg)' : 'rotate(0deg)'}; margin-right:4px; transition: transform 0.2s;">▼</span>
+                <span id="day-subtitle-${day.id}" 
+                      style="cursor: pointer; font-size: 0.95rem; color: var(--text-secondary); opacity: 0.8; font-weight: 500; min-height: 1em; min-width: 10px;"
+                      onclick="editDaySubtitle(event, '${day.id}')">${day.subtitle || ''}</span>
             </div>
             
             <div id="day-content-${day.id}" style="${state.collapsedDays && state.collapsedDays[day.id] ? 'display:none;' : 'display:block;'}; padding-left: 0;">

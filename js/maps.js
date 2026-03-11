@@ -186,13 +186,13 @@ function showMarkerHoverInfo(stop, marker, trip) {
                 <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px; color: ${theme.text}; font-size: 0.9rem;">
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <span class="material-symbols-outlined" style="font-size: 16px; color: #6366f1;">login</span>
-                        <span style="color: ${theme.muted}; width: 50px;">入住:</span>
-                        <span style="font-weight: 600;">${stayInfo.cin.date} <span style="opacity: 0.7; font-size: 0.8rem;">${stayInfo.cin.time}</span></span>
+                        <span style="color: #ffffff; width: 50px;">入住:</span>
+                        <span style="font-weight: 600;"><span style="display: inline-block; width: 120px;">${stayInfo.cin.date}</span> <span style="color: #4ade80; font-size: 0.8rem;">${stayInfo.cin.time}</span></span>
                     </div>
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <span class="material-symbols-outlined" style="font-size: 16px; color: #f43f5e;">logout</span>
-                        <span style="color: ${theme.muted}; width: 50px;">退房:</span>
-                        <span style="font-weight: 600;">${stayInfo.cout.date} <span style="opacity: 0.7; font-size: 0.8rem;">${stayInfo.cout.time}</span></span>
+                        <span style="color: #ffffff; width: 50px;">退房:</span>
+                        <span style="font-weight: 600;"><span style="display: inline-block; width: 120px;">${stayInfo.cout.date}</span> <span style="color: #f43f5e; font-size: 0.8rem;">${stayInfo.cout.time}</span></span>
                     </div>
                     ${stop.address ? `
                     <div style="display: flex; align-items: flex-start; gap: 10px; margin-top: 4px; border-top: 1px solid ${theme.border}; padding-top: 8px;">

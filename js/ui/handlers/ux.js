@@ -323,14 +323,15 @@ function scrollToDay(id) {
     const container = document.getElementById('itinerary-scroll-container');
     if (element && container) {
         // Manually scroll only the itinerary container to avoid shifting the whole page
-        const headerOffset = 100;
+        const headerOffset = 180;
         container.scrollTo({
             top: element.offsetTop - headerOffset,
             behavior: 'smooth'
         });
     }
 }
-function editDay(dayId) {
+function editDay(event, dayId) {
+    if (event && event.stopPropagation) event.stopPropagation();
     const trip = state.trips.find(t => t.id === state.activeTripId);
     if (!trip) return;
     const day = trip.days.find(d => d.id === dayId);
@@ -386,7 +387,8 @@ function saveEditDay(dayId) {
     closeSubModal();
 }
 
-function editDaySubtitle(dayId) {
+function editDaySubtitle(event, dayId) {
+    if (event) event.stopPropagation();
     const trip = state.trips.find(t => t.id === state.activeTripId);
     if (!trip) return;
     const day = trip.days.find(d => d.id === dayId);
@@ -409,7 +411,7 @@ function editDaySubtitle(dayId) {
         const newSub = inputField.value.trim();
         day.subtitle = newSub;
         saveData();
-        subSpan.innerText = day.subtitle || '添加副标题';
+        subSpan.innerText = day.subtitle || '';
     };
 
     inputField.addEventListener('blur', saveSubtitle);
