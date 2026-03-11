@@ -1,5 +1,5 @@
 import { state } from './state.js';
-import { loadData, saveData } from './api.js';
+import { loadData, saveData, cleanupImages, migrateData } from './api.js';
 import { renderApp } from './ui/render.js';
 import { initRealMap, setGoogleMapsReady, toggleMapDarkMode } from './maps.js';
 import { loadLanguage } from './ui/i18n.js';
@@ -85,8 +85,7 @@ window.cleanupImages = async function () {
     const origText = btn ? btn.innerHTML : '';
     if (btn) { btn.innerHTML = '⏳ 清理中...'; btn.disabled = true; }
     try {
-        const res = await fetch('/api/cleanup-images');
-        const data = await res.json();
+        const data = await cleanupImages();
         if (data.status === 'success') {
             const n = data.deleted_count;
             alert(n > 0
@@ -96,9 +95,20 @@ window.cleanupImages = async function () {
             alert('❌ 清理失败：' + (data.message || '未知错误'));
         }
     } catch (e) {
-        alert('❌ 无法连接到服务器，请确认 server.py 正在运行。');
+        alert('❌ 无法连接到服务器。');
     } finally {
         if (btn) { btn.innerHTML = origText; btn.disabled = false; }
+    }
+};
+
+window.migrateData = async function() {
+    if (!confirm("确定要将旧版单文件数据迁移到新版关联表结构吗？此操作不可逆。")) return;
+    try {
+        await migrateData();
+        alert("✅ 数据迁移成功！请刷新页面。");
+        location.reload();
+    } catch (e) {
+        alert("❌ 迁移失败：" + e.message);
     }
 };
 

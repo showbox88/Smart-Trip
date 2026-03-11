@@ -46,3 +46,27 @@ export async function deleteImages(urls) {
         console.warn('[deleteImages] Failed:', e);
     }
 }
+export async function uploadLocal(base64Data) {
+    try {
+        const response = await fetch('/api/upload-local', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image: base64Data })
+        });
+        return await response.json();
+    } catch (e) {
+        console.error("[Local API] Upload failed:", e);
+        return { status: 'error', message: e.message };
+    }
+}
+
+export async function cleanupImages() {
+    const response = await fetch('/api/cleanup-images');
+    return await response.json();
+}
+
+export async function getAvailableLanguages() {
+    const response = await fetch('/api/languages');
+    return await response.json();
+}
+
