@@ -938,7 +938,9 @@ export function saveStayInfo(originalStopId) {
 
     // Helper to format date
     const formatDateToZh = (iso) => {
-        const d = new Date(iso.replace(/-/g, '/'));
+        // Handle if date is already in Zh format
+        let normalized = iso.replace(/-/g, '/').replace('年', '/').replace('月', '/').replace('日', '');
+        const d = new Date(normalized);
         return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
     };
     const cinZh = formatDateToZh(cinDate);
