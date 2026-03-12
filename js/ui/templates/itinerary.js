@@ -18,7 +18,7 @@ export function getTimelineItemHTML(day, stop, index, locationIdx, showTransit, 
 
     // 1. Stay Line logic for this specific item
     if (day.currentDayStay) {
-        const stayColor = 'transparent'; // Hidden as requested by USER
+        const stayColor = '#8b6b3b'; // Dim brownish orange for stay connection line
         const cinIdx = day.stops.findIndex(s => s.id === day.currentDayStay.checkinStopId);
         const coutIdx = day.stops.findIndex(s => s.id === day.currentDayStay.checkoutStopId);
         const isCinItem = stop.id === day.currentDayStay.checkinStopId;
@@ -445,7 +445,7 @@ export function getDayHTML(day, dayIndex, activeDayId) {
 
                     ${(isBetween || isCoutOnly) ? `
                         <div class="hotel-hint-row" ${hoverSyncAttrs} style="padding-left: 36px; margin-bottom: 0.8rem; color: #f59e0b; font-size: 0.85rem; font-weight: 600; display: flex; flex-direction:column; gap: 4px; position: relative; cursor: pointer;">
-                            <div class="stay-line-segment" data-stay-id="${currentDayStay.id}" style="position:absolute; left:10px; top: -10rem; bottom: -1rem; width:4px; background:transparent; opacity:1; z-index:1; border-radius: 0; transition: all 0.3s ease;"></div>
+                            <div class="stay-line-segment" data-stay-id="${currentDayStay.id}" style="position:absolute; left:10px; top: -10rem; bottom: -1rem; width:4px; background:#8b6b3b; opacity:1; z-index:1; border-radius: 0; transition: all 0.3s ease;"></div>
                             <div style="display:flex; align-items:center; gap: 6px;">
                                 <span>🏨</span> <span>${t('itinerary.from_hotel')} ${currentDayStay.location}</span>
                             </div>
@@ -464,7 +464,7 @@ export function getDayHTML(day, dayIndex, activeDayId) {
 
                     ${day.stops.length === 0 ? `
                         <div style="padding: 1.5rem 1rem; margin-bottom: 1.5rem; text-align: center; border: 1px dashed var(--glass-border); border-radius: 8px; background: rgba(255,255,255,0.02); position:relative; z-index:2;">
-                            ${isBetween ? `<div class="stay-line-segment" data-stay-id="${currentDayStay.id}" style="position:absolute; left:10px; top: -5.5rem; bottom: -5.5rem; width:4px; background:transparent; opacity:1; z-index:1; border-radius: 0; transition: all 0.3s ease;"></div>` : ''}
+                            ${isBetween ? `<div class="stay-line-segment" data-stay-id="${currentDayStay.id}" style="position:absolute; left:9px; top: -5.5rem; bottom: -5.5rem; width:4px; background:#8b6b3b; opacity:1; z-index:1; border-radius: 0; transition: all 0.3s ease;"></div>` : ''}
                             <span style="font-size: 2rem; opacity: 0.5;">📅</span>
                             <p style="color:var(--text-secondary); margin: 0.5rem 0 0 0; font-weight: 500;">(${t('itinerary.no_data')})</p>
                         </div>
@@ -479,7 +479,7 @@ export function getDayHTML(day, dayIndex, activeDayId) {
                 
                     ${(isBetween || isCinOnly || isSameDayStay) ? `
                         <div class="hotel-hint-row" ${hoverSyncAttrs} style="padding-left: 36px; margin-top: 0.8rem; color: #f59e0b; font-size: 0.85rem; font-weight: 600; display: flex; flex-direction:column; gap: 4px; position: relative; cursor: pointer;">
-                             <div class="stay-line-segment" data-stay-id="${currentDayStay.id}" style="position:absolute; left:10px; top: -1rem; bottom: -10rem; width:4px; background:transparent; opacity:1; z-index:1; border-radius: 0; transition: all 0.3s ease;"></div>
+                             <div class="stay-line-segment" data-stay-id="${currentDayStay.id}" style="position:absolute; left:10px; top: -1rem; bottom: -10rem; width:4px; background:#8b6b3b; opacity:1; z-index:1; border-radius: 0; transition: all 0.3s ease;"></div>
                              <div style="font-weight: normal; color: var(--text-secondary); font-size: 0.8rem; display:flex; align-items:center; gap: 0.6rem; margin-bottom: 4px;">
                                 <span style="cursor:pointer; user-select:none; display:inline-block; transition:transform 0.15s;" onmouseover="this.style.transform='scale(1.25)'" onmouseout="this.style.transform='scale(1)'" onclick="toggleHotelTransitMode('${day.id}', 'to')" title="${t('itinerary.toggle_transit')}">${day.transitToHotelMode === 'WALK' ? '🚶' : '🚗'}</span>
                                 <span>${(() => {

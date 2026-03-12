@@ -320,6 +320,8 @@ export function initRealMap() {
     // Reset instance if div was recreated by a full render
     if (googleMapInstance && mapDiv.childElementCount === 0) {
         googleMapInstance = null;
+        window._mapSearchControlInited = false;
+        window._mapClickListenerAdded = false;
     }
 
     if (!googleMapInstance) {
@@ -331,6 +333,27 @@ export function initRealMap() {
             zoomControl: true,
             gestureHandling: 'greedy'
         });
+        // Init search + click listener ONCE when map is first created
+        window._mapSearchControlInited = false;
+    }
+
+    // Ensure search control is always visible (re-inject if lost)
+    if (!window._mapSearchControlInited) {
+        initMapSearchControl(googleMapInstance);
+        window._mapSearchControlInited = true;
+    }
+
+    // Map click → show place info panel (attach once)
+    if (!window._mapClickListenerAdded) {
+        googleMapInstance.addListener('click', async (e) => {
+            if (!e.placeId) {
+                closeMapInfoPanel();
+                return;
+            }
+            e.stop();
+            window._openPlacePanel(e.placeId);
+        });
+        window._mapClickListenerAdded = true;
     }
 
     // Apply dark mode overlay via CSS safely
@@ -539,19 +562,6 @@ export function initRealMap() {
         } else {
             if (debugEl) debugEl.innerText = t('map.status_ready').replace('{count}', 0);
         }
-
-        // --- Custom Search Control Injection ---
-        initMapSearchControl(googleMapInstance);
-
-        // Map click → show place info panel
-        googleMapInstance.addListener('click', async (e) => {
-            if (!e.placeId) {
-                closeMapInfoPanel();
-                return;
-            }
-            e.stop(); // prevent default Google infowindow
-            window._openPlacePanel(e.placeId);
-        });
 
     } catch (e) {
         console.error("initRealMap failed:", e);
