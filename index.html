@@ -29,7 +29,7 @@
 <body class="dark-theme">
     <header class="navbar">
         <div class="logo" onclick="goDashboard()" style="cursor: pointer;">
-            <img src="assets/images/logo.png" alt="Smart Trip Logo" id="project-logo">
+            Smart<span>Trip</span>
         </div>
         <div class="nav-search-bar">
             <span class="material-symbols-outlined">search</span>
@@ -79,7 +79,7 @@
     <!-- Sub Modal Container (For Time, Expense, etc.) -->
     <div id="sub-modal-overlay" class="modal-overlay hidden" style="z-index: 1000;"
         onmousedown="if(event.target===this) closeSubModal()">
-        <div class="modal-content sub-modal" style="max-width: 400px;">
+        <div class="modal-content sub-modal">
             <div class="modal-header" style="border-bottom: none; padding-bottom: 0;">
                 <h3 id="sub-modal-title" style="text-align:center; width:100%; font-size: 1.1rem;">添加时间</h3>
                 <button class="close-btn" onclick="closeSubModal()"

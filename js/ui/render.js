@@ -117,11 +117,16 @@ export function renderApp() {
 
             container.innerHTML = getTripHTML(trip);
             updateNavLinks();
+            
             setTimeout(() => {
                 if (window.googleMapsReady) {
                     initRealMap();
                 }
                 initSidebarGlow(); // Ensure sidebar glow effect is initialized after render
+                
+                if (window._forceResizeTextareas) {
+                    window._forceResizeTextareas(container);
+                }
             }, 50);
         }
     } catch (err) {

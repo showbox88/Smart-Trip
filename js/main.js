@@ -79,6 +79,7 @@ window.setDayColor = StopHandlers.setDayColor;
 window.autoAddStop = StopHandlers.autoAddStop;
 window.openStayInfoModal = StopHandlers.openStayInfoModal;
 window.saveStayInfo = StopHandlers.saveStayInfo;
+window._forceResizeTextareas = UXHandlers._forceResizeTextareas;
 
 // Image cache cleanup — called from the dashboard "清理图片缓存" button
 window.cleanupImages = async function () {

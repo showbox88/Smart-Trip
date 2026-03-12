@@ -166,18 +166,13 @@ body:not(.hero-active) .nav-search-bar {
 .logo {
     display: flex;
     align-items: center;
-    height: 42px;
+    font-size: 1.8rem;
+    font-weight: 700;
+    letter-spacing: -1px;
 }
 
-.logo img {
-    height: 100%;
-    width: auto;
-    object-fit: contain;
-    transition: transform 0.2s ease;
-}
-
-.logo img:hover {
-    transform: scale(1.05);
+.logo span {
+    color: var(--accent-primary);
 }
 
 /* .logo span removed - using image logo */

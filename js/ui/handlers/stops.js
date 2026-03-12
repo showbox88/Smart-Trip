@@ -403,7 +403,7 @@ export function toggleListItemCheck(dayId, itemId, index, element) {
             element.style.border = `2px solid ${isChecked ? 'var(--text-secondary)' : 'var(--text-secondary)'} `;
             element.style.background = isChecked ? 'var(--text-secondary)' : 'transparent';
             const input = element.nextElementSibling;
-            if (input && input.tagName === 'INPUT') {
+            if (input && (input.tagName === 'INPUT' || input.tagName === 'TEXTAREA')) {
                 input.style.textDecoration = isChecked ? 'line-through' : 'none';
                 input.style.opacity = isChecked ? '0.5' : '1';
             }
@@ -436,13 +436,10 @@ export function deleteListItem(dayId, itemId, index) {
         const srcEl = document.getElementById(dayId);
         if (srcEl) {
             srcEl.replaceWith(temp.firstElementChild);
-            // Trigger auto-resize on any reproduced textareas
+            // Trigger auto-resize on any reproduced textareas delay for DOM paint
             const newDayEl = document.getElementById(dayId);
             if (newDayEl) {
-                newDayEl.querySelectorAll('textarea').forEach(ta => {
-                    ta.style.height = '';
-                    ta.style.height = ta.scrollHeight + 'px';
-                });
+                _forceResizeTextareas(newDayEl);
             }
         } else {
             renderApp();
@@ -450,43 +447,55 @@ export function deleteListItem(dayId, itemId, index) {
     }
 }
 
-export function handleNewListItem(event, dayId, itemId) {
-    if (event.key === 'Enter') {
-        const val = event.target.value.trim();
-        if (val) {
-            const day = getDay(dayId);
-            if (!day) return;
-            const item = day.stops.find(s => s.id === itemId);
-            if (item) {
-                item.items = item.items || [];
-                item.items.push({ text: val, checked: false });
-                saveData();
+export function handleNewListItem(event, dayId, itemId, index) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault(); // Prevent standard newline
+        const day = getDay(dayId);
+        if (!day) return;
+        const item = day.stops.find(s => s.id === itemId);
+        if (item) {
+            item.items = item.items || [];
+            
+            // Force save the current text before re-rendering
+            if (index !== undefined && item.items[index]) {
+                item.items[index].text = event.target.value;
+            }
+            
+            // Insert a new empty item immediately after the current one
+            const nextIdx = (index !== undefined) ? index + 1 : item.items.length;
+            item.items.splice(nextIdx, 0, { text: '', checked: false });
+            
+            saveData();
+            
+            const trip = state.trips.find(t => t.id === state.activeTripId);
+            const dayIndex = trip.days.findIndex(d => d.id === dayId);
+            const temp = document.createElement('div');
+            temp.innerHTML = getDayHTML(day, dayIndex, state.activeTripId);
+            const srcEl = document.getElementById(dayId);
+            if (srcEl) {
+                srcEl.replaceWith(temp.firstElementChild);
 
-                const trip = state.trips.find(t => t.id === state.activeTripId);
-                const dayIndex = trip.days.findIndex(d => d.id === dayId);
-                const temp = document.createElement('div');
-                temp.innerHTML = getDayHTML(day, dayIndex, state.activeTripId);
-                const srcEl = document.getElementById(dayId);
-                if (srcEl) {
-                    srcEl.replaceWith(temp.firstElementChild);
+                const newDayEl = document.getElementById(dayId);
+                if (newDayEl) {
+                    if (window._forceResizeTextareas) {
+                        window._forceResizeTextareas(newDayEl);
+                    }
 
-                    const newDayEl = document.getElementById(dayId);
-                    if (newDayEl) {
-                        newDayEl.querySelectorAll('textarea').forEach(ta => {
-                            ta.style.height = '';
-                            ta.style.height = ta.scrollHeight + 'px';
-                        });
-
+                    setTimeout(() => {
                         // Focus back on the new input field in the recreated DOM
-                        const listContainer = document.getElementById(`list - items - ${itemId} `);
+                        const listContainer = document.getElementById(`list-items-${itemId}`);
                         if (listContainer) {
                             const newInputs = listContainer.querySelectorAll('textarea');
-                            if (newInputs.length > 0) newInputs[newInputs.length - 1].focus();
+                            if (newInputs.length > 0) {
+                                const targetIdx = (index !== undefined) ? index + 1 : newInputs.length - 1;
+                                const targetInput = newInputs[targetIdx] || newInputs[newInputs.length - 1];
+                                targetInput.focus();
+                            }
                         }
-                    }
-                } else {
-                    renderApp();
+                    }, 10);
                 }
+            } else {
+                renderApp();
             }
         }
     }
@@ -529,7 +538,16 @@ export function addTimelineNote(dayId) {
     const temp = document.createElement('div');
     temp.innerHTML = getDayHTML(day, dayIndex, state.activeTripId);
     const dayEl = document.getElementById(dayId);
-    if (dayEl) dayEl.replaceWith(temp.firstElementChild);
+    if (dayEl) {
+        dayEl.replaceWith(temp.firstElementChild);
+        if (window._forceResizeTextareas) {
+            window._forceResizeTextareas(temp.firstElementChild);
+        }
+        setTimeout(() => {
+            const newNoteEl = document.querySelector(`.id-${newStop.id} textarea`);
+            if (newNoteEl) newNoteEl.focus();
+        }, 30);
+    }
 }
 
 export function addTimelineList(dayId) {
@@ -540,7 +558,7 @@ export function addTimelineList(dayId) {
         id: 'l' + Date.now(),
         type: 'list',
         title: '',
-        items: []
+        items: [{ text: '', checked: false }]
     };
     day.stops.push(newStop);
     saveData();
@@ -551,7 +569,15 @@ export function addTimelineList(dayId) {
     const temp = document.createElement('div');
     temp.innerHTML = getDayHTML(day, dayIndex, state.activeTripId);
     const dayEl = document.getElementById(dayId);
-    if (dayEl) dayEl.replaceWith(temp.firstElementChild);
+    if (dayEl) {
+        dayEl.replaceWith(temp.firstElementChild);
+        setTimeout(() => {
+            const newListEl = document.querySelector(`.id-${newStop.id} input[type="text"]`);
+            if (newListEl) {
+                newListEl.focus();
+            }
+        }, 10);
+    }
 }
 
 // Insert note right after a specific stop (used by the "+" transit button)
@@ -580,6 +606,14 @@ export function insertNoteAfterStop(dayId, afterStopId) {
         const temp = document.createElement('div');
         temp.innerHTML = getDayHTML(day, dayIndex, state.activeTripId);
         timeline.replaceChild(temp.firstElementChild, daySection);
+
+        if (window._forceResizeTextareas) {
+            window._forceResizeTextareas(temp.firstElementChild);
+        }
+        setTimeout(() => {
+            const newNoteEl = document.querySelector(`.id-${newStop.id} textarea`);
+            if (newNoteEl) newNoteEl.focus();
+        }, 30);
     }
 }
 
@@ -595,7 +629,7 @@ export function insertListAfterStop(dayId, afterStopId) {
         id: 'l' + Date.now(),
         type: 'list',
         title: '',
-        items: []
+        items: [{ text: '', checked: false }]
     };
     day.stops.splice(insertIdx, 0, newStop);
     saveData();
@@ -608,6 +642,13 @@ export function insertListAfterStop(dayId, afterStopId) {
         const temp = document.createElement('div');
         temp.innerHTML = getDayHTML(day, dayIndex, state.activeTripId);
         timeline.replaceChild(temp.firstElementChild, daySection);
+
+        setTimeout(() => {
+            const newListEl = document.querySelector(`.id-${newStop.id} input[type="text"]`);
+            if (newListEl) {
+                newListEl.focus();
+            }
+        }, 10);
     }
 }
 

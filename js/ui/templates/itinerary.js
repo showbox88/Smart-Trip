@@ -123,29 +123,29 @@ export function getTimelineItemHTML(day, stop, index, locationIdx, showTransit, 
 
     if (stop.type === 'note') {
         contentHtml = `
-            <div class="note-card stop-card" style="background: var(--bg-deep); border-radius: 12px; padding: 0.8rem 1.2rem; display:flex; align-items:center; gap: 1rem; border: 1px solid var(--glass-border); transition: all 0.3s ease;">
+            <div class="note-card stop-card dynamic-textarea-card" style="background: var(--bg-deep); border-radius: 12px; padding: 0.8rem 1.2rem; display:flex; align-items:center; gap: 1rem; border: 1px solid var(--glass-border);">
                 <div style="width: 24px; height: 24px; border-radius: 50%; background: var(--glass-bg); border: 2px solid var(--glass-border); display:flex; align-items:center; justify-content:center; font-size: 0.85rem; color: var(--text-secondary); flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                     📄
                 </div>
-                <textarea rows="1" oninput="this.style.height='';this.style.height=this.scrollHeight+'px'" onchange="updateNoteContent('${day.id}', '${stop.id}', this.value)" style="flex:1; background:transparent; border:none; outline:none; color:var(--text-primary); font-size:1rem; padding: 0.2rem; resize:none; overflow:hidden;" placeholder="${t('stops.add_note_placeholder')}">${stop.content || ''}</textarea>
+                <textarea onfocus="if(window._forceResizeTextareas) window._forceResizeTextareas(this)" oninput="this.style.height='';this.style.height=this.scrollHeight+'px'" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();this.blur();}" onchange="updateNoteContent('${day.id}', '${stop.id}', this.value)" style="flex:1; background:transparent; border:none; outline:none; color:var(--text-primary); font-size:1rem; padding: 0.2rem; resize:none; overflow:hidden;" placeholder="${t('stops.add_note_placeholder')}">${stop.content || ''}</textarea>
             </div>
             ${stayLineHtml}
         `;
     } else if (stop.type === 'list') {
         contentHtml = `
-            <div class="list-card stop-card" style="background: var(--bg-deep); border-radius: 12px; padding: 1.2rem; border: 1px solid var(--glass-border); display:flex; align-items:flex-start; gap: 1rem; transition: all 0.3s ease;">
+            <div class="list-card stop-card dynamic-textarea-card" style="background: var(--bg-deep); border-radius: 12px; padding: 1.2rem; border: 1px solid var(--glass-border); display:flex; align-items:flex-start; gap: 1rem;">
                 <div style="width: 24px; height: 24px; border-radius: 50%; background: var(--glass-bg); border: 2px solid var(--glass-border); display:flex; align-items:center; justify-content:center; font-size: 0.85rem; color: var(--text-secondary); flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-top: 2px;">
                     ≡
                 </div>
                 <div style="flex:1;">
                     <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom: 0.8rem;">
-                        <input type="text" value="${stop.title || ''}" onchange="updateListTitle('${day.id}', '${stop.id}', this.value)" style="flex:1; background:transparent; border:none; outline:none; color:var(--text-primary); font-size:1.1rem; font-weight:bold; margin-left:-4px;" placeholder="${t('stops.add_list_title')}">
+                        <input type="text" value="${stop.title || ''}" onkeydown="if(event.key==='Enter'){event.preventDefault(); this.blur(); const firstLi = document.querySelector('#list-items-${stop.id} textarea'); if(firstLi) firstLi.focus();}" onchange="updateListTitle('${day.id}', '${stop.id}', this.value)" style="flex:1; background:transparent; border:none; outline:none; color:var(--text-primary); font-size:1.1rem; font-weight:bold; margin-left:-4px;" placeholder="${t('stops.add_list_title')}">
                     </div>
                     <div id="list-items-${stop.id}" style="display:flex; flex-direction:column; gap:0.5rem; padding-left:0.2rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 1rem; margin-bottom: 1rem;">
                         ${(stop.items || []).map((li, i) => `
                             <div style="display:flex; align-items:center; gap:0.6rem; color:var(--text-primary); margin-bottom: 0.3rem;" class="li-item-hover">
                                 <div style="width: 16px; height: 16px; border: 2px solid var(--text-secondary); border-radius: 50%; background:${li.checked ? 'var(--text-secondary)' : 'transparent'}; display:flex; align-items:center; justify-content:center; cursor:pointer;" onclick="toggleListItemCheck('${day.id}', '${stop.id}', ${i}, this)"></div>
-                                <textarea rows="1" oninput="this.style.height='';this.style.height=this.scrollHeight+'px'" onchange="updateListItemText('${day.id}', '${stop.id}', ${i}, this.value)" style="flex:1; background:transparent; border:none; outline:none; color:var(--text-primary); font-size:0.95rem; text-decoration:${li.checked ? 'line-through' : 'none'}; opacity:${li.checked ? '0.5' : '1'}; resize:none; overflow:hidden;">${li.text || ''}</textarea>
+                                <textarea onfocus="if(window._forceResizeTextareas) window._forceResizeTextareas(this)" oninput="this.style.height='';this.style.height=this.scrollHeight+'px'" onkeydown="handleNewListItem(event, '${day.id}', '${stop.id}', ${i})" onchange="updateListItemText('${day.id}', '${stop.id}', ${i}, this.value)" style="flex:1; background:transparent; border:none; outline:none; color:var(--text-primary); font-size:0.95rem; text-decoration:${li.checked ? 'line-through' : 'none'}; opacity:${li.checked ? '0.5' : '1'}; resize:none; overflow:hidden;">${li.text || ''}</textarea>
                                 <button class="delete-btn-hover" onclick="deleteListItem('${day.id}', '${stop.id}', ${i})" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:0.9rem; opacity:0; transition:opacity 0.2s;">✕</button>
                             </div>
                         `).join('')}

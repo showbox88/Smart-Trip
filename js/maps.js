@@ -137,13 +137,14 @@ function showMarkerHoverInfo(stop, marker, trip) {
     });
 
     const reverseFilter = mapDarkMode ? 'filter: invert(1) hue-rotate(180deg);' : '';
-    const displayType = stop.category || (isHotel ? t('dashboard.categories.住宿') : t('dashboard.categories.地点'));
+    const displayType = stop.category ? t('dashboard.categories.' + stop.category) : (isHotel ? t('dashboard.categories.住宿') : t('dashboard.categories.地点'));
     
-    // Choose icon based on type
+    // Choose icon based on type: comparison should be against raw data keys (Chinese)
     let categoryIcon = 'restaurant';
     if (isHotel) categoryIcon = 'hotel';
-    else if (stop.category === t('dashboard.categories.购物')) categoryIcon = 'shopping_bag';
-    else if (stop.category === t('dashboard.categories.景点')) categoryIcon = 'attractions';
+    else if (stop.category === '购物' || stop.category === 'Shopping') categoryIcon = 'shopping_bag';
+    else if (stop.category === '景点' || stop.category === 'Attractions') categoryIcon = 'attractions';
+    else if (stop.category === '餐饮' || stop.category === 'Dining') categoryIcon = 'restaurant';
 
     // Hotel logic: find pair and calculate stay
     let stayInfo = null;

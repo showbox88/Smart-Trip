@@ -438,6 +438,52 @@ function toggleOverview() {
     }
 }
 
+export function _forceResizeTextareas(container) {
+    if (!container) return;
+    const textareas = container.tagName === 'TEXTAREA' ? [container] : container.querySelectorAll('textarea');
+    if (textareas.length === 0) return;
+
+    // 禁用可能干扰高度计算的过度动画，并使用 display 触发 reflow
+    const cards = container.classList.contains('stop-card') ? [container] : container.querySelectorAll('.stop-card');
+    cards.forEach(c => {
+        c.dataset.oldTransition = c.style.transition;
+        c.style.transition = 'none';
+    });
+
+    const adjust = (retryCount = 0) => {
+        let needsRetry = false;
+        textareas.forEach(ta => {
+            if (ta.offsetParent === null) return; // 不可见时跳过
+
+            const oldHeight = ta.style.height;
+            ta.style.height = 'auto';
+            const sh = ta.scrollHeight;
+
+            // 核心保护逻辑：
+            // 如果 scrollHeight 异常小（比如小于 32px）但里面明明有很多字
+            // 说明浏览器此时正处于渲染中间态，Layout 尚未稳定，这正是缩回单行的诱因。
+            if (sh < 32 && ta.value.length > 10 && retryCount < 5) {
+                ta.style.height = oldHeight; // 还原上一次的高度，拒绝缩回
+                needsRetry = true;
+            } else {
+                ta.style.height = sh + 'px';
+            }
+        });
+
+        if (needsRetry && retryCount < 5) {
+            setTimeout(() => adjust(retryCount + 1), 50 * (retryCount + 1));
+        } else if (retryCount > 0 || (needsRetry === false)) {
+            // 最后一轮采样结束后，恢复动画
+            setTimeout(() => {
+                cards.forEach(c => c.style.transition = c.dataset.oldTransition || '');
+            }, 100);
+        }
+    };
+
+    // 初始触发
+    requestAnimationFrame(() => adjust(0));
+}
+
 function toggleDayCollapse(dayId) {
     state.collapsedDays = state.collapsedDays || {};
     state.collapsedDays[dayId] = !state.collapsedDays[dayId];
@@ -445,6 +491,9 @@ function toggleDayCollapse(dayId) {
     const content = document.getElementById(`day-content-${dayId}`);
     if (content) {
         content.style.display = state.collapsedDays[dayId] ? 'none' : 'block';
+        if (!state.collapsedDays[dayId]) {
+            _forceResizeTextareas(content);
+        }
     }
 
     const arrow = document.getElementById(`collapse-arrow-${dayId}`);
@@ -710,14 +759,26 @@ function handleDrop(e, targetDayId, dropZoneStopId) {
             const temp1 = document.createElement('div');
             temp1.innerHTML = getDayHTML(sourceDay, sDayIndex, state.activeTripId);
             const srcEl = document.getElementById(draggedDayId);
-            if (srcEl) srcEl.replaceWith(temp1.firstElementChild);
+            if (srcEl) {
+                srcEl.replaceWith(temp1.firstElementChild);
+                const newSrcDayEl = document.getElementById(draggedDayId);
+                if (newSrcDayEl) {
+                    _forceResizeTextareas(newSrcDayEl);
+                }
+            }
         }
 
         const tDayIndex = trip.days.findIndex(d => d.id === actualTargetDayId);
         const temp2 = document.createElement('div');
         temp2.innerHTML = getDayHTML(targetDay, tDayIndex, state.activeTripId);
         const tgtEl = document.getElementById(actualTargetDayId);
-        if (tgtEl) tgtEl.replaceWith(temp2.firstElementChild);
+        if (tgtEl) {
+            tgtEl.replaceWith(temp2.firstElementChild);
+            const newTgtDayEl = document.getElementById(actualTargetDayId);
+            if (newTgtDayEl) {
+                _forceResizeTextareas(newTgtDayEl);
+            }
+        }
 
         if (window.googleMapsReady) {
             import('../../maps.js').then(m => {
@@ -770,37 +831,214 @@ function openExpenseDirectly(event, dayId, stopId) {
 }
 
 function openTimePickerModal() {
+    const trip = state.trips.find(t => t.id === state.activeTripId);
+    const day = trip.days.find(d => d.id === editState.editingDayId);
+    const stop = day.stops.find(s => s.id === editState.editingStopId);
+    const isSpecialHotel = stop.type === 'hotel_checkin' || stop.type === 'hotel_checkout';
+
     const title = document.getElementById('sub-modal-title');
     const body = document.getElementById('sub-modal-body');
-    title.innerText = '';
+    
+    title.innerText = isSpecialHotel ? t('itinerary.edit_time') : t('itinerary.select_appointment_time');
 
-    let timeHtml = '';
-    const startHour = 8;
-    for (let i = 0; i < 12; i++) {
-        let h = startHour + i;
-        let period = h >= 12 ? t('common.pm') : t('common.am');
-        let displayH = h > 12 ? h - 12 : h;
-        let padH = (displayH < 10 ? '0' : '') + displayH;
-        timeHtml += `<li style="padding: 1rem 1.5rem; cursor:pointer; border-bottom: 1px solid var(--glass-border); font-size:1.1rem; transition: background 0.2s;" onmouseover="this.style.background='var(--glass-border)'" onmouseout="this.style.background='none'" onclick="selectMockTime('${padH}:00', '${h >= 12 ? 'PM' : 'AM'}')">${displayH}:00 ${period}</li>`;
-        timeHtml += `<li style="padding: 1rem 1.5rem; cursor:pointer; border-bottom: 1px solid var(--glass-border); font-size:1.1rem; transition: background 0.2s;" onmouseover="this.style.background='var(--glass-border)'" onmouseout="this.style.background='none'" onclick="selectMockTime('${padH}:30', '${h >= 12 ? 'PM' : 'AM'}')">${displayH}:30 ${period}</li>`;
+    let dayDisplay = '';
+    let currentWeekdayName = '';
+    try {
+        const normalized = day.date.replace(/年/g, '/').replace(/月/g, '/').replace(/日/g, '').trim();
+        const d = new Date(normalized);
+        if (!isNaN(d.getTime())) {
+            const weekdays = state.settings.language === 'zh' 
+                ? ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']
+                : ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            currentWeekdayName = weekdays[d.getDay()];
+            dayDisplay = `${day.date} (${currentWeekdayName})`;
+        }
+    } catch(e) { dayDisplay = day.date; }
+
+    const timeItems = [];
+    for (let h = 0; h < 24; h++) {
+        let padH = (h < 10 ? '0' : '') + h;
+        ['00', '30'].forEach(m => {
+            timeItems.push({ timeVal: `${padH}:${m}`, label: `${padH}:${m}` });
+        });
     }
 
+    const timeHtml = timeItems.map((item) => `
+        <li class="wheel-item" data-time="${item.timeVal}" 
+            style="height: 48px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: var(--text-primary); transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); scroll-snap-align: center; opacity: 0.3; user-select: none;">
+            ${item.label}
+        </li>
+    `).join('');
+
     body.innerHTML = `
-        <div style="display:flex; justify-content:center; align-items:center; gap:1rem; margin-bottom: 1.5rem;">
-            <div style="background: rgba(167, 139, 250, 0.1); color: var(--accent-secondary); border: 2px solid var(--accent-primary); padding: 0.6rem 1.5rem; border-radius: 8px; font-weight:bold; font-size:1.1rem;">${t('itinerary.stay_checkin_time')}</div>
-            <span style="color:var(--text-secondary)">—</span>
-            <div style="background: var(--bg-primary); padding: 0.6rem 1.5rem; border-radius: 8px; color:var(--text-secondary); font-size:1.1rem;">${t('itinerary.stay_checkout_time')}</div>
+        <style>
+            .sub-modal { width: 900px !important; max-width: 95vw !important; padding: 2rem !important; }
+            .time-wheel-frame {
+                position: relative;
+                height: 280px;
+                background: rgba(0,0,0,0.3);
+                border-radius: 16px;
+                border: 1px solid var(--glass-border);
+                overflow: hidden;
+            }
+            .time-wheel-scroll {
+                position: relative;
+                height: 280px;
+                overflow-y: auto;
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+                scroll-snap-type: y mandatory;
+                padding: 116px 0; /* (280 - 48) / 2 */
+                box-sizing: border-box;
+                z-index: 2;
+            }
+            .time-wheel-scroll::-webkit-scrollbar { display: none; }
+            .time-wheel-overlay {
+                position: absolute;
+                top: 116px;
+                left: 12px;
+                right: 12px;
+                height: 48px;
+                background: var(--accent-primary);
+                border-radius: 12px;
+                pointer-events: none;
+                box-shadow: 0 4px 25px rgba(79, 70, 229, 0.4);
+                z-index: 1;
+            }
+            .wheel-item.active { 
+                opacity: 1 !important; 
+                color: #ffffff !important; 
+                font-weight: 800; 
+                font-size: 1.5rem; 
+                transform: scale(1.1); 
+            }
+            .closed-day-alert { color: #ff4d4d !important; background: rgba(255, 77, 77, 0.15) !important; border: 1px solid rgba(255, 77, 77, 0.3); animation: pulse-red 2s infinite; }
+            .rest-day-line { color: #ff4d4d !important; font-weight: bold; }
+            @keyframes pulse-red {
+                0% { opacity: 1; }
+                50% { opacity: 0.8; }
+                100% { opacity: 1; }
+            }
+            .layout-columns { display: flex; gap: 40px; align-items: stretch; }
+            .col-left { flex: 1.2; min-width: 0; }
+            .col-right { flex: 0.8; min-width: 0; }
+        </style>
+        <div style="display:flex; flex-direction: column; gap: 2rem;">
+            <div class="layout-columns">
+                <!-- Left: Business Hours Record -->
+                ${!isSpecialHotel ? `
+                    <div class="col-left">
+                        <div id="opening-hours-container" style="background: rgba(167, 139, 250, 0.05); border: 1px solid var(--glass-border); border-radius: 16px; padding: 1.5rem; font-size: 1rem; height: 100%; box-sizing: border-box;">
+                            <div style="display:flex; align-items:center; gap:10px; color: var(--accent-secondary); font-weight:bold; margin-bottom:1.25rem;" id="oh-header">
+                                <span class="material-symbols-outlined" style="font-size:24px;">schedule</span>
+                                <span style="font-size: 1.1rem;">${t('itinerary.opening_hours')}</span>
+                            </div>
+                            <div id="opening-hours-content" style="color: var(--text-secondary); line-height: 1.8; white-space: nowrap;">
+                                <div class="loading-shimmer" style="width: 80%; height: 18px; margin-bottom: 12px; border-radius: 4px;"></div>
+                                <div class="loading-shimmer" style="width: 60%; height: 18px; margin-bottom: 12px; border-radius: 4px;"></div>
+                                <div class="loading-shimmer" style="width: 70%; height: 18px; border-radius: 4px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                ` : ''}
+
+                <!-- Right: Time Wheel Selection -->
+                <div class="${isSpecialHotel ? 'col-full' : 'col-right'}" style="${isSpecialHotel ? 'width: 100%' : ''}">
+                    <div style="display:flex; flex-direction: column; gap: 1rem; height: 100%;">
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            <span style="color:var(--text-primary); font-size: 1.1rem; font-weight: 700;">${t('itinerary.select_appointment_approx') || '选择预约大概时间'}</span>
+                            <span id="date-label-tag" style="background: rgba(249, 115, 22, 0.1); color: #f97316; padding: 6px 14px; border-radius: 8px; font-size: 0.9rem; font-weight: 600; transition: all 0.3s; align-self: flex-start;">${dayDisplay}</span>
+                        </div>
+                        <div class="time-wheel-frame" style="flex: 1;">
+                            <div class="time-wheel-overlay"></div>
+                            <div class="time-wheel-scroll" id="time-wheel">
+                                <ul id="wheel-list" style="list-style:none; padding:0; margin:0;">
+                                    ${timeHtml}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:flex; gap:20px;">
+                <button class="submit-btn" style="background:var(--bg-secondary); color:var(--text-primary); flex:1; font-size:1.1rem; height: 56px; border-radius: 14px;" onclick="closeSubModal()">${t('common.cancel')}</button>
+                <button class="submit-btn" style="background:var(--accent-primary); color:white; flex:1; font-weight:bold; font-size:1.1rem; height: 56px; border-radius: 14px; box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);" onclick="window._confirmWheelTime()">${t('common.save')}</button>
+            </div>
         </div>
-        <div style="max-height: 300px; overflow-y:auto; border: 1px solid var(--glass-border); border-radius: 8px; margin-bottom: 1.5rem; background: var(--bg-primary);">
-            <ul style="list-style:none; padding:0; margin:0; color:var(--text-primary);">
-                ${timeHtml}
-            </ul>
-        </div>
-        <div style="display:flex; gap:1rem; justify-content:center;">
-            <button class="submit-btn" style="background:var(--bg-primary); color:var(--text-primary); flex:1; font-size:1.1rem;" onclick="closeSubModal()">${t('common.delete')}</button>
-            <button class="submit-btn" style="background:#f05252; flex:1; font-weight:bold; font-size:1.1rem;" onclick="closeSubModal()">${t('common.save')}</button>
-        </div>
+        <input type="hidden" id="wheel-selected-time" value="${stop.time || '09:00'}">
     `;
+
+    const wheel = document.getElementById('time-wheel');
+    const items = wheel.querySelectorAll('.wheel-item');
+    const itemHeight = 48;
+
+    function updateSelection() {
+        const index = Math.round(wheel.scrollTop / itemHeight);
+        const target = items[index];
+        if (target) {
+            items.forEach(it => it.classList.remove('active'));
+            target.classList.add('active');
+            document.getElementById('wheel-selected-time').value = target.dataset.time;
+        }
+    }
+
+    wheel.addEventListener('scroll', updateSelection);
+
+    window._confirmWheelTime = function() {
+        const time = document.getElementById('wheel-selected-time').value;
+        const [h, m] = time.split(':');
+        const hourNum = parseInt(h);
+        const displayH = hourNum > 12 ? (hourNum - 12) : (hourNum === 0 ? 12 : hourNum);
+        const period = hourNum >= 12 ? 'PM' : 'AM';
+        const formattedH = (displayH < 10 ? '0' : '') + displayH;
+        selectMockTime(`${formattedH}:${m}`, period);
+    };
+
+    setTimeout(() => {
+        let target24 = '09:00';
+        if (stop.time && stop.period) {
+            const [h, m] = stop.time.split(':');
+            let h24 = parseInt(h);
+            if (stop.period === 'PM' && h24 < 12) h24 += 12;
+            if (stop.period === 'AM' && h24 === 12) h24 = 0;
+            target24 = (h24 < 10 ? '0' : '') + h24 + ':' + m;
+        }
+        
+        const startIdx = timeItems.findIndex(ti => ti.timeVal === target24);
+        if (startIdx !== -1) {
+            wheel.scrollTop = startIdx * itemHeight;
+             updateSelection();
+        }
+    }, 100);
+
+    if (!isSpecialHotel) {
+        window._fetchOpeningHours(stop.location, stop.address).then(hours => {
+            const content = document.getElementById('opening-hours-content');
+            const dateLabel = document.getElementById('date-label-tag');
+            if (content) {
+                if (hours && hours.length > 0) {
+                    content.innerHTML = hours.map(line => {
+                        const isClosingLine = line.includes('休息') || line.includes('关门') || line.includes('Closed') || line.includes('Off') || line.includes('定休日');
+                        const styleClass = isClosingLine ? 'rest-day-line' : '';
+                        return `<div class="${styleClass}" style="margin-bottom:6px;">${line}</div>`;
+                    }).join('');
+                    
+                    const isClosedToday = hours.some(line => {
+                        return line.includes(currentWeekdayName) && (line.includes('休息') || line.includes('关门') || line.includes('Closed') || line.includes('Off') || line.includes('定休日'));
+                    });
+
+                    if (isClosedToday) {
+                        dateLabel.classList.add('closed-day-alert');
+                        dateLabel.style.color = '#fff';
+                        dateLabel.innerText = '⚠️ ' + dayDisplay + ' [休息日]';
+                    }
+                } else {
+                    content.innerHTML = `<div style="opacity:0.6; font-style:italic;">${t('map.no_transit_data') || '暂无营业时间信息'}</div>`;
+                }
+            }
+        });
+    }
 
     const overlay = document.getElementById('sub-modal-overlay');
     overlay.classList.add('active');
@@ -877,6 +1115,7 @@ function openExpenseModal() {
 
     body.innerHTML = `
         <style>
+            .sub-modal { width: 440px !important; max-width: 95vw !important; }
             .expense-modal-group {
                 border: 1px solid var(--glass-border);
                 border-radius: 8px;
@@ -1463,3 +1702,24 @@ window._updateSetting = async (key, value) => {
 
 // Initialize features on load
 // (Handled by renderApp in render.js for dynamic DOM persistence)
+
+// --- Opening Hours Helper ---
+window._fetchOpeningHours = async function(locationName, address) {
+    if (!window.googleMapsReady) return null;
+    try {
+        const { Place } = await google.maps.importLibrary('places');
+        const searchRequest = {
+            textQuery: `${locationName} ${address || ''}`,
+            fields: ['regularOpeningHours'],
+            language: state.settings.language === 'zh' ? 'zh-CN' : 'en-US',
+            maxResultCount: 1
+        };
+        const { places } = await Place.searchByText(searchRequest);
+        if (places && places.length > 0 && places[0].regularOpeningHours) {
+            return places[0].regularOpeningHours.weekdayDescriptions;
+        }
+    } catch (e) {
+        console.warn('[OpeningHours] Failed to fetch:', e);
+    }
+    return null;
+};
