@@ -33,7 +33,8 @@
         "search_itineraries": "Search itineraries...",
         "not_found_alt": "No results found",
         "search_placeholder": "Search...",
-        "date": "Date"
+        "date": "Date",
+        "itinerary": "Itinerary"
     },
     "dashboard": {
         "title": "'s Trips",
@@ -224,6 +225,7 @@
         "checkin": "Check-in",
         "checkout": "Check-out",
         "nights": "Nights",
+        "closed_day": "Rest Day",
         "status_searching": "Searching {query}...",
         "status_found": "Found {count} results",
         "status_no_results": "No results for {query}",

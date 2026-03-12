@@ -195,17 +195,7 @@
     padding: 1rem 0;
 }
 
-@media (max-width: 1024px) {
-    .trip-dashboard-container .trip-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
 
-@media (max-width: 640px) {
-    .trip-dashboard-container .trip-grid {
-        grid-template-columns: 1fr;
-    }
-}
 
 .trip-dashboard-container .trip-card {
     background: var(--glass-bg);

@@ -228,6 +228,7 @@ window.toggleOverview = UXHandlers.toggleOverview;
 window.toggleDayCollapse = UXHandlers.toggleDayCollapse;
 window.openTimePickerDirectly = UXHandlers.openTimePickerDirectly;
 window.openExpenseDirectly = UXHandlers.openExpenseDirectly;
+window.toggleMobileView = UXHandlers.toggleMobileView;
 window.openTimePickerModal = UXHandlers.openTimePickerModal;
 window.openExpenseModal = UXHandlers.openExpenseModal;
 window.selectMockTime = UXHandlers.selectMockTime;
@@ -311,6 +312,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // 4. Final Render — now with the correct language loaded
         renderApp();
+
+        // 5. Initialize mobile mode if on small screen
+        if (window.innerWidth <= 900) {
+            UXHandlers.toggleMobileView('plan');
+        }
         console.log("[Main] ✨ App Ready.");
     } catch (e) {
         console.error("[Main] Initialization crash:", e);

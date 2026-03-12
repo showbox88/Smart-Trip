@@ -1,5 +1,6 @@
 import { state, editState, setEditingContext } from '../../state.js';
 import { renderApp } from '../render.js';
+import { formatDate } from '../../utils.js';
 import { saveData } from '../../api.js';
 import { searchImages, searchGoogleStopImages } from './search.js';
 import { getDayHTML } from '../templates/itinerary.js';
@@ -844,16 +845,15 @@ function openTimePickerModal() {
     let dayDisplay = '';
     let currentWeekdayName = '';
     try {
-        const normalized = day.date.replace(/年/g, '/').replace(/月/g, '/').replace(/日/g, '').trim();
-        const d = new Date(normalized);
+        const d = new Date(day.date.replace(/[年 月]/g, '/').replace(/日/g, '').trim());
         if (!isNaN(d.getTime())) {
             const weekdays = state.settings.language === 'zh' 
                 ? ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']
                 : ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
             currentWeekdayName = weekdays[d.getDay()];
-            dayDisplay = `${day.date} (${currentWeekdayName})`;
+            dayDisplay = `${formatDate(day.date)} (${currentWeekdayName})`;
         }
-    } catch(e) { dayDisplay = day.date; }
+    } catch(e) { dayDisplay = formatDate(day.date); }
 
     const timeItems = [];
     for (let h = 0; h < 24; h++) {
@@ -1031,7 +1031,7 @@ function openTimePickerModal() {
                     if (isClosedToday) {
                         dateLabel.classList.add('closed-day-alert');
                         dateLabel.style.color = '#fff';
-                        dateLabel.innerText = '⚠️ ' + dayDisplay + ' [休息日]';
+                        dateLabel.innerText = '⚠️ ' + dayDisplay + ' [' + (t('map.closed_day') || '休息日') + ']';
                     }
                 } else {
                     content.innerHTML = `<div style="opacity:0.6; font-style:italic;">${t('map.no_transit_data') || '暂无营业时间信息'}</div>`;
@@ -1723,3 +1723,18 @@ window._fetchOpeningHours = async function(locationName, address) {
     }
     return null;
 };
+
+export function toggleMobileView(mode) {
+    document.body.classList.remove('mobile-mode-map', 'mobile-mode-plan');
+    document.body.classList.add('mobile-mode-' + mode);
+    
+    document.querySelectorAll('.mobile-nav-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-mode') === mode);
+    });
+
+    // Trigger map resize if map is shown
+    // We access it via window to avoid direct circular dependency in some cases
+    if (mode === 'map' && window.googleMapInstance) {
+        setTimeout(() => google.maps.event.trigger(window.googleMapInstance, 'resize'), 50);
+    }
+}

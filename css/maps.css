@@ -152,3 +152,28 @@ gmp-advanced-marker::part(pin) {
 .gm-style-iw-tc::after {
     display: none !important;
 }
+
+/* --- 地图详细资料窗 (#map-info-panel) --- */
+#map-info-panel {
+    position: absolute;
+    bottom: 23px;
+    left: 15px;
+    right: 65px;
+    height: calc(50% - 14px);
+    min-height: 250px;
+    background: #0d111b;
+    color: var(--text-primary, #e8eaf6);
+    border-radius: 12px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.8);
+    z-index: 500;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: slideUp 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}

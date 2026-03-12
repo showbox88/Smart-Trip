@@ -1,5 +1,6 @@
 import { state } from './state.js';
-import { formatDistance, formatDuration, formatCurrency, calculateDays } from './utils.js';
+import { renderApp } from './ui/render.js';
+import { formatDate, formatDistance, formatDuration } from './utils.js';
 import { t } from './ui/i18n.js';
 
 const MAPS_API_KEY = 'AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k';
@@ -171,7 +172,7 @@ function showMarkerHoverInfo(stop, marker, trip) {
     else if (titleLength > 12) titleFontSize = '1.25rem';
 
     const popupHeight = isHotel ? '250px' : 'auto';
-    let contentStr = `<div style="display: flex; width: 540px; min-height: 160px; height: ${popupHeight}; font-family: 'Plus Jakarta Sans', sans-serif; background: ${theme.bg}; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.4); overflow: hidden; ${reverseFilter}">`;
+    let contentStr = `<div style="display: flex; width: 560px; min-height: 160px; height: ${popupHeight}; font-family: 'Plus Jakarta Sans', sans-serif; background: ${theme.bg}; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.4); overflow: hidden; ${reverseFilter}">`;
 
     // 1. Info Side (Left)
     contentStr += `
@@ -191,13 +192,13 @@ function showMarkerHoverInfo(stop, marker, trip) {
                 <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px; color: ${theme.text}; font-size: 0.9rem;">
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <span class="material-symbols-outlined" style="font-size: 16px; color: #6366f1;">login</span>
-                        <span style="color: #ffffff; width: 65px;">${t('map.checkin')}:</span>
-                        <span style="font-weight: 600;"><span style="display: inline-block; width: 120px;">${stayInfo.cin.date}</span> <span style="color: #4ade80; font-size: 0.8rem;">${stayInfo.cin.time}</span></span>
+                        <span style="color: #ffffff; width: 90px; white-space: nowrap;">${t('map.checkin')}:</span>
+                        <span style="font-weight: 600;"><span style="display: inline-block; width: 125px;">${formatDate(stayInfo.cin.date)}</span> <span style="color: #4ade80; font-size: 0.8rem;">${stayInfo.cin.time}</span></span>
                     </div>
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <span class="material-symbols-outlined" style="font-size: 16px; color: #f43f5e;">logout</span>
-                        <span style="color: #ffffff; width: 65px;">${t('map.checkout')}:</span>
-                        <span style="font-weight: 600;"><span style="display: inline-block; width: 120px;">${stayInfo.cout.date}</span> <span style="color: #f43f5e; font-size: 0.8rem;">${stayInfo.cout.time}</span></span>
+                        <span style="color: #ffffff; width: 90px; white-space: nowrap;">${t('map.checkout')}:</span>
+                        <span style="font-weight: 600;"><span style="display: inline-block; width: 125px;">${formatDate(stayInfo.cout.date)}</span> <span style="color: #f43f5e; font-size: 0.8rem;">${stayInfo.cout.time}</span></span>
                     </div>
                     ${stop.address ? `
                     <div style="display: flex; align-items: flex-start; gap: 10px; margin-top: 4px; border-top: 1px solid ${theme.border}; padding-top: 8px;">
@@ -299,8 +300,9 @@ export function setGoogleMapsReady(ready) {
 export function toggleMapDarkMode() {
     mapDarkMode = !mapDarkMode;
     const mapDiv = document.getElementById('real-map');
+    const btn = document.getElementById('map-dark-toggle');
     if (mapDiv) {
-        mapDiv.style.filter = mapDarkMode ? 'invert(90%) hue-rotate(180deg)' : '';
+        mapDiv.style.filter = mapDarkMode ? 'invert(100%) hue-rotate(180deg)' : '';
     }
     if (btn) {
         btn.innerText = mapDarkMode ? '☀️' : '🌙';
@@ -599,8 +601,32 @@ function initMapSearchControl(mapInstance) {
     searchInput.style.background = 'transparent';
     searchInput.style.color = '#333';
 
+    const clearBtn = document.createElement('div');
+    clearBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
+    clearBtn.style.cssText = `
+        display: none;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 50%;
+        transition: background 0.2s;
+        margin-left: 4px;
+    `;
+    clearBtn.onmouseenter = () => clearBtn.style.background = '#f0f0f0';
+    clearBtn.onmouseleave = () => clearBtn.style.background = 'transparent';
+    clearBtn.onclick = (e) => {
+        e.stopPropagation();
+        searchInput.value = '';
+        searchInput.focus();
+        clearBtn.style.display = 'none';
+        renderDefaultCategories();
+        dropdown.style.display = 'block';
+    };
+
     searchInputWrapper.appendChild(searchIcon);
     searchInputWrapper.appendChild(searchInput);
+    searchInputWrapper.appendChild(clearBtn);
 
     // Dropdown Panel
     const dropdown = document.createElement('div');
@@ -620,31 +646,180 @@ function initMapSearchControl(mapInstance) {
         { label: t('map.category_attractions'), icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>', type: ['tourist_attraction', 'museum', 'park', 'national_park', 'historical_landmark', 'amusement_center', 'aquarium', 'art_gallery'] },
         { label: t('map.category_gas'), icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19.77 7.23l.01-.01-3.72-3.72L15 4.56l2.11 2.11C16.17 7 15.5 8.22 15.5 9.61c0 2.54 1.95 4.62 4.45 4.86V20h2v-5.5h-2.5V9.61c0-1.01-.48-1.92-1.22-2.5l.38-.38-.34-.5-1 1M12 10H6v4h6v-4m0-6H6c-1.1 0-2 .9-2 2v14h8V4z"/></svg>', type: ['gas_station'] },
         { label: t('map.category_charging'), icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M14.5 11l-3 6v-4h-2l3-6v4h2z M17 3H7c-1.1 0-2 .9-2 2v16h14V5c0-1.1-.9-2-2-2zm0 16H7V5h10v14z"/></svg>', type: ['electric_vehicle_charging_station'] },
-        { label: t('map.category_lodging'), icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M7 13c1.66 0 3-1.34 3-3S8.66 7 7 7s-3 1.34-3 3 1.34 3 3 3zm12-6h-8v7H3V5H1v15h2v-3h18v3h2v-9c0-2.21-1.79-4-4-4z"/></svg>', type: ['lodging', 'hotel', 'motel', 'bed_and_breakfast', 'guest_house', 'hostel', 'resort_hotel', 'rv_park'] }
+        { label: t('map.category_lodging'), icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M7 13c1.66 0 3-1.34 3-3S8.66 7 7 7s-3 1.34-3 3 1.34 3 3 3zm12-6h-8v7H3V5H1v15h2v-3h18v3h2v-9c0-2.21-1.79-4-4-4z"/></svg>', type: ['lodging', 'hotel', 'motel', 'bed_and_breakfast', 'resort_hotel', 'hostel', 'guest_house'] }
     ];
 
-    categories.forEach((cat, idx) => {
-        const item = document.createElement('div');
-        item.style.padding = '12px 16px';
-        item.style.display = 'flex';
-        item.style.alignItems = 'center';
-        item.style.gap = '12px';
-        item.style.cursor = 'pointer';
-        item.style.color = '#333';
-        item.style.fontSize = '15px';
-        item.style.borderBottom = idx < categories.length - 1 ? '1px solid #f0f0f0' : 'none';
-        item.style.transition = 'background 0.2s';
+    // --- Autocomplete Logic ---
+    let AutocompleteSuggestion = null;
+    let AutocompleteSessionToken = null;
+    let sessionToken = null;
+    let predictions = [];
+    let selectedIndex = -1;
 
-        item.innerHTML = `<span style="display:flex; justify-content:center; align-items:center; width:24px;">${cat.icon}</span> <span>${cat.label}</span>`;
+    async function ensureServices() {
+        if (!AutocompleteSuggestion) {
+            const lib = await google.maps.importLibrary('places');
+            AutocompleteSuggestion = lib.AutocompleteSuggestion;
+            AutocompleteSessionToken = lib.AutocompleteSessionToken;
+            sessionToken = new AutocompleteSessionToken();
+        }
+    }
 
-        item.onmouseenter = () => item.style.background = '#f8f9fa';
-        item.onmouseleave = () => item.style.background = 'transparent';
-        item.onclick = () => {
-            searchInput.value = cat.label;
+    function renderDefaultCategories() {
+        dropdown.innerHTML = '';
+        selectedIndex = -1;
+        categories.forEach((cat, idx) => {
+            const item = document.createElement('div');
+            item.className = 'search-dropdown-item';
+            item.style.padding = '12px 16px';
+            item.style.display = 'flex';
+            item.style.alignItems = 'center';
+            item.style.gap = '12px';
+            item.style.cursor = 'pointer';
+            item.style.color = '#333';
+            item.style.fontSize = '15px';
+            item.style.borderBottom = idx < categories.length - 1 ? '1px solid #f0f0f0' : 'none';
+            item.style.transition = 'background 0.2s';
+            item.innerHTML = `<span style="display:flex; justify-content:center; align-items:center; width:24px;">${cat.icon}</span> <span>${cat.label}</span>`;
+            
+            item.onmousedown = (e) => {
+                e.preventDefault(); // Prevent input blur
+                searchInput.value = cat.label;
+                dropdown.style.display = 'none';
+                triggerMapSearch(cat.label, cat.type);
+            };
+            item.onmouseenter = () => {
+                updateSelectedIndex(idx);
+            };
+            dropdown.appendChild(item);
+        });
+    }
+
+    function renderPredictions(preds) {
+        dropdown.innerHTML = '';
+        predictions = preds || [];
+        selectedIndex = -1;
+
+        if (predictions.length === 0) {
             dropdown.style.display = 'none';
-            triggerMapSearch(cat.label, cat.type);
+            return;
+        }
+
+        predictions.forEach((pred, idx) => {
+            const item = document.createElement('div');
+            item.className = 'search-dropdown-item';
+            item.style.padding = '12px 16px';
+            item.style.display = 'flex';
+            item.style.alignItems = 'center';
+            item.style.gap = '12px';
+            item.style.cursor = 'pointer';
+            item.style.color = '#333';
+            item.style.fontSize = '14px';
+            item.style.borderBottom = idx < predictions.length - 1 ? '1px solid #f0f0f0' : 'none';
+            
+            const icon = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>`;
+            item.innerHTML = `<span style="flex-shrink:0;">${icon}</span><span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${pred.description}</span>`;
+            
+            item.onmousedown = (e) => {
+                e.preventDefault(); // Prevent input blur
+                searchInput.value = pred.structured_formatting.main_text;
+                dropdown.style.display = 'none';
+                triggerMapSearch(pred.description, null, pred.place_id);
+            };
+            item.onmouseenter = () => {
+                updateSelectedIndex(idx);
+            };
+            dropdown.appendChild(item);
+        });
+        dropdown.style.display = 'block';
+    }
+
+    function updateSelectedIndex(index) {
+        const items = dropdown.querySelectorAll('.search-dropdown-item');
+        items.forEach(it => {
+            it.style.background = 'transparent';
+        });
+        selectedIndex = index;
+        if (items[selectedIndex]) {
+            items[selectedIndex].style.background = '#f0f4ff';
+        }
+    }
+
+    async function handleInput() {
+        const val = searchInput.value.trim();
+        if (!val) {
+            renderDefaultCategories();
+            return;
+        }
+
+        await ensureServices();
+        const request = {
+            input: val,
+            sessionToken: sessionToken,
+            locationBias: mapInstance.getBounds() || undefined
         };
-        dropdown.appendChild(item);
+
+        try {
+            const { suggestions } = await AutocompleteSuggestion.fetchAutocompleteSuggestions(request);
+            // Map suggestions to the prediction format we used before
+            const preds = (suggestions || []).map(s => ({
+                description: s.placePrediction.text.toString(),
+                place_id: s.placePrediction.placeId,
+                structured_formatting: {
+                    main_text: s.placePrediction.mainText.toString()
+                }
+            }));
+            renderPredictions(preds);
+        } catch (e) {
+            console.error("Autocomplete error:", e);
+        }
+    }
+
+    renderDefaultCategories();
+
+    searchInput.addEventListener('input', () => {
+        clearBtn.style.display = searchInput.value ? 'flex' : 'none';
+        handleInput();
+    });
+
+    searchInput.addEventListener('keydown', (e) => {
+        const items = dropdown.querySelectorAll('.search-dropdown-item');
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            dropdown.style.display = 'block';
+            let next = selectedIndex + 1;
+            if (next >= items.length) next = 0;
+            updateSelectedIndex(next);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            let next = selectedIndex - 1;
+            if (next < 0) next = items.length - 1;
+            updateSelectedIndex(next);
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            const activeItem = dropdown.querySelector('.search-dropdown-item[style*="background: rgb(240, 244, 255)"]'); // Check highlit item
+            if (selectedIndex >= 0 && items[selectedIndex]) {
+                // Manually trigger the selection logic since click() on mousedown-bound items can be weird
+                const isPrediction = predictions.length > 0;
+                if (isPrediction) {
+                    const pred = predictions[selectedIndex];
+                    searchInput.value = pred.structured_formatting.main_text;
+                    triggerMapSearch(pred.description, null, pred.place_id);
+                } else {
+                    const cat = categories[selectedIndex];
+                    searchInput.value = cat.label;
+                    triggerMapSearch(cat.label, cat.type);
+                }
+                dropdown.style.display = 'none';
+                searchInput.blur();
+            } else {
+                dropdown.style.display = 'none';
+                triggerMapSearch(searchInput.value);
+                searchInput.blur();
+            }
+        } else if (e.key === 'Escape') {
+            dropdown.style.display = 'none';
+        }
     });
 
     controlWrapper.appendChild(searchInputWrapper);
@@ -654,20 +829,17 @@ function initMapSearchControl(mapInstance) {
     let hideTimeout;
     searchInput.addEventListener('focus', () => {
         clearTimeout(hideTimeout);
+        if (searchInput.value) {
+            clearBtn.style.display = 'flex';
+        }
+        if (!searchInput.value.trim()) {
+            renderDefaultCategories();
+        }
         dropdown.style.display = 'block';
     });
 
     searchInput.addEventListener('blur', () => {
-        hideTimeout = setTimeout(() => { dropdown.style.display = 'none'; }, 200);
-    });
-
-    searchInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            dropdown.style.display = 'none';
-            searchInput.blur();
-            triggerMapSearch(searchInput.value);
-        }
+        hideTimeout = setTimeout(() => { dropdown.style.display = 'none'; }, 250);
     });
 
     mapInstance.controls[google.maps.ControlPosition.TOP_LEFT].push(controlWrapper);
@@ -676,8 +848,87 @@ function initMapSearchControl(mapInstance) {
 // Global search function
 window._searchMarkers = window._searchMarkers || [];
 
-window.triggerMapSearch = async function (query, typeRestraint = null) {
+window._panToWithOffset = function (location) {
+    if (!googleMapInstance || !location) return;
+    googleMapInstance.panTo(location);
+    // After panning, shift by 1/4 of map height down so marker moves to center of top visible half
+    const mapDiv = document.getElementById('real-map');
+    if (mapDiv) {
+        setTimeout(() => {
+            const offset = mapDiv.offsetHeight / 4;
+            googleMapInstance.panBy(0, offset);
+        }, 100);
+    }
+};
+
+window.triggerMapSearch = async function (query, typeRestraint = null, placeId = null) {
     if (!googleMapInstance || !query.trim()) return;
+
+    if (placeId) {
+        // Clear previous search marked pins
+        if (window._searchMarkers) {
+            window._searchMarkers.forEach(m => { if (m) m.map = null; });
+            window._searchMarkers = [];
+        }
+
+        // If we have a direct placeId from autocomplete, we just add the marker and center
+        // window._openPlacePanel(placeId); // Disabled per user request: only open on marker click
+
+        // Also center the map on it and add a marker
+        try {
+            const { Place } = await google.maps.importLibrary('places');
+            const { AdvancedMarkerElement } = await google.maps.importLibrary('marker');
+            const place = new Place({ id: placeId });
+            await place.fetchFields({ fields: ['location', 'displayName'] });
+            
+            if (place.location) {
+                window._panToWithOffset(place.location);
+                googleMapInstance.setZoom(15);
+
+                const markerContent = document.createElement('div');
+                markerContent.style.cssText = `
+                    width: 42px; height: 42px;
+                    background: #f97316;
+                    border: 3px solid white;
+                    border-radius: 50%;
+                    cursor: pointer;
+                    box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+                    display: flex; align-items: center; justify-content: center;
+                    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                    animation: markerPulse 2s infinite;
+                `;
+                markerContent.innerHTML = `
+                    <style>
+                        @keyframes markerPulse {
+                            0% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.4); }
+                            70% { box-shadow: 0 0 0 15px rgba(249, 115, 22, 0); }
+                            100% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0); }
+                        }
+                    </style>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                `;
+
+                markerContent.onmouseenter = () => markerContent.style.transform = 'scale(1.2)';
+                markerContent.onmouseleave = () => markerContent.style.transform = 'scale(1)';
+
+                const marker = new AdvancedMarkerElement({
+                    position: place.location,
+                    map: googleMapInstance,
+                    title: (place.displayName?.text || place.displayName?.toString()) || query,
+                    content: markerContent
+                });
+
+                marker.addEventListener("gmp-click", () => {
+                    window._openPlacePanel(placeId);
+                });
+
+                window._searchMarkers.push(marker);
+            }
+        } catch(e) {
+            console.error("Error placing marker for Place ID:", e);
+        }
+        return;
+    }
 
     const debugEl = document.getElementById('map-debug-status');
     if (debugEl) debugEl.innerText = `Map Status: Searching for ${query}...`;
@@ -691,13 +942,15 @@ window.triggerMapSearch = async function (query, typeRestraint = null) {
             maxResultCount: 20 // Max out the results to give user the full picture
         };
 
-        // If it's an array of underlying types (clicked from dropdown), use includedType natively.
-        // If it's raw text from the input, just attach textQuery.
+        // If it's an array of underlying types (clicked from dropdown), use a smart fallback.
+        // Google's modern searchByText only supports ONE includedType.
+        // We will use the most primary type from the list as the includedType, 
+        // and include ALL types as a space-separated string in the textQuery to ensure coverage.
         if (Array.isArray(typeRestraint)) {
-            searchRequest.includedType = typeRestraint[0]; // Places API usually allows single primary type for broad search, or rely on textQuery. 
-            // Workaround for multiple categories: The modern Place.searchByText only accepts one includedType. 
-            // So we'll pass the text query along, but tell it to heavily constrain to those semantic bounds.
-            searchRequest.textQuery = query;
+            // Priority type to use as the hard filter
+            searchRequest.includedType = typeRestraint[0]; 
+            // Broaden the search by including keywords for all sub-types (hotel motel LODGING etc)
+            searchRequest.textQuery = `${query} ${typeRestraint.join(' ')}`;
         } else {
             searchRequest.textQuery = query;
         }
@@ -721,13 +974,20 @@ window.triggerMapSearch = async function (query, typeRestraint = null) {
             places.forEach(place => {
                 const markerContent = document.createElement('div');
                 markerContent.style.cssText = `
-                    width: 24px; height: 24px;
+                    width: 32px; height: 32px;
                     background: #f97316;
                     border: 2px solid white;
                     border-radius: 50%;
                     cursor: pointer;
-                    box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+                    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+                    display: flex; align-items: center; justify-content: center;
+                    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
                 `;
+                markerContent.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>`;
+                
+                markerContent.onmouseenter = () => markerContent.style.transform = 'scale(1.25)';
+                markerContent.onmouseleave = () => markerContent.style.transform = 'scale(1)';
+
                 markerContent.onclick = (e) => {
                     e.stopPropagation();
                     window._openPlacePanel(place.id);
@@ -749,12 +1009,12 @@ window.triggerMapSearch = async function (query, typeRestraint = null) {
                 bounds.extend(place.location);
             });
 
-            googleMapInstance.fitBounds(bounds);
+            const mapDiv = document.getElementById('real-map');
+            const padding = mapDiv ? { bottom: mapDiv.offsetHeight / 2 + 20, top: 60, left: 60, right: 60 } : 50;
+            googleMapInstance.fitBounds(bounds, padding);
             if (debugEl) debugEl.innerText = t('map.status_found').replace('{count}', places.length);
 
-            // Trigger click event to pop open the side panel automatically for the first hit
-            const firstPlace = places[0];
-            window._openPlacePanel(firstPlace.id);
+            // window._openPlacePanel(firstPlace.id); // Disabled per user request: only open on marker click
         } else {
             if (debugEl) debugEl.innerText = t('map.status_no_results').replace('{query}', query);
         }
@@ -804,7 +1064,7 @@ window.openLocationInMapPanel = async function (query, lat, lng) {
             }
 
             if (bestPlace.location) {
-                googleMapInstance.panTo(bestPlace.location);
+                window._panToWithOffset(bestPlace.location);
             }
             // Trigger native map info panel explicitly with the resolved place data
             window._openPlacePanel(bestPlace.id);
@@ -814,7 +1074,7 @@ window.openLocationInMapPanel = async function (query, lat, lng) {
             console.warn("No place resolved for:", query);
             if (debugEl) debugEl.innerText = `Map Status: No detailed info found for ${query}`;
             if (lat && lng) {
-                googleMapInstance.panTo({ lat: Number(lat), lng: Number(lng) });
+                window._panToWithOffset({ lat: Number(lat), lng: Number(lng) });
             }
         }
     } catch (err) {
@@ -833,7 +1093,14 @@ window._openPlacePanel = async function (placeId) {
     try {
         const { Place } = await google.maps.importLibrary('places');
         const place = new Place({ id: placeId });
-        await place.fetchFields({ fields: ['displayName', 'formattedAddress', 'rating', 'userRatingCount', 'types', 'photos', 'priceLevel', 'regularOpeningHours', 'nationalPhoneNumber', 'internationalPhoneNumber', 'websiteURI', 'reviews'] });
+        await place.fetchFields({ 
+            fields: [
+                'displayName', 'formattedAddress', 'rating', 'userRatingCount', 
+                'types', 'photos', 'priceLevel', 'regularOpeningHours', 
+                'nationalPhoneNumber', 'internationalPhoneNumber', 'websiteURI', 
+                'reviews', 'location', 'viewport'
+            ] 
+        });
         await showMapInfoPanel(place, placeId);
     } catch (err) {
         console.warn('[_openPlacePanel] fetchFields failed:', err);
@@ -852,25 +1119,57 @@ async function showMapInfoPanel(place, placeId) {
     const panel = document.createElement('div');
     panel.id = 'map-info-panel';
 
-    // Store photos globally for lightbox access
-    window._currentPlacePhotos = place.photos ? place.photos.map(p => p.getURI({ maxWidth: 1200 })) : [];
-
-    // Horizontal layout: height=50%-10px of map, width=80% of map, left=8px, bottom=8px gap
+    // Horizontal layout: height=50%-14px of map, width auto-calculated from right:65px
+    panel.classList.add('map-info-panel-active');
+    // Minimal inline styles to allow CSS overrides
     panel.style.cssText = `
-        position:absolute; bottom:23px; left:15px; right:65px;
-        height: calc(50% - 14px); min-height: 250px;
-        background: #0d111b; color:var(--text-primary, #e8eaf6); border-radius:12px;
-        box-shadow:0 12px 40px rgba(0,0,0,0.8); z-index:500;
-        border:1px solid rgba(255,255,255,0.08); 
         display:flex; flex-direction:column; overflow:hidden; font-family:var(--font-main, inherit);
     `;
+
+    // Store photos globally for lightbox access
+    // Robust Coordinate Extraction
+    let lat = null, lng = null;
+    const loc = place.location || (place.geometry && place.geometry.location);
+    if (loc) {
+        lat = (typeof loc.lat === 'function') ? loc.lat() : (typeof loc.latitude === 'number' ? loc.latitude : loc.lat);
+        lng = (typeof loc.lng === 'function') ? loc.lng() : (typeof loc.longitude === 'number' ? loc.longitude : loc.lng);
+    }
+    
+    // Generate Street View URL as a secondary fallback
+    let streetViewUrl = '';
+    if (lat !== null && lng !== null && !isNaN(lat)) {
+        streetViewUrl = `https://maps.googleapis.com/maps/api/streetview?size=640x400&location=${lat},${lng}&fov=90&key=${MAPS_API_KEY}`;
+    }
+    
+    // Process main photos
+    window._currentPlacePhotos = [];
+    if (place.photos && place.photos.length > 0) {
+        try {
+            window._currentPlacePhotos = place.photos.map(p => typeof p.getURI === 'function' ? p.getURI({ maxWidth: 1200 }) : p.url).filter(Boolean);
+        } catch (e) {
+            console.warn("Failed to get photo URIs:", e);
+        }
+    }
+    
+    // Prioritize Actual Photos > Street View > Placeholder
+    let photo = '';
+    const placeholderUrl = `https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=400&auto=format&fit=crop`;
+
+    if (window._currentPlacePhotos.length > 0) {
+        photo = window._currentPlacePhotos[0];
+    } else if (streetViewUrl) {
+        photo = streetViewUrl;
+        window._currentPlacePhotos = [streetViewUrl];
+    }
+ 
+    if (!photo) photo = placeholderUrl;
+
+    const displayNameText = (typeof place.displayName === 'object' && place.displayName !== null) ? (place.displayName.text || place.displayName.toString()) : (place.displayName || t('map.unknown_place'));
+    const formattedAddrText = place.formattedAddress || t('map.unknown_address');
 
     const stars = (place.rating !== undefined && place.rating !== null) ? place.rating.toFixed(1) : '';
     const ratingNum = place.rating || 0;
     const starsStr = '★'.repeat(Math.round(ratingNum)) + '☆'.repeat(5 - Math.round(ratingNum));
-
-    // Main photo
-    const photo = place.photos?.[0] ? place.photos[0].getURI({ maxWidth: 600 }) : '';
 
     // Reviews Summary and HTML
     // Compute rating distribution if reviews exist
@@ -924,12 +1223,11 @@ async function showMapInfoPanel(place, placeId) {
 
     // Photos HTML with lightbox support
     let photosHtml = `<div style="color:var(--text-secondary);text-align:center;padding:1rem;width:100%;">${t('map.no_photos')}</div>`;
-    if (place.photos && place.photos.length > 0) {
-        photosHtml = place.photos.map((p, idx) => {
-            const thumbUrl = p.getURI({ maxWidth: 300 });
+    if (window._currentPlacePhotos.length > 0) {
+        photosHtml = window._currentPlacePhotos.map((url, idx) => {
             return `
             <div style="aspect-ratio:1; border-radius:8px; overflow:hidden; background:#2a3441; cursor:pointer; transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'" onclick="openPhotoLightbox(${idx})">
-                <img src="${thumbUrl}" style="width:100%;height:100%;object-fit:cover;" loading="lazy" onerror="this.style.display='none'">
+                <img src="${url}" style="width:100%;height:100%;object-fit:cover;" loading="lazy" onerror="this.style.display='none'">
             </div>`;
         }).join('');
     }
@@ -1039,7 +1337,7 @@ async function showMapInfoPanel(place, placeId) {
 
                     <div style="margin-bottom: 1rem;">
                         <h2 style="margin:0 0 0.2rem 0; font-size:1.5rem; font-weight:800; color:white; word-break:break-word; line-height:1.2;">
-                            ${place.displayName || t('map.unknown_place')}
+                            ${displayNameText}
                         </h2>
                         <div style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:0.5rem;">
                             ${placeType || t('map.place')}
@@ -1052,12 +1350,12 @@ async function showMapInfoPanel(place, placeId) {
                             ` : `<span style="color:var(--text-secondary); font-size:0.85rem;">${t('map.no_rating')}</span>`}
                         </div>
                     </div>
-
+ 
                     <div style="display:flex; flex-direction:column; gap: 12px; margin-bottom: 1rem;">
                         <!-- Address -->
                         <div style="display:flex; align-items:flex-start; gap: 10px;">
                             <span style="color:#f97316; flex-shrink:0; margin-top:2px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></span>
-                            <span style="color:#e2e8f0; font-size:0.9rem; line-height:1.4;">${place.formattedAddress || t('map.unknown_address')}</span>
+                            <span style="color:#e2e8f0; font-size:0.9rem; line-height:1.4;">${formattedAddrText}</span>
                         </div>
                         <!-- Hours -->
                         ${todayHours ? `
@@ -1083,8 +1381,8 @@ async function showMapInfoPanel(place, placeId) {
 
                 <!-- Right Column: Big Image -->
                 ${photo ? `
-                <div style="width: 340px; height: 210px; flex-shrink: 0; border-radius:10px; overflow:hidden; margin-top: 2px; cursor:pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.4);" onclick="openPhotoLightbox(0)">
-                    <img src="${photo}" style="width:100%; height:100%; object-fit:cover; display:block; transition:transform 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                <div style="width: 340px; height: 210px; flex-shrink: 0; border-radius:10px; overflow:hidden; margin-top: 2px; cursor:pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.4); background: #1a1e26;" onclick="openPhotoLightbox(0)">
+                    <img src="${photo}" style="width:100%; height:100%; object-fit:cover; display:block; transition:transform 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" onerror="this.src='https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=400&auto=format&fit=crop'">
                 </div>` : ''}
 
             </div> <!-- end poi-about tab -->

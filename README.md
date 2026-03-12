@@ -56,41 +56,40 @@ Smart Trip 是一款以用户体验为核心的旅行规划应用，深度集成
 - **智能预约时间选择器**：支持 24 小时制物理惯性滚轮及 Google 营业时间休息日红色智能预警。
 - **Google Places 换图**：集成 Google Places Photo API，支持直接替换实拍图。
 
+## 11. 多端自适应响应式布局 (Multi-terminal Adaptive Layout)
+
+- **模块化 CSS 设计**：采用物理隔离的响应式 CSS 模块 (`desktop.css` / `tablet.css` / `mobile.css`)，通过 HTML `media` 属性按需激活。
+- **移动端视图切换 (Map vs Plan)**：针对手机窄屏，内置智能视图切换器，支持在"行程列表"与"全屏地图"之间一键切换。
+- **自适应侧栏**：在移动端自动折叠为顶部滑条导航，在桌面端根据宽度自动切换宽窄状态。
+- **零干扰修改**：由于模块彻底解耦，修改桌面端排版时绝不影响移动端样式。
+
+
 
 ## 📂 项目结构
 
 ```
 Smat Trip/
 ├── index.html              # 主入口文件
-├── style.css               # 全局样式
+├── css/                    # 模块化样式系统
+│   ├── variables.css       # 设计系统变量
+│   ├── base.css            # 全局重置与基础
+│   ├── layout.css          # 核心布局（解耦后）
+│   ├── components.css      # UI 组件
+│   └── responsive/         # 响应式模块（按需激活）
+│       ├── desktop.css     # 桌面端
+│       ├── tablet.css      # 平板端
+│       └── mobile.css      # 移动端
 ├── i18n/                   # 国际化语言包
-│   ├── en.json             # 英文
-│   └── zh.json             # 中文
-├── server.py               # 本地 Python REST API 后端（备用）
-│
-└── js/                     # ES Module 模块化源码
-    ├── main.js             # 总入口 + 全局桥接 + 初始化流程
-    ├── state.js            # 全局状态管理
-    ├── api.js              # 统一 API 网关（云端/本地切换）
-    ├── supabase_api.js     # Supabase 云端实现
-    ├── local_api.js        # 本地 Python 后端实现
-    ├── constants.js        # 地点分类常量
-    ├── utils.js            # 工具函数（日期、格式化、货币等）
-    ├── maps.js             # Google Maps + 路线计算
-    ├── ARCHITECTURE.md     # 详细模块架构说明
+│   ├── en.json
+│   └── zh.json
+├── js/                     # ES Module 模块化源码
+    ├── main.js             # 总入口
+    ├── state.js            # 状态管理
+    ├── maps.js             # Google Maps + 响应式 View
     └── ui/
-        ├── i18n.js         # 国际化函数 t() + loadLanguage()
-        ├── render.js       # 核心渲染引擎
-        ├── templates/      # HTML 模板生成器
-        │   ├── auth.js
-        │   ├── dashboard.js
-        │   └── itinerary.js
-        └── handlers/       # 事件处理器
-            ├── auth.js
-            ├── trips.js
-            ├── stops.js
-            ├── search.js
-            └── ux.js
+        ├── render.js       # 渲染引擎
+        └── templates/
+            └── itinerary.js # 含移动端视图切换器
 ```
 
 *详见 [js/ARCHITECTURE.md](./js/ARCHITECTURE.md) 获取完整模块说明与数据流图。*

@@ -2,9 +2,10 @@ import { state, editState, setEditingContext } from '../../state.js';
 import { renderApp } from '../render.js';
 import { saveData } from '../../api.js';
 import { getCategoryFromTypes } from '../../constants.js';
-import { calculateDays } from '../../utils.js';
+import { calculateDays, formatDate } from '../../utils.js';
 import { getDay, getDayHTML, getTimelineItemHTML } from '../templates/itinerary.js';
 import { closeModal } from './ux.js';
+import { t } from '../i18n.js';
 
 // --- Day Management ---
 export function addDay() {

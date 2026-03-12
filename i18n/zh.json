@@ -33,7 +33,8 @@
         "search_itineraries": "搜索行程...",
         "not_found_alt": "未找到结果",
         "search_placeholder": "搜索...",
-        "date": "日期"
+        "date": "日期",
+        "itinerary": "行程"
     },
     "dashboard": {
         "title": " 的旅行仪表盘",
@@ -224,6 +225,7 @@
         "checkin": "入住",
         "checkout": "退房",
         "nights": "晚",
+        "closed_day": "休息日",
         "status_searching": "正在搜索 {query}...",
         "status_found": "找到了 {count} 个结果",
         "status_no_results": "未找到 {query} 的结果",

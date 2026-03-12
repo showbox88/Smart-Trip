@@ -376,16 +376,16 @@ export function getDayHTML(day, dayIndex, activeDayId) {
             </div>
             
             <div id="day-content-${day.id}" style="${state.collapsedDays && state.collapsedDays[day.id] ? 'display:none;' : 'display:block;'}; padding-left: 0;">
-                <div style="display:flex; gap: 15px; align-items:center; margin-bottom: 0.8rem; font-size: 0.85rem; color: var(--text-secondary); padding-left: 36px;">
-                    <button style="background:none; border:none; color: var(--accent-primary); cursor:pointer; font-weight:600; display:flex; align-items:center; gap:5px;">
+                <div class="day-actions" style="display:flex; gap: 15px; align-items:center; margin-bottom: 0.8rem; font-size: 0.85rem; color: var(--text-secondary); padding-left: 36px;">
+                    <button class="btn-auto-fill" style="background:none; border:none; color: var(--accent-primary); cursor:pointer; font-weight:600; display:flex; align-items:center; gap:5px;">
                         <span style="font-size:1.1rem;">🪄</span> ${t('itinerary.auto_fill')}
                     </button>
-                    <button style="background:none; border:none; color: var(--accent-primary); cursor:pointer; font-weight:600; display:flex; align-items:center; gap:5px;">
+                    <button class="btn-optimize" style="background:none; border:none; color: var(--accent-primary); cursor:pointer; font-weight:600; display:flex; align-items:center; gap:5px;">
                         <span style="font-size:1.1rem;">📍</span> ${t('itinerary.optimize_route')} <span style="background:var(--accent-primary); color:#FFF; font-size:0.65rem; padding: 1px 4px; border-radius:4px;">PRO</span>
                     </button>
                     <span>·</span>
                     <div style="display:flex; align-items:center; gap:12px;">
-                        <span>${(() => {
+                        <span class="transit-summary-text">${(() => {
             let totalSeconds = 0;
             let totalMeters = 0;
             let hasData = false;
@@ -598,6 +598,21 @@ export function getTripHTML(trip) {
                     </div>
                 </div>
             </section>
+
+            
+            <div class="mobile-view-switcher">
+                <button class="mobile-nav-btn" data-mode="plan" onclick="toggleMobileView('plan')">
+                    <span class="material-symbols-outlined">event_note</span>
+                    ${t('common.itinerary')}
+                </button>
+                <button class="mobile-nav-btn" data-mode="map" onclick="toggleMobileView('map')">
+                    <span class="material-symbols-outlined">map</span>
+                    ${t('common.map')}
+                </button>
+            </div>
+
+            </div>
         </div>
     `;
 }
+

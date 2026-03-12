@@ -256,15 +256,11 @@ nav a:hover {
 
 .dashboard-view {
     display: flex;
-    height: calc(100vh - 80px);
-    /* Adjust based on navbar height */
 }
 
 /* --- Sidebar Layout & Transitions --- */
 .sidebar {
-    width: 210px;
     background: var(--bg-deep);
-    border-right: 1px solid var(--glass-border);
     padding: 0.5rem 0;
     overflow-y: auto;
     display: flex;
@@ -521,19 +517,12 @@ nav a:hover {
 }
 
 .main-itinerary {
-    width: 42%;
-    /* Narrowed middle section */
-    max-width: 600px;
-    min-width: 450px;
     overflow-y: auto;
     padding: 0 0 3rem 0;
     background: var(--bg-itinerary);
-    border-right: 1px solid var(--glass-border);
 }
 
 .map-view {
-    flex: 1;
-    /* Map takes remaining space */
     background: #111;
     position: relative;
     min-width: 300px;
@@ -559,3 +548,4 @@ nav a:hover {
     flex-direction: column;
     gap: 0.5rem;
 }
+.mobile-view-switcher { display: none; }
