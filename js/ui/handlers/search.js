@@ -192,8 +192,13 @@ export function selectImage(event, url) {
         api.uploadImage(url)
             .then(result => {
                 if (result.status === 'success' && result.localUrl && trip) {
+                    const oldThumb = trip.thumb;
                     trip.thumb = result.localUrl;
                     api.saveData(); // persist local URL so it survives browser restarts
+                    // If replacing an old local upload, cleanup the old file
+                    if (oldThumb && oldThumb !== result.localUrl && (oldThumb.startsWith('/uploads/') || oldThumb.includes('/trip-media/'))) {
+                        api.deleteImages(oldThumb);
+                    }
                     console.log('[image-cache] Trip cover cached:', result.localUrl);
                 }
             })

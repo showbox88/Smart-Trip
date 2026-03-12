@@ -153,7 +153,7 @@ export function getDashboardHTML() {
                     <button onclick="cleanupImages()" style="background:none; border:1px solid var(--glass-border); color:var(--text-secondary); padding:0.6rem 1.2rem; border-radius:12px; cursor:pointer; font-size:0.85rem; display:flex; align-items:center; gap:8px; transition:all 0.2s;" onmouseover="this.style.borderColor='var(--accent-primary)';this.style.color='var(--accent-primary)'" onmouseout="this.style.borderColor='var(--glass-border)';this.style.color='var(--text-secondary)'" title="${t('dashboard.cleanup')}">
                         <span class="material-symbols-outlined" style="font-size:18px;">vacuum</span> ${t('dashboard.cleanup')}
                     </button>
-                    <button class="btn-main" onclick="openNewTripModal()">
+                    <button class="btn-main" onclick="createNewTrip()">
                         <span class="material-symbols-outlined">add</span>
                         <span>${t('dashboard.new_trip')}</span>
                     </button>

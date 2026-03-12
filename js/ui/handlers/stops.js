@@ -1,6 +1,6 @@
 import { state, editState, setEditingContext } from '../../state.js';
 import { renderApp } from '../render.js';
-import { saveData } from '../../api.js';
+import { saveData, deleteImages } from '../../api.js';
 import { getCategoryFromTypes } from '../../constants.js';
 import { calculateDays, formatDate } from '../../utils.js';
 import { getDay, getDayHTML, getTimelineItemHTML } from '../templates/itinerary.js';
@@ -79,9 +79,28 @@ export function deleteDay(event, dayId) {
         if (trip) {
             const day = trip.days.find(d => d.id === dayId);
             if (day) {
+                // Cleanup all images in the day before clearing
+                const imagesToDelete = day.stops
+                    .map(s => s.photo)
+                    .filter(url => !!url);
+                if (imagesToDelete.length > 0) {
+                    deleteImages(imagesToDelete);
+                }
+
                 day.stops = [];
                 saveData();
-                renderApp();
+                
+                // Partial re-render
+                const dayIndex = trip.days.findIndex(d => d.id === dayId);
+                const temp = document.createElement('div');
+                temp.innerHTML = getDayHTML(day, dayIndex, state.activeTripId);
+                const dayEl = document.getElementById(dayId);
+                if (dayEl) dayEl.replaceWith(temp.firstElementChild);
+                
+                // Refresh map
+                if (window.googleMapsReady) {
+                    import('../../maps.js').then(m => m.initRealMap());
+                }
             }
         }
     });
@@ -153,18 +172,66 @@ export function deleteStop(event, dayId, stopId) {
         window.openConfirmModal(t('common.delete_confirm'), () => {
             const trip = state.trips.find(t => t.id === state.activeTripId);
             const day = trip.days.find(d => d.id === dayId);
+            const stop = day.stops.find(s => s.id === stopId);
+            
+            // Cleanup images before removing from state
+            if (stop && stop.photo) {
+                deleteImages(stop.photo);
+            }
+
             day.stops = day.stops.filter(s => s.id !== stopId);
             saveData();
-            renderApp();
+            
+            // Partial re-render to avoid flashing
+            const dayEl = document.getElementById(dayId);
+            if (dayEl) {
+                const dayIndex = trip.days.findIndex(d => d.id === dayId);
+                const temp = document.createElement('div');
+                temp.innerHTML = getDayHTML(day, dayIndex, state.activeTripId);
+                dayEl.replaceWith(temp.firstElementChild);
+            } else {
+                renderApp();
+            }
+
+            // Update map without full re-init blink if possible
+            if (window.googleMapsReady) {
+                import('../../maps.js').then(m => {
+                    m.initRealMap();
+                });
+            }
         });
     } else {
         window.openConfirmModal(t('common.delete_confirm'), () => {
             const trip = state.trips.find(t => t.id === state.activeTripId);
             const day = trip.days.find(d => d.id === editState.editingDayId);
+            const stop = day.stops.find(s => s.id === editState.editingStopId);
+
+            // Cleanup images before removing from state
+            if (stop && stop.photo) {
+                deleteImages(stop.photo);
+            }
+
             day.stops = day.stops.filter(s => s.id !== editState.editingStopId);
             saveData();
             closeModal();
-            renderApp();
+            
+            // Partial re-render
+            const activeDayId = editState.editingDayId;
+            const dayEl = document.getElementById(activeDayId);
+            if (dayEl) {
+                const dayIndex = trip.days.findIndex(d => d.id === activeDayId);
+                const temp = document.createElement('div');
+                temp.innerHTML = getDayHTML(day, dayIndex, state.activeTripId);
+                dayEl.replaceWith(temp.firstElementChild);
+            } else {
+                renderApp();
+            }
+
+            if (window.googleMapsReady) {
+                import('../../maps.js').then(m => {
+                    m.initRealMap();
+                });
+            }
         });
     }
 }
@@ -250,13 +317,29 @@ export function deleteTimelineItem(event, dayId, itemId) {
 
         if (isHotelStay) {
             const stayId = stopToDelete.stayId;
-            // Delete all stops with the same stayId across all days
-            trip.days.forEach(d => {
+            trip.days.forEach((d, idx) => {
+                const hadStops = d.stops.length;
                 d.stops = d.stops.filter(s => s.stayId !== stayId);
+                if (d.stops.length !== hadStops) {
+                    // This day was affected, partial re-render it
+                    const dayEl = document.getElementById(d.id);
+                    if (dayEl) {
+                        const temp = document.createElement('div');
+                        temp.innerHTML = getDayHTML(d, idx, state.activeTripId);
+                        dayEl.replaceWith(temp.firstElementChild);
+                    }
+                }
             });
             saveData();
-            renderApp();
+            if (window.googleMapsReady) {
+                import('../../maps.js').then(m => m.initRealMap());
+            }
         } else {
+            // Cleanup images before removing from state
+            if (stopToDelete && stopToDelete.photo) {
+                deleteImages(stopToDelete.photo);
+            }
+
             // Normal deletion logic
             day.stops = day.stops.filter(s => s.id !== itemId);
             saveData();
@@ -780,7 +863,16 @@ export async function autoAddStop(dayId, placeId, afterStopId) {
                         if (result.status === 'success' && result.localUrl) {
                             newStop.photo = result.localUrl;
                             api.saveData();
-                            renderDay();
+                            // Targeted partial re-render to prevent flashing
+                            const dayEl = document.getElementById(dayId);
+                            if (dayEl) {
+                                const dayIndex = trip.days.findIndex(d => d.id === dayId);
+                                const temp = document.createElement('div');
+                                temp.innerHTML = getDayHTML(day, dayIndex, state.activeTripId);
+                                dayEl.replaceWith(temp.firstElementChild);
+                            } else {
+                                renderDay();
+                            }
                             console.log('[image-cache] Stop photo cached:', result.localUrl);
                         }
                     })

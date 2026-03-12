@@ -34,7 +34,8 @@
         "not_found_alt": "未找到结果",
         "search_placeholder": "搜索...",
         "date": "日期",
-        "itinerary": "行程"
+        "itinerary": "行程",
+        "map": "地图"
     },
     "dashboard": {
         "title": " 的旅行仪表盘",
@@ -232,9 +233,9 @@
         "status_ready": "地图已就绪 ({count} 个图钉)",
         "toggle_day": "切换日间模式",
         "toggle_night": "切换夜间模式",
-        "tab_about": "简介 (About)",
-        "tab_reviews": "评价 (Reviews)",
-        "tab_photos": "照片 (Photos)",
+        "tab_about": "简介",
+        "tab_reviews": "评价",
+        "tab_photos": "照片",
         "add_to_itinerary": "添加到行程",
         "added": "已加入",
         "anonymous_user": "匿名用户",

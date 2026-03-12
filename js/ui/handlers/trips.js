@@ -62,6 +62,18 @@ export function openTrip(tripId) {
 export function deleteTrip(event, tripId) {
     if (event) event.stopPropagation();
     window.openConfirmModal(t('itinerary.confirm_delete_trip'), async () => {
+        const tripToDelete = state.trips.find(t => t.id === tripId);
+        const imagesToDelete = [];
+        if (tripToDelete) {
+            if (tripToDelete.thumb) imagesToDelete.push(tripToDelete.thumb);
+            (tripToDelete.days || []).forEach(day => {
+                (day.stops || []).forEach(stop => {
+                    if (stop.photo) imagesToDelete.push(stop.photo);
+                    if (stop.image) imagesToDelete.push(stop.image);
+                });
+            });
+        }
+
         // Remove from local state immediately for instant UI feedback
         state.trips = state.trips.filter(t => t.id !== tripId);
 
@@ -72,8 +84,8 @@ export function deleteTrip(event, tripId) {
         }
         renderApp();
 
-        // Delete the row from Supabase (this is the key fix — saveData() never deletes)
-        await deleteTripById(tripId);
+        // Delete from server/cloud and cleanup images
+        await deleteTripById(tripId, imagesToDelete);
     });
 }
 

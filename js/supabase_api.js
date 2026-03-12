@@ -180,6 +180,7 @@ export async function deleteTripById(tripId) {
                     (day.stops || []).forEach(stop => {
                         if (stop.thumb) imageUrls.push(stop.thumb);
                         if (stop.image) imageUrls.push(stop.image);
+                        if (stop.photo) imageUrls.push(stop.photo);
                     });
                 });
             }

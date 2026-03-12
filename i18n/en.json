@@ -34,7 +34,8 @@
         "not_found_alt": "No results found",
         "search_placeholder": "Search...",
         "date": "Date",
-        "itinerary": "Itinerary"
+        "itinerary": "Itinerary",
+        "map": "Map"
     },
     "dashboard": {
         "title": "'s Trips",

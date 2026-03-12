@@ -1,7 +1,7 @@
 import { state, editState, setEditingContext } from '../../state.js';
 import { renderApp } from '../render.js';
 import { formatDate } from '../../utils.js';
-import { saveData } from '../../api.js';
+import { saveData, deleteImages } from '../../api.js';
 import { searchImages, searchGoogleStopImages } from './search.js';
 import { getDayHTML } from '../templates/itinerary.js';
 import { t } from '../i18n.js';
@@ -169,7 +169,10 @@ function handleTripThumbUpload(event) {
                         if (trip) {
                             trip.thumb = finalUrl;
                             api.saveData(); 
-                            import('../render.js').then(m => m.renderApp());
+                            // Avoid full app re-render unless necessary
+                            if (state.currentView === 'dashboard') {
+                                import('../render.js').then(m => m.renderApp());
+                            }
                         }
 
                         // Update all UI previews
@@ -922,6 +925,17 @@ function openTimePickerModal() {
             .layout-columns { display: flex; gap: 40px; align-items: stretch; }
             .col-left { flex: 1.2; min-width: 0; }
             .col-right { flex: 0.8; min-width: 0; }
+
+            /* Mobile Specific Repositioning */
+            @media (max-width: 768px) {
+                .sub-modal { width: 95vw !important; padding: 1.25rem !important; }
+                .layout-columns { flex-direction: column; gap: 1rem; }
+                .col-left, .col-right { flex: none; width: 100%; }
+                .time-wheel-frame { height: 200px; }
+                .time-wheel-scroll { height: 200px; padding: 76px 0; }
+                .time-wheel-overlay { top: 76px; }
+                .col-left #opening-hours-container { padding: 1rem !important; }
+            }
         </style>
         <div style="display:flex; flex-direction: column; gap: 2rem;">
             <div class="layout-columns">
@@ -1018,11 +1032,25 @@ function openTimePickerModal() {
             const dateLabel = document.getElementById('date-label-tag');
             if (content) {
                 if (hours && hours.length > 0) {
-                    content.innerHTML = hours.map(line => {
-                        const isClosingLine = line.includes('休息') || line.includes('关门') || line.includes('Closed') || line.includes('Off') || line.includes('定休日');
-                        const styleClass = isClosingLine ? 'rest-day-line' : '';
-                        return `<div class="${styleClass}" style="margin-bottom:6px;">${line}</div>`;
-                    }).join('');
+                    // Show all hours but optimize for mobile space
+                    const isMobile = window.innerWidth <= 768;
+                    
+                    if (isMobile) {
+                        content.innerHTML = `<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.8rem; line-height: 1.4;">
+                            ${hours.map(line => {
+                                const isToday = line.includes(currentWeekdayName);
+                                const isClosingLine = line.includes('休息') || line.includes('关门') || line.includes('Closed') || line.includes('Off') || line.includes('定休日');
+                                const style = `padding: 4px 6px; border-radius: 4px; ${isToday ? 'background: rgba(249, 115, 22, 0.15); border: 1px solid rgba(249, 115, 22, 0.3); color: #f97316; font-weight: bold;' : 'background: rgba(255,255,255,0.03); color: var(--text-secondary); opacity: 0.8;'} ${isClosingLine ? 'color: #ff4d4d;' : ''}`;
+                                return `<div style="${style}">${line}</div>`;
+                            }).join('')}
+                        </div>`;
+                    } else {
+                        content.innerHTML = hours.map(line => {
+                            const isClosingLine = line.includes('休息') || line.includes('关门') || line.includes('Closed') || line.includes('Off') || line.includes('定休日');
+                            const styleClass = isClosingLine ? 'rest-day-line' : '';
+                            return `<div class="${styleClass}" style="margin-bottom:6px;">${line}</div>`;
+                        }).join('');
+                    }
                     
                     const isClosedToday = hours.some(line => {
                         return line.includes(currentWeekdayName) && (line.includes('休息') || line.includes('关门') || line.includes('Closed') || line.includes('Off') || line.includes('定休日'));
@@ -1415,9 +1443,25 @@ function saveStopImage(dayId, stopId, passedUrl) {
     const scrollContainer = document.getElementById('itinerary-scroll-container');
     const currentScrollTop = scrollContainer ? scrollContainer.scrollTop : 0;
 
+    // Cleanup old image to prevent orphans
+    if (stop.photo && stop.photo !== newUrl) {
+        deleteImages(stop.photo);
+    }
+
     stop.photo = newUrl;
     saveData();
-    renderApp();
+    
+    // Smooth partial re-render instead of full app flash
+    const timeline = document.querySelector('.itinerary-timeline');
+    const daySection = document.getElementById(dayId);
+    if (timeline && daySection) {
+        const dayIndex = trip.days.findIndex(d => d.id === dayId);
+        const temp = document.createElement('div');
+        temp.innerHTML = getDayHTML(day, dayIndex, state.activeTripId);
+        timeline.replaceChild(temp.firstElementChild, daySection);
+    } else {
+        renderApp();
+    }
 
     // Restore scroll position
     setTimeout(() => {

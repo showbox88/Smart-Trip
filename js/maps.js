@@ -1,6 +1,6 @@
 import { state } from './state.js';
 import { renderApp } from './ui/render.js';
-import { formatDate, formatDistance, formatDuration } from './utils.js';
+import { formatDate, formatDistance, formatDuration, formatCurrency } from './utils.js';
 import { t } from './ui/i18n.js';
 
 const MAPS_API_KEY = 'AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k';
@@ -311,69 +311,66 @@ export function toggleMapDarkMode() {
 }
 
 export function initRealMap() {
-    console.log("initRealMap called. googleMapsReady:", googleMapsReady);
     const debugEl = document.getElementById('map-debug-status');
+    if (!googleMapsReady || typeof google === 'undefined') return;
 
-    try {
-        let totalPins = 0;
-        if (!googleMapsReady || typeof google === 'undefined') {
-            if (debugEl) debugEl.innerText = "Map Status: Google Maps API Not Loaded";
-            return;
-        }
-        const mapDiv = document.getElementById('real-map');
-        if (!mapDiv) {
-            console.error("real-map div not found");
-            return;
-        }
-        if (debugEl) debugEl.innerText = t('map.status_ready').replace('{count}', totalPins);
+    const mapDiv = document.getElementById('real-map');
+    if (!mapDiv) return;
 
+    // Reset instance if div was recreated by a full render
+    if (googleMapInstance && mapDiv.childElementCount === 0) {
+        googleMapInstance = null;
+    }
 
-        // If real-map is a freshly rendered empty div (has no Google Maps panes injected yet), 
-        // the old instance is detached. We must recreate it.
-        if (googleMapInstance && mapDiv.childElementCount === 0) {
-            googleMapInstance = null;
-        }
+    if (!googleMapInstance) {
+        googleMapInstance = new google.maps.Map(mapDiv, {
+            center: { lat: 35.6895, lng: 139.6917 },
+            zoom: 12,
+            mapId: 'DEMO_MAP_ID',
+            disableDefaultUI: true,
+            zoomControl: true,
+            gestureHandling: 'greedy'
+        });
+    }
 
-        if (!googleMapInstance) {
-            googleMapInstance = new google.maps.Map(mapDiv, {
-                center: { lat: 35.6895, lng: 139.6917 },
-                zoom: 12,
-                mapId: 'DEMO_MAP_ID',          // Required for AdvancedMarkerElement
-                disableDefaultUI: true,
-                zoomControl: true,
-                gestureHandling: 'greedy'
-            });
-        }
+    // Apply dark mode overlay via CSS safely
+    const targetFilter = mapDarkMode ? 'invert(100%) hue-rotate(180deg)' : '';
+    if (mapDiv.style.filter !== targetFilter) {
+        mapDiv.style.filter = targetFilter;
+    }
 
-        // Apply dark mode overlay via CSS since styles[] is incompatible with mapId
-        if (mapDarkMode) {
-            mapDiv.style.filter = 'invert(100%) hue-rotate(180deg)';
-        } else {
-            mapDiv.style.filter = '';
-        }
+    if (window._mapRefreshing) return;
+    window._mapRefreshing = true;
 
-        // Clear markers
-        if (googleMapMarkers) {
-            googleMapMarkers.forEach(m => {
-                if (m && typeof m.setMap === 'function') m.setMap(null);
-            });
-        }
-        googleMapMarkers = [];
+    requestAnimationFrame(() => {
+        window._mapRefreshing = false;
+        try {
+            const trip = state.trips.find(t => t.id === state.activeTripId);
+            if (!trip) return;
 
-        // Clear existing routes
-        if (window._mapRouteRenderers) {
-            window._mapRouteRenderers.forEach(r => {
-                if (r) r.setMap(null);
-            });
-        }
-        window._mapRouteRenderers = [];
+            // Simple diffing: prevent full rebuild if nothing relevant changed
+            const currentPinsCount = trip.days.reduce((acc, d) => acc + (d.stops ? d.stops.length : 0), 0);
+            const collapsedKey = trip.days.map(d => (state.collapsedDays && state.collapsedDays[d.id] ? 'C' : 'E')).join('');
+            const stateKey = `${trip.id}-${currentPinsCount}-${mapDarkMode}-${collapsedKey}`;
+            
+            if (window._lastMapStateKey === stateKey && googleMapMarkers.length > 0) {
+                return;
+            }
+            window._lastMapStateKey = stateKey;
 
-        const trip = state.trips.find(t => t.id === state.activeTripId);
-        if (!trip) return;
+            // Clear old markers and polylines first
+            if (googleMapMarkers) {
+                googleMapMarkers.forEach(m => { if (m) m.map = null; });
+            }
+            googleMapMarkers = [];
+            if (window._mapRouteRenderers) {
+                window._mapRouteRenderers.forEach(r => { if (r) r.setMap(null); });
+            }
+            window._mapRouteRenderers = [];
 
-        const bounds = new google.maps.LatLngBounds();
-        let hasValidPins = false;
-        totalPins = 0;
+            const bounds = new google.maps.LatLngBounds();
+            let hasValidPins = false;
+            let totalPins = 0;
 
         trip.days.forEach(day => {
             // Skip collapsed days
@@ -560,6 +557,7 @@ export function initRealMap() {
         console.error("initRealMap failed:", e);
         if (debugEl) debugEl.innerText = "Map Status: ERROR - " + e.message;
     }
+    });
 }
 
 // --- Map Custom Search Control ---
@@ -905,11 +903,16 @@ window.triggerMapSearch = async function (query, typeRestraint = null, placeId =
                             100% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0); }
                         }
                     </style>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="white" style="pointer-events: none;"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
                 `;
 
                 markerContent.onmouseenter = () => markerContent.style.transform = 'scale(1.2)';
                 markerContent.onmouseleave = () => markerContent.style.transform = 'scale(1)';
+
+                markerContent.onclick = (e) => {
+                    e.stopPropagation();
+                    window._openPlacePanel(placeId);
+                };
 
                 const marker = new AdvancedMarkerElement({
                     position: place.location,
@@ -983,7 +986,7 @@ window.triggerMapSearch = async function (query, typeRestraint = null, placeId =
                     display: flex; align-items: center; justify-content: center;
                     transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
                 `;
-                markerContent.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>`;
+                markerContent.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="white" style="pointer-events: none;"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>`;
                 
                 markerContent.onmouseenter = () => markerContent.style.transform = 'scale(1.25)';
                 markerContent.onmouseleave = () => markerContent.style.transform = 'scale(1)';
@@ -1586,6 +1589,7 @@ window.closeMapInfoPanel = closeMapInfoPanel;
 
 // Photo lightbox – opens a full-screen overlay with the clicked photo index
 function openPhotoLightbox(index) {
+    const isMobile = window.innerWidth <= 768;
     const urls = window._currentPlacePhotos || [];
     if (!urls[index]) return;
 
@@ -1646,9 +1650,9 @@ function openPhotoLightbox(index) {
     // Counter
     const counter = document.createElement('div');
     counter.style.cssText = `
-        position:absolute; bottom:24px; left:50%; transform:translateX(-50%);
+        position:absolute; ${isMobile ? 'top:32px; left:32px;' : 'bottom:24px; left:50%; transform:translateX(-50%);'}
         color:white; background:rgba(255,255,255,0.1); padding:4px 12px;
-        border-radius:20px; font-size:0.9rem; font-weight:600;
+        border-radius:20px; font-size:0.9rem; font-weight:600; z-index: 10001;
     `;
     const updateCounter = () => {
         counter.innerText = `${currentIndex + 1} / ${urls.length}`;
@@ -1656,31 +1660,40 @@ function openPhotoLightbox(index) {
     updateCounter();
 
     // Navigation buttons
-    const btnStyle = `
-        position:absolute; top:50%; transform:translateY(-50%);
-        background:rgba(255,255,255,0.1); border:none; border-radius:50%;
-        width:48px; height:48px; color:white; font-size:1.5rem;
+
+    const btnSize = isMobile ? '64px' : '48px';
+    const btnFontSize = isMobile ? '2.2rem' : '1.5rem';
+    
+    let btnBaseStyle = `
+        position:absolute;
+        background:rgba(255,255,255,0.15); border:none; border-radius:50%;
+        width:${btnSize}; height:${btnSize}; color:white; font-size:${btnFontSize};
         cursor:pointer; display:flex; align-items:center; justify-content:center;
         transition: background 0.2s, transform 0.1s; z-index: 10001;
     `;
 
+    const desktopBtnStyle = `top:50%; transform:translateY(-50%);`;
+    const mobileBtnStyle = `bottom: 30px; top: auto; transform: none;`;
+
+    const btnStyle = btnBaseStyle + (isMobile ? mobileBtnStyle : desktopBtnStyle);
+
     const prevBtn = document.createElement('button');
     prevBtn.innerHTML = '‹';
-    prevBtn.style.cssText = btnStyle + 'left: 24px;';
+    prevBtn.style.cssText = btnStyle + (isMobile ? 'left: 40px;' : 'left: 24px;');
     prevBtn.onclick = (e) => { e.stopPropagation(); updateImage((currentIndex - 1 + urls.length) % urls.length); };
     prevBtn.onmouseenter = () => prevBtn.style.background = 'rgba(255,255,255,0.25)';
-    prevBtn.onmouseleave = () => prevBtn.style.background = 'rgba(255,255,255,0.1)';
-    prevBtn.onmousedown = () => prevBtn.style.transform = 'translateY(-50%) scale(0.9)';
-    prevBtn.onmouseup = () => prevBtn.style.transform = 'translateY(-50%) scale(1)';
+    prevBtn.onmouseleave = () => prevBtn.style.background = 'rgba(255,255,255,0.15)';
+    prevBtn.onmousedown = () => prevBtn.style.transform = isMobile ? 'scale(0.9)' : 'translateY(-50%) scale(0.9)';
+    prevBtn.onmouseup = () => prevBtn.style.transform = isMobile ? 'scale(1)' : 'translateY(-50%) scale(1)';
 
     const nextBtn = document.createElement('button');
     nextBtn.innerHTML = '›';
-    nextBtn.style.cssText = btnStyle + 'right: 24px;';
+    nextBtn.style.cssText = btnStyle + (isMobile ? 'right: 40px;' : 'right: 24px;');
     nextBtn.onclick = (e) => { e.stopPropagation(); updateImage((currentIndex + 1) % urls.length); };
     nextBtn.onmouseenter = () => nextBtn.style.background = 'rgba(255,255,255,0.25)';
-    nextBtn.onmouseleave = () => nextBtn.style.background = 'rgba(255,255,255,0.1)';
-    nextBtn.onmousedown = () => nextBtn.style.transform = 'translateY(-50%) scale(0.9)';
-    nextBtn.onmouseup = () => nextBtn.style.transform = 'translateY(-50%) scale(1)';
+    nextBtn.onmouseleave = () => nextBtn.style.background = 'rgba(255,255,255,0.15)';
+    nextBtn.onmousedown = () => nextBtn.style.transform = isMobile ? 'scale(0.9)' : 'translateY(-50%) scale(0.9)';
+    nextBtn.onmouseup = () => nextBtn.style.transform = isMobile ? 'scale(1)' : 'translateY(-50%) scale(1)';
 
     const closeBtn = document.createElement('button');
     closeBtn.innerHTML = '✕';

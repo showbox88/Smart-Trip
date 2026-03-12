@@ -19,7 +19,17 @@ export async function saveData() {
 }
 
 export async function deleteImages(urls) {
-    return USE_CLOUD_BACKEND ? await cloudApi.deleteImages(urls) : await localApi.deleteImages(urls);
+    if (!urls) return;
+    const list = Array.isArray(urls) ? urls : [urls];
+    const localUrls = list.filter(u => u && typeof u === 'string' && u.startsWith('/uploads/'));
+    const cloudUrls = list.filter(u => u && typeof u === 'string' && u.includes('/trip-media/'));
+
+    if (localUrls.length > 0) {
+        await localApi.deleteImages(localUrls);
+    }
+    if (cloudUrls.length > 0) {
+        await cloudApi.deleteImages(cloudUrls);
+    }
 }
 
 export async function uploadLocal(base64Data) {
@@ -48,10 +58,12 @@ export async function cleanupImages() {
     return USE_CLOUD_BACKEND ? await cloudApi.cleanupImages() : await localApi.cleanupImages();
 }
 
-export async function deleteTripById(tripId) {
+export async function deleteTripById(tripId, imageUrls = []) {
+    if (imageUrls.length > 0) {
+        await deleteImages(imageUrls);
+    }
     if (USE_CLOUD_BACKEND) return await cloudApi.deleteTripById(tripId);
-    // Local fallback: data is fully managed by saveData() writing the whole state,
-    // so no extra step is needed for the local API.
+    // Local fallback: saveData() handles the state removal, but we already cleaned up images above.
 }
 
 export async function getAvailableLanguages() {
