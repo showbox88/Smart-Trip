@@ -860,8 +860,19 @@ export async function autoAddStop(dayId, placeId, afterStopId) {
         // Auto scroll to the newly appended item
         setTimeout(() => {
             const newlyAddedEl = document.querySelector('.id-' + newStop.id);
-            if (newlyAddedEl) newlyAddedEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }, 150);
+            if (!newlyAddedEl) return;
+            const container = document.getElementById('itinerary-scroll-container');
+            if (container) {
+                const containerRect = container.getBoundingClientRect();
+                const elRect = newlyAddedEl.getBoundingClientRect();
+                container.scrollTo({
+                    top: container.scrollTop + elRect.top - containerRect.top - (containerRect.height - elRect.height) / 2,
+                    behavior: 'smooth'
+                });
+            } else {
+                newlyAddedEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }, 300);
 
         if (window.googleMapsReady) {
             import('../../maps.js').then(m => {
