@@ -56,4 +56,4 @@
 - `airport`, `train_station` -> ✈️ / 🚆
 - `lodging` -> 🏨
 - `museum`, `art_gallery` -> 🏛️ / 🎨
-*Updated 2026-03-06 by Antigravity AI Assistant.*
+*Updated 2026-03-15 by Antigravity AI Assistant.*

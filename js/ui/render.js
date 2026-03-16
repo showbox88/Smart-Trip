@@ -118,16 +118,21 @@ export function renderApp() {
             container.innerHTML = getTripHTML(trip);
             updateNavLinks();
             
-            setTimeout(() => {
+            requestAnimationFrame(() => {
                 if (window.googleMapsReady) {
                     initRealMap();
                 }
                 initSidebarGlow(); // Ensure sidebar glow effect is initialized after render
-                
+
                 if (window._forceResizeTextareas) {
                     window._forceResizeTextareas(container);
                 }
-            }, 50);
+
+                // Async: fill in street view thumbnails for stops without photos
+                if (window.googleMapsReady && window._lazyLoadStreetViews) {
+                    window._lazyLoadStreetViews();
+                }
+            });
         }
     } catch (err) {
         console.error("Critical Render Error:", err);
@@ -181,4 +186,29 @@ export function renderDashboardPartials() {
             }
         });
     }
+}
+
+// --- Event delegation for stay-hover highlighting (avoids querySelectorAll on every hover) ---
+if (!window._stayHoverDelegated) {
+    const appRoot = document.getElementById('app-container') || document.body;
+    let _lastHoveredStayId = null;
+    appRoot.addEventListener('mouseover', (e) => {
+        const el = e.target.closest('[data-stay-hover]');
+        const stayId = el ? el.dataset.stayHover : null;
+        if (stayId === _lastHoveredStayId) return;
+        if (_lastHoveredStayId) {
+            document.querySelectorAll(`[data-stay-id="${_lastHoveredStayId}"]`).forEach(n => n.classList.remove('stay-hover'));
+        }
+        _lastHoveredStayId = stayId;
+        if (stayId) {
+            document.querySelectorAll(`[data-stay-id="${stayId}"]`).forEach(n => n.classList.add('stay-hover'));
+        }
+    });
+    appRoot.addEventListener('mouseleave', () => {
+        if (_lastHoveredStayId) {
+            document.querySelectorAll(`[data-stay-id="${_lastHoveredStayId}"]`).forEach(n => n.classList.remove('stay-hover'));
+            _lastHoveredStayId = null;
+        }
+    });
+    window._stayHoverDelegated = true;
 }

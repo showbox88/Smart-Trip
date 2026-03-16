@@ -5,6 +5,34 @@ import { t } from './ui/i18n.js';
 
 const MAPS_API_KEY = 'AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k';
 
+// --- Street View thumbnail helper ---
+async function getStreetViewThumbUrl(lat, lng, width = 408, height = 240) {
+    try {
+        const svc = new google.maps.StreetViewService();
+        const result = await svc.getPanorama({ location: { lat: Number(lat), lng: Number(lng) }, radius: 100 });
+        const pano = result?.data?.location?.pano;
+        if (!pano) return null;
+        const yaw = result?.data?.tiles?.centerHeading ?? 0;
+        return `https://streetviewpixels-pa.googleapis.com/v1/thumbnail?panoid=${pano}&cb_client=search.gws-prod.gps&w=${width}&h=${height}&yaw=${yaw}&pitch=0&thumbfov=100`;
+    } catch (e) {
+        return null;
+    }
+}
+
+// Called after stop cards render — fills in street view thumbnails for stops without photos
+window._lazyLoadStreetViews = async function () {
+    const imgs = document.querySelectorAll('img[data-sv-lat]');
+    for (const img of imgs) {
+        const lat = img.dataset.svLat;
+        const lng = img.dataset.svLng;
+        if (!lat || !lng) continue;
+        delete img.dataset.svLat;
+        delete img.dataset.svLng;
+        const url = await getStreetViewThumbUrl(lat, lng, 320, 240);
+        if (url) img.src = url;
+    }
+};
+
 // --- Routes REST API helpers (replaces deprecated DirectionsService) ---
 async function fetchRouteDuration(origin, dest, travelMode = 'DRIVE') {
     try {
@@ -147,20 +175,27 @@ function showMarkerHoverInfo(stop, marker, trip) {
     else if (stop.category === '景点' || stop.category === 'Attractions') categoryIcon = 'attractions';
     else if (stop.category === '餐饮' || stop.category === 'Dining') categoryIcon = 'restaurant';
 
-    // Hotel logic: find pair and calculate stay
+    // Hotel logic: find pair and calculate stay (targeted search, no full flatten)
     let stayInfo = null;
-    if (isHotel) {
-        const allStops = trip.days.flatMap(d => d.stops.map(s => ({ ...s, day: d })));
-        const cin = allStops.find(s => s.stayId === stop.stayId && s.type === 'hotel_checkin');
-        const cout = allStops.find(s => s.stayId === stop.stayId && s.type === 'hotel_checkout');
+    if (isHotel && stop.stayId) {
+        let cin = null, cout = null;
+        for (const d of trip.days) {
+            for (const s of d.stops) {
+                if (s.stayId !== stop.stayId) continue;
+                if (s.type === 'hotel_checkin') cin = { stop: s, day: d };
+                if (s.type === 'hotel_checkout') cout = { stop: s, day: d };
+                if (cin && cout) break;
+            }
+            if (cin && cout) break;
+        }
         if (cin && cout) {
-            const cinIdx = trip.days.findIndex(d => d.id === cin.day.id);
-            const coutIdx = trip.days.findIndex(d => d.id === cout.day.id);
+            const cinIdx = trip.days.indexOf(cin.day);
+            const coutIdx = trip.days.indexOf(cout.day);
             stayInfo = {
-                cin: { date: cin.day.date, time: cin.time },
-                cout: { date: cout.day.date, time: cout.time },
+                cin: { date: cin.day.date, time: cin.stop.time },
+                cout: { date: cout.day.date, time: cout.stop.time },
                 nights: Math.max(0, coutIdx - cinIdx),
-                price: cin.price || stop.price || 0
+                price: cin.stop.price || stop.price || 0
             };
         }
     }
@@ -322,6 +357,10 @@ export function initRealMap() {
         googleMapInstance = null;
         window._mapSearchControlInited = false;
         window._mapClickListenerAdded = false;
+        // Reset markers/renderers and cache key so routes are redrawn on new map instance
+        googleMapMarkers = [];
+        window._mapRouteRenderers = [];
+        window._lastMapStateKey = null;
     }
 
     if (!googleMapInstance) {
@@ -374,7 +413,9 @@ export function initRealMap() {
             // Simple diffing: prevent full rebuild if nothing relevant changed
             const currentPinsCount = trip.days.reduce((acc, d) => acc + (d.stops ? d.stops.length : 0), 0);
             const collapsedKey = trip.days.map(d => (state.collapsedDays && state.collapsedDays[d.id] ? 'C' : 'E')).join('');
-            const stateKey = `${trip.id}-${currentPinsCount}-${mapDarkMode}-${collapsedKey}`;
+            const stopOrderKey = trip.days.map(d => (d.stops || []).map(s => s.id).join(',')).join('|');
+            const colorKey = trip.days.map(d => d.color || '').join(',');
+            const stateKey = `${trip.id}-${currentPinsCount}-${mapDarkMode}-${collapsedKey}-${stopOrderKey}-${colorKey}`;
             
             if (window._lastMapStateKey === stateKey && googleMapMarkers.length > 0) {
                 return;
@@ -395,29 +436,31 @@ export function initRealMap() {
             let hasValidPins = false;
             let totalPins = 0;
 
+        // --- Hotel stays map: build ONCE before the loop (same for all days) ---
+        const allStopsWithDays = trip.days.flatMap(d => d.stops.map(s => ({ stayId: s.stayId, type: s.type, dayId: d.id, lat: s.lat, lng: s.lng })));
+        const staysMap = new Map();
+        allStopsWithDays.forEach(s => {
+            if (s.stayId) {
+                if (!staysMap.get(s.stayId)) staysMap.set(s.stayId, { id: s.stayId, cin: null, cout: null });
+                const stay = staysMap.get(s.stayId);
+                if (s.type === 'hotel_checkin') stay.cin = s;
+                if (s.type === 'hotel_checkout') stay.cout = s;
+            }
+        });
+        // Pre-build day index map for O(1) lookups
+        const dayIndexMap = new Map(trip.days.map((d, i) => [d.id, i]));
+
         trip.days.forEach(day => {
             // Skip collapsed days
             if (state.collapsedDays && state.collapsedDays[day.id]) return;
             if (!day.stops) return;
 
-            // --- Hotel Logic Detection for routePath ---
-            const allStopsWithDays = trip.days.flatMap(d => d.stops.map(s => ({ ...s, dayId: d.id })));
-            const staysMap = new Map();
-            allStopsWithDays.forEach(s => {
-                if (s.stayId) {
-                    if (!staysMap.get(s.stayId)) staysMap.set(s.stayId, { id: s.stayId, cin: null, cout: null });
-                    const stay = staysMap.get(s.stayId);
-                    if (s.type === 'hotel_checkin') stay.cin = s;
-                    if (s.type === 'hotel_checkout') stay.cout = s;
-                }
-            });
-
-            const dIdx = trip.days.findIndex(d => d.id === day.id);
+            const dIdx = dayIndexMap.get(day.id);
             const dayStay = Array.from(staysMap.values()).find(s => {
                 if (!s.cin || !s.cout) return false;
-                const cinIdx = trip.days.findIndex(d => d.id === s.cin.dayId);
-                const coutIdx = trip.days.findIndex(d => d.id === s.cout.dayId);
-                return dIdx >= cinIdx && dIdx <= coutIdx;
+                const cinIdx = dayIndexMap.get(s.cin.dayId);
+                const coutIdx = dayIndexMap.get(s.cout.dayId);
+                return cinIdx !== undefined && coutIdx !== undefined && dIdx >= cinIdx && dIdx <= coutIdx;
             });
 
             let pinCount = 0;
@@ -489,7 +532,7 @@ export function initRealMap() {
 
                     markerContent.onclick = (e) => {
                         e.stopPropagation();
-                        if (stop.placeId) window._openPlacePanel(stop.placeId);
+                        if (stop.placeId) window._openPlacePanel(stop.placeId, stop.lat, stop.lng);
                         else window.openLocationInMapPanel(stop.location, stop.lat, stop.lng);
                     };
 
@@ -501,7 +544,7 @@ export function initRealMap() {
                     });
 
                     marker.addEventListener('gmp-click', () => {
-                        if (stop.placeId) window._openPlacePanel(stop.placeId);
+                        if (stop.placeId) window._openPlacePanel(stop.placeId, stop.lat, stop.lng);
                         else window.openLocationInMapPanel(stop.location, stop.lat, stop.lng);
                     });
 
@@ -662,7 +705,9 @@ function initMapSearchControl(mapInstance) {
     let AutocompleteSessionToken = null;
     let sessionToken = null;
     let predictions = [];
-    let selectedIndex = -1;
+    
+    // Use a unique name to avoid any potential global conflict
+    if (window._mapSelectedIndex === undefined) window._mapSelectedIndex = -1;
 
     async function ensureServices() {
         if (!AutocompleteSuggestion) {
@@ -675,7 +720,7 @@ function initMapSearchControl(mapInstance) {
 
     function renderDefaultCategories() {
         dropdown.innerHTML = '';
-        selectedIndex = -1;
+        window._mapSelectedIndex = -1;
         categories.forEach((cat, idx) => {
             const item = document.createElement('div');
             item.className = 'search-dropdown-item';
@@ -706,7 +751,7 @@ function initMapSearchControl(mapInstance) {
     function renderPredictions(preds) {
         dropdown.innerHTML = '';
         predictions = preds || [];
-        selectedIndex = -1;
+        window._mapSelectedIndex = -1;
 
         if (predictions.length === 0) {
             dropdown.style.display = 'none';
@@ -746,10 +791,17 @@ function initMapSearchControl(mapInstance) {
         const items = dropdown.querySelectorAll('.search-dropdown-item');
         items.forEach(it => {
             it.style.background = 'transparent';
+            it.style.paddingLeft = '16px';
+            it.style.borderLeft = '4px solid transparent';
         });
-        selectedIndex = index;
-        if (items[selectedIndex]) {
-            items[selectedIndex].style.background = '#f0f4ff';
+        window._mapSelectedIndex = index;
+        if (items[window._mapSelectedIndex]) {
+            const item = items[window._mapSelectedIndex];
+            item.style.background = 'rgba(249, 115, 22, 0.08)'; // Subtle orange tint
+            item.style.paddingLeft = '12px'; // Adjust for border
+            item.style.borderLeft = '4px solid #f97316'; // Vivid orange accent
+            item.scrollIntoView({ block: 'nearest' });
+            console.log('[maps] Visual update for index:', window._mapSelectedIndex);
         }
     }
 
@@ -785,42 +837,81 @@ function initMapSearchControl(mapInstance) {
 
     renderDefaultCategories();
 
+    let _lastNavigatedValue = '';
+    let _searchDebounceTimer = null;
+
     searchInput.addEventListener('input', () => {
+        // Prevent re-triggering search when the input change was caused by keyboard navigation
+        if (searchInput.value === _lastNavigatedValue) return;
+        
+        console.log('[maps] Search input changed:', searchInput.value);
         clearBtn.style.display = searchInput.value ? 'flex' : 'none';
-        handleInput();
+        clearTimeout(_searchDebounceTimer);
+        _searchDebounceTimer = setTimeout(handleInput, 300);
     });
 
     searchInput.addEventListener('keydown', (e) => {
+        console.log('[maps] Keydown detected:', e.key, 'selectedIndex:', window._mapSelectedIndex);
         const items = dropdown.querySelectorAll('.search-dropdown-item');
+        
         if (e.key === 'ArrowDown') {
             e.preventDefault();
+            e.stopPropagation();
+            if (!items.length) return;
+            clearTimeout(_searchDebounceTimer);
             dropdown.style.display = 'block';
-            let next = selectedIndex + 1;
+            let next = window._mapSelectedIndex + 1;
             if (next >= items.length) next = 0;
             updateSelectedIndex(next);
+            
+            // Sync input value for better UX
+            if (predictions.length > 0) {
+                _lastNavigatedValue = predictions[window._mapSelectedIndex].structured_formatting.main_text;
+                searchInput.value = _lastNavigatedValue;
+            } else if (categories[window._mapSelectedIndex]) {
+                _lastNavigatedValue = categories[window._mapSelectedIndex].label;
+                searchInput.value = _lastNavigatedValue;
+            }
         } else if (e.key === 'ArrowUp') {
             e.preventDefault();
-            let next = selectedIndex - 1;
+            e.stopPropagation();
+            if (!items.length) return;
+            clearTimeout(_searchDebounceTimer);
+            dropdown.style.display = 'block';
+            let next = window._mapSelectedIndex - 1;
             if (next < 0) next = items.length - 1;
             updateSelectedIndex(next);
+
+            // Sync input value for better UX
+            if (predictions.length > 0) {
+                _lastNavigatedValue = predictions[window._mapSelectedIndex].structured_formatting.main_text;
+                searchInput.value = _lastNavigatedValue;
+            } else if (categories[window._mapSelectedIndex]) {
+                _lastNavigatedValue = categories[window._mapSelectedIndex].label;
+                searchInput.value = _lastNavigatedValue;
+            }
         } else if (e.key === 'Enter') {
             e.preventDefault();
-            const activeItem = dropdown.querySelector('.search-dropdown-item[style*="background: rgb(240, 244, 255)"]'); // Check highlit item
-            if (selectedIndex >= 0 && items[selectedIndex]) {
-                // Manually trigger the selection logic since click() on mousedown-bound items can be weird
+            e.stopPropagation();
+            console.log('[maps] Enter pressed. Selection index:', window._mapSelectedIndex);
+            
+            if (window._mapSelectedIndex >= 0 && items[window._mapSelectedIndex]) {
                 const isPrediction = predictions.length > 0;
                 if (isPrediction) {
-                    const pred = predictions[selectedIndex];
+                    const pred = predictions[window._mapSelectedIndex];
+                    console.log('[maps] Selecting prediction:', pred.description);
                     searchInput.value = pred.structured_formatting.main_text;
                     triggerMapSearch(pred.description, null, pred.place_id);
                 } else {
-                    const cat = categories[selectedIndex];
+                    const cat = categories[window._mapSelectedIndex];
+                    console.log('[maps] Selecting category:', cat.label);
                     searchInput.value = cat.label;
                     triggerMapSearch(cat.label, cat.type);
                 }
                 dropdown.style.display = 'none';
                 searchInput.blur();
             } else {
+                console.log('[maps] No item selected, performing text search for:', searchInput.value);
                 dropdown.style.display = 'none';
                 triggerMapSearch(searchInput.value);
                 searchInput.blur();
@@ -836,6 +927,8 @@ function initMapSearchControl(mapInstance) {
     // Toggle logic
     let hideTimeout;
     searchInput.addEventListener('focus', () => {
+        // Disable Google Maps keyboard shortcuts (arrow key panning) while typing in search
+        mapInstance.setOptions({ keyboardShortcuts: false });
         clearTimeout(hideTimeout);
         if (searchInput.value) {
             clearBtn.style.display = 'flex';
@@ -847,6 +940,7 @@ function initMapSearchControl(mapInstance) {
     });
 
     searchInput.addEventListener('blur', () => {
+        mapInstance.setOptions({ keyboardShortcuts: true });
         hideTimeout = setTimeout(() => { dropdown.style.display = 'none'; }, 250);
     });
 
@@ -1097,7 +1191,7 @@ window.openLocationInMapPanel = async function (query, lat, lng) {
 };
 
 // Centralized helper to fetch place data and show the info panel
-window._openPlacePanel = async function (placeId) {
+window._openPlacePanel = async function (placeId, fallbackLat, fallbackLng) {
     console.log('[_openPlacePanel] Request for ID:', placeId);
     if (!placeId) {
         console.warn('[_openPlacePanel] Aborted: No placeId provided.');
@@ -1106,22 +1200,22 @@ window._openPlacePanel = async function (placeId) {
     try {
         const { Place } = await google.maps.importLibrary('places');
         const place = new Place({ id: placeId });
-        await place.fetchFields({ 
+        await place.fetchFields({
             fields: [
-                'displayName', 'formattedAddress', 'rating', 'userRatingCount', 
-                'types', 'photos', 'priceLevel', 'regularOpeningHours', 
-                'nationalPhoneNumber', 'internationalPhoneNumber', 'websiteURI', 
+                'displayName', 'formattedAddress', 'rating', 'userRatingCount',
+                'types', 'photos', 'priceLevel', 'regularOpeningHours',
+                'nationalPhoneNumber', 'internationalPhoneNumber', 'websiteURI',
                 'reviews', 'location', 'viewport'
-            ] 
+            ]
         });
-        await showMapInfoPanel(place, placeId);
+        await showMapInfoPanel(place, placeId, fallbackLat, fallbackLng);
     } catch (err) {
         console.warn('[_openPlacePanel] fetchFields failed:', err);
     }
 };
 
 // --- Map Info Panel ---
-async function showMapInfoPanel(place, placeId) {
+async function showMapInfoPanel(place, placeId, fallbackLat, fallbackLng) {
     closeMapInfoPanel();
     const mapDiv = document.getElementById('real-map');
     const containerDiv = document.getElementById('mock-map-container');
@@ -1140,18 +1234,23 @@ async function showMapInfoPanel(place, placeId) {
     `;
 
     // Store photos globally for lightbox access
-    // Robust Coordinate Extraction
+    // Robust Coordinate Extraction (with fallback from caller)
     let lat = null, lng = null;
     const loc = place.location || (place.geometry && place.geometry.location);
     if (loc) {
         lat = (typeof loc.lat === 'function') ? loc.lat() : (typeof loc.latitude === 'number' ? loc.latitude : loc.lat);
         lng = (typeof loc.lng === 'function') ? loc.lng() : (typeof loc.longitude === 'number' ? loc.longitude : loc.lng);
     }
-    
-    // Generate Street View URL as a secondary fallback
+    if ((lat === null || isNaN(lat)) && fallbackLat != null && !isNaN(fallbackLat)) {
+        lat = Number(fallbackLat);
+        lng = Number(fallbackLng);
+    }
+
+    // Generate Street View thumbnail URL via StreetViewService (same source as Google Maps)
     let streetViewUrl = '';
     if (lat !== null && lng !== null && !isNaN(lat)) {
-        streetViewUrl = `https://maps.googleapis.com/maps/api/streetview?size=640x400&location=${lat},${lng}&fov=90&key=${MAPS_API_KEY}`;
+        const svUrl = await getStreetViewThumbUrl(lat, lng, 640, 400);
+        if (svUrl) streetViewUrl = svUrl;
     }
     
     // Process main photos

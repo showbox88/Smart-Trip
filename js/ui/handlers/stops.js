@@ -843,6 +843,11 @@ export async function autoAddStop(dayId, placeId, afterStopId) {
         };
         renderDay();
 
+        // Fill in street view thumbnails for stops without photos
+        if (window.googleMapsReady && window._lazyLoadStreetViews) {
+            window._lazyLoadStreetViews();
+        }
+
         // Auto scroll to the newly appended item
         setTimeout(() => {
             const newlyAddedEl = document.querySelector('.id-' + newStop.id);
@@ -872,6 +877,10 @@ export async function autoAddStop(dayId, placeId, afterStopId) {
                                 dayEl.replaceWith(temp.firstElementChild);
                             } else {
                                 renderDay();
+                            }
+                            // Re-fill street view for any stops still without photos
+                            if (window.googleMapsReady && window._lazyLoadStreetViews) {
+                                window._lazyLoadStreetViews();
                             }
                             console.log('[image-cache] Stop photo cached:', result.localUrl);
                         }
@@ -1127,7 +1136,7 @@ export function saveStayInfo(originalStopId) {
 
     // 3. Create/Add the Checkout Stop
     const coutStop = {
-        ...JSON.parse(JSON.stringify(stop)),
+        ...structuredClone(stop),
         id: 'cout-' + Date.now(),
         type: 'hotel_checkout',
         stayId: stayId,

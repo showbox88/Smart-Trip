@@ -561,7 +561,15 @@ function handleDragStart(e, dayId, stopId) {
     if (wrapper) wrapper.classList.add('dragging');
 
     // Global listener so auto-scroll works everywhere, including above all droppable elements
-    _globalDragOverHandler = (ev) => _startAutoScroll(ev.clientY);
+    let _dragRaf = 0;
+    _globalDragOverHandler = (ev) => {
+        if (!_dragRaf) {
+            _dragRaf = requestAnimationFrame(() => {
+                _dragRaf = 0;
+                _startAutoScroll(ev.clientY);
+            });
+        }
+    };
     document.addEventListener('dragover', _globalDragOverHandler);
 }
 
@@ -987,17 +995,24 @@ function openTimePickerModal() {
     const items = wheel.querySelectorAll('.wheel-item');
     const itemHeight = 48;
 
+    let _lastWheelIndex = -1;
+    let _wheelRaf = 0;
     function updateSelection() {
+        _wheelRaf = 0;
         const index = Math.round(wheel.scrollTop / itemHeight);
+        if (index === _lastWheelIndex) return;
         const target = items[index];
         if (target) {
-            items.forEach(it => it.classList.remove('active'));
+            if (items[_lastWheelIndex]) items[_lastWheelIndex].classList.remove('active');
             target.classList.add('active');
             document.getElementById('wheel-selected-time').value = target.dataset.time;
+            _lastWheelIndex = index;
         }
     }
 
-    wheel.addEventListener('scroll', updateSelection);
+    wheel.addEventListener('scroll', () => {
+        if (!_wheelRaf) _wheelRaf = requestAnimationFrame(updateSelection);
+    });
 
     window._confirmWheelTime = function() {
         const time = document.getElementById('wheel-selected-time').value;
@@ -1636,15 +1651,15 @@ const syncPointer = (e) => {
     _lastPointerX = e.clientX;
     _lastPointerY = e.clientY;
 
-    // Update CSS vars
-    const root = document.documentElement;
-    root.style.setProperty('--x', _lastPointerX.toFixed(2));
-    root.style.setProperty('--y', _lastPointerY.toFixed(2));
-    root.style.setProperty('--xp', (_lastPointerX / window.innerWidth).toFixed(2));
-
-    // Throttle glow updates to one per animation frame
+    // Defer CSS vars + glow updates to one RAF per frame
     if (!_rafId) {
-        _rafId = requestAnimationFrame(applyGlow);
+        _rafId = requestAnimationFrame(() => {
+            const root = document.documentElement;
+            root.style.setProperty('--x', _lastPointerX.toFixed(2));
+            root.style.setProperty('--y', _lastPointerY.toFixed(2));
+            root.style.setProperty('--xp', (_lastPointerX / window.innerWidth).toFixed(2));
+            applyGlow();
+        });
     }
 };
 

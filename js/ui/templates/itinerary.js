@@ -119,7 +119,7 @@ export function getTimelineItemHTML(day, stop, index, locationIdx, showTransit, 
         </style>
     ` : '';
 
-    const hoverSyncAttrs = stayId ? `onmouseover="document.querySelectorAll('[data-stay-id=\\'${stayId}\\']').forEach(el=>el.classList.add('stay-hover'))" onmouseout="document.querySelectorAll('[data-stay-id=\\'${stayId}\\']').forEach(el=>el.classList.remove('stay-hover'))"` : '';
+    const hoverSyncAttrs = stayId ? `data-stay-hover="${stayId}"` : '';
 
     if (stop.type === 'note') {
         contentHtml = `
@@ -143,8 +143,8 @@ export function getTimelineItemHTML(day, stop, index, locationIdx, showTransit, 
                     </div>
                     <div id="list-items-${stop.id}" style="display:flex; flex-direction:column; gap:0.5rem; padding-left:0.2rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 1rem; margin-bottom: 1rem;">
                         ${(stop.items || []).map((li, i) => `
-                            <div style="display:flex; align-items:center; gap:0.6rem; color:var(--text-primary); margin-bottom: 0.3rem;" class="li-item-hover">
-                                <div style="width: 16px; height: 16px; border: 2px solid var(--text-secondary); border-radius: 50%; background:${li.checked ? 'var(--text-secondary)' : 'transparent'}; display:flex; align-items:center; justify-content:center; cursor:pointer;" onclick="toggleListItemCheck('${day.id}', '${stop.id}', ${i}, this)"></div>
+                            <div style="display:flex; align-items:flex-start; gap:0.6rem; color:var(--text-primary); margin-bottom: 0.3rem;" class="li-item-hover">
+                                <div style="width: 16px; height: 16px; margin-top: 3px; border: 2px solid var(--text-secondary); border-radius: 50%; background:${li.checked ? 'var(--text-secondary)' : 'transparent'}; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0;" onclick="toggleListItemCheck('${day.id}', '${stop.id}', ${i}, this)"></div>
                                 <textarea onfocus="if(window._forceResizeTextareas) window._forceResizeTextareas(this)" oninput="this.style.height='';this.style.height=this.scrollHeight+'px'" onkeydown="handleNewListItem(event, '${day.id}', '${stop.id}', ${i})" onchange="updateListItemText('${day.id}', '${stop.id}', ${i}, this.value)" style="flex:1; background:transparent; border:none; outline:none; color:var(--text-primary); font-size:0.95rem; text-decoration:${li.checked ? 'line-through' : 'none'}; opacity:${li.checked ? '0.5' : '1'}; resize:none; overflow:hidden;">${li.text || ''}</textarea>
                                 <button class="delete-btn-hover" onclick="deleteListItem('${day.id}', '${stop.id}', ${i})" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:0.9rem; opacity:0; transition:opacity 0.2s;">✕</button>
                             </div>
@@ -200,8 +200,8 @@ export function getTimelineItemHTML(day, stop, index, locationIdx, showTransit, 
                         <span onclick="openExpenseDirectly(event, '${day.id}', '${stop.id}')" style="color: ${stop.price && stop.price !== '0' ? '#22c55e' : 'var(--text-secondary)'}; background: ${stop.price && stop.price !== '0' ? 'rgba(34, 197, 94, 0.1)' : 'var(--bg-secondary)'}; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; cursor:pointer;" title="${t('itinerary.edit_expense')}">${stop.price && stop.price !== '0' ? formatCurrency(parseFloat(stop.price)) : t('itinerary.add_expense')}</span>
                     </div>
                 </div>
-                <div class="rich-stop-card-media" onclick="window.changeStopImage('${day.id}', '${stop.id}')" style="cursor: pointer; width: 80px; height: 60px; border-radius: 6px; background-image: url('${stop.photo || 'https://picsum.photos/seed/' + stop.id + '/300/200'}'); background-size: cover; background-position: center; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.2); position: relative;" title="${t('stops.change_img')}">
-                    <img src="${stop.photo || ''}" style="display:none;" onerror="this.parentElement.style.backgroundImage='url(https://picsum.photos/seed/${stop.id}/300/200)'">
+                <div class="rich-stop-card-media" onclick="window.changeStopImage('${day.id}', '${stop.id}')" style="cursor: pointer; width: 80px; height: 60px; border-radius: 6px; background-size: cover; background-position: center; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.2); position: relative;" title="${t('stops.change_img')}">
+                    <img src="${stop.photo || `https://picsum.photos/seed/${stop.id}/300/200`}" ${!stop.photo && stop.lat && stop.lng ? `data-sv-lat="${stop.lat}" data-sv-lng="${stop.lng}"` : ''} style="width:100%;height:100%;object-fit:cover;border-radius:6px;display:block;" onerror="this.src='https://picsum.photos/seed/${stop.id}/300/200'">
                 </div>
             </div>
         `;
@@ -290,7 +290,7 @@ export function getDayHTML(day, dayIndex, activeDayId) {
     // --- Hotel Logic Detection ---
     let stays = [];
     if (trip) {
-        const allStops = trip.days.flatMap(d => d.stops.map(s => ({ ...s, dayId: d.id })));
+        const allStops = trip.days.flatMap(d => d.stops.map(s => ({ id: s.id, stayId: s.stayId, type: s.type, location: s.location, dayId: d.id })));
         const staysMap = new Map();
         allStops.forEach(s => {
             if (s.stayId) {
@@ -309,11 +309,12 @@ export function getDayHTML(day, dayIndex, activeDayId) {
         stays = Array.from(staysMap.values()).filter(s => s.checkinDayId && s.checkoutDayId);
     }
 
+    const _dayIdxMap = new Map(trip.days.map((d, i) => [d.id, i]));
     const currentDayStay = stays.find(s => {
-        const dIdx = trip.days.findIndex(d => d.id === day.id);
-        const cinIdx = trip.days.findIndex(d => d.id === s.checkinDayId);
-        const coutIdx = trip.days.findIndex(d => d.id === s.checkoutDayId);
-        return dIdx >= cinIdx && dIdx <= coutIdx;
+        const dIdx = _dayIdxMap.get(day.id);
+        const cinIdx = _dayIdxMap.get(s.checkinDayId);
+        const coutIdx = _dayIdxMap.get(s.checkoutDayId);
+        return dIdx !== undefined && cinIdx !== undefined && coutIdx !== undefined && dIdx >= cinIdx && dIdx <= coutIdx;
     });
 
     const isCinOnly = currentDayStay && currentDayStay.checkinDayId === day.id && currentDayStay.checkoutDayId !== day.id;
@@ -334,7 +335,7 @@ export function getDayHTML(day, dayIndex, activeDayId) {
     day.isAfterCin = (idx) => cinIdx !== -1 && idx > cinIdx;
     day.isBeforeCout = (idx) => coutIdx !== -1 && idx < coutIdx;
 
-    const hoverSyncAttrs = currentDayStay ? `onmouseover="document.querySelectorAll('[data-stay-id=\\'${currentDayStay.id}\\']').forEach(el=>el.classList.add('stay-hover'))" onmouseout="document.querySelectorAll('[data-stay-id=\\'${currentDayStay.id}\\']').forEach(el=>el.classList.remove('stay-hover'))"` : '';
+    const hoverSyncAttrs = currentDayStay ? `data-stay-hover="${currentDayStay.id}"` : '';
 
     const colorPickerHtml = `
         <div onclick="event.stopPropagation()" style="position:relative; margin-left: auto; margin-right: 15px; display:flex; align-items:center;">
@@ -470,12 +471,16 @@ export function getDayHTML(day, dayIndex, activeDayId) {
                         </div>
                     ` : ''}
                     
-                    ${day.stops.map((stop, index) => {
-                const isPoi = (stop.type === 'location' || !stop.type || stop.type === 'hotel_checkin' || stop.type === 'hotel_checkout');
-                const locationIdx = day.stops.slice(0, index).filter(s => s.type === 'location' || !s.type).length;
-                const hasNextPoi = day.stops.slice(index + 1).some(s => s.type === 'location' || !s.type || s.type === 'hotel_checkin' || s.type === 'hotel_checkout');
-                return getTimelineItemHTML(day, stop, index, locationIdx, isPoi && hasNextPoi, index < day.stops.length - 1);
-            }).join('')}
+                    ${(() => {
+                let locCount = 0;
+                return day.stops.map((stop, index) => {
+                    const isPoi = (stop.type === 'location' || !stop.type || stop.type === 'hotel_checkin' || stop.type === 'hotel_checkout');
+                    const locationIdx = locCount;
+                    if (stop.type === 'location' || !stop.type) locCount++;
+                    const hasNextPoi = day.stops.slice(index + 1).some(s => s.type === 'location' || !s.type || s.type === 'hotel_checkin' || s.type === 'hotel_checkout');
+                    return getTimelineItemHTML(day, stop, index, locationIdx, isPoi && hasNextPoi, index < day.stops.length - 1);
+                }).join('');
+            })()}
                 
                     ${(isBetween || isCinOnly || isSameDayStay) ? `
                         <div class="hotel-hint-row" ${hoverSyncAttrs} style="padding-left: 36px; margin-top: 0.8rem; color: #f59e0b; font-size: 0.85rem; font-weight: 600; display: flex; flex-direction:column; gap: 4px; position: relative; cursor: pointer;">

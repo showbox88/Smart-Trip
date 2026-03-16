@@ -52,7 +52,7 @@ export function getTripGridHTML() {
             <div class="trip-card-list" onclick="openTrip('${trip.id}')" style="display:flex; align-items:center; gap:1.5rem; background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:16px; padding:12px; transition:all 0.3s; cursor:pointer; margin-bottom:1rem; position:relative;">
                 <div style="width:120px; height:80px; border-radius:12px; background: #000; overflow:hidden; position:relative; flex-shrink:0;">
                     <div class="thumb-blur-bg" style="background-image: url('${trip.thumb}'); opacity:0.3; filter:blur(10px);"></div>
-                    <img src="${trip.thumb}" style="width:100%; height:100%; object-fit:contain; position:relative; z-index:1;">
+                    <img src="${trip.thumb}" loading="lazy" style="width:100%; height:100%; object-fit:contain; position:relative; z-index:1;">
                 </div>
                 <div style="flex:1;">
                     <h4 style="font-size:1.15rem; font-weight:700; margin-bottom:4px;">${trip.title}</h4>

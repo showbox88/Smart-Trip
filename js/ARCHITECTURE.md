@@ -130,4 +130,4 @@ maps.js 联动更新地图图钉与路线
 4. **新增 API**：`supabase_api.js` 添加函数 → `api.js` 网关暴露 → `main.js` 桥接（如需全局访问）
 
 ---
-*Updated 2026-03-11 by Antigravity AI Assistant.*
+*Updated 2026-03-15 by Antigravity AI Assistant.*
