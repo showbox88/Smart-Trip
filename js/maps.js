@@ -19,6 +19,9 @@ async function getStreetViewThumbUrl(lat, lng, width = 408, height = 240) {
     }
 }
 
+// Exposed so autoAddStop can await a street view URL before saving to state
+window._getStreetViewThumbUrl = getStreetViewThumbUrl;
+
 // Called after stop cards render — fills in street view thumbnails for stops without photos
 window._lazyLoadStreetViews = async function () {
     const imgs = document.querySelectorAll('img[data-sv-lat]');

@@ -773,9 +773,18 @@ export async function autoAddStop(dayId, placeId, afterStopId) {
             }
         }
 
-        const remotePhotoUrl = place.photos && place.photos.length > 0
+        const lat = place.location ? place.location.lat() : 0;
+        const lng = place.location ? place.location.lng() : 0;
+
+        let remotePhotoUrl = place.photos && place.photos.length > 0
             ? place.photos[0].getURI({ maxWidth: 400 })
             : '';
+
+        // No Google Photo — try to get a street view thumbnail and save it persistently
+        if (!remotePhotoUrl && lat && lng && window._getStreetViewThumbUrl) {
+            remotePhotoUrl = (await window._getStreetViewThumbUrl(lat, lng, 320, 240)) || '';
+        }
+
         const desc = place.editorialSummary || '';
         const categoryInfo = getCategoryFromTypes(place.types || []);
 
@@ -790,8 +799,8 @@ export async function autoAddStop(dayId, placeId, afterStopId) {
             note: '',
             price: '0',
             type: 'location',
-            lat: place.location ? place.location.lat() : 0,
-            lng: place.location ? place.location.lng() : 0,
+            lat,
+            lng,
             photo: remotePhotoUrl,
             rating: place.rating,
             category: categoryInfo.label,
