@@ -88,19 +88,12 @@ export default function DaySection({
     const showTransit = isPoi && hasNextPoi;
     const isDropTarget = dragOverStopId === stop.id;
 
-    // Calculate display index for POI (location/hotel)
+    // Calculate display index for POI (location/hotel) reset per day
     let displayIndex = null;
     if (isPoi) {
-      let globalCount = 0;
-      // Count POIs in previous days
-      const currentDayIdx = trip?.days.findIndex(d => d.id === day.id) || 0;
-      for (let i = 0; i < currentDayIdx; i++) {
-        const prevDayStops = trip.days[i].stops || [];
-        globalCount += prevDayStops.filter(s => s.type !== 'note' && s.type !== 'list').length;
-      }
       // Count POIs before this one in current day
       const prevStopsInDay = stops.slice(0, index).filter(s => s.type !== 'note' && s.type !== 'list').length;
-      displayIndex = globalCount + prevStopsInDay + 1;
+      displayIndex = prevStopsInDay + 1;
     }
 
     let card;

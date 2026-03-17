@@ -21,7 +21,7 @@ export default function TransitInfo({ transit, transitMode, onToggleMode, onAddS
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showAddMenu]);
 
-  if (!transit?.duration && !transit?.distance) return null;
+  const hasData = transit?.duration || transit?.distance;
 
   const modeIcon = transitMode === 'WALK' ? 'directions_walk' : 'directions_car';
   const modeLabel = transitMode === 'WALK' ? t('itinerary.walk') || '步行' : t('itinerary.drive') || '驾车';
@@ -91,19 +91,23 @@ export default function TransitInfo({ transit, transitMode, onToggleMode, onAddS
         </div>
       )}
 
-      <span
-        className="material-symbols-outlined"
-        style={{ fontSize: '18px', cursor: onToggleMode ? 'pointer' : 'default', color: 'var(--text-bright)' }}
-        onClick={onToggleMode}
-        title={modeLabel}
-      >
-        {modeIcon}
-      </span>
-      {transit.duration && (
-        <span>{formatDuration(transit.duration, t)}</span>
-      )}
-      {transit.distance && (
-        <span style={{ opacity: 0.7 }}>· {formatDistance(transit.distance, state.settings, t)}</span>
+      {hasData && (
+        <>
+          <span
+            className="material-symbols-outlined"
+            style={{ fontSize: '18px', cursor: onToggleMode ? 'pointer' : 'default', color: 'var(--text-bright)' }}
+            onClick={onToggleMode}
+            title={modeLabel}
+          >
+            {modeIcon}
+          </span>
+          {transit.duration && (
+            <span>{formatDuration(transit.duration, t)}</span>
+          )}
+          {transit.distance && (
+            <span style={{ opacity: 0.7 }}>· {formatDistance(transit.distance, state.settings, t)}</span>
+          )}
+        </>
       )}
     </div>
   );

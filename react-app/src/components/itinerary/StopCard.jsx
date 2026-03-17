@@ -253,7 +253,7 @@ export default function StopCard({
       </div>
 
       {/* Transit info */}
-      {showTransit && stop.transitToNext && (
+      {showTransit && (
         <TransitInfo
           transit={stop.transitToNext}
           transitMode={stop.transitMode || 'DRIVE'}

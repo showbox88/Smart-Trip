@@ -38,11 +38,12 @@ export function useTripEditor(tripId) {
     scheduleCloudSave(updatedTrip);
   }, [dispatch, scheduleCloudSave]);
 
-  const computeTransitData = useCallback(async (dayId) => {
+  const computeTransitData = useCallback(async (dayId, tripSnapshot) => {
     if (!trip || typeof google === 'undefined' || !window.googleMapsReady) return;
-    
-    // We get the LATEST trip state from state.trips to avoid race conditions
-    const currentTrip = state.trips.find(tr => tr.id === tripId);
+
+    // Use provided snapshot if available (avoids stale closure after applyUpdate)
+    // otherwise fall back to state.trips
+    const currentTrip = tripSnapshot || state.trips.find(tr => tr.id === tripId);
     if (!currentTrip) return;
 
     const updated = JSON.parse(JSON.stringify(currentTrip));
@@ -100,7 +101,7 @@ export function useTripEditor(tripId) {
     if (stop) {
       stop.transitMode = (stop.transitMode === 'WALK' ? 'DRIVE' : 'WALK');
       applyUpdate(updated);
-      await computeTransitData(dayId);
+      await computeTransitData(dayId, updated);
     }
   }, [trip, applyUpdate, computeTransitData]);
 
@@ -180,7 +181,7 @@ export function useTripEditor(tripId) {
       day.stops = day.stops.filter(s => s.id !== stopId);
     }
     applyUpdate(updated);
-    computeTransitData(dayId);
+    computeTransitData(dayId, updated);
   }, [trip, applyUpdate, computeTransitData]);
 
   const updateStop = useCallback((dayId, stopId, patch) => {
@@ -353,7 +354,7 @@ export function useTripEditor(tripId) {
       }
 
       applyUpdate(updated);
-      await computeTransitData(dayId);
+      await computeTransitData(dayId, updated);
 
       if (photoUrl) {
         try {
@@ -406,9 +407,9 @@ export function useTripEditor(tripId) {
     }
     applyUpdate(updated);
 
-    computeTransitData(sourceDayId);
+    computeTransitData(sourceDayId, updated);
     if (sourceDayId !== targetDayId) {
-      computeTransitData(targetDayId);
+      computeTransitData(targetDayId, updated);
     }
   }, [trip, applyUpdate, computeTransitData]);
 

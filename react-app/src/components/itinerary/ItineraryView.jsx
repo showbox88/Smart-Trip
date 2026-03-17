@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTripEditor } from '../../hooks/useTripEditor';
 import { useTrips } from '../../hooks/useTrips';
@@ -13,6 +13,15 @@ import TripEditModal from '../modals/TripEditModal';
 import TimePickerModal from '../modals/TimePickerModal';
 import ExpenseModal from '../modals/ExpenseModal';
 import { useI18n } from '../../context/I18nContext';
+
+function scrollToNewStop(id, attempts = 0) {
+  const el = document.querySelector(`.id-${id}`);
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  } else if (attempts < 20) {
+    requestAnimationFrame(() => scrollToNewStop(id, attempts + 1));
+  }
+}
 
 export default function ItineraryView({ tripId }) {
   const { t } = useI18n();
@@ -137,6 +146,13 @@ export default function ItineraryView({ tripId }) {
     );
   };
 
+  const handleMapAddToDay = useCallback(async (dayId, placeId) => {
+    const afterId = (pendingInsertion?.dayId === dayId) ? pendingInsertion.afterStopId : null;
+    const newId = await addStopFromPlace(dayId, placeId, afterId);
+    setPendingInsertion(null);
+    if (newId) scrollToNewStop(newId);
+  }, [pendingInsertion, addStopFromPlace]);
+
   if (!trip) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: 'var(--text-secondary)' }}>
@@ -170,91 +186,95 @@ export default function ItineraryView({ tripId }) {
     setCollapsedDays(newCollapsed);
   };
 
-  return (
-    <div className="dashboard-view fade-in">
-      <TripSidebar 
-        trip={trip} 
-        activeDayId={activeDayId} 
-        onAddDay={addDay} 
-        onDayClick={handleSidebarDayClick}
-      />
+      return (
+        <div className="dashboard-view fade-in">
+          <TripSidebar 
+            trip={trip} 
+            activeDayId={activeDayId} 
+            onAddDay={addDay} 
+            onDayClick={handleSidebarDayClick}
+          />
 
-      <section className="main-itinerary" id="itinerary-scroll-container">
-        <TripHeader trip={trip} onDeleteTrip={handleDeleteTrip} onEditTrip={() => setTripEditModal(true)} />
+          <section className="main-itinerary" id="itinerary-scroll-container">
+            <TripHeader trip={trip} onDeleteTrip={handleDeleteTrip} onEditTrip={() => setTripEditModal(true)} />
 
-        {pendingInsertion && (
-          <div style={{ 
-            background: 'var(--accent-primary)', 
-            color: 'white', 
-            padding: '8px 16px', 
-            borderRadius: '12px', 
-            margin: '0 2rem 1rem', 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'space-between',
-            fontSize: '0.9rem',
-            fontWeight: 700,
-            boxShadow: '0 4px 15px rgba(59, 130, 246, 0.4)',
-            animation: 'slideIn 0.3s ease'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>info</span>
-              <span>Select a place on the map to insert after this position</span>
+            {pendingInsertion && (
+              <div style={{ 
+                background: 'var(--accent-primary)', 
+                color: 'white', 
+                padding: '8px 16px', 
+                borderRadius: '12px', 
+                margin: '0 2rem 1rem', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'space-between',
+                fontSize: '0.9rem',
+                fontWeight: 700,
+                boxShadow: '0 4px 15px rgba(59, 130, 246, 0.4)',
+                animation: 'slideIn 0.3s ease'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>info</span>
+                  <span>Select a place on the map to insert after this position</span>
+                </div>
+                <button 
+                  onClick={() => setPendingInsertion(null)}
+                  style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', borderRadius: '6px', padding: '2px 8px', cursor: 'pointer', fontSize: '0.8rem' }}
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+
+            <div className="itinerary-timeline" style={{ padding: 0 }}>
+              {trip.days.map((day, dayIndex) => (
+                <DaySection
+                  key={day.id}
+                  day={day}
+                  dayIndex={dayIndex}
+                  trip={trip}
+                  isCollapsed={!!collapsedDays[day.id]}
+                  onToggleCollapse={() => handleToggleDayCollapse(day.id)}
+                  onAddStop={async (dayId, maybePlaceId) => {
+                    if (typeof maybePlaceId === 'string') {
+                      const newId = await addStopFromPlace(dayId, maybePlaceId);
+                      if (newId) scrollToNewStop(newId);
+                    } else if (maybePlaceId) {
+                      setPendingInsertion({ dayId, afterStopId: maybePlaceId });
+                    } else {
+                      setPendingInsertion(null);
+                    }
+                  }}
+                  onDeleteStop={handleDeleteStop}
+                  onEditStop={handleEditStop}
+                  onToggleTransitMode={toggleTransitMode}
+                  onAddNote={async (dayId, afterId) => {
+                    const newId = await addNote(dayId, afterId);
+                    if (newId) scrollToNewStop(newId);
+                  }}
+                  onAddList={async (dayId, afterId) => {
+                    const newId = await addList(dayId, afterId);
+                    if (newId) scrollToNewStop(newId);
+                  }}
+                  onDeleteNote={handleDeleteNote}
+                  onUpdateNoteContent={updateNoteContent}
+                  onDeleteList={handleDeleteList}
+                  onUpdateListItem={updateListItem}
+                  onToggleListItem={toggleListItem}
+                  onAddListItem={addListItem}
+                  onMoveStop={moveStop}
+                  onColorChange={setDayColor}
+                  onEditDay={handleEditDay}
+                  onDeleteDay={handleDeleteDay}
+                  onUpdateDay={updateDay}
+                  onOpenTimePicker={handleOpenTimePicker}
+                  onOpenExpense={handleOpenExpense}
+                />
+              ))}
             </div>
-            <button 
-              onClick={() => setPendingInsertion(null)}
-              style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', borderRadius: '6px', padding: '2px 8px', cursor: 'pointer', fontSize: '0.8rem' }}
-            >
-              Cancel
-            </button>
-          </div>
-        )}
+          </section>
 
-        <div className="itinerary-timeline" style={{ padding: 0 }}>
-          {trip.days.map((day, dayIndex) => (
-            <DaySection
-              key={day.id}
-              day={day}
-              dayIndex={dayIndex}
-              trip={trip}
-              isCollapsed={!!collapsedDays[day.id]}
-              onToggleCollapse={() => handleToggleDayCollapse(day.id)}
-              onAddStop={(dayId, afterStopId) => {
-                if (afterStopId) {
-                  setPendingInsertion({ dayId, afterStopId });
-                  // Optionally show a message: "Choose a place from the map to insert here"
-                } else {
-                  setPendingInsertion(null);
-                }
-              }}
-              onDeleteStop={handleDeleteStop}
-              onEditStop={handleEditStop}
-              onToggleTransitMode={toggleTransitMode}
-              onAddNote={addNote}
-              onAddList={addList}
-              onDeleteNote={handleDeleteNote}
-              onUpdateNoteContent={updateNoteContent}
-              onDeleteList={handleDeleteList}
-              onUpdateListItem={updateListItem}
-              onToggleListItem={toggleListItem}
-              onAddListItem={addListItem}
-              onMoveStop={moveStop}
-              onColorChange={setDayColor}
-              onEditDay={handleEditDay}
-              onDeleteDay={handleDeleteDay}
-              onUpdateDay={updateDay}
-              onOpenTimePicker={handleOpenTimePicker}
-              onOpenExpense={handleOpenExpense}
-            />
-          ))}
-        </div>
-      </section>
-
-      <MapPanel onAddToDay={async (dayId, placeId) => {
-        const afterId = (pendingInsertion?.dayId === dayId) ? pendingInsertion.afterStopId : null;
-        await addStopFromPlace(dayId, placeId, afterId);
-        setPendingInsertion(null);
-      }} />
+          <MapPanel onAddToDay={handleMapAddToDay} />
 
       {/* Mobile view switcher */}
       <div className="mobile-view-switcher">

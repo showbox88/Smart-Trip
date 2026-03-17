@@ -43,6 +43,7 @@ export default function MapPanel({ onAddToDay }) {
   const mapInstanceRef = useRef(null);
   const markersRef = useRef([]);
   const polylinesRef = useRef([]);
+  const hasInitialFitRef = useRef(null); // stores tripId
   const [mapReady, setMapReady] = useState(!!window.googleMapsReady);
   const [darkMode, setDarkMode] = useState(true);
   const [selectedPlaceId, setSelectedPlaceId] = useState(null);
@@ -253,12 +254,16 @@ export default function MapPanel({ onAddToDay }) {
     });
 
     if (hasCoords) {
-      mapInstanceRef.current.fitBounds(bounds, { top: 50, bottom: 50, left: 50, right: 50 });
-      if (markersRef.current.length === 1) {
-        setTimeout(() => mapInstanceRef.current.setZoom(15), 100);
+      const shouldFit = hasInitialFitRef.current !== activeTrip.id;
+      if (shouldFit) {
+        mapInstanceRef.current.fitBounds(bounds, { top: 50, bottom: 50, left: 50, right: 50 });
+        hasInitialFitRef.current = activeTrip.id;
+        if (markersRef.current.length === 1) {
+          setTimeout(() => mapInstanceRef.current.setZoom(15), 100);
+        }
       }
     }
-  }, [activeTrip, mapReady, t, onAddToDay]);
+  }, [activeTrip, mapReady, t]);
 
   // Handle Hover Synchronization
   useEffect(() => {
