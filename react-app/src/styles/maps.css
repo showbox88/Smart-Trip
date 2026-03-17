@@ -1,0 +1,179 @@
+/* --- Map Container & Widgets --- */
+.map-placeholder {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1524661135-423995f22d0b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+    background-size: cover;
+}
+
+.map-placeholder>span {
+    background: var(--glass-bg);
+    padding: 1rem;
+    border-radius: 12px;
+    border: 1px solid var(--glass-border);
+}
+
+/* --- Location Search AutoComplete --- */
+.location-search-input {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    color: var(--text-primary);
+    font-size: 1rem;
+    transition: all 0.3s;
+}
+
+.location-search-input:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2);
+}
+
+.location-autocomplete-dropdown {
+    position: absolute;
+    top: calc(100% + 5px);
+    left: 0;
+    width: 100%;
+    background: var(--bg-secondary);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.8);
+    z-index: 50;
+    max-height: 250px;
+    overflow-y: auto;
+    display: none;
+    flex-direction: column;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.location-autocomplete-dropdown.active {
+    display: flex;
+}
+
+.location-autocomplete-dropdown li {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--glass-border);
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.location-autocomplete-dropdown li:last-child {
+    border-bottom: none;
+}
+
+.location-autocomplete-dropdown li:hover,
+.location-autocomplete-dropdown li.selected {
+    background: rgba(255, 255, 255, 0.12);
+    border-left: 3px solid var(--accent-primary);
+}
+
+/* --- Map Marker Adjustments --- */
+gmp-advanced-marker,
+gmp-advanced-marker::part(background),
+gmp-advanced-marker::part(pin) {
+    background-color: transparent !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* --- Map Dark Mode Toggle --- */
+#map-dark-toggle {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 44px;
+    height: 44px;
+    background: rgba(13, 17, 27, 0.85);
+    /* Dark semi-transparent */
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    z-index: 1001;
+    /* Above map and info panels */
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    line-height: 1;
+    padding: 0;
+    overflow: hidden;
+}
+
+#map-dark-toggle:hover {
+    transform: scale(1.1);
+    background: #1a2235;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 15px rgba(249, 115, 22, 0.4);
+}
+
+#map-dark-toggle:active {
+    transform: scale(0.95);
+}
+
+/* --- Custom InfoWindow Styling (Strips default padding/close button) --- */
+.gm-style-iw {
+    padding: 0 !important;
+    max-height: none !important;
+    max-width: none !important;
+}
+
+.gm-style-iw-c {
+    padding: 0 !important;
+    border-radius: 12px !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    max-height: none !important;
+}
+
+.gm-style-iw-d {
+    overflow: hidden !important;
+    padding: 0 !important;
+    max-height: none !important;
+}
+
+/* Hide the close button */
+.gm-ui-hover-effect {
+    display: none !important;
+}
+
+/* Hide the arrow/stem of the InfoWindow for a cleaner look */
+.gm-style-iw-tc::after {
+    display: none !important;
+}
+
+/* --- 地图详细资料窗 (#map-info-panel) --- */
+#map-info-panel {
+    position: absolute;
+    bottom: 23px;
+    left: 15px;
+    right: 65px;
+    height: calc(50% - 14px);
+    min-height: 250px;
+    background: #0d111b;
+    color: var(--text-primary, #e8eaf6);
+    border-radius: 12px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.8);
+    z-index: 500;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: slideUp 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}

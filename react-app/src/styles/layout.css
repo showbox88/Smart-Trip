@@ -1,0 +1,551 @@
+/* --- Header & Navigation --- */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 5%;
+    background: var(--bg-deep);
+    /* Use solid deep blue */
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.nav-search-bar {
+    flex: 1;
+    max-width: 440px;
+    margin: 0 3rem;
+    position: relative;
+    display: none;
+    /* Hidden by default, shown in dashboard/other views if needed */
+}
+
+body:not(.hero-active) .nav-search-bar {
+    display: block;
+}
+
+.nav-search-bar .material-symbols-outlined {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 20px;
+}
+
+.nav-search-bar input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid transparent;
+    border-radius: 14px;
+    padding: 0.65rem 1rem 0.65rem 2.8rem;
+    color: white;
+    font-size: 0.9rem;
+    outline: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-search-bar input:focus {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 4px rgba(60, 131, 246, 0.15);
+}
+
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.nav-icon-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    position: relative;
+    padding: 10px;
+    border-radius: 12px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.nav-icon-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+}
+
+.nav-dot {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 8px;
+    height: 8px;
+    background: var(--accent-primary);
+    border-radius: 50%;
+    border: 2px solid var(--bg-deep);
+}
+
+.user-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.user-avatar:hover {
+    transform: scale(1.05);
+    border-color: var(--accent-primary);
+}
+
+.user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* --- User Dropdown --- */
+.user-profile-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.user-dropdown {
+    position: absolute;
+    top: calc(100% + 15px);
+    right: 0;
+    background: var(--bg-deep);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 0.5rem;
+    min-width: 160px;
+    box-shadow: var(--shadow-xl);
+    z-index: 1001;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    opacity: 1;
+    transform: translateY(0);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.user-dropdown.hidden {
+    display: none;
+    opacity: 0;
+    transform: translateY(-10px);
+    pointer-events: none;
+}
+
+.user-dropdown a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0.75rem 1rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.user-dropdown a:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+}
+
+.user-dropdown a .material-symbols-outlined {
+    font-size: 20px;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    font-size: 1.8rem;
+    font-weight: 700;
+    letter-spacing: -1px;
+}
+
+.logo span {
+    color: var(--accent-primary);
+}
+
+/* .logo span removed - using image logo */
+
+nav ul {
+    display: flex;
+    list-style: none;
+    align-items: center;
+    gap: 2rem;
+}
+
+nav a {
+    text-decoration: none;
+    color: var(--text-secondary);
+    font-weight: 500;
+    transition: color 0.3s;
+}
+
+nav a:hover {
+    color: var(--text-primary);
+}
+
+/* --- Hero Section --- */
+.hero {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    min-height: 90vh;
+    align-items: center;
+    padding: 0 10%;
+    gap: 4rem;
+}
+
+.hero-content h1 {
+    font-size: 4.5rem;
+    line-height: 1.1;
+    margin-bottom: 2rem;
+    font-weight: 700;
+}
+
+.hero-content h1 span {
+    background: linear-gradient(135deg, var(--accent-primary), #fbbf24);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.hero-content p {
+    font-size: 1.25rem;
+    color: var(--text-secondary);
+    margin-bottom: 3rem;
+    max-width: 600px;
+}
+
+.hero-actions {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.hero-visual {
+    position: relative;
+    height: 500px;
+    background: radial-gradient(circle at center, rgba(59, 130, 246, 0.2) 0%, transparent 70%);
+}
+
+.mock-ui {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+}
+
+/* --- Views Layout --- */
+.login-view {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.dashboard-view {
+    display: flex;
+}
+
+/* --- Sidebar Layout & Transitions --- */
+.sidebar {
+    background: var(--bg-deep);
+    padding: 0.5rem 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
+    position: relative;
+}
+
+/* --- Sidebar Glow Effect (Refined) --- */
+:root {
+    --x: 0;
+    --y: 0;
+    --xp: 0;
+}
+
+.sidebar.collapsed #sidebar-nav li,
+.sidebar.collapsed .add-day-btn {
+    position: relative;
+    overflow: visible;
+    /* box-shadow renders outside the element, must not be clipped */
+    background: #1a1c1e;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: box-shadow 0.15s ease, all 0.3s ease;
+    z-index: 2;
+}
+
+/* Hide any pseudo-element surface glow */
+.sidebar.collapsed #sidebar-nav li::before,
+.sidebar.collapsed .add-day-btn::before {
+    display: none !important;
+}
+
+/* Old CSS ::after glow is removed - now handled by JS box-shadow in ux.js */
+
+/* Active state keeps the same solid dark background */
+.sidebar.collapsed #sidebar-nav li.active {
+    background: #1a1c1e;
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Enable local highlight when hovering anywhere in sidebar */
+/* .sidebar:hover #sidebar-nav li::before,
+.sidebar:hover .add-day-btn::before {
+    opacity: 1;
+} */
+
+/* Active item keeps a separate indicator, not a surface glow */
+.sidebar #sidebar-nav li.active {
+    border-left: 3px solid var(--accent-primary);
+    background: #1a1c1e;
+    /* Match standard dark background to keep backlight behind */
+}
+
+/* .sidebar #sidebar-nav li.active::before {
+    opacity: 1 !important;
+} */
+
+.sidebar.collapsed #sidebar-nav li span,
+.sidebar.collapsed .add-day-btn span,
+.sidebar.collapsed #sidebar-nav li div {
+    position: relative;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.sidebar.collapsed {
+    width: 72px;
+}
+
+/* --- Sidebar Toggle --- */
+.sidebar-toggle {
+    padding: 0.5rem 1.2rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    transition: all 0.3s;
+}
+
+.sidebar.collapsed .sidebar-toggle {
+    justify-content: center;
+    padding: 0.5rem 0;
+}
+
+.sidebar-toggle span {
+    transition: transform 0.3s;
+}
+
+.sidebar.collapsed .sidebar-toggle span {
+    transform: rotate(180deg);
+}
+
+/* --- Navigation Items --- */
+.sidebar #sidebar-nav {
+    flex: 1;
+    list-style: none;
+    padding: 0 10px;
+    margin: 0;
+    position: relative;
+    /* z-index removed: it was creating a container-level stacking context
+       that blocked the ::after glow even in the GAPS between buttons.
+       Individual li items have their own z-index: 2 which is sufficient. */
+}
+
+.sidebar.collapsed #sidebar-nav {
+    padding: 0;
+}
+
+.sidebar #sidebar-nav li,
+.add-day-btn {
+    display: flex;
+    flex-direction: column;
+    padding: 0.6rem 8px;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    border-radius: 12px;
+    transition: all 0.2s;
+    position: relative;
+    border-left: 3px solid transparent;
+    z-index: 2;
+    /* Lower to ensure it's above ::after(1) but NOT blocking it via global stack */
+}
+
+.add-day-btn {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    border: 1.5px dashed var(--glass-border);
+    background: transparent;
+    padding: 0.6rem 0;
+    color: var(--text-secondary);
+}
+
+/* .add-day-btn:hover {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+} */
+
+.add-day-text {
+    margin-left: 8px;
+    font-size: 0.9rem;
+}
+
+.sidebar #sidebar-nav li.active {
+    background: #1a1c1e;
+    /* Keep it dark and opaque */
+    border-left-color: var(--active-color, var(--accent-primary));
+}
+
+.sidebar.collapsed #sidebar-nav li,
+.sidebar.collapsed .add-day-btn {
+    width: 44px;
+    height: 44px;
+    margin: 0 auto 12px auto;
+    padding: 0;
+    border-left: none !important;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+}
+
+.sidebar.collapsed .add-day-btn span {
+    margin: 0 !important;
+}
+
+.sidebar.collapsed #sidebar-nav li.active {
+    background: #1a1c1e !important;
+    /* Must be opaque to block light from surface */
+}
+
+/* --- Elements Visibility --- */
+.sidebar .nav-day-short {
+    display: none;
+}
+
+.sidebar .sidebar-color-dot {
+    display: block;
+}
+
+.sidebar.collapsed .nav-day-short {
+    display: flex;
+    color: white;
+    font-weight: 700;
+    font-size: 0.9rem;
+    align-items: center;
+    justify-content: center;
+}
+
+.sidebar.collapsed .sidebar-header-wrapper,
+.sidebar.collapsed .overview-section,
+.sidebar.collapsed .nav-day-title,
+.sidebar.collapsed .nav-day-date,
+.sidebar.collapsed .nav-day-info,
+.sidebar.collapsed .add-day-text {
+    display: none !important;
+}
+
+.sidebar.collapsed .nav-day-main {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    width: 100%;
+}
+
+.sidebar.collapsed .sidebar-color-dot {
+    display: block !important;
+    width: 6px !important;
+    height: 6px !important;
+    border-radius: 50%;
+}
+
+.sidebar.collapsed .nav-day-short {
+    display: flex;
+    color: white;
+    font-weight: 700;
+    font-size: 0.85rem;
+    width: auto !important;
+    height: auto !important;
+}
+
+.sidebar-footer {
+    padding: 1rem 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.sidebar::-webkit-scrollbar {
+    width: 4px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.sidebar h3 {
+    font-size: 1.2rem;
+    margin-bottom: 1.5rem;
+    letter-spacing: 1px;
+    color: var(--text-primary);
+}
+
+.main-itinerary {
+    overflow-y: auto;
+    padding: 0 0 3rem 0;
+    background: var(--bg-itinerary);
+}
+
+.map-view {
+    background: #111;
+    position: relative;
+    min-width: 300px;
+}
+
+.trip-dashboard-container {
+    width: 100%;
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 3rem 2rem;
+    box-sizing: border-box;
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 3rem;
+}
+
+.trip-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.mobile-view-switcher { display: none; }

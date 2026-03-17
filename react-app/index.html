@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart Trip</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@300;400;500;700&family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet" />
+  </head>
+    <body class="dark-theme">
+    <div id="root"></div>
+    <script>
+        window.initGoogleMaps = function () {
+            window.googleMapsReady = true;
+            if (window._dispatchGoogleMapsReady) {
+                window._dispatchGoogleMapsReady();
+            }
+        };
+    </script>
+    <script
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k&libraries=places,geometry,marker&callback=initGoogleMaps&loading=async"
+        async defer></script>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

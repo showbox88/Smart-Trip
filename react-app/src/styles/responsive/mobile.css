@@ -1,0 +1,364 @@
+/* --- Mobile Specific Layout (Modules) --- */
+
+.dashboard-view {
+    flex-direction: column;
+    height: calc(100vh - 64px); /* Fixed height to allow flex children to fill */
+    min-height: 0;
+}
+
+.sidebar {
+    width: 100% !important;
+    padding: 2px 5px !important; /* Ultra thin */
+    position: sticky;
+    top: 0;
+    z-index: 1001;
+    background: var(--bg-primary); 
+    min-height: 28px !important;
+}
+
+.day-section {
+    position: relative;
+    margin-bottom: 1.5rem !important;
+}
+
+.sidebar.collapsed { width: 100% !important; }
+
+.sidebar-toggle, .sidebar-footer, .nav-day-info, .sidebar h3 {
+    display: none !important;
+}
+
+.trip-navigation {
+    display: flex !important;
+    flex-direction: row !important;
+    margin-top: 0 !important;
+    padding: 0 !important;
+    gap: 8px !important;
+}
+
+.sidebar #sidebar-nav li {
+    margin-bottom: 0 !important;
+    width: 48px !important; /* Slightly wider to accommodate row */
+    height: 38px !important;
+    min-width: 48px !important;
+    flex-direction: row !important; /* Side by side */
+    padding: 0 !important;
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 8px !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 0 !important;
+    flex-shrink: 0;
+}
+
+.nav-day-main {
+    gap: 5px !important;
+    justify-content: center !important;
+}
+
+    .nav-day-title, .nav-day-date, .nav-day-info {
+        display: none !important;
+    }
+
+    .nav-day-short {
+        display: block !important;
+        font-size: 0.85rem !important;
+        font-weight: 700 !important;
+    }
+
+    .sidebar-color-dot {
+        width: 8px !important;
+        height: 8px !important;
+    }
+
+.sidebar #sidebar-nav li.active {
+    border-color: var(--active-color) !important;
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 10px var(--active-color);
+}
+
+.add-day-btn {
+    margin: 0 !important;
+    height: auto !important;
+    padding: 0.5rem 1rem !important;
+    border: 1px dashed var(--glass-border) !important;
+}
+
+.main-itinerary {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    height: auto;
+    border-right: none;
+}
+
+.map-view {
+    width: 100%;
+    height: 0; /* Let flex-grow handle it */
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+#mock-map-container, #real-map {
+    height: 100% !important;
+    width: 100% !important;
+}
+
+/* Trip Grid for Mobile */
+.trip-dashboard-container .trip-grid {
+    grid-template-columns: 1fr;
+}
+
+/* Mobile View Mode Support (Class based toggling in JS) */
+body.mobile-mode-map .main-itinerary { display: none !important; }
+body.mobile-mode-plan .map-view { display: none !important; }
+
+body.mobile-mode-plan .mobile-nav-btn[data-mode="plan"] { color: var(--accent-primary); }
+body.mobile-mode-map .mobile-nav-btn[data-mode="map"] { color: var(--accent-primary); }
+
+/* --- Mobile UI Elements --- */
+.itinerary-header {
+    padding: 0.75rem 1rem !important;
+}
+
+.mobile-view-switcher {
+    display: flex !important;
+    flex-direction: column !important; /* Vertical stack */
+    position: fixed;
+    bottom: 60px; /* Moved up as requested */
+    right: 5px; /* Tight to the right */
+    left: auto !important;
+    transform: none !important;
+    background: transparent;
+    border: none !important;
+    padding: 0;
+    gap: 10px;
+    z-index: 2005;
+    box-shadow: none !important;
+}
+
+.mobile-nav-btn {
+    background: rgba(13, 17, 27, 0.9) !important;
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border) !important;
+    width: 40px !important; /* Shrunk to 40px */
+    height: 40px !important;
+    border-radius: 50% !important;
+    padding: 0 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    transition: all 0.2s;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+}
+
+.mobile-nav-btn span {
+    font-size: 20px !important; /* Shrunk icon */
+    margin: 0 !important;
+}
+
+/* Hide labels */
+.mobile-nav-btn {
+    font-size: 0 !important;
+}
+
+.mobile-nav-btn.active {
+    background: var(--accent-secondary) !important; /* Changed to Orange */
+    color: white !important;
+    border-color: var(--accent-secondary) !important;
+}
+
+    .day-header-controls {
+        display: none !important;
+    }
+
+    /* 2. Hide Auto Fill/Optimize buttons in mobile */
+    .day-actions button:not(.switch-labeled) {
+        display: none !important;
+    }
+
+    /* 3. Reposition Transit Info and Show Return into the Date row */
+    .day-actions {
+        display: flex !important;
+        position: absolute !important;
+        top: 2px !important;
+        right: 48px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: transparent !important;
+        pointer-events: none;
+    }
+
+    .day-actions > * {
+        pointer-events: auto;
+    }
+
+    .day-actions span:nth-child(3) { /* The dot separator */
+        display: none !important;
+    }
+
+    .transit-summary-text {
+        font-size: 0.7rem !important;
+        color: var(--text-muted) !important;
+        white-space: nowrap;
+    }
+
+    /* Hide the text label for 'Show Return' to save space */
+    .label-text {
+        display: none !important;
+    }
+
+    .switch-labeled {
+        transform: scale(0.7);
+        margin-left: -5px !important;
+    }
+
+    /* 4. Strictly hide Note Placeholder */
+    .rich-stop-card p:last-of-type {
+        display: none !important;
+    }
+
+    .note-input::placeholder, .rich-stop-card p:contains("Tap to add note") {
+        display: none !important;
+        height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        visibility: hidden !important;
+    }
+
+.navbar {
+    padding: 0.4rem 3% !important;
+}
+.logo { 
+    font-size: 1rem !important; 
+}
+.logo svg {
+    width: 24px !important;
+    height: 24px !important;
+}
+
+/* --- Compact Address Cards & Headers --- */
+.itinerary-header {
+    padding: 0.4rem 0.8rem !important;
+}
+.itinerary-header h2 {
+    font-size: 1rem !important;
+}
+#itinerary-header-thumb {
+    width: 36px !important;
+    height: 36px !important;
+}
+
+.day-header {
+    margin: 0.1rem 0 !important;
+    padding-left: 32px !important;
+    padding-right: 15px !important;
+}
+.day-title {
+    font-size: 0.95rem !important;
+    font-weight: 700 !important;
+}
+
+.day-actions {
+    position: static !important;
+    display: flex !important;
+    pointer-events: auto !important;
+    margin-top: -2px !important;
+    margin-bottom: 4px !important;
+    padding-left: 36px !important;
+    gap: 8px !important;
+}
+
+/* Tighten the collapse arrow row if it's visible */
+.day-header-top {
+    gap: 0.5rem !important;
+    min-height: auto !important;
+}
+
+.itinerary-timeline {
+    padding-left: 18px !important;
+    margin-top: 0.2rem !important;
+}
+
+.timeline-item-wrapper {
+    margin-bottom: 0.6rem !important;
+}
+
+.rich-stop-card {
+    padding: 0.6rem !important;
+    gap: 0.6rem !important;
+}
+
+.rich-stop-card-title {
+    font-size: 0.95rem !important;
+    border-left: none !important;
+    padding-left: 0 !important;
+}
+
+.rich-stop-card-meta {
+    gap: 2px !important;
+}
+
+.rich-stop-card-address, .rich-stop-card-phone {
+    font-size: 0.72rem !important;
+    line-height: 1.1 !important;
+}
+
+.rich-stop-card-media {
+    width: 70px !important;
+    height: 50px !important;
+}
+
+.rich-stop-card-info-top {
+    font-size: 0.75rem !important;
+}
+
+/* Remove Note Placeholder */
+.note-input::placeholder {
+    color: transparent !important;
+}
+
+.stop-meta-row {
+    margin-top: 0.4rem !important;
+}
+
+.time-chip-small, .btn-action-small, .price-chip {
+    padding: 1px 5px !important;
+    font-size: 0.7rem !important;
+}
+
+.hero { padding: 0 5%; grid-template-columns: 1fr; text-align: center; }
+.hero-content h1 { font-size: 3rem; }
+.hero-actions { justify-content: center; }
+/* --- Map Info Panel (Mobile) --- */
+#map-info-panel {
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    height: 60% !important;
+    border-radius: 20px 20px 0 0 !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-bottom: none !important;
+}
+
+#poi-about {
+    flex-direction: column-reverse !important;
+    gap: 1rem !important;
+}
+
+#poi-about > div:last-child {
+    width: 100% !important;
+    height: 180px !important;
+}
+
+#poi-about h2 {
+    font-size: 1.3rem !important;
+}
+
+.poi-tab {
+    padding: 0 10px !important;
+    font-size: 0.85rem !important;
+}

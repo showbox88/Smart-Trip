@@ -2,7 +2,12 @@
   "permissions": {
     "allow": [
       "Bash(python server.py)",
-      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8000/)"
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8000/)",
+      "Bash(npm create vite@latest react-app -- --template react)",
+      "Bash(npm install)",
+      "Bash(npm install react-router-dom @supabase/supabase-js)",
+      "Bash(npm run build)",
+      "Bash(ls \"c:\\\\Users\\\\Showbox\\\\Desktop\\\\Smat Trip\\\\react-app\\\\src\\\\components\\\\itinerary\"\" && ls \"c:UsersShowboxDesktopSmat Tripreact-appsrccomponentsmodals\"\")"
     ]
   }
 }
