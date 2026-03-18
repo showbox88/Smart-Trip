@@ -173,7 +173,14 @@
         "stay_checkout_time": "退房时间",
         "stay_hint": "系统将自动在选定日期生成“入住”和“退房”卡片，并为您标记住宿期间的行程起点与终点。",
         "stay_submit": "完成设置",
-        "cancel": "取消"
+        "cancel": "取消",
+        "list_title_placeholder": "清单标题...",
+        "list_item_placeholder": "添加项目...",
+        "add_item": "添加新项",
+        "note_placeholder": "添加备注...",
+        "change_photo": "更换照片",
+        "no_photos": "暂无可用照片",
+        "closed_today": "今天休息！"
     },
     "auth": {
         "tagline": "开启您的全球智能旅行规划之旅",

@@ -271,6 +271,17 @@ export function useTripEditor(tripId) {
     }
   }, [trip, applyUpdate]);
 
+  const deleteListItem = useCallback((dayId, stopId, index) => {
+    if (!trip) return;
+    const updated = JSON.parse(JSON.stringify(trip));
+    const day = updated.days.find(d => d.id === dayId);
+    const stop = day?.stops.find(s => s.id === stopId);
+    if (stop?.items?.[index] !== undefined) {
+      stop.items.splice(index, 1);
+      applyUpdate(updated);
+    }
+  }, [trip, applyUpdate]);
+
   const addStopFromPlace = useCallback(async (dayId, placeId, afterStopId = null) => {
     if (!trip || typeof google === 'undefined' || !window.googleMapsReady) {
       console.warn('[addStopFromPlace] Google Maps not ready');
@@ -400,7 +411,7 @@ export function useTripEditor(tripId) {
     const [stop] = srcDay.stops.splice(stopIdx, 1);
 
     if (afterStopId == null) {
-      tgtDay.stops.push(stop);
+      tgtDay.stops.unshift(stop);
     } else {
       const afterIdx = tgtDay.stops.findIndex(s => s.id === afterStopId);
       tgtDay.stops.splice(afterIdx + 1, 0, stop);
@@ -434,6 +445,7 @@ export function useTripEditor(tripId) {
     updateListItem,
     toggleListItem,
     addListItem,
+    deleteListItem,
     addStopFromPlace,
     updateTripMetadata,
     toggleTransitMode,

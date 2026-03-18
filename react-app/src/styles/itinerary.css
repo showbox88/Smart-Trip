@@ -114,23 +114,16 @@
     font-size: 0.9rem;
 }
 
-/* --- Drag & Drop Animations --- */
+/* --- Drag & Drop Animations (pointer-event based) --- */
 .timeline-item-wrapper {
-    transition: transform 0.25s cubic-bezier(0.2, 0, 0, 1), padding 0.25s ease;
+    position: relative;
     will-change: transform;
-}
-
-.timeline-item-wrapper.drag-yield-down {
-    transform: translateY(80px);
-}
-
-.timeline-item-wrapper.drag-yield-up {
-    transform: translateY(-80px);
+    user-select: none;
 }
 
 .timeline-item-wrapper.dragging {
-    opacity: 0.4;
-    scale: 0.98;
+    z-index: 100;
+    opacity: 0.95;
 }
 
 .rich-stop-card:hover {
@@ -149,4 +142,13 @@
 .comfy-node-link:hover {
     border-color: #f59e0b !important;
     box-shadow: 0 0 15px rgba(245, 158, 11, 0.4), 0 5px 15px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* List card item: show delete button on hover */
+.list-card-item:hover .list-item-delete {
+    opacity: 0.5 !important;
+}
+.list-card-item .list-item-delete:hover {
+    opacity: 1 !important;
+    color: #ef4444 !important;
 }

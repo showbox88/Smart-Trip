@@ -38,6 +38,77 @@
     - 存储 JSON 格式的结构化数据，支持 Git 同步。
     - **Schema 结构**: `user`, `trips`, `activeTripId` 等核心状态字段。
 
+### 4. React 前端层 (Frontend - `react-app/`)
+
+> **分支**: `refactor/itinerary-v3-core` — 行程核心的 React 重构版本
+
+- **技术栈**: React 18 + Vite, Context API, CSS Modules (Glassmorphism)
+- **入口**: `src/pages/` 路由页面，`src/App.jsx` 顶层路由配置
+
+#### 状态管理
+- **`context/AppContext`**: 全局状态 (当前行程、用户信息、UI 状态如 `hoveredStopId`)
+- **`context/I18nContext`**: 国际化上下文，支持 `t('key')` 模板调用
+
+#### 自定义 Hooks (`src/hooks/`)
+| Hook | 职责 |
+|------|------|
+| `useTripEditor.js` | 行程 CRUD：addStop / deleteStop / updateStop / moveStop / addDay / updateDay |
+| `useTimelineDrag.js` | 跨天 Pointer Events 拖拽系统，30% 重叠阈值 + CSS Transform 位移动画 |
+| `useTrips.js` | 行程列表查询 & 缓存 |
+| `useStopSearch.js` | Google Places 搜索 + 防抖 |
+| `useSidebarGlow.js` | 侧边栏鼠标跟随光晕效果 |
+| `useAuth.js` | Supabase 认证状态管理 |
+
+#### 行程组件树 (`src/components/itinerary/`)
+```
+ItineraryView                    ← 行程主视图，挂载 timelineRef，管理拖拽/模态框状态
+├── TripHeader                   ← 行程标题、日期、封面
+├── TripSidebar                  ← 天数导航侧栏
+├── MapPanel                     ← Google Maps 集成
+│   ├── MapSearchBox             ← 地图搜索控件
+│   └── MapInfoPanel             ← POI 悬停信息面板
+└── DaySection[]                 ← 每日时间线容器
+    ├── DayHeader                ← 天标题、主题色、折叠控制
+    ├── StopCard[]               ← 地点卡片（含关门预警、拖拽、照片选择）
+    ├── NoteCard[]               ← 笔记卡片（contentEditable）
+    ├── ListCard[]               ← 清单卡片（勾选/增删项）
+    ├── TransitInfo              ← 交通信息（驾车/步行）
+    ├── HotelStayLine            ← 酒店住宿连线
+    └── AddStopRow               ← 添加地点/笔记/清单入口
+```
+
+#### 模态框 (`src/components/modals/`)
+| 组件 | 功能 |
+|------|------|
+| `TimePickerModal` | 时间滚轮选择器，含营业时间对照 & 关门预警 |
+| `ExpenseModal` | 费用录入，12 类图标分类选择 |
+| `DayEditModal` | 日期调整 |
+| `TripEditModal` | 行程元数据编辑 |
+| `StopEditModal` | 地点详情编辑 |
+| `ConfirmModal` | 通用确认弹框 |
+
+#### 样式系统 (`src/styles/`)
+- `variables.css` — 设计令牌（颜色、字体、间距）
+- `base.css` — 重置 + 全局动画 (`pulse-border`)
+- `itinerary.css` — 时间线、卡片、拖拽样式
+- `components.css` — 按钮、输入框、标签
+- `maps.css` — 地图面板
+- `layout.css` — 布局框架
+- `responsive/` — desktop / tablet / mobile 物理隔离
+
+#### 数据流: 拖拽排序
+```
+PointerDown → 记录起始位置 (不 preventDefault)
+    ↓ 移动 > 5px
+PointerMove → setPointerCapture → initDrag (快照所有卡片 rect)
+    ↓
+updateDrag → translateY 拖拽卡片 + 30% 重叠检测 → 位移其他卡片
+    ↓
+PointerUp → finishDrag → 计算 targetDayId + afterStopId → moveStop()
+```
+
+---
+
 ## 📍 集成与依赖
 
 | 依赖/服务 | 用途 | 备注 |

@@ -11,20 +11,36 @@ for (let h = 0; h < 24; h++) {
   }
 }
 
+const ITEM_HEIGHT = 84;
+const PADDING_TOP = 88;
+
 export default function TimePickerModal({ stop, dayDate, onSave, onClose }) {
   const { t } = useI18n();
   const scrollRef = useRef(null);
+  const rafRef = useRef(null);
+  const debounceRef = useRef(null);
   const [openingHours, setOpeningHours] = useState(stop.openingHours || []);
   const [loadingHours, setLoadingHours] = useState(false);
 
   const initialTime = stop.time || '10:00';
   const initialPeriod = stop.period || 'AM';
   const [h, m] = initialTime.split(':');
-  
+
   const [selectedIdx, setSelectedIdx] = useState(() => {
     const idx = TIMES.findIndex(t => t.h === h && t.m === m && t.p === initialPeriod);
-    return idx >= 0 ? idx : 20; // Default or parsed
+    return idx >= 0 ? idx : 20;
   });
+
+  // Determine which weekday this stop falls on (for "Closed" detection)
+  const WEEKDAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  const todayWeekdayIdx = (() => {
+    if (!dayDate) return -1;
+    const d = new Date(dayDate);
+    if (isNaN(d)) return -1;
+    return (d.getDay() + 6) % 7; // Convert JS 0=Sun → 0=Mon...6=Sun
+  })();
+  const todayName = todayWeekdayIdx >= 0 ? WEEKDAY_NAMES[todayWeekdayIdx] : '';
+  const isTodayClosed = todayWeekdayIdx >= 0 && openingHours.length > 0 && /closed/i.test(openingHours[todayWeekdayIdx] || '');
 
   useEffect(() => {
     if ((!openingHours || openingHours.length === 0) && stop.placeId && window.googleMapsReady) {
@@ -50,30 +66,26 @@ export default function TimePickerModal({ stop, dayDate, onSave, onClose }) {
         el.scrollIntoView({ block: 'center', behavior: 'auto' });
       }
     }
+    return () => {
+      cancelAnimationFrame(rafRef.current);
+      clearTimeout(debounceRef.current);
+    };
   }, []);
 
+  // O(1) scroll handler: compute center item from scrollTop math, throttle with rAF, debounce state update
   const handleScroll = () => {
-    if (!scrollRef.current) return;
-    const container = scrollRef.current;
-    const items = container.children;
-    const containerCenter = container.getBoundingClientRect().top + container.offsetHeight / 2;
-    
-    let closestIdx = 0;
-    let minDiff = Infinity;
+    if (rafRef.current) return;
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null;
+      if (!scrollRef.current) return;
+      const st = scrollRef.current.scrollTop;
+      const centerOffset = st + scrollRef.current.offsetHeight / 2 - PADDING_TOP;
+      const idx = Math.round((centerOffset - ITEM_HEIGHT / 2) / ITEM_HEIGHT);
+      const clamped = Math.max(0, Math.min(TIMES.length - 1, idx));
 
-    for (let i = 0; i < items.length; i++) {
-        const item = items[i];
-        const rect = item.getBoundingClientRect();
-        const itemCenter = rect.top + rect.height / 2;
-        const diff = Math.abs(containerCenter - itemCenter);
-        if (diff < minDiff) {
-            minDiff = diff;
-            closestIdx = i;
-        }
-    }
-    if (closestIdx !== selectedIdx) {
-      setSelectedIdx(closestIdx);
-    }
+      clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => setSelectedIdx(clamped), 60);
+    });
   };
 
   const handleSave = () => {
@@ -110,23 +122,48 @@ export default function TimePickerModal({ stop, dayDate, onSave, onClose }) {
           Select Appointment Time
         </h3>
 
+        {/* Closed-day warning */}
+        {isTodayClosed && (
+          <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.35)', borderRadius: '16px', padding: '12px 18px', marginBottom: '1.2rem', display: 'flex', alignItems: 'center', gap: '10px', animation: 'pulse-border 2s ease-in-out infinite' }}>
+            <span className="material-symbols-outlined" style={{ color: '#ef4444', fontSize: '22px', flexShrink: 0 }}>error</span>
+            <span style={{ color: '#ef4444', fontSize: '0.9rem', fontWeight: 700 }}>
+              This place is <strong>Closed</strong> on {todayName}!
+            </span>
+          </div>
+        )}
+
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.1fr', gap: '2rem', marginBottom: '1.5rem', minHeight: '340px' }}>
           {/* Left: Opening Hours */}
-          <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '24px', padding: '1.8rem', border: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '24px', padding: '1.8rem', border: isTodayClosed ? '1px solid rgba(239,68,68,0.3)' : '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#f97316', marginBottom: '1.5rem', fontWeight: 800, fontSize: '1.1rem' }}>
               <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>schedule</span>
               Opening Hours
             </div>
-            
+
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {loadingHours ? (
                 <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Loading hours...</div>
               ) : (openingHours && openingHours.length > 0) ? (
-                openingHours.map((line, i) => (
-                    <div key={i} style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)', lineHeight: 1.5, wordBreak: 'break-word' }}>
-                        {line}
+                openingHours.map((line, i) => {
+                  const isClosedLine = /closed/i.test(line);
+                  const isToday = i === todayWeekdayIdx;
+                  return (
+                    <div key={i} style={{
+                      fontSize: '0.85rem',
+                      color: isClosedLine ? '#ef4444' : isToday ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.5)',
+                      lineHeight: 1.5,
+                      wordBreak: 'break-word',
+                      fontWeight: isToday ? 700 : 400,
+                      borderLeft: isToday ? `3px solid ${isClosedLine ? '#ef4444' : '#f97316'}` : 'none',
+                      paddingLeft: isToday ? '10px' : 0,
+                      background: isToday && isClosedLine ? 'rgba(239,68,68,0.08)' : 'transparent',
+                      borderRadius: isToday ? '4px' : 0,
+                      padding: isToday ? '4px 10px' : 0
+                    }}>
+                      {line}
                     </div>
-                ))
+                  );
+                })
               ) : (
                 <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.95rem', fontStyle: 'italic', marginTop: '1rem', textAlign: 'center' }}>
                   No opening hours<br/>data available.
@@ -142,12 +179,19 @@ export default function TimePickerModal({ stop, dayDate, onSave, onClose }) {
             </div>
             
             {dayDate && (
-              <div style={{ background: 'rgba(249,115,22,0.12)', color: '#f97316', padding: '6px 16px', borderRadius: '12px', display: 'inline-block', fontSize: '0.9rem', fontWeight: 800, marginBottom: '1.5rem' }}>
-                {dayDate}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', marginBottom: '1.5rem' }}>
+                <div style={{ background: 'rgba(249,115,22,0.12)', color: '#f97316', padding: '6px 16px', borderRadius: '12px', fontSize: '0.9rem', fontWeight: 800 }}>
+                  {dayDate}
+                </div>
+                {todayName && (
+                  <div style={{ fontSize: '0.8rem', fontWeight: 700, color: isTodayClosed ? '#ef4444' : 'rgba(255,255,255,0.5)' }}>
+                    {todayName}
+                  </div>
+                )}
               </div>
             )}
             
-            <div style={{ position: 'relative', flex: 1, height: '260px' }}>
+            <div style={{ position: 'relative', height: '260px' }}>
               {/* FIXED Selection Highlight (Stay in place, items roll behind it) */}
               <div style={{ 
                 position: 'absolute', 
@@ -177,41 +221,37 @@ export default function TimePickerModal({ stop, dayDate, onSave, onClose }) {
                   WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 40%, black 60%, transparent)'
                 }}
               >
-                {TIMES.map((t, i) => (
-                  <div 
-                    key={i} 
-                    onClick={() => {
+                {TIMES.map((t, i) => {
+                  const isSel = selectedIdx === i;
+                  return (
+                    <div
+                      key={i}
+                      onClick={() => {
                         setSelectedIdx(i);
                         scrollRef.current.children[i].scrollIntoView({ block: 'center', behavior: 'smooth' });
-                    }}
-                    style={{ 
-                      height: '84px',
-                      display: 'flex',
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '10px',
-                      fontSize: selectedIdx === i ? '2.2rem' : '1.35rem',
-                      fontWeight: 800,
-                      color: selectedIdx === i ? 'white' : 'rgba(255,255,255,0.3)',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-                      scrollSnapAlign: 'center',
-                      lineHeight: 1
-                    }}
-                  >
-                    {selectedIdx === i ? (
-                      <>
-                        <span>{t.h}:{t.m}</span>
-                        <span style={{ fontSize: '1.1rem', fontWeight: 700, opacity: 0.9, marginTop: '4px' }}>{t.p}</span>
-                      </>
-                    ) : (
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        {t.h}:{t.m} <span style={{ fontSize: '0.9rem', opacity: 0.7 }}>{t.p}</span>
-                      </span>
-                    )}
-                  </div>
-                ))}
+                      }}
+                      style={{
+                        height: '84px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        fontSize: '1.5rem',
+                        fontWeight: 800,
+                        color: isSel ? 'white' : 'rgba(255,255,255,0.3)',
+                        cursor: 'pointer',
+                        transform: isSel ? 'scale(1.45)' : 'scale(1)',
+                        transition: 'transform 0.2s ease, color 0.15s ease',
+                        scrollSnapAlign: 'center',
+                        lineHeight: 1,
+                        willChange: 'transform'
+                      }}
+                    >
+                      <span>{t.h}:{t.m}</span>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 700, opacity: isSel ? 0.9 : 0.7 }}>{t.p}</span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>

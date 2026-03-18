@@ -173,7 +173,14 @@
         "stay_checkout_time": "Check-out Time",
         "stay_hint": "System will automatically generate 'Check-in' and 'Check-out' cards on selected dates, marking the start and end of your stay.",
         "stay_submit": "Complete Setup",
-        "cancel": "Cancel"
+        "cancel": "Cancel",
+        "list_title_placeholder": "List Title...",
+        "list_item_placeholder": "Add item...",
+        "add_item": "Add Item",
+        "note_placeholder": "Add a note...",
+        "change_photo": "Change photo",
+        "no_photos": "No photos available",
+        "closed_today": "Closed today!"
     },
     "auth": {
         "tagline": "Start your smart travel planning journey globally",

@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { useI18n } from '../../context/I18nContext';
 import { useApp } from '../../context/AppContext';
 
@@ -6,6 +6,17 @@ export default function NoteCard({ stop, dayId, dayColor, onDelete, onContentCha
   const { state, dispatch } = useApp();
   const { t } = useI18n();
   const textareaRef = useRef(null);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const deleteRef = useRef(null);
+
+  useEffect(() => {
+    if (!confirmingDelete) return;
+    const handler = (e) => {
+      if (deleteRef.current && !deleteRef.current.contains(e.target)) setConfirmingDelete(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [confirmingDelete]);
 
   const autoResize = (el) => {
     el.style.height = 'auto';
@@ -33,12 +44,27 @@ export default function NoteCard({ stop, dayId, dayColor, onDelete, onContentCha
           boxShadow: state.hoveredStopId === stop.id ? '0 20px 40px rgba(0,0,0,0.6)' : 'none'
         }}
       >
-        <button
-          onClick={(e) => { e.stopPropagation(); onDelete?.(dayId, stop.id); }}
-          style={{ position: 'absolute', top: '0.4rem', right: '0.4rem', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', opacity: 0.5, fontSize: '1rem' }}
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>close</span>
-        </button>
+        <div ref={deleteRef} style={{ position: 'absolute', top: '0.4rem', right: '0.4rem', zIndex: 5 }}>
+          <button
+            onClick={(e) => { e.stopPropagation(); setConfirmingDelete(true); }}
+            style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', opacity: 0.5, fontSize: '1rem' }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>close</span>
+          </button>
+          {confirmingDelete && (
+            <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: '4px', background: 'var(--bg-secondary)', border: '1px solid var(--glass-border)', borderRadius: '10px', padding: '0.6rem 0.8rem', boxShadow: '0 8px 24px rgba(0,0,0,0.5)', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '0.5rem', zIndex: 10 }}>
+              <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>{t('common.delete_confirm') || 'Delete?'}</span>
+              <button
+                onClick={(e) => { e.stopPropagation(); setConfirmingDelete(false); }}
+                style={{ padding: '0.25rem 0.6rem', borderRadius: '6px', background: 'var(--bg-primary)', border: '1px solid var(--glass-border)', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '0.78rem' }}
+              >{t('common.cancel') || 'Cancel'}</button>
+              <button
+                onClick={(e) => { e.stopPropagation(); onDelete?.(dayId, stop.id); setConfirmingDelete(false); }}
+                style={{ padding: '0.25rem 0.6rem', borderRadius: '6px', background: '#ef4444', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600 }}
+              >{t('common.delete') || 'Delete'}</button>
+            </div>
+          )}
+        </div>
         <span className="material-symbols-outlined" style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '0.25rem', display: 'block' }}>sticky_note_2</span>
         <textarea
           ref={textareaRef}

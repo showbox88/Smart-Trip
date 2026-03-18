@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTripEditor } from '../../hooks/useTripEditor';
+import { useTimelineDrag } from '../../hooks/useTimelineDrag';
 import { useTrips } from '../../hooks/useTrips';
 import TripHeader from './TripHeader';
 import TripSidebar from './TripSidebar';
@@ -32,10 +33,18 @@ export default function ItineraryView({ tripId }) {
     addDay, deleteDay, setDayColor, updateDay,
     deleteStop, updateStop, moveStop,
     addNote, addList,
-    updateNoteContent, updateListItem, toggleListItem, addListItem,
+    updateNoteContent, updateListItem, toggleListItem, addListItem, deleteListItem,
     addStopFromPlace, updateTripMetadata, toggleTransitMode,
     computeTransitData,
   } = useTripEditor(tripId);
+
+  const {
+    timelineRef,
+    draggingStopId,
+    handlePointerDown: onDragPointerDown,
+    handlePointerMove: onDragPointerMove,
+    handlePointerUp: onDragPointerUp,
+  } = useTimelineDrag(trip, moveStop);
 
   // Auto-compute transit data if missing on load
   useEffect(() => {
@@ -65,10 +74,7 @@ export default function ItineraryView({ tripId }) {
 
   // --- Stop actions ---
   const handleDeleteStop = (dayId, stopId) => {
-    openConfirm(
-      t('common.confirm_delete') || 'Delete this stop?',
-      () => deleteStop(dayId, stopId)
-    );
+    deleteStop(dayId, stopId);
   };
 
   const handleEditStop = (dayId, stopId) => {
@@ -106,19 +112,13 @@ export default function ItineraryView({ tripId }) {
     }
   };
 
-  // --- Note/List delete (same handler as stop) ---
+  // --- Note/List delete (confirmation is handled inside the card) ---
   const handleDeleteNote = (dayId, stopId) => {
-    openConfirm(
-      t('common.confirm_delete') || 'Delete this note?',
-      () => deleteStop(dayId, stopId)
-    );
+    deleteStop(dayId, stopId);
   };
 
   const handleDeleteList = (dayId, stopId) => {
-    openConfirm(
-      t('common.confirm_delete') || 'Delete this list?',
-      () => deleteStop(dayId, stopId)
-    );
+    deleteStop(dayId, stopId);
   };
 
   // --- Day actions ---
@@ -226,7 +226,7 @@ export default function ItineraryView({ tripId }) {
               </div>
             )}
 
-            <div className="itinerary-timeline" style={{ padding: 0 }}>
+            <div className="itinerary-timeline" ref={timelineRef} style={{ padding: 0 }}>
               {trip.days.map((day, dayIndex) => (
                 <DaySection
                   key={day.id}
@@ -235,14 +235,10 @@ export default function ItineraryView({ tripId }) {
                   trip={trip}
                   isCollapsed={!!collapsedDays[day.id]}
                   onToggleCollapse={() => handleToggleDayCollapse(day.id)}
-                  onAddStop={async (dayId, maybePlaceId) => {
-                    if (typeof maybePlaceId === 'string') {
-                      const newId = await addStopFromPlace(dayId, maybePlaceId);
+                  onAddStop={async (dayId, placeId, afterStopId) => {
+                    if (placeId) {
+                      const newId = await addStopFromPlace(dayId, placeId, afterStopId || null);
                       if (newId) scrollToNewStop(newId);
-                    } else if (maybePlaceId) {
-                      setPendingInsertion({ dayId, afterStopId: maybePlaceId });
-                    } else {
-                      setPendingInsertion(null);
                     }
                   }}
                   onDeleteStop={handleDeleteStop}
@@ -262,13 +258,19 @@ export default function ItineraryView({ tripId }) {
                   onUpdateListItem={updateListItem}
                   onToggleListItem={toggleListItem}
                   onAddListItem={addListItem}
+                  onDeleteListItem={deleteListItem}
                   onMoveStop={moveStop}
+                  draggingStopId={draggingStopId}
+                  onDragPointerDown={onDragPointerDown}
+                  onDragPointerMove={onDragPointerMove}
+                  onDragPointerUp={onDragPointerUp}
                   onColorChange={setDayColor}
                   onEditDay={handleEditDay}
                   onDeleteDay={handleDeleteDay}
                   onUpdateDay={updateDay}
                   onOpenTimePicker={handleOpenTimePicker}
                   onOpenExpense={handleOpenExpense}
+                  onChangePhoto={(dayId, stopId, photoUrl) => updateStop(dayId, stopId, { photo: photoUrl })}
                 />
               ))}
             </div>

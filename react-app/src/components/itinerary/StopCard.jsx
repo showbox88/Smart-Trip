@@ -1,16 +1,42 @@
+import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useApp } from '../../context/AppContext';
 import { useI18n } from '../../context/I18nContext';
 import { formatCurrency } from '../../utils/formatters';
-import StopImage from './StopImage';
 import TransitInfo from './TransitInfo';
 
-export default function StopCard({ 
-  stop, dayId, dayColor, index, showTransit, 
-  onDelete, onEdit, onToggleTransitMode, onOpenTimePicker, onOpenExpense,
-  onAddStop, onAddNote, onAddList
+export default function StopCard({
+  stop, dayId, dayColor, index, showTransit, dayWeekdayIdx,
+  onDelete, onToggleTransitMode, onOpenTimePicker, onOpenExpense,
+  onChangePhoto, onAddStop, onAddNote, onAddList
 }) {
   const { state, dispatch } = useApp();
   const { t } = useI18n();
+  const [showPhotoPicker, setShowPhotoPicker] = useState(false);
+  const [placePhotos, setPlacePhotos] = useState([]);
+  const [loadingPhotos, setLoadingPhotos] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const thumbRef = useRef(null);
+  const pickerRef = useRef(null);
+  const deleteRef = useRef(null);
+
+  // Close photo picker / delete confirm on outside click
+  useEffect(() => {
+    if (!showPhotoPicker && !confirmingDelete) return;
+    const handler = (e) => {
+      if (showPhotoPicker &&
+          pickerRef.current && !pickerRef.current.contains(e.target) &&
+          thumbRef.current && !thumbRef.current.contains(e.target)) {
+        setShowPhotoPicker(false);
+      }
+      if (confirmingDelete &&
+          deleteRef.current && !deleteRef.current.contains(e.target)) {
+        setConfirmingDelete(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showPhotoPicker, confirmingDelete]);
 
   const isHotel = stop.type === 'hotel_checkin' || stop.type === 'hotel_checkout';
   const typeLabel = stop.type === 'hotel_checkin'
@@ -19,14 +45,19 @@ export default function StopCard({
     ? (t('itinerary.hotel_checkout') || 'Check-out')
     : null;
 
+  // Closed-day detection
+  const openingHours = stop.openingHours || [];
+  const isClosed = dayWeekdayIdx >= 0 && openingHours.length > 0 && /closed/i.test(openingHours[dayWeekdayIdx] || '');
+
   const handleDelete = (e) => {
     e.stopPropagation();
-    onDelete?.(dayId, stop.id);
+    setConfirmingDelete(true);
   };
 
-  const handleEdit = (e) => {
+  const handleConfirmDelete = (e) => {
     e.stopPropagation();
-    onEdit?.(dayId, stop.id);
+    onDelete?.(dayId, stop.id);
+    setConfirmingDelete(false);
   };
 
   const handleTimeClick = (e) => {
@@ -37,6 +68,34 @@ export default function StopCard({
   const handleExpenseClick = (e) => {
     e.stopPropagation();
     onOpenExpense?.(dayId, stop.id);
+  };
+
+  const handlePhotoClick = async (e) => {
+    e.stopPropagation();
+    if (!stop.placeId || typeof google === 'undefined') return;
+    if (showPhotoPicker) { setShowPhotoPicker(false); return; }
+    setShowPhotoPicker(true);
+    setLoadingPhotos(true);
+    try {
+      const { Place } = await google.maps.importLibrary('places');
+      const place = new Place({ id: stop.placeId });
+      await place.fetchFields({ fields: ['photos'] });
+      const photos = place.photos || [];
+      setPlacePhotos(photos.map(p => ({
+        url: p.getURI({ maxWidth: 400, maxHeight: 300 }),
+        urlFull: p.getURI({ maxWidth: 1200, maxHeight: 900 }),
+      })));
+    } catch (err) {
+      console.error('[StopCard] fetch photos failed:', err);
+      setPlacePhotos([]);
+    } finally {
+      setLoadingPhotos(false);
+    }
+  };
+
+  const handleSelectPhoto = (photoUrl) => {
+    onChangePhoto?.(dayId, stop.id, photoUrl);
+    setShowPhotoPicker(false);
   };
 
   return (
@@ -62,17 +121,15 @@ export default function StopCard({
       {/* Card */}
       <div
         className="rich-stop-card"
-        onClick={handleEdit}
         onMouseEnter={() => dispatch({ type: 'SET_HOVERED_STOP', payload: stop.id })}
         onMouseLeave={() => dispatch({ type: 'SET_HOVERED_STOP', payload: null })}
         style={{
           marginLeft: '2.2rem',
           background: state.hoveredStopId === stop.id ? 'rgba(255,255,255,0.04)' : '#0a0c10',
-          border: '1px solid var(--glass-border)',
-          borderColor: state.hoveredStopId === stop.id ? 'var(--accent-primary)' : 'rgba(255,255,255,0.05)',
+          border: isClosed ? '1px solid rgba(239,68,68,0.35)' : '1px solid var(--glass-border)',
+          borderColor: isClosed ? 'rgba(239,68,68,0.35)' : state.hoveredStopId === stop.id ? 'var(--accent-primary)' : 'rgba(255,255,255,0.05)',
           borderRadius: '1.2rem',
           padding: '1.2rem',
-          cursor: 'pointer',
           transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
           transform: state.hoveredStopId === stop.id ? 'translateX(4px)' : 'none',
           boxShadow: state.hoveredStopId === stop.id ? '0 20px 40px rgba(0,0,0,0.6)' : 'none',
@@ -83,13 +140,48 @@ export default function StopCard({
         }}
       >
         {/* Delete button (Top Right) */}
-        <button
-          onClick={handleDelete}
-          style={{ position: 'absolute', top: '0.6rem', right: '0.6rem', background: 'rgba(0,0,0,0.2)', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.25rem', borderRadius: '50%', lineHeight: 1, fontSize: '1.1rem', zIndex: 5 }}
-          title={t('common.delete') || 'Delete'}
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>close</span>
-        </button>
+        <div ref={deleteRef} style={{ position: 'absolute', top: '0.6rem', right: '0.6rem', zIndex: 5 }}>
+          <button
+            onClick={handleDelete}
+            style={{ background: 'rgba(0,0,0,0.2)', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.25rem', borderRadius: '50%', lineHeight: 1, fontSize: '1.1rem' }}
+            title={t('common.delete') || 'Delete'}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>close</span>
+          </button>
+          {confirmingDelete && (
+            <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: '4px', background: 'var(--bg-secondary)', border: '1px solid var(--glass-border)', borderRadius: '10px', padding: '0.6rem 0.8rem', boxShadow: '0 8px 24px rgba(0,0,0,0.5)', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '0.5rem', zIndex: 10 }}>
+              <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>{t('common.delete_confirm') || 'Delete?'}</span>
+              <button
+                onClick={(e) => { e.stopPropagation(); setConfirmingDelete(false); }}
+                style={{ padding: '0.25rem 0.6rem', borderRadius: '6px', background: 'var(--bg-primary)', border: '1px solid var(--glass-border)', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '0.78rem' }}
+              >{t('common.cancel') || 'Cancel'}</button>
+              <button
+                onClick={handleConfirmDelete}
+                style={{ padding: '0.25rem 0.6rem', borderRadius: '6px', background: '#ef4444', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600 }}
+              >{t('common.delete') || 'Delete'}</button>
+            </div>
+          )}
+        </div>
+
+        {/* Closed-day warning */}
+        {isClosed && (
+          <div style={{
+            background: 'rgba(239,68,68,0.1)',
+            border: '1px solid rgba(239,68,68,0.35)',
+            borderRadius: '10px',
+            padding: '6px 12px',
+            marginBottom: '0.6rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            animation: 'pulse-border 2s ease-in-out infinite'
+          }}>
+            <span className="material-symbols-outlined" style={{ color: '#ef4444', fontSize: '16px', flexShrink: 0 }}>error</span>
+            <span style={{ color: '#ef4444', fontSize: '0.78rem', fontWeight: 700 }}>
+              {t('itinerary.closed_today') || 'Closed today!'}
+            </span>
+          </div>
+        )}
 
         {/* Layout: Main Info + Thumbnail */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
@@ -159,11 +251,32 @@ export default function StopCard({
             )}
           </div>
 
-          {/* Thumbnail (Right) */}
-          {stop.photo && (
-            <div style={{ width: '100px', height: '65px', borderRadius: '10px', overflow: 'hidden', flexShrink: 0, border: '1px solid var(--glass-border)', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
+          {/* Thumbnail (Right) - click to change photo */}
+          <div
+            ref={thumbRef}
+            onClick={handlePhotoClick}
+            style={{ width: '100px', height: '65px', borderRadius: '10px', overflow: 'hidden', flexShrink: 0, border: '1px solid var(--glass-border)', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', cursor: 'pointer', background: 'rgba(255,255,255,0.03)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            title={t('itinerary.change_photo') || 'Change photo'}
+          >
+            {stop.photo ? (
               <img src={stop.photo} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={stop.location} />
-            </div>
+            ) : (
+              <span className="material-symbols-outlined" style={{ fontSize: '24px', color: 'var(--text-muted)', opacity: 0.4 }}>add_photo_alternate</span>
+            )}
+          </div>
+
+          {/* Photo picker portal */}
+          {showPhotoPicker && thumbRef.current && createPortal(
+            <PhotoPickerDropdown
+              ref={pickerRef}
+              anchorEl={thumbRef.current}
+              loading={loadingPhotos}
+              photos={placePhotos}
+              currentPhoto={stop.photo}
+              noPhotosText={t('itinerary.no_photos') || 'No photos available'}
+              onSelect={handleSelectPhoto}
+            />,
+            document.body
           )}
         </div>
 
@@ -266,3 +379,51 @@ export default function StopCard({
     </div>
   );
 }
+
+import { forwardRef } from 'react';
+
+const PhotoPickerDropdown = forwardRef(function PhotoPickerDropdown(
+  { anchorEl, loading, photos, currentPhoto, noPhotosText, onSelect },
+  ref
+) {
+  const rect = anchorEl.getBoundingClientRect();
+  const top = rect.bottom + 6;
+  const right = window.innerWidth - rect.right;
+
+  return (
+    <div
+      ref={ref}
+      style={{
+        position: 'fixed',
+        top, right,
+        zIndex: 10000,
+        background: 'var(--bg-secondary)',
+        border: '1px solid var(--glass-border)',
+        borderRadius: '12px',
+        padding: '0.5rem',
+        boxShadow: '0 12px 40px rgba(0,0,0,0.6)',
+        width: '280px',
+        maxHeight: '280px',
+        overflowY: 'auto'
+      }}
+    >
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: '1rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>Loading...</div>
+      ) : photos.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '1rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>{noPhotosText}</div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '4px' }}>
+          {photos.map((p, i) => (
+            <div
+              key={i}
+              onClick={() => onSelect(p.urlFull)}
+              style={{ cursor: 'pointer', borderRadius: '6px', overflow: 'hidden', aspectRatio: '1', border: p.urlFull === currentPhoto ? '2px solid var(--accent-primary)' : '1px solid transparent' }}
+            >
+              <img src={p.url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" loading="lazy" />
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+});

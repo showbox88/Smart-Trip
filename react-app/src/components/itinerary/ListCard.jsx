@@ -1,10 +1,32 @@
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { useI18n } from '../../context/I18nContext';
 import { useApp } from '../../context/AppContext';
 
-export default function ListCard({ stop, dayId, dayColor, onDelete, onItemChange, onItemToggle, onAddItem }) {
+export default function ListCard({ stop, dayId, dayColor, onDelete, onItemChange, onItemToggle, onAddItem, onDeleteItem }) {
   const { state, dispatch } = useApp();
   const { t } = useI18n();
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [focusIndex, setFocusIndex] = useState(null);
+  const deleteRef = useRef(null);
+  const listContainerRef = useRef(null);
+
+  useEffect(() => {
+    if (focusIndex === null || !listContainerRef.current) return;
+    const textareas = listContainerRef.current.querySelectorAll('textarea');
+    if (textareas[focusIndex]) {
+      textareas[focusIndex].focus();
+    }
+    setFocusIndex(null);
+  }, [focusIndex, stop.items]);
+
+  useEffect(() => {
+    if (!confirmingDelete) return;
+    const handler = (e) => {
+      if (deleteRef.current && !deleteRef.current.contains(e.target)) setConfirmingDelete(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [confirmingDelete]);
 
   return (
     <div className={`timeline-item list-item id-${stop.id}`} style={{ position: 'relative', marginBottom: '0.75rem' }}>
@@ -27,12 +49,27 @@ export default function ListCard({ stop, dayId, dayColor, onDelete, onItemChange
           boxShadow: state.hoveredStopId === stop.id ? '0 20px 40px rgba(0,0,0,0.6)' : 'none'
         }}
       >
-        <button
-          onClick={(e) => { e.stopPropagation(); onDelete?.(dayId, stop.id); }}
-          style={{ position: 'absolute', top: '0.4rem', right: '0.4rem', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', opacity: 0.5 }}
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>close</span>
-        </button>
+        <div ref={deleteRef} style={{ position: 'absolute', top: '0.4rem', right: '0.4rem', zIndex: 5 }}>
+          <button
+            onClick={(e) => { e.stopPropagation(); setConfirmingDelete(true); }}
+            style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', opacity: 0.5 }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>close</span>
+          </button>
+          {confirmingDelete && (
+            <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: '4px', background: 'var(--bg-secondary)', border: '1px solid var(--glass-border)', borderRadius: '10px', padding: '0.6rem 0.8rem', boxShadow: '0 8px 24px rgba(0,0,0,0.5)', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '0.5rem', zIndex: 10 }}>
+              <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>{t('common.delete_confirm') || 'Delete?'}</span>
+              <button
+                onClick={(e) => { e.stopPropagation(); setConfirmingDelete(false); }}
+                style={{ padding: '0.25rem 0.6rem', borderRadius: '6px', background: 'var(--bg-primary)', border: '1px solid var(--glass-border)', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '0.78rem' }}
+              >{t('common.cancel') || 'Cancel'}</button>
+              <button
+                onClick={(e) => { e.stopPropagation(); onDelete?.(dayId, stop.id); setConfirmingDelete(false); }}
+                style={{ padding: '0.25rem 0.6rem', borderRadius: '6px', background: '#ef4444', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600 }}
+              >{t('common.delete') || 'Delete'}</button>
+            </div>
+          )}
+        </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
           <span className="material-symbols-outlined" style={{ fontSize: '14px', color: 'var(--text-muted)' }}>checklist</span>
@@ -43,9 +80,9 @@ export default function ListCard({ stop, dayId, dayColor, onDelete, onItemChange
           />
         </div>
 
-        <div id={`list-items-${stop.id}`}>
+        <div id={`list-items-${stop.id}`} ref={listContainerRef}>
           {(stop.items || []).map((item, idx) => (
-            <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
+            <div key={idx} className="list-card-item" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
               <div
                 onClick={() => onItemToggle?.(dayId, stop.id, idx)}
                 style={{
@@ -65,6 +102,7 @@ export default function ListCard({ stop, dayId, dayColor, onDelete, onItemChange
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
                     onAddItem?.(dayId, stop.id, idx);
+                    setFocusIndex(idx + 1);
                   }
                 }}
                 onChange={(e) => {
@@ -80,12 +118,24 @@ export default function ListCard({ stop, dayId, dayColor, onDelete, onItemChange
                   opacity: item.checked ? 0.5 : 1,
                 }}
               />
+              <button
+                className="list-item-delete"
+                onClick={() => onDeleteItem?.(dayId, stop.id, idx)}
+                style={{
+                  background: 'none', border: 'none', color: 'var(--text-muted)',
+                  cursor: 'pointer', padding: '2px', flexShrink: 0,
+                  opacity: 0, transition: 'opacity 0.15s',
+                  lineHeight: 1, display: 'flex', alignItems: 'center'
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>close</span>
+              </button>
             </div>
           ))}
         </div>
 
         <button
-          onClick={() => onAddItem?.(dayId, stop.id)}
+          onClick={() => { onAddItem?.(dayId, stop.id); setFocusIndex((stop.items || []).length); }}
           style={{ marginTop: '0.25rem', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px', padding: 0 }}
         >
           <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>add</span>

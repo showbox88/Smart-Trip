@@ -2,7 +2,7 @@ import { useRef, useEffect } from 'react';
 import { useI18n } from '../../context/I18nContext';
 import { useStopSearch } from '../../hooks/useStopSearch';
 
-export default function AddStopRow({ dayId, onAddStop, onAddNote, onAddList }) {
+export default function AddStopRow({ dayId, onAddStop, onAddNote, onAddList, autoFocus, onClose }) {
   const { t } = useI18n();
   const inputRef = useRef(null);
   const dropdownRef = useRef(null);
@@ -12,6 +12,13 @@ export default function AddStopRow({ dayId, onAddStop, onAddNote, onAddList }) {
     onAddStop?.(dayId, placeId);
   };
 
+  // Auto-focus when used as inline insert
+  useEffect(() => {
+    if (autoFocus && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [autoFocus]);
+
   const {
     query, setQuery,
     predictions, focusIdx,
@@ -20,6 +27,10 @@ export default function AddStopRow({ dayId, onAddStop, onAddNote, onAddList }) {
   } = useStopSearch(dayId, handleSelect);
 
   const onKeyDown = (e) => {
+    if (e.key === 'Escape' && onClose) {
+      onClose();
+      return;
+    }
     handleKeyDown(e);
   };
 
@@ -89,21 +100,33 @@ export default function AddStopRow({ dayId, onAddStop, onAddNote, onAddList }) {
         )}
       </div>
 
-      <button
-        onClick={() => onAddNote?.(dayId)}
-        title={t('itinerary.add_note') || 'Add note'}
-        style={{ width: '45px', height: '45px', borderRadius: '50%', background: 'var(--bg-secondary)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-primary)', cursor: 'pointer', flexShrink: 0 }}
-      >
-        <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>sticky_note_2</span>
-      </button>
+      {onClose ? (
+        <button
+          onClick={onClose}
+          title={t('common.cancel') || 'Cancel'}
+          style={{ width: '45px', height: '45px', borderRadius: '50%', background: 'var(--bg-secondary)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', cursor: 'pointer', flexShrink: 0 }}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>close</span>
+        </button>
+      ) : (
+        <>
+          <button
+            onClick={() => onAddNote?.(dayId)}
+            title={t('itinerary.add_note') || 'Add note'}
+            style={{ width: '45px', height: '45px', borderRadius: '50%', background: 'var(--bg-secondary)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-primary)', cursor: 'pointer', flexShrink: 0 }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>sticky_note_2</span>
+          </button>
 
-      <button
-        onClick={() => onAddList?.(dayId)}
-        title={t('itinerary.add_list') || 'Add list'}
-        style={{ width: '45px', height: '45px', borderRadius: '50%', background: 'var(--bg-secondary)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-primary)', cursor: 'pointer', flexShrink: 0 }}
-      >
-        <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>checklist</span>
-      </button>
+          <button
+            onClick={() => onAddList?.(dayId)}
+            title={t('itinerary.add_list') || 'Add list'}
+            style={{ width: '45px', height: '45px', borderRadius: '50%', background: 'var(--bg-secondary)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-primary)', cursor: 'pointer', flexShrink: 0 }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>checklist</span>
+          </button>
+        </>
+      )}
     </div>
   );
 }

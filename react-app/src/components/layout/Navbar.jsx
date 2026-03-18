@@ -35,7 +35,7 @@ export default function Navbar() {
 
       <nav>
         <ul>
-          <li><a href="#" onClick={(e) => { e.preventDefault(); navigate('/'); }}>{t('dashboard.title') || 'My Trips'}</a></li>
+        <ul />
         </ul>
       </nav>
 

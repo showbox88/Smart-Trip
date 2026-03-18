@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { useI18n } from '../../context/I18nContext';
 import DayHeader from './DayHeader';
 import StopCard from './StopCard';
@@ -12,73 +12,29 @@ export default function DaySection({
   onAddStop, onDeleteStop, onEditStop, onToggleTransitMode,
   onAddNote, onAddList,
   onDeleteNote, onUpdateNoteContent,
-  onDeleteList, onUpdateListItem, onToggleListItem, onAddListItem,
-  onMoveStop,
+  onDeleteList, onUpdateListItem, onToggleListItem, onAddListItem, onDeleteListItem,
   onColorChange, onEditDay, onDeleteDay, onUpdateDay,
   onOpenTimePicker,
-  onOpenExpense
+  onOpenExpense,
+  onChangePhoto,
+  draggingStopId,
+  onDragPointerDown, onDragPointerMove, onDragPointerUp
 }) {
   const { t } = useI18n();
-  const [dragOverStopId, setDragOverStopId] = useState(null); // id of stop that shows "insert above" indicator
-  const dragStopRef = useRef(null); // { stopId, dayId }
+  const [insertingAfterStopId, setInsertingAfterStopId] = useState(null);
   const activeColor = day.color || '#5b7a99';
 
   const hotelContext = getHotelContext(day, trip);
   const stops = day.stops || [];
 
-  // ── Drag handlers ──────────────────────────────────────────────────────────
-
-  const handleDragStart = (e, stopId, dayId) => {
-    dragStopRef.current = { stopId, dayId };
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', stopId);
-    e.currentTarget.style.opacity = '0.4';
-  };
-
-  const handleDragEnd = (e) => {
-    e.currentTarget.style.opacity = '';
-    setDragOverStopId(null);
-  };
-
-  const handleDragOver = (e, overStopId) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    if (overStopId !== dragStopRef.current?.stopId) {
-      setDragOverStopId(overStopId);
-    }
-  };
-
-  const handleDragLeave = () => {
-    setDragOverStopId(null);
-  };
-
-  // Drop onto a specific stop slot: insert dragged stop BEFORE that stop
-  const handleDrop = (e, afterStopId) => {
-    e.preventDefault();
-    setDragOverStopId(null);
-    if (!dragStopRef.current) return;
-    const { stopId, dayId: srcDayId } = dragStopRef.current;
-    if (stopId === afterStopId) return;
-
-    // afterStopId is the stop we're dropping ONTO — insert before it means afterStopId's previous
-    const targetIdx = stops.findIndex(s => s.id === afterStopId);
-    const prevStop = targetIdx > 0 ? stops[targetIdx - 1] : null;
-    onMoveStop?.(srcDayId, stopId, day.id, prevStop?.id ?? null);
-    dragStopRef.current = null;
-  };
-
-  // Drop at the end of the list
-  const handleDropAtEnd = (e) => {
-    e.preventDefault();
-    setDragOverStopId(null);
-    if (!dragStopRef.current) return;
-    const { stopId, dayId: srcDayId } = dragStopRef.current;
-    const lastStop = stops[stops.length - 1];
-    if (lastStop && stopId !== lastStop.id) {
-      onMoveStop?.(srcDayId, stopId, day.id, lastStop.id);
-    }
-    dragStopRef.current = null;
-  };
+  // Compute the weekday index (Mon=0...Sun=6) for this day
+  const dayWeekdayIdx = (() => {
+    if (!trip?.startDate) return -1;
+    const d = new Date(trip.startDate.replace(/-/g, '/'));
+    if (isNaN(d)) return -1;
+    d.setDate(d.getDate() + dayIndex);
+    return (d.getDay() + 6) % 7;
+  })();
 
   // ── Render ─────────────────────────────────────────────────────────────────
 
@@ -86,7 +42,6 @@ export default function DaySection({
     const isPoi = stop.type === 'location' || !stop.type || stop.type === 'hotel_checkin' || stop.type === 'hotel_checkout';
     const hasNextPoi = stops.slice(index + 1).some(s => s.type === 'location' || !s.type || s.type === 'hotel_checkin' || s.type === 'hotel_checkout');
     const showTransit = isPoi && hasNextPoi;
-    const isDropTarget = dragOverStopId === stop.id;
 
     // Calculate display index for POI (location/hotel) reset per day
     let displayIndex = null;
@@ -110,41 +65,59 @@ export default function DaySection({
           stop={stop} dayId={day.id} dayColor={activeColor}
           onDelete={onDeleteList} onItemChange={onUpdateListItem}
           onItemToggle={onToggleListItem} onAddItem={onAddListItem}
+          onDeleteItem={onDeleteListItem}
         />
       );
     } else {
       card = (
         <StopCard
           stop={stop} dayId={day.id} dayColor={activeColor}
-          index={displayIndex ? displayIndex - 1 : index} 
+          index={displayIndex ? displayIndex - 1 : index}
           showTransit={showTransit}
-          onDelete={onDeleteStop} onEdit={onEditStop}
+          dayWeekdayIdx={dayWeekdayIdx}
+          onDelete={onDeleteStop}
+          onChangePhoto={onChangePhoto}
           onToggleTransitMode={onToggleTransitMode}
           onOpenTimePicker={onOpenTimePicker}
           onOpenExpense={onOpenExpense}
-          onAddStop={onAddStop}
+          onAddStop={(dId, afterId) => setInsertingAfterStopId(afterId)}
           onAddNote={onAddNote}
           onAddList={onAddList}
         />
       );
     }
 
+    const isDragging = draggingStopId === stop.id;
+
     return (
       <div
         key={stop.id}
-        draggable
-        onDragStart={(e) => handleDragStart(e, stop.id, day.id)}
-        onDragEnd={handleDragEnd}
-        onDragOver={(e) => handleDragOver(e, stop.id)}
-        onDragLeave={handleDragLeave}
-        onDrop={(e) => handleDrop(e, stop.id)}
-        style={{ position: 'relative', cursor: 'grab' }}
+        data-drag-id={stop.id}
+        data-drag-day={day.id}
+        className={`timeline-item-wrapper${isDragging ? ' dragging' : ''}`}
+        onPointerDown={(e) => onDragPointerDown?.(e, stop.id)}
+        onPointerMove={onDragPointerMove}
+        onPointerUp={onDragPointerUp}
+        style={{ position: 'relative', cursor: isDragging ? 'grabbing' : 'grab', touchAction: 'none' }}
       >
-        {/* Drop-above indicator */}
-        {isDropTarget && (
-          <div style={{ height: '3px', background: 'var(--accent-primary)', borderRadius: '2px', margin: '0 2.2rem 4px', opacity: 0.8 }} />
-        )}
         {card}
+        {/* Inline insert search */}
+        {insertingAfterStopId === stop.id && (
+          <div style={{ marginTop: '0.5rem', marginBottom: '1rem' }}>
+            <AddStopRow
+              dayId={day.id}
+              afterStopId={stop.id}
+              onAddStop={(dayId, placeId) => {
+                onAddStop?.(dayId, placeId, stop.id);
+                setInsertingAfterStopId(null);
+              }}
+              onAddNote={onAddNote}
+              onAddList={onAddList}
+              autoFocus
+              onClose={() => setInsertingAfterStopId(null)}
+            />
+          </div>
+        )}
       </div>
     );
   };
@@ -154,8 +127,6 @@ export default function DaySection({
       className="day-section"
       id={day.id}
       style={{ marginBottom: '3rem', scrollMarginTop: '120px' }}
-      onDragOver={(e) => e.preventDefault()}
-      onDrop={handleDropAtEnd}
     >
       <DayHeader
         day={day} dayIndex={dayIndex} isCollapsed={isCollapsed}
@@ -193,9 +164,14 @@ export default function DaySection({
               </div>
             )}
 
-            {/* Empty state */}
+            {/* Empty state — also acts as a phantom drop target */}
             {stops.length === 0 && (
-              <div style={{ padding: '1.5rem 1rem', marginBottom: '1.5rem', textAlign: 'center', border: '1px dashed var(--glass-border)', borderRadius: '8px', background: 'rgba(255,255,255,0.02)', position: 'relative', zIndex: 2 }}>
+              <div
+                data-drag-id={`__empty_${day.id}`}
+                data-drag-day={day.id}
+                className="timeline-item-wrapper"
+                style={{ padding: '1.5rem 1rem', marginBottom: '1.5rem', textAlign: 'center', border: '1px dashed var(--glass-border)', borderRadius: '8px', background: 'rgba(255,255,255,0.02)', position: 'relative', zIndex: 2, transition: 'transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1)' }}
+              >
                 <span style={{ fontSize: '2rem', opacity: 0.5 }}>📅</span>
                 <p style={{ color: 'var(--text-secondary)', margin: '0.5rem 0 0 0', fontWeight: 500 }}>({t('itinerary.no_data') || 'No stops yet'})</p>
               </div>

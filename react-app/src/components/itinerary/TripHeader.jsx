@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useI18n } from '../../context/I18nContext';
 import { useApp } from '../../context/AppContext';
 import { formatCurrency, calculateDays } from '../../utils/formatters';
@@ -14,7 +13,6 @@ function formatDateShort(dateStr) {
 export default function TripHeader({ trip, onDeleteTrip, onEditTrip }) {
   const { t } = useI18n();
   const { state } = useApp();
-  const navigate = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef(null);
 
@@ -45,19 +43,23 @@ export default function TripHeader({ trip, onDeleteTrip, onEditTrip }) {
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          {/* Back button */}
-          <button
-            onClick={() => navigate('/')}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', padding: '0.25rem', borderRadius: '6px' }}
-            title={t('common.back') || 'Back'}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>arrow_back</span>
-          </button>
-
           {/* Thumbnail */}
           <div
-            style={{ width: '56px', height: '56px', borderRadius: '10px', backgroundImage: `url('${trip.thumb || ''}')`, backgroundSize: 'cover', backgroundPosition: 'center', border: '1px solid var(--glass-border)', flexShrink: 0, background: trip.thumb ? undefined : 'var(--bg-secondary)' }}
-          />
+            style={{
+              width: '56px',
+              height: '56px',
+              borderRadius: '12px',
+              background: trip.thumb ? `url(${trip.thumb}) center/cover no-repeat` : 'rgba(255,255,255,0.05)',
+              border: '1px solid var(--glass-border)',
+              flexShrink: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden'
+            }}
+          >
+            {!trip.thumb && <span className="material-symbols-outlined" style={{ opacity: 0.2 }}>image</span>}
+          </div>
 
           {/* Title + meta */}
           <div>
@@ -83,7 +85,7 @@ export default function TripHeader({ trip, onDeleteTrip, onEditTrip }) {
             onClick={() => setShowMenu(v => !v)}
           >⋮</button>
           {showMenu && (
-            <div className="menu-dropdown show" style={{ top: '2rem', right: 0 }}>
+            <div className="menu-dropdown active" style={{ top: '2rem', right: 0 }}>
               <button onClick={() => { onEditTrip?.(); setShowMenu(false); }}>
                 {t('itinerary.edit_trip') || 'Edit trip'}
               </button>
