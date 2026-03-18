@@ -273,7 +273,7 @@ export default function ItineraryView({ tripId }) {
                   onOpenTimePicker={handleOpenTimePicker}
                   onOpenExpense={handleOpenExpense}
                   onChangePhoto={(dayId, stopId, photoUrl) => updateStop(dayId, stopId, { photo: photoUrl })}
-                  onFocusStop={(stopId) => mapPanelRef.current?.focusStop(stopId)}
+                  onFocusStop={(stopId) => mapPanelRef.current?.focusAndOpen(stopId)}
                 />
               ))}
             </div>

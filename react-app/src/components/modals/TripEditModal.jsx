@@ -173,6 +173,7 @@ export default function TripEditModal({ trip, onSave, onClose }) {
                 key={i}
                 className={`image-thumb-option ${form.thumb === url ? 'selected' : ''}`}
                 onClick={() => setForm(f => ({ ...f, thumb: url }))}
+                onDoubleClick={() => { onSave?.({ ...form, thumb: url }); onClose?.(); }}
                 style={{
                   backgroundImage: `url('${url}')`,
                   height: '70px',

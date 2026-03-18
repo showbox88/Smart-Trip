@@ -199,6 +199,7 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay }, ref) {
 
           // Store ID for hover sync
           marker.stopId = stop.id;
+          marker.stopPlaceId = stop.placeId || null;
 
           // Click marker → open info panel for that place
           const stopPlaceId = stop.placeId;
@@ -318,7 +319,15 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay }, ref) {
     }
   }, []);
 
-  useImperativeHandle(ref, () => ({ focusStop }), [focusStop]);
+  const focusAndOpen = useCallback((stopId) => {
+    focusStop(stopId);
+    const marker = markersRef.current.find(m => m.stopId === stopId);
+    if (marker?.stopPlaceId) {
+      setSelectedPlaceId(marker.stopPlaceId);
+    }
+  }, [focusStop]);
+
+  useImperativeHandle(ref, () => ({ focusStop, focusAndOpen }), [focusStop, focusAndOpen]);
 
   return (
     <section className="map-view">

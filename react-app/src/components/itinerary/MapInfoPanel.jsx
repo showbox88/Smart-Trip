@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useI18n } from '../../context/I18nContext';
 import { useApp } from '../../context/AppContext';
@@ -45,12 +45,13 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay }) {
   const [place, setPlace] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('about');
-  const [adding, setAdding] = useState(false);
   const [showDayPicker, setShowDayPicker] = useState(false);
   const [zoomedPhotoIdx, setZoomedPhotoIdx] = useState(null);
   const [prevPhotoIdx, setPrevPhotoIdx] = useState(null);
   const [isAnimating, setIsAnimating] = useState(false);
   const [addedDays, setAddedDays] = useState(new Set());
+  const [dayPickerPos, setDayPickerPos] = useState({ top: 0, left: 0 });
+  const addBtnRef = useRef(null);
 
   const trip = state.trips.find(tr => tr.id === state.activeTripId);
 
@@ -125,14 +126,11 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay }) {
 
   const handleAddToDay = async (dayId) => {
     setShowDayPicker(false);
-    setAdding(true);
     try {
       await onAddToDay?.(dayId, placeId);
       setAddedDays(prev => new Set([...prev, dayId]));
     } catch (err) {
       console.error('[MapInfoPanel] add failed:', err);
-    } finally {
-      setAdding(false);
     }
   };
 
@@ -177,7 +175,7 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay }) {
       id="map-info-panel"
       style={{
         position: 'absolute', bottom: 0, left: 0, right: 0,
-        height: '350px', background: 'rgba(13, 17, 27, 0.98)',
+        minHeight: '350px', maxHeight: '60vh', background: 'rgba(13, 17, 27, 0.98)',
         backdropFilter: 'blur(12px)',
         borderTop: '1px solid rgba(255,255,255,0.1)',
         display: 'flex', flexDirection: 'column', zIndex: 2000,
@@ -216,38 +214,46 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay }) {
         </button>
       </div>
 
-      <div style={{ flex: 1, overflow: 'visible', position: 'relative', display: 'flex', flexDirection: 'column' }}>
-        {/* Day Picker Overlay - Moved out of scrollable area to prevent clipping */}
-        {showDayPicker && (
-          <div style={{ 
-            position: 'absolute', bottom: 'calc(100% - 40px)', left: '1rem', 
+      <div style={{ flex: 1, overflow: 'hidden', position: 'relative', display: 'flex', flexDirection: 'column' }}>
+        {/* Day Picker via Portal to escape overflow:hidden */}
+        {showDayPicker && createPortal(
+          <div style={{
+            position: 'fixed',
+            bottom: dayPickerPos.bottom,
+            left: dayPickerPos.left,
             background: '#1a1e26',
             border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
             minWidth: '220px', boxShadow: '0 20px 50px rgba(0,0,0,0.9)',
-            padding: '4px 0', zIndex: 3000
+            padding: '4px 0', zIndex: 9999
           }}>
             <div style={{ padding: '8px 14px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 800, textTransform: 'uppercase' }}>{t('map.select_date') || 'Add to Day'}</span>
             </div>
             <div style={{ maxHeight: '180px', overflowY: 'auto' }}>
-              {trip?.days?.map((day, idx) => (
-                <div 
-                  key={day.id}
-                  onClick={() => handleAddToDay(day.id)}
-                  style={{ 
-                    padding: '10px 14px', display: 'flex', alignItems: 'center', cursor: 'pointer',
-                    background: 'transparent', transition: 'background 0.2s', borderBottom: '1px solid rgba(255,255,255,0.02)'
-                  }}
-                  onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
-                  onMouseOut={e => e.currentTarget.style.background = 'transparent'}
-                >
-                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: day.color || '#f97316', marginRight: '12px' }} />
-                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'white', flex: 1 }}>{t('itinerary.day_label')} {idx+1}</span>
-                  <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{day.date}</span>
-                </div>
-              ))}
+              {trip?.days?.map((day, idx) => {
+                const isAdded = addedDays.has(day.id);
+                return (
+                  <div
+                    key={day.id}
+                    onClick={() => handleAddToDay(day.id)}
+                    style={{
+                      padding: '10px 14px', display: 'flex', alignItems: 'center', cursor: 'pointer',
+                      background: isAdded ? 'rgba(16,185,129,0.06)' : 'transparent',
+                      transition: 'background 0.2s', borderBottom: '1px solid rgba(255,255,255,0.02)'
+                    }}
+                    onMouseOver={e => e.currentTarget.style.background = isAdded ? 'rgba(16,185,129,0.12)' : 'rgba(255,255,255,0.05)'}
+                    onMouseOut={e => e.currentTarget.style.background = isAdded ? 'rgba(16,185,129,0.06)' : 'transparent'}
+                  >
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: day.color || '#f97316', marginRight: '12px' }} />
+                    <span style={{ fontSize: '0.85rem', fontWeight: 700, color: isAdded ? '#10b981' : 'white', flex: 1 }}>{t('itinerary.day_label')} {idx+1}</span>
+                    <span style={{ fontSize: '0.75rem', color: isAdded ? '#10b981' : '#64748b', marginRight: isAdded ? '6px' : 0 }}>{day.date}</span>
+                    {isAdded && <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#10b981' }}>check_circle</span>}
+                  </div>
+                );
+              })}
             </div>
-          </div>
+          </div>,
+          document.body
         )}
 
         {/* Scrollable Content Area */}
@@ -257,13 +263,20 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay }) {
           ) : place && (
             <>
               {/* Add to Trip Button */}
-              <div style={{ marginBottom: '1.25rem' }}>
+              <div style={{ marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                 <button
-                  onClick={() => setShowDayPicker(v => !v)}
-                  style={{ 
-                    background: 'var(--accent-primary)', color: 'white', border: 'none', borderRadius: '8px', 
-                    padding: '0.4rem 14px', fontWeight: 800, fontSize: '0.75rem', cursor: 'pointer', 
-                    display: 'flex', alignItems: 'center', gap: '6px', 
+                  ref={addBtnRef}
+                  onClick={() => {
+                    if (!showDayPicker && addBtnRef.current) {
+                      const rect = addBtnRef.current.getBoundingClientRect();
+                      setDayPickerPos({ bottom: window.innerHeight - rect.top + 8, left: rect.left });
+                    }
+                    setShowDayPicker(v => !v);
+                  }}
+                  style={{
+                    background: 'var(--accent-primary)', color: 'white', border: 'none', borderRadius: '8px',
+                    padding: '0.4rem 14px', fontWeight: 800, fontSize: '0.75rem', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', gap: '6px',
                     boxShadow: '0 3px 10px rgba(60, 131, 246, 0.25)',
                     transition: 'all 0.2s',
                     textTransform: 'uppercase',
