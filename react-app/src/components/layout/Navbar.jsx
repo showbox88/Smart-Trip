@@ -55,21 +55,23 @@ export default function Navbar() {
                 <span className="material-symbols-outlined" style={{ fontSize: '1.8rem', color: 'var(--text-secondary)' }}>account_circle</span>
               </div>
               {dropdownOpen && (
-                <div className="user-dropdown" style={{ position: 'absolute', right: 0, top: '100%', background: 'var(--glass-bg)', border: '1px solid var(--border-color)', borderRadius: '0.75rem', padding: '0.5rem', minWidth: '160px', zIndex: 200 }}>
-                  <div style={{ padding: '0.5rem 0.75rem', color: 'var(--text-secondary)', fontSize: '0.8rem', borderBottom: '1px solid var(--border-color)', marginBottom: '0.25rem' }}>
+                <div className="user-dropdown" style={{ position: 'absolute', right: 0, top: 'calc(100% + 8px)', background: '#1a1d24', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '12px', padding: '6px', minWidth: '180px', zIndex: 200, boxShadow: '0 8px 24px rgba(0,0,0,0.6)' }}>
+                  <div style={{ padding: '0.5rem 0.75rem', color: 'var(--text-secondary)', fontSize: '0.8rem', borderBottom: '1px solid rgba(255,255,255,0.08)', marginBottom: '4px' }}>
                     {state.user.email}
                   </div>
                   <button
                     onClick={toggleLanguage}
-                    style={{ width: '100%', textAlign: 'left', padding: '0.5rem 0.75rem', background: 'none', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', borderRadius: '0.5rem', fontSize: '0.85rem' }}
+                    style={{ width: '100%', textAlign: 'left', padding: '8px 12px', background: 'none', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', borderRadius: '8px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px' }}
                   >
-                    🌐 {language === 'zh' ? 'English' : '中文'}
+                    <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#64748b' }}>language</span>
+                    {language === 'zh' ? 'English' : '中文'}
                   </button>
                   <button
                     onClick={handleLogout}
-                    style={{ width: '100%', textAlign: 'left', padding: '0.5rem 0.75rem', background: 'none', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', borderRadius: '0.5rem', fontSize: '0.85rem' }}
+                    style={{ width: '100%', textAlign: 'left', padding: '8px 12px', background: 'none', border: 'none', color: '#ff4d4f', cursor: 'pointer', borderRadius: '8px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px' }}
                   >
-                    🚪 {t('auth.logout') || 'Logout'}
+                    <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>logout</span>
+                    {t('common.logout')}
                   </button>
                 </div>
               )}

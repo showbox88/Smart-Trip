@@ -1,4 +1,5 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useI18n } from '../../context/I18nContext';
 import { useStopSearch } from '../../hooks/useStopSearch';
 
@@ -6,6 +7,7 @@ export default function AddStopRow({ dayId, onAddStop, onAddNote, onAddList, aut
   const { t } = useI18n();
   const inputRef = useRef(null);
   const dropdownRef = useRef(null);
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0, width: 0 });
 
   const handleSelect = (placeId) => {
     clearSearch();
@@ -61,16 +63,29 @@ export default function AddStopRow({ dayId, onAddStop, onAddNote, onAddList, aut
           style={{ paddingLeft: '2.8rem', background: 'var(--bg-secondary)', border: 'none' }}
           placeholder={`${t('itinerary.add_stop') || 'Add a stop'}...`}
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            if (inputRef.current) {
+              const rect = inputRef.current.getBoundingClientRect();
+              setDropdownPos({ top: rect.bottom + 4, left: rect.left, width: rect.width });
+            }
+          }}
+          onFocus={() => {
+            if (inputRef.current) {
+              const rect = inputRef.current.getBoundingClientRect();
+              setDropdownPos({ top: rect.bottom + 4, left: rect.left, width: rect.width });
+            }
+          }}
           onKeyDown={onKeyDown}
           autoComplete="off"
           disabled={!mapsReady}
         />
 
-        {predictions.length > 0 && (
+        {predictions.length > 0 && createPortal(
           <ul
             ref={dropdownRef}
             className="location-autocomplete-dropdown active"
+            style={{ position: 'fixed', top: dropdownPos.top, left: dropdownPos.left, width: dropdownPos.width, zIndex: 9999 }}
           >
             {predictions.map((p, idx) => (
               <li
@@ -96,7 +111,8 @@ export default function AddStopRow({ dayId, onAddStop, onAddNote, onAddList, aut
                 {t('common.loading') || 'Loading...'}
               </li>
             )}
-          </ul>
+          </ul>,
+          document.body
         )}
       </div>
 

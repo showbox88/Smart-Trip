@@ -1,10 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
 import { useI18n } from '../../context/I18nContext';
 
-export default function MapSearchBox({ mapInstance, onPlaceSelect }) {
+export default function MapSearchBox({ mapInstance, onPlaceSelect, onCategoryResults }) {
   const { t } = useI18n();
   const inputRef = useRef(null);
   const searchBoxRef = useRef(null);
+  const [showCategories, setShowCategories] = useState(false);
+  const [inputValue, setInputValue] = useState('');
+  const containerRef = useRef(null);
 
   useEffect(() => {
     if (!mapInstance || !inputRef.current) return;
@@ -46,29 +49,53 @@ export default function MapSearchBox({ mapInstance, onPlaceSelect }) {
     { id: 'dining', icon: 'restaurant', type: 'restaurant', label: t('map.category_dining') },
     { id: 'attractions', icon: 'museum', type: 'tourist_attraction', label: t('map.category_attractions') },
     { id: 'gas', icon: 'local_gas_station', type: 'gas_station', label: t('map.category_gas') },
-    { id: 'cafe', icon: 'coffee', type: 'cafe', label: t('map.category_cafe') },
+    { id: 'charging', icon: 'ev_station', type: 'electric_vehicle_charging_station', label: t('map.category_charging') },
+    { id: 'lodging', icon: 'hotel', type: 'lodging', extraTypes: [], keyword: 'hotel accommodation apartment', label: t('map.category_lodging') },
   ];
 
-  const handleCategoryClick = (type) => {
+  const handleCategoryClick = (type, _extraTypes = [], keyword, icon = 'place') => {
     if (!mapInstance) return;
-    const request = {
-      location: mapInstance.getCenter(),
-      radius: '2000',
-      type: type
-    };
+    setShowCategories(false);
     const service = new google.maps.places.PlacesService(mapInstance);
-    service.nearbySearch(request, (results, status) => {
-      if (status === google.maps.places.PlacesServiceStatus.OK && results.length > 0) {
-        // Just show the first result for now to open panel
-        onPlaceSelect(results[0].place_id, results[0]);
-        mapInstance.setCenter(results[0].geometry.location);
-        mapInstance.setZoom(16);
+    const center = mapInstance.getCenter();
+    const allResults = [];
+
+    const merge = (results, status, pagination) => {
+      if (status === google.maps.places.PlacesServiceStatus.OK && results?.length) {
+        results.forEach(r => {
+          if (!allResults.find(x => x.place_id === r.place_id)) allResults.push(r);
+        });
+        if (pagination?.hasNextPage && allResults.length < 60) {
+          setTimeout(() => pagination.nextPage(), 200);
+        } else {
+          onCategoryResults?.(allResults, icon);
+        }
+      } else {
+        onCategoryResults?.(allResults, icon);
       }
-    });
+    };
+
+    const searchQuery = keyword || type;
+    service.textSearch({
+      query: searchQuery,
+      location: center,
+      radius: 5000,
+    }, merge);
   };
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setShowCategories(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   return (
-    <div className="map-search-control" style={{
+    <div ref={containerRef} className="map-search-control" style={{
       position: 'absolute', top: '15px', left: '15px',
       width: 'calc(100% - 100px)', maxWidth: '400px',
       zIndex: 100, display: 'flex', flexDirection: 'column', gap: '8px', pointerEvents: 'auto'
@@ -79,8 +106,11 @@ export default function MapSearchBox({ mapInstance, onPlaceSelect }) {
           type="text"
           placeholder={t('map.search_placeholder') || 'Search places...'}
           className="location-search-input"
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onFocus={() => setShowCategories(true)}
           style={{
-            width: '100%', padding: '0.75rem 1rem 0.75rem 2.8rem',
+            width: '100%', padding: '0.75rem 2.5rem 0.75rem 2.8rem',
             background: 'var(--bg-deep)', backdropFilter: 'blur(12px)',
             border: '1px solid var(--glass-border)', borderRadius: '12px',
             color: 'white', fontSize: '0.85rem', outline: 'none',
@@ -91,34 +121,52 @@ export default function MapSearchBox({ mapInstance, onPlaceSelect }) {
           position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)',
           color: 'var(--text-muted)', fontSize: '18px'
         }}>search</span>
-      </div>
-
-      <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '4px' }} className="hide-scrollbar">
-        {categories.map(cat => (
+        {inputValue && (
           <button
-            key={cat.id}
-            onClick={() => handleCategoryClick(cat.type)}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              setInputValue('');
+              setShowCategories(true);
+              // Clear the Google SearchBox pac-container results
+              if (inputRef.current) {
+                inputRef.current.value = '';
+                inputRef.current.dispatchEvent(new Event('input', { bubbles: true }));
+                inputRef.current.focus();
+              }
+            }}
             style={{
-              display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap',
-              background: 'rgba(13, 17, 27, 0.75)', border: '1px solid var(--glass-border)',
-              borderRadius: '20px', padding: '4px 10px', color: 'rgba(255,255,255,0.85)',
-              fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer',
-              transition: 'all 0.2s', backdropFilter: 'blur(8px)'
-            }}
-            onMouseOver={e => {
-              e.currentTarget.style.background = 'rgba(249, 115, 22, 0.2)';
-              e.currentTarget.style.borderColor = 'var(--accent-primary)';
-            }}
-            onMouseOut={e => {
-              e.currentTarget.style.background = 'rgba(13, 17, 27, 0.75)';
-              e.currentTarget.style.borderColor = 'var(--glass-border)';
+              position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)',
+              background: 'none', border: 'none', cursor: 'pointer', padding: '2px',
+              display: 'flex', alignItems: 'center', color: 'var(--text-muted)'
             }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>{cat.icon}</span>
-            {cat.label}
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>close</span>
           </button>
-        ))}
+        )}
       </div>
+
+      {showCategories && (
+        <div style={{ background: '#111318', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.6)' }}>
+          {categories.map((cat, idx) => (
+            <button
+              key={cat.id}
+              onClick={() => handleCategoryClick(cat.type, cat.extraTypes, cat.keyword, cat.icon)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '14px', width: '100%',
+                padding: '12px 16px', background: 'none', border: 'none',
+                borderBottom: idx < categories.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none',
+                color: 'white', fontSize: '0.9rem', cursor: 'pointer', textAlign: 'left',
+                transition: 'background 0.15s'
+              }}
+              onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
+              onMouseOut={e => e.currentTarget.style.background = 'none'}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'rgba(255,255,255,0.7)', width: '24px', flexShrink: 0 }}>{cat.icon}</span>
+              {cat.label}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

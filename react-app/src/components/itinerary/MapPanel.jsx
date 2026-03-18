@@ -42,6 +42,7 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay }, ref) {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersRef = useRef([]);
+  const categoryMarkersRef = useRef([]);
   const polylinesRef = useRef([]);
   const hasInitialFitRef = useRef(null); // stores tripId
   const [mapReady, setMapReady] = useState(!!window.googleMapsReady);
@@ -94,6 +95,8 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay }, ref) {
         setSelectedPlaceId(e.placeId);
       } else {
         setSelectedPlaceId(null);
+        categoryMarkersRef.current.forEach(m => m.map = null);
+        categoryMarkersRef.current = [];
       }
     });
   }, [mapReady]);
@@ -179,16 +182,75 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay }, ref) {
           content.style.cssText = `
             width: 32px; height: 40px;
             cursor: pointer;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
             transition: transform 0.2s;
+            position: relative;
           `;
           content.innerHTML = `
-            <svg width="32" height="40" viewBox="0 0 36 44" xmlns="http://www.w3.org/2000/svg">
+            <svg width="32" height="40" viewBox="0 0 36 44" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5));">
               <path d="M18 0 C8.06 0 0 8.06 0 18 C0 31.5 18 44 18 44 C18 44 36 31.5 36 18 C36 8.06 27.94 0 18 0Z" fill="${markerColor}" stroke="white" stroke-width="2"/>
               <circle cx="18" cy="18" r="10" fill="#1a2235" opacity="0.9"/>
               <text x="18" y="24" text-anchor="middle" fill="white" font-size="14" font-weight="900" font-family="Arial">${label}</text>
             </svg>
           `;
+
+          // Premium Hover tooltip (Light Glass theme matching user's newest screenshot)
+          const tooltip = document.createElement('div');
+          const maxName = stop.location?.length > 32 ? stop.location.slice(0, 32) + '…' : (stop.location || '');
+          const catLabel = stop.category ? (t(stop.category) !== stop.category ? t(stop.category) : stop.category) : t('map.place_default');
+          
+          tooltip.style.cssText = [
+            'position:absolute;bottom:calc(100% + 12px);left:50%;transform:translateX(-50%);',
+            'background:rgba(20,24,38,0.97);border-radius:12px;overflow:hidden;',
+            'padding:14px 16px;pointer-events:none;white-space:nowrap;',
+            'box-shadow:0 10px 40px rgba(0,0,0,0.5);opacity:0;transition:opacity 0.2s,box-shadow 0.2s;',
+            'font-family:inherit;min-width:320px;border:1px solid rgba(255,255,255,0.1);',
+            'display:flex;gap:16px;z-index:3000;',
+            'filter:invert(100%) hue-rotate(180deg);',
+          ].join('');
+
+          let tooltipHtml = `
+            <div style="flex:1; display:flex; flex-direction:column; justify-content:space-between; min-width:180px;">
+              <div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; gap:12px;">
+                  <span style="font-size:15px; font-weight:800; color:white; overflow:hidden; text-overflow:ellipsis;">${maxName}</span>
+                  <div style="display:flex; align-items:center; gap:4px; color:rgba(255,255,255,0.55); font-size:12px; font-weight:600;">
+                    <span class="material-symbols-outlined" style="font-size:14px">${stop.categoryIcon || 'place'}</span>
+                    <span>${catLabel}</span>
+                  </div>
+                </div>
+                <div style="display:flex; gap:6px; color:rgba(255,255,255,0.6); font-size:12.5px; line-height:1.4;">
+                  <span class="material-symbols-outlined" style="font-size:15px; color:#f97316; margin-top:1px;">location_on</span>
+                  <span style="white-space:normal; -webkit-line-clamp:2; display:-webkit-box; -webkit-box-orient:vertical; overflow:hidden;">${stop.address || stop.location || ''}</span>
+                </div>
+              </div>
+              ${stop.time ? `
+              <div style="margin-top:12px; background:rgba(255,255,255,0.12); color:white; padding:4px 12px; border-radius:8px; font-size:12px; font-weight:800; width:fit-content;">
+                ${stop.time} ${stop.period || ''}
+              </div>` : ''}
+            </div>
+          `;
+
+          if (stop.photo) {
+            tooltipHtml += `
+              <div style="width:110px; height:85px; border-radius:10px; overflow:hidden; flex-shrink:0;">
+                <img src="${stop.photo}" style="width:100%; height:100%; object-fit:cover;" onerror="this.parentElement.style.display='none'" />
+              </div>
+            `;
+          }
+
+          tooltip.innerHTML = tooltipHtml;
+          content.appendChild(tooltip);
+
+          content.addEventListener('mouseenter', () => {
+            tooltip.style.opacity = '1';
+            tooltip.style.transform = 'translateX(-50%) scale(1)';
+            marker.zIndex = 9999;
+          });
+          content.addEventListener('mouseleave', () => {
+            tooltip.style.opacity = '0';
+            tooltip.style.transform = 'translateX(-50%) scale(0.95)';
+            marker.zIndex = null;
+          });
 
           const marker = new google.maps.marker.AdvancedMarkerElement({
             map: mapInstanceRef.current,
@@ -258,7 +320,7 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay }, ref) {
         }
       }
     }
-  }, [activeTrip, mapReady, t]);
+  }, [activeTrip, mapReady, t, darkMode]);
 
   // Handle Hover Synchronization
   useEffect(() => {
@@ -327,6 +389,118 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay }, ref) {
     }
   }, [focusStop]);
 
+  const handleCategoryResults = useCallback((results, icon = 'place') => {
+    // Clear previous category markers
+    categoryMarkersRef.current.forEach(m => m.map = null);
+    categoryMarkersRef.current = [];
+
+    if (!results?.length || !mapInstanceRef.current) return;
+
+    results.forEach(place => {
+      if (!place.geometry?.location) return;
+
+      const content = document.createElement('div');
+      content.style.cssText = 'display:flex;flex-direction:column;align-items:center;cursor:pointer;';
+
+      const pin = document.createElement('div');
+      pin.style.cssText = [
+        'width:36px;height:36px;background:#f97316;',
+        'border-radius:50% 50% 50% 0;transform:rotate(-45deg);',
+        'border:3px solid white;box-shadow:0 4px 12px rgba(0,0,0,0.5);',
+        'display:flex;align-items:center;justify-content:center;',
+        'transition:transform 0.15s,box-shadow 0.15s;',
+      ].join('');
+
+      const iconEl = document.createElement('span');
+      iconEl.className = 'material-symbols-outlined';
+      iconEl.style.cssText = 'font-size:15px;color:white;transform:rotate(45deg);user-select:none;';
+      iconEl.textContent = icon;
+
+      pin.appendChild(iconEl);
+      content.appendChild(pin);
+
+      // Premium Hover Tooltip (Light Glass)
+      const maxName = place.name?.length > 32 ? place.name.slice(0, 32) + '…' : (place.name || '');
+      const photo = place.photos?.[0]?.getUrl({ maxWidth: 200, maxHeight: 150 });
+      
+      const label = document.createElement('div');
+      label.style.cssText = [
+        'position:absolute;bottom:calc(100% + 12px);left:50%;transform:translateX(-50%) scale(0.95);',
+        'background:rgba(20,24,38,0.97);border-radius:12px;overflow:hidden;',
+        'padding:14px 16px;pointer-events:none;white-space:nowrap;',
+        'box-shadow:0 10px 40px rgba(0,0,0,0.5);opacity:0;transition:opacity 0.2s,transform 0.2s;',
+        'font-family:inherit;min-width:300px;border:1px solid rgba(255,255,255,0.1);',
+        'display:flex;gap:16px;z-index:3000;transform-origin:bottom center;',
+        'filter:invert(100%) hue-rotate(180deg);',
+      ].join('');
+
+      let tooltipHtml = `
+        <div style="flex:1; display:flex; flex-direction:column; justify-content:space-between; min-width:160px;">
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; gap:8px;">
+              <span style="font-size:15px; font-weight:800; color:white; overflow:hidden; text-overflow:ellipsis;">${maxName}</span>
+            </div>
+            <div style="display:flex; gap:6px; color:rgba(255,255,255,0.6); font-size:12px; line-height:1.4;">
+              <span class="material-symbols-outlined" style="font-size:15px; color:#f97316; margin-top:1px;">location_on</span>
+              <span style="white-space:normal; -webkit-line-clamp:2; display:-webkit-box; -webkit-box-orient:vertical; overflow:hidden;">${place.formatted_address || place.vicinity || ''}</span>
+            </div>
+          </div>
+          ${place.rating ? `
+          <div style="display:flex; align-items:center; gap:4px; margin-top:10px;">
+            <span style="color:#f97316; font-size:14px;">★</span>
+            <span style="color:white; font-weight:700; font-size:13px;">${place.rating}</span>
+            <span style="color:rgba(255,255,255,0.45); font-size:12px;">(${place.user_ratings_total || 0})</span>
+          </div>` : ''}
+        </div>
+      `;
+
+      if (photo) {
+        tooltipHtml += `
+          <div style="width:100px; height:75px; border-radius:10px; overflow:hidden; flex-shrink:0;">
+            <img src="${photo}" style="width:100%; height:100%; object-fit:cover;" onerror="this.parentElement.style.display='none'" />
+          </div>
+        `;
+      }
+
+      label.innerHTML = tooltipHtml;
+      content.style.position = 'relative';
+      content.appendChild(label);
+
+      pin.onmouseenter = () => {
+        pin.style.transform = 'rotate(-45deg) scale(1.25)';
+        pin.style.boxShadow = '0 6px 18px rgba(0,0,0,0.6)';
+        label.style.opacity = '1';
+        label.style.transform = 'translateX(-50%) scale(1)';
+        marker.zIndex = 9999;
+      };
+      pin.onmouseleave = () => {
+        pin.style.transform = 'rotate(-45deg) scale(1)';
+        pin.style.boxShadow = '0 4px 12px rgba(0,0,0,0.5)';
+        label.style.opacity = '0';
+        label.style.transform = 'translateX(-50%) scale(0.95)';
+        marker.zIndex = null;
+      };
+
+      const placeId = place.place_id;
+      content.onclick = (e) => {
+        e.stopPropagation();
+        setSelectedPlaceId(placeId);
+      };
+
+      let marker = new google.maps.marker.AdvancedMarkerElement({
+        map: mapInstanceRef.current,
+        position: place.geometry.location,
+        title: place.name,
+        content,
+      });
+      marker.addEventListener('gmp-click', (e) => {
+        e.stop?.();
+        setSelectedPlaceId(placeId);
+      });
+      categoryMarkersRef.current.push(marker);
+    });
+  }, [darkMode]);
+
   useImperativeHandle(ref, () => ({ focusStop, focusAndOpen }), [focusStop, focusAndOpen]);
 
   return (
@@ -339,9 +513,10 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay }, ref) {
         <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
 
         {mapReady && mapInstanceRef.current && (
-          <MapSearchBox 
-            mapInstance={mapInstanceRef.current} 
+          <MapSearchBox
+            mapInstance={mapInstanceRef.current}
             onPlaceSelect={(id) => setSelectedPlaceId(id)}
+            onCategoryResults={(results, icon) => handleCategoryResults(results, icon)}
           />
         )}
         

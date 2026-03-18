@@ -15,15 +15,6 @@ function StarRating({ rating }) {
   );
 }
 
-function getTodayHours(place) {
-  try {
-    const periods = place.regularOpeningHours?.weekdayDescriptions;
-    if (!periods) return null;
-    const day = new Date().getDay(); // 0=Sun
-    const idx = day === 0 ? 6 : day - 1;
-    return periods[idx] || null;
-  } catch { return null; }
-}
 
 function getCategoryLabel(place, t) {
   if (!place.types?.length) return null;
@@ -48,6 +39,9 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay }) {
   const addBtnRef = useRef(null);
 
   const trip = state.trips.find(tr => tr.id === state.activeTripId);
+
+  // Find the stop in the trip that matches this placeId (for time display)
+  const matchedStop = trip?.days?.flatMap(d => d.stops).find(s => s.placeId === placeId);
 
   // Keyboard navigation for full-screen photo gallery
   useEffect(() => {
@@ -160,7 +154,6 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay }) {
 
   const photos = place?.photos || [];
   const photo = photos[0] ? photos[0].getURI({ maxWidth: 680, maxHeight: 420 }) : null;
-  const todayHours = place ? getTodayHours(place) : null;
   const category = place ? getCategoryLabel(place, t) : null;
   const reviews = place?.reviews || [];
 
@@ -284,41 +277,56 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay }) {
               </div>
 
             {activeTab === 'about' && (
-              <div style={{ display: 'flex', gap: '2.5rem', alignItems: 'flex-start' }}>
+              <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start' }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <h1 style={{ margin: '0 0 0.1rem', fontSize: '1.25rem', fontWeight: 800, letterSpacing: '-0.02em', color: 'white' }}>{place.displayName}</h1>
-                  <p style={{ margin: '0 0 0.4rem', color: '#94a3b8', fontSize: '0.8rem', fontWeight: 500 }}>{category}</p>
-                  
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1rem' }}>
-                    <span style={{ color: '#f97316', fontWeight: 800, fontSize: '0.85rem' }}>{place.rating}</span>
-                    <StarRating rating={place.rating} />
-                    <span style={{ color: '#64748b', fontSize: '0.75rem' }}>({place.userRatingCount} reviews)</span>
+                  {/* Name + Category + Rating row */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
+                    <h1 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, letterSpacing: '-0.02em', color: 'white' }}>{place.displayName}</h1>
+                    {category && (
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#94a3b8', fontSize: '0.8rem', fontWeight: 600, flexShrink: 0 }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>restaurant</span>
+                        {category}
+                      </span>
+                    )}
+                    {place.rating && (
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+                        <span style={{ color: '#f97316', fontSize: '15px' }}>★</span>
+                        <span style={{ color: 'white', fontWeight: 700, fontSize: '0.85rem' }}>{place.rating}</span>
+                      </span>
+                    )}
                   </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                      <span className="material-symbols-outlined" style={{ color: '#f97316', fontSize: '16px' }}>location_on</span>
-                      <span style={{ fontSize: '0.8rem', color: '#cbd5e1', lineHeight: 1.4 }}>{place.formattedAddress}</span>
-                    </div>
-                    {todayHours && (
-                      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                        <span className="material-symbols-outlined" style={{ color: '#f97316', fontSize: '16px' }}>schedule</span>
-                        <span style={{ fontSize: '0.8rem', color: '#cbd5e1' }}>{todayHours}</span>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '1rem' }}>
+                    {place.formattedAddress && (
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+                        <span className="material-symbols-outlined" style={{ color: '#f97316', fontSize: '16px', flexShrink: 0, marginTop: '1px' }}>location_on</span>
+                        <span style={{ fontSize: '0.82rem', color: '#cbd5e1', lineHeight: 1.5 }}>{place.formattedAddress}</span>
                       </div>
                     )}
                     {place.internationalPhoneNumber && (
-                      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                        <span className="material-symbols-outlined" style={{ color: '#f97316', fontSize: '16px' }}>call</span>
-                        <span style={{ fontSize: '0.8rem', color: '#f97316', fontWeight: 600 }}>{place.internationalPhoneNumber}</span>
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <span className="material-symbols-outlined" style={{ color: '#f97316', fontSize: '16px', flexShrink: 0 }}>call</span>
+                        <span style={{ fontSize: '0.82rem', color: '#f97316', fontWeight: 600 }}>{place.internationalPhoneNumber}</span>
                       </div>
                     )}
                   </div>
+
+                  {/* Time badge */}
+                  {matchedStop?.time && (
+                    <div style={{
+                      display: 'inline-flex', alignItems: 'center', gap: '6px',
+                      background: 'rgba(255,255,255,0.1)', borderRadius: '8px',
+                      padding: '6px 14px', fontSize: '0.85rem', fontWeight: 700, color: 'white'
+                    }}>
+                      {matchedStop.time} {matchedStop.period || ''}
+                    </div>
+                  )}
                 </div>
 
                 {photo && (
-                  <div 
+                  <div
                     onClick={() => handlePhotoClick(0)}
-                    style={{ width: '280px', height: '180px', borderRadius: '10px', overflow: 'hidden', flexShrink: 0, boxShadow: '0 8px 25px rgba(0,0,0,0.5)', alignSelf: 'center', cursor: 'pointer' }}
+                    style={{ width: '200px', height: '140px', borderRadius: '10px', overflow: 'hidden', flexShrink: 0, boxShadow: '0 8px 25px rgba(0,0,0,0.5)', cursor: 'pointer' }}
                   >
                     <img src={photo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </div>
