@@ -2,11 +2,18 @@ import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { useI18n } from '../../context/I18nContext';
 import TripCard from './TripCard';
+import TripAlbumGrid from './TripAlbumGrid';
 
 export default function TripGrid({ trips, onAddTrip, onEdit }) {
   const { state } = useApp();
   const { t } = useI18n();
   const isList = state.dashboardView === 'list';
+  const isAlbum = state.dashboardView === 'album';
+
+  if (isAlbum) {
+    return <TripAlbumGrid trips={trips} onAddTrip={onAddTrip} onEdit={onEdit} />;
+  }
+
 
   return (
     <div className="trip-grid" style={isList ? { display: 'block' } : {}}>

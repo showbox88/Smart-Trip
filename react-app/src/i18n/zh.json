@@ -287,5 +287,10 @@
         "no_days_found": "未找到行程天数",
         "select_date": "选择日期",
         "no_transit_data": "无法获取交通信息"
+    },
+    "app": {
+        "albums": {
+            "title": "我的本地相册"
+        }
     }
 }

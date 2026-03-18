@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useApp } from './context/AppContext';
 import { useAuth } from './hooks/useAuth';
 import Navbar from './components/layout/Navbar';
@@ -6,9 +6,11 @@ import LoadingSpinner from './components/common/LoadingSpinner';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import TripPage from './pages/TripPage';
+import ArchivePage from './pages/ArchivePage';
 
 export default function App() {
   const { state } = useApp();
+  const location = useLocation();
 
   // Initialize auth listener (subscribes on mount)
   useAuth();
@@ -25,13 +27,16 @@ export default function App() {
     );
   }
 
+  const isArchiveRoute = location.pathname.startsWith('/archive');
+
   return (
     <>
-      <Navbar />
-      <main id="app-container">
+      {!isArchiveRoute && <Navbar />}
+      <main id={isArchiveRoute ? "archive-container" : "app-container"} style={isArchiveRoute ? { padding: 0 } : {}}>
         <Routes>
           <Route path="/" element={<DashboardPage />} />
           <Route path="/trip/:id" element={<TripPage />} />
+          <Route path="/archive/*" element={<ArchivePage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

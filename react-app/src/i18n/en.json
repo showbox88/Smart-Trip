@@ -287,5 +287,10 @@
         "no_days_found": "No days found",
         "select_date": "Select Date",
         "no_transit_data": "Transit info unavailable"
+    },
+    "app": {
+        "albums": {
+            "title": "Local Memories"
+        }
     }
 }
