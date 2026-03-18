@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTripEditor } from '../../hooks/useTripEditor';
 import { useTimelineDrag } from '../../hooks/useTimelineDrag';
@@ -59,6 +59,8 @@ export default function ItineraryView({ tripId }) {
       });
     }
   }, [tripId, !!trip]);
+
+  const mapPanelRef = useRef(null);
 
   // Modal state
   const [confirmModal, setConfirmModal] = useState(null); // { message, onConfirm }
@@ -271,12 +273,13 @@ export default function ItineraryView({ tripId }) {
                   onOpenTimePicker={handleOpenTimePicker}
                   onOpenExpense={handleOpenExpense}
                   onChangePhoto={(dayId, stopId, photoUrl) => updateStop(dayId, stopId, { photo: photoUrl })}
+                  onFocusStop={(stopId) => mapPanelRef.current?.focusStop(stopId)}
                 />
               ))}
             </div>
           </section>
 
-          <MapPanel onAddToDay={handleMapAddToDay} />
+          <MapPanel ref={mapPanelRef} onAddToDay={handleMapAddToDay} />
 
       {/* Mobile view switcher */}
       <div className="mobile-view-switcher">

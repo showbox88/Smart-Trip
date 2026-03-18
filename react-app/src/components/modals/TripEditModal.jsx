@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useI18n } from '../../context/I18nContext';
+import { uploadToSupabase } from '../../utils/uploadHelpers';
 
 export default function TripEditModal({ trip, onSave, onClose }) {
   const { t } = useI18n();
@@ -32,6 +33,20 @@ export default function TripEditModal({ trip, onSave, onClose }) {
     }
     setSearchResults(results);
     setIsSearching(false);
+  };
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const publicUrl = await uploadToSupabase(file);
+      setForm(f => ({ ...f, thumb: publicUrl }));
+      setSearchResults(prev => [publicUrl, ...prev.filter(u => u !== publicUrl)]);
+    } catch (err) {
+      console.error('[TripEditModal] Upload error:', err);
+      alert(t('common.fetch_error') || 'Upload error');
+    }
   };
 
   return (
@@ -130,6 +145,27 @@ export default function TripEditModal({ trip, onSave, onClose }) {
             >
               {isSearching ? t('common.loading') : (t('common.search') || 'Search')}
             </button>
+          </div>
+          
+          <div style={{ marginBottom: '0.8rem' }}>
+            <label style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              gap: '8px', 
+              padding: '0.6rem', 
+              background: 'rgba(255,255,255,0.06)', 
+              border: '1px dashed var(--glass-border)', 
+              borderRadius: '8px', 
+              cursor: 'pointer',
+              color: 'var(--text-secondary)',
+              fontSize: '0.85rem',
+              fontWeight: 600
+            }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>upload</span>
+              {t('stops.upload_local') || 'Upload Locally'}
+              <input type="file" accept="image/*" onChange={handleFileUpload} style={{ display: 'none' }} />
+            </label>
           </div>
           <div id="image-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', maxHeight: '200px', overflowY: 'auto', paddingRight: '4px' }}>
             {searchResults.map((url, i) => (

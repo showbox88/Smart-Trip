@@ -2,9 +2,12 @@ import { useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
 import { generateId } from '../utils/formatters';
+import { deleteFilesFromSupabase } from '../utils/uploadHelpers';
 
 export function useTrips() {
   const { state, dispatch } = useApp();
+
+  // ... refreshTrips and deleteTrip follow ...
 
   const refreshTrips = useCallback(async () => {
     if (!state.user) return;
@@ -30,6 +33,45 @@ export function useTrips() {
 
   const deleteTrip = useCallback(async (tripId) => {
     if (!state.user) return;
+    
+    // 1. Find the trip in memory to get its images
+    const trip = state.trips.find(t => t.id === tripId);
+    if (trip) {
+      const filesToDelete = [];
+      const extractFileName = (url) => {
+        if (!url || !url.includes('/storage/v1/object/public/trip-media/')) return null;
+        return url.split('/').pop().split('?')[0]; // Get filename, strip query params
+      };
+
+      // Trip thumb
+      const thumbFile = extractFileName(trip.thumb);
+      if (thumbFile) filesToDelete.push(thumbFile);
+
+      // All stops photos
+      if (trip.days) {
+        trip.days.forEach(day => {
+          day.stops?.forEach(stop => {
+            const stopFile = extractFileName(stop.photo);
+            if (stopFile) filesToDelete.push(stopFile);
+          });
+        });
+      }
+
+      // 2. Delete files from Supabase Storage
+      if (filesToDelete.length > 0) {
+        try {
+          // Remove duplicates
+          const uniqueFiles = [...new Set(filesToDelete)];
+          await deleteFilesFromSupabase(uniqueFiles);
+          console.log(`[deleteTrip] Cleaned up ${uniqueFiles.length} files from storage`);
+        } catch (e) {
+          console.warn('[deleteTrip] Failed to cleanup storage:', e);
+          // Continue with DB deletion even if storage cleanup fails
+        }
+      }
+    }
+
+    // 3. Delete from database
     const { error } = await supabase
       .from('trips')
       .delete()

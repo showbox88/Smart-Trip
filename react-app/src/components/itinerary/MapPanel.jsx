@@ -1,42 +1,42 @@
-import { useEffect, useRef, useState, useMemo } from 'react';
+import { useEffect, useRef, useState, useMemo, useImperativeHandle, forwardRef, useCallback } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useI18n } from '../../context/I18nContext';
 import MapInfoPanel from './MapInfoPanel';
 import MapSearchBox from './MapSearchBox';
 
-const MAPS_API_KEY = 'AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k';
-
-async function fetchRoutePolyline(routePath) {
+async function fetchAndDrawRoute(routePath, color, mapInstance) {
   try {
+    if (typeof google === 'undefined') return [];
+    const { Route } = await google.maps.importLibrary('routes');
     const origin = routePath[0];
     const dest = routePath[routePath.length - 1];
-    const intermediates = routePath.slice(1, -1).map(p => ({
-      location: { latLng: { latitude: p.lat, longitude: p.lng } }
+    const intermediates = routePath.slice(1, -1).slice(0, 25).map(p => ({
+      location: new google.maps.LatLng(Number(p.lat), Number(p.lng))
     }));
-    const res = await fetch('https://routes.googleapis.com/directions/v2:computeRoutes', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Goog-Api-Key': MAPS_API_KEY,
-        'X-Goog-FieldMask': 'routes.polyline.encodedPolyline',
-      },
-      body: JSON.stringify({
-        origin: { location: { latLng: { latitude: origin.lat, longitude: origin.lng } } },
-        destination: { location: { latLng: { latitude: dest.lat, longitude: dest.lng } } },
-        intermediates: intermediates.slice(0, 25),
-        travelMode: 'DRIVE',
-      }),
+
+    const { routes } = await Route.computeRoutes({
+      origin: new google.maps.LatLng(Number(origin.lat), Number(origin.lng)),
+      destination: new google.maps.LatLng(Number(dest.lat), Number(dest.lng)),
+      travelMode: 'DRIVING',
+      intermediates,
+      fields: ['path'],
     });
-    const data = await res.json();
-    if (!data.routes?.[0]?.polyline?.encodedPolyline) return null;
-    return google.maps.geometry.encoding.decodePath(data.routes[0].polyline.encodedPolyline);
+
+    if (!routes?.[0]) return [];
+
+    const polylines = routes[0].createPolylines();
+    polylines.forEach(p => {
+      p.setOptions({ strokeColor: color, strokeOpacity: 0.8, strokeWeight: 4 });
+      p.setMap(mapInstance);
+    });
+    return polylines;
   } catch (err) {
-    console.error('[MapPanel] fetchRoutePolyline failed:', err);
-    return null;
+    console.warn('[MapPanel] Routes API failed:', err?.message || err);
+    return [];
   }
 }
 
-export default function MapPanel({ onAddToDay }) {
+const MapPanel = forwardRef(function MapPanel({ onAddToDay }, ref) {
   const { state } = useApp();
   const { t } = useI18n();
   const mapRef = useRef(null);
@@ -219,7 +219,7 @@ export default function MapPanel({ onAddToDay }) {
         }
       }
 
-      // Draw route: fetch encoded polyline from Routes API, fall back to straight line
+      // Draw route: fetch real route from Routes API, fall back to straight line
       if (routePath.length >= 2) {
         const color = dayColor;
         const mapInst = mapInstanceRef.current;
@@ -234,21 +234,15 @@ export default function MapPanel({ onAddToDay }) {
         });
         polylinesRef.current.push(fallbackPoly);
 
-        // Async: replace with real route polyline
+        // Async: replace with real route polylines
         (async () => {
           try {
-            const decodedPath = await fetchRoutePolyline(routePath, color);
-            if (!decodedPath || !mapInstanceRef.current) return;
-            fallbackPoly.setMap(null);
-            const realPoly = new google.maps.Polyline({
-              path: decodedPath,
-              strokeColor: color,
-              strokeOpacity: 0.8,
-              strokeWeight: 4,
-              map: mapInstanceRef.current,
-            });
-            polylinesRef.current.push(realPoly);
-          } catch (_) { /* keep fallback */ }
+            const realPolylines = await fetchAndDrawRoute(routePath, color, mapInst);
+            if (realPolylines.length > 0 && mapInstanceRef.current) {
+              fallbackPoly.setMap(null);
+              polylinesRef.current.push(...realPolylines);
+            }
+          } catch (err) { console.warn('[MapPanel] route fetch failed:', err); }
         })();
       }
     });
@@ -284,6 +278,47 @@ export default function MapPanel({ onAddToDay }) {
       }
     });
   }, [state.hoveredStopId, mapReady]);
+
+  // Expose focusStop method via ref (no state change = no re-render = no flash)
+  const focusStop = useCallback((stopId) => {
+    if (!mapInstanceRef.current) return;
+    const map = mapInstanceRef.current;
+    const marker = markersRef.current.find(m => m.stopId === stopId);
+    if (!marker?.position) return;
+
+    const pos = marker.position;
+    const lat = typeof pos.lat === 'function' ? pos.lat() : pos.lat;
+    const lng = typeof pos.lng === 'function' ? pos.lng() : pos.lng;
+
+    map.panTo({ lat, lng });
+
+    const currentZoom = map.getZoom();
+    const targetZoom = 16;
+    if (currentZoom < targetZoom) {
+      let zoom = currentZoom;
+      const smoothZoom = () => {
+        if (zoom >= targetZoom) return;
+        zoom = Math.min(zoom + 0.5, targetZoom);
+        map.setZoom(zoom);
+        requestAnimationFrame(smoothZoom);
+      };
+      setTimeout(smoothZoom, 300);
+    }
+
+    // Pulse marker
+    const content = marker.content;
+    if (content) {
+      content.style.transition = 'transform 0.3s ease';
+      content.style.transform = 'scale(1.4) translateY(-6px)';
+      content.style.zIndex = '1000';
+      setTimeout(() => {
+        content.style.transform = 'scale(1)';
+        content.style.zIndex = 'auto';
+      }, 1000);
+    }
+  }, []);
+
+  useImperativeHandle(ref, () => ({ focusStop }), [focusStop]);
 
   return (
     <section className="map-view">
@@ -330,4 +365,6 @@ export default function MapPanel({ onAddToDay }) {
       </div>
     </section>
   );
-}
+});
+
+export default MapPanel;

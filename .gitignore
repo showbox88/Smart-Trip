@@ -8,3 +8,16 @@ __pycache__/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Environment variables (contains API keys)
+.env
+.env.local
+.env.*.local
+react-app/.env
+react-app/.env.local
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/

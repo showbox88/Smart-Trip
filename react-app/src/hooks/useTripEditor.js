@@ -8,6 +8,20 @@ import { fetchRouteDuration } from '../utils/transitHelpers';
 
 const DEFAULT_COLORS = ['#5b7a99', '#ef4444', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899'];
 
+async function getStreetViewThumbUrl(lat, lng, width = 320, height = 240) {
+  try {
+    if (typeof google === 'undefined') return null;
+    const svc = new google.maps.StreetViewService();
+    const result = await svc.getPanorama({ location: { lat: Number(lat), lng: Number(lng) }, radius: 100 });
+    const pano = result?.data?.location?.pano;
+    if (!pano) return null;
+    const yaw = result?.data?.tiles?.centerHeading ?? 0;
+    return `https://streetviewpixels-pa.googleapis.com/v1/thumbnail?panoid=${pano}&cb_client=search.gws-prod.gps&w=${width}&h=${height}&yaw=${yaw}&pitch=0&thumbfov=100`;
+  } catch (e) {
+    return null;
+  }
+}
+
 function formatDate(startDate, dayIndex) {
   if (!startDate) return '';
   const d = new Date(startDate.replace(/-/g, '/'));
@@ -320,8 +334,8 @@ export function useTripEditor(tripId) {
       const lng = place.location?.lng() || 0;
       let photoUrl = place.photos?.length > 0 ? place.photos[0].getURI({ maxWidth: 400 }) : '';
 
-      if (!photoUrl && lat && lng && window._getStreetViewThumbUrl) {
-        photoUrl = (await window._getStreetViewThumbUrl(lat, lng, 320, 240)) || '';
+      if (!photoUrl && lat && lng) {
+        photoUrl = (await getStreetViewThumbUrl(lat, lng, 320, 240)) || '';
       }
 
       const categoryInfo = getCategoryFromTypes(place.types || []);

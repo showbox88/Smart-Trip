@@ -18,7 +18,8 @@ export default function DaySection({
   onOpenExpense,
   onChangePhoto,
   draggingStopId,
-  onDragPointerDown, onDragPointerMove, onDragPointerUp
+  onDragPointerDown, onDragPointerMove, onDragPointerUp,
+  onFocusStop
 }) {
   const { t } = useI18n();
   const [insertingAfterStopId, setInsertingAfterStopId] = useState(null);
@@ -83,6 +84,7 @@ export default function DaySection({
           onAddStop={(dId, afterId) => setInsertingAfterStopId(afterId)}
           onAddNote={onAddNote}
           onAddList={onAddList}
+          onFocusStop={onFocusStop}
         />
       );
     }

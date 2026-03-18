@@ -1,33 +1,37 @@
-const MAPS_API_KEY = 'AIzaSyCmUAhTA7jDkeC4A3R3BtF8QyiNOr0uD8k';
+// Map legacy REST API travel modes to JS SDK values
+const TRAVEL_MODE_MAP = {
+  'DRIVE': 'DRIVING',
+  'WALK': 'WALKING',
+  'BICYCLE': 'BICYCLING',
+  'TRANSIT': 'TRANSIT',
+  'TWO_WHEELER': 'TWO_WHEELER',
+};
 
-export async function fetchRouteDuration(origin, dest, travelMode = 'DRIVE') {
+export async function fetchRouteDuration(origin, dest, travelMode = 'DRIVING') {
   try {
-    const res = await fetch('https://routes.googleapis.com/directions/v2:computeRoutes', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Goog-Api-Key': MAPS_API_KEY,
-        'X-Goog-FieldMask': 'routes.duration,routes.distanceMeters'
-      },
-      body: JSON.stringify({
-        origin: { location: { latLng: { latitude: origin.lat, longitude: origin.lng } } },
-        destination: { location: { latLng: { latitude: dest.lat, longitude: dest.lng } } },
-        travelMode: travelMode
-      })
+    if (typeof google === 'undefined') return null;
+    const { Route } = await google.maps.importLibrary('routes');
+    const mode = TRAVEL_MODE_MAP[travelMode] || travelMode;
+
+    const { routes } = await Route.computeRoutes({
+      origin: new google.maps.LatLng(Number(origin.lat), Number(origin.lng)),
+      destination: new google.maps.LatLng(Number(dest.lat), Number(dest.lng)),
+      travelMode: mode,
+      fields: ['durationMillis', 'distanceMeters'],
     });
-    const data = await res.json();
-    if (!data.routes || !data.routes[0]) {
-      console.warn('[transitHelpers] API returned no routes');
+
+    if (!routes?.[0]) {
+      console.warn('[transitHelpers] Routes API returned no routes');
       return null;
     }
-    const route = data.routes[0];
-    const durationStr = route.duration || '0s';
-    const seconds = parseInt(durationStr.toString().replace(/[^0-9]/g, ''), 10);
+
+    const route = routes[0];
+    const seconds = Math.round((route.durationMillis || 0) / 1000);
     const meters = route.distanceMeters;
 
     return {
-      duration: seconds, // Store raw seconds
-      distance: meters,  // Store raw meters
+      duration: seconds,
+      distance: meters,
     };
   } catch (err) {
     console.error('[transitHelpers] fetchRouteDuration failed:', err);
