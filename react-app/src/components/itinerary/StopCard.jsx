@@ -186,7 +186,8 @@ export default function StopCard({
             borderRadius: '10px',
             padding: '6px 12px',
             marginBottom: '0.6rem',
-            display: 'flex',
+            display: 'inline-flex',
+            alignSelf: 'flex-start',
             alignItems: 'center',
             gap: '6px',
             animation: 'pulse-border 2s ease-in-out infinite'

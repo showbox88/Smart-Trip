@@ -46,6 +46,23 @@ export default function ItineraryView({ tripId }) {
     handlePointerUp: onDragPointerUp,
   } = useTimelineDrag(trip, moveStop);
 
+  // Track active day by scroll position
+  useEffect(() => {
+    if (!trip?.days?.length) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.find(e => e.isIntersecting);
+        if (visible) setActiveDayIdLocal(visible.target.id);
+      },
+      { threshold: 0.2, rootMargin: '-10% 0px -70% 0px' }
+    );
+    trip.days.forEach(day => {
+      const el = document.getElementById(day.id);
+      if (el) observer.observe(el);
+    });
+    return () => observer.disconnect();
+  }, [trip?.days?.map(d => d.id).join(',')]);
+
   // Auto-compute transit data if missing on load
   useEffect(() => {
     if (trip?.days) {
@@ -71,6 +88,7 @@ export default function ItineraryView({ tripId }) {
   const [expenseModal, setExpenseModal] = useState(null); // { dayId, stop }
   const [collapsedDays, setCollapsedDays] = useState({}); // { [dayId]: boolean }
   const [pendingInsertion, setPendingInsertion] = useState(null); // { dayId, afterStopId }
+  const [activeDayIdLocal, setActiveDayIdLocal] = useState(null);
 
   const openConfirm = (message, onConfirm) => setConfirmModal({ message, onConfirm });
 
@@ -166,7 +184,7 @@ export default function ItineraryView({ tripId }) {
     );
   }
 
-  const activeDayId = trip.activeDayId || trip.days[0]?.id;
+  const activeDayId = activeDayIdLocal || trip.activeDayId || trip.days[0]?.id;
 
   const handleToggleDayCollapse = (dayId, forceValue) => {
     setCollapsedDays(prev => ({
@@ -176,10 +194,12 @@ export default function ItineraryView({ tripId }) {
   };
 
   const handleSidebarDayClick = (dayId) => {
+    setActiveDayIdLocal(dayId);
+
     // Scroll to day
     const el = document.getElementById(dayId);
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    
+
     // Auto-expand this day and collapse others
     const newCollapsed = {};
     trip.days.forEach(d => {

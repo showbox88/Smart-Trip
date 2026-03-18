@@ -7,19 +7,15 @@ import { useI18n } from '../../context/I18nContext';
 export default function Navbar() {
   const { state } = useApp();
   const { signOut } = useAuth();
-  const { t, language, setLanguage } = useI18n();
+  const { t, language, setLanguage, availableLanguages } = useI18n();
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [langMenuOpen, setLangMenuOpen] = useState(false);
 
   const handleLogout = async () => {
     setDropdownOpen(false);
     await signOut();
     navigate('/');
-  };
-
-  const toggleLanguage = () => {
-    setLanguage(language === 'zh' ? 'en' : 'zh');
-    setDropdownOpen(false);
   };
 
   return (
@@ -59,13 +55,33 @@ export default function Navbar() {
                   <div style={{ padding: '0.5rem 0.75rem', color: 'var(--text-secondary)', fontSize: '0.8rem', borderBottom: '1px solid rgba(255,255,255,0.08)', marginBottom: '4px' }}>
                     {state.user.email}
                   </div>
-                  <button
-                    onClick={toggleLanguage}
-                    style={{ width: '100%', textAlign: 'left', padding: '8px 12px', background: 'none', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', borderRadius: '8px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px' }}
-                  >
-                    <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#64748b' }}>language</span>
-                    {language === 'zh' ? 'English' : '中文'}
-                  </button>
+                  <div style={{ position: 'relative' }}>
+                    <button
+                      onClick={() => setLangMenuOpen(v => !v)}
+                      style={{ width: '100%', textAlign: 'left', padding: '8px 12px', background: langMenuOpen ? 'rgba(255,255,255,0.06)' : 'none', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', borderRadius: '8px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'space-between' }}
+                    >
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#64748b' }}>language</span>
+                        {availableLanguages.find(l => l.code === language)?.label || language}
+                      </span>
+                      <span className="material-symbols-outlined" style={{ fontSize: '14px', color: '#64748b', transition: 'transform 0.2s', transform: langMenuOpen ? 'rotate(180deg)' : 'none' }}>expand_more</span>
+                    </button>
+                    {langMenuOpen && (
+                      <div style={{ marginTop: '2px', background: '#13151c', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', overflow: 'hidden' }}>
+                        {availableLanguages.map(lang => (
+                          <button
+                            key={lang.code}
+                            onClick={() => { setLanguage(lang.code); setLangMenuOpen(false); setDropdownOpen(false); }}
+                            style={{ width: '100%', textAlign: 'left', padding: '7px 14px', background: lang.code === language ? 'rgba(99,179,237,0.12)' : 'none', border: 'none', color: lang.code === language ? '#63b3ed' : 'var(--text-primary)', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px' }}
+                          >
+                            {lang.code === language && <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>check</span>}
+                            {lang.code !== language && <span style={{ width: '14px' }} />}
+                            {lang.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                   <button
                     onClick={handleLogout}
                     style={{ width: '100%', textAlign: 'left', padding: '8px 12px', background: 'none', border: 'none', color: '#ff4d4f', cursor: 'pointer', borderRadius: '8px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px' }}

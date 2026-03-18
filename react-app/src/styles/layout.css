@@ -406,8 +406,7 @@ nav a:hover {
 }
 
 .sidebar #sidebar-nav li.active {
-    background: #1a1c1e;
-    /* Keep it dark and opaque */
+    background: rgba(91, 122, 153, 0.15);
     border-left-color: var(--active-color, var(--accent-primary));
 }
 
@@ -428,8 +427,8 @@ nav a:hover {
 }
 
 .sidebar.collapsed #sidebar-nav li.active {
-    background: #1a1c1e !important;
-    /* Must be opaque to block light from surface */
+    background: rgba(91, 122, 153, 0.2) !important;
+    box-shadow: inset 0 0 0 1.5px var(--active-color, var(--accent-primary)) !important;
 }
 
 /* --- Elements Visibility --- */

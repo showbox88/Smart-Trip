@@ -1,15 +1,41 @@
 import { createContext, useContext, useState, useCallback } from 'react';
-import zhTranslations from '../i18n/zh.json';
-import enTranslations from '../i18n/en.json';
 
-const bundles = { zh: zhTranslations, en: enTranslations };
+// Automatically import all JSON files in src/i18n/
+const modules = import.meta.glob('../i18n/*.json', { eager: true });
+
+// Build bundles: { zh: {...}, en: {...}, ja: {...}, ... }
+const bundles = {};
+const availableLanguages = []; // [{ code: 'zh', label: '中文' }, ...]
+
+for (const path in modules) {
+  const code = path.match(/\/(\w+)\.json$/)?.[1];
+  if (!code) continue;
+  const data = modules[path].default ?? modules[path];
+  bundles[code] = data;
+  availableLanguages.push({
+    code,
+    label: data?._meta?.label || code.toUpperCase(),
+  });
+}
+
+// Sort: put zh and en first, then alphabetical
+const PRIORITY = ['zh', 'en'];
+availableLanguages.sort((a, b) => {
+  const ai = PRIORITY.indexOf(a.code);
+  const bi = PRIORITY.indexOf(b.code);
+  if (ai !== -1 && bi !== -1) return ai - bi;
+  if (ai !== -1) return -1;
+  if (bi !== -1) return 1;
+  return a.code.localeCompare(b.code);
+});
 
 const I18nContext = createContext(null);
 
 export function I18nProvider({ children }) {
-  const [language, setLanguageState] = useState(
-    () => localStorage.getItem('smart-trip-lang') || 'zh'
-  );
+  const [language, setLanguageState] = useState(() => {
+    const saved = localStorage.getItem('smart-trip-lang');
+    return saved && bundles[saved] ? saved : (availableLanguages[0]?.code || 'en');
+  });
 
   const setLanguage = useCallback((lang) => {
     if (bundles[lang]) {
@@ -32,7 +58,7 @@ export function I18nProvider({ children }) {
   }, [language]);
 
   return (
-    <I18nContext.Provider value={{ t, language, setLanguage }}>
+    <I18nContext.Provider value={{ t, language, setLanguage, availableLanguages }}>
       {children}
     </I18nContext.Provider>
   );
