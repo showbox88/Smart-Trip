@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useI18n } from '../../context/I18nContext';
 import { useApp } from '../../context/AppContext';
+import { PLACE_CATEGORY_MAP } from '../../utils/tripHelpers';
 
 function StarRating({ rating }) {
   if (!rating) return null;
@@ -24,17 +25,10 @@ function getTodayHours(place) {
   } catch { return null; }
 }
 
-function getCategoryLabel(place) {
+function getCategoryLabel(place, t) {
   if (!place.types?.length) return null;
-  const map = {
-    restaurant: '餐厅', cafe: '咖啡馆', lodging: '住宿', tourist_attraction: '景点',
-    museum: '博物馆', park: '公园', shopping_mall: '购物中心', store: '商店',
-    bar: '酒吧', hospital: '医院', airport: '机场', transit_station: '交通站',
-    gas_station: '加油站', night_club: '夜店', movie_theater: '影院',
-    amusement_park: '游乐园', art_gallery: '画廊', bakery: '烘焙坊',
-  };
-  for (const t of place.types) {
-    if (map[t]) return map[t];
+  for (const type of place.types) {
+    if (PLACE_CATEGORY_MAP[type]) return t(PLACE_CATEGORY_MAP[type].labelKey);
   }
   return place.types[0]?.replace(/_/g, ' ') || null;
 }
@@ -167,7 +161,7 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay }) {
   const photos = place?.photos || [];
   const photo = photos[0] ? photos[0].getURI({ maxWidth: 680, maxHeight: 420 }) : null;
   const todayHours = place ? getTodayHours(place) : null;
-  const category = place ? getCategoryLabel(place) : null;
+  const category = place ? getCategoryLabel(place, t) : null;
   const reviews = place?.reviews || [];
 
   return (
@@ -245,7 +239,7 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay }) {
                     onMouseOut={e => e.currentTarget.style.background = isAdded ? 'rgba(16,185,129,0.06)' : 'transparent'}
                   >
                     <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: day.color || '#f97316', marginRight: '12px' }} />
-                    <span style={{ fontSize: '0.85rem', fontWeight: 700, color: isAdded ? '#10b981' : 'white', flex: 1 }}>{t('itinerary.day_label')} {idx+1}</span>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 700, color: isAdded ? '#10b981' : 'white', flex: 1 }}>{t('itinerary.day_label')}{idx+1}{t('itinerary.day_suffix')}</span>
                     <span style={{ fontSize: '0.75rem', color: isAdded ? '#10b981' : '#64748b', marginRight: isAdded ? '6px' : 0 }}>{day.date}</span>
                     {isAdded && <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#10b981' }}>check_circle</span>}
                   </div>

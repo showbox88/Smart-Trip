@@ -253,7 +253,7 @@ export default function StopCard({
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-secondary)', fontSize: '0.8rem', background: 'rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: '20px', border: '1px solid var(--glass-border)' }}>
                 <span className="material-symbols-outlined" style={{ fontSize: '12px', color: '#ff4d4f' }}>location_on</span>
-                {stop.category || t('map.place')}
+                {stop.category ? (t(stop.category) !== stop.category ? t(stop.category) : stop.category) : t('map.place_default')}
               </div>
             </div>
 

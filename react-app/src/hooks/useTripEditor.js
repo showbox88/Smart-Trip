@@ -355,8 +355,9 @@ export function useTripEditor(tripId) {
         lng,
         photo: photoUrl,
         rating: place.rating,
-        category: categoryInfo.label,
+        category: categoryInfo.labelKey,
         categoryIcon: categoryInfo.icon,
+        placeTypes: place.types || [],
         placeId: place.id,
         openingHours: place.regularOpeningHours?.weekdayDescriptions || [],
       };
