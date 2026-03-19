@@ -42,9 +42,11 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay }, ref) {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersRef = useRef([]);
+  const markerMapRef = useRef(new Map()); // stopId → marker for O(1) lookup
   const categoryMarkersRef = useRef([]);
   const polylinesRef = useRef([]);
   const hasInitialFitRef = useRef(null); // stores tripId
+  const prevHoveredRef = useRef(null); // track previous hovered stopId
   const [mapReady, setMapReady] = useState(!!window.googleMapsReady);
   const [darkMode, setDarkMode] = useState(true);
   const [selectedPlaceId, setSelectedPlaceId] = useState(null);
@@ -116,6 +118,7 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay }, ref) {
     const oldMarkers = markersRef.current.slice();
     const oldPolylines = polylinesRef.current.slice();
     markersRef.current = [];
+    markerMapRef.current = new Map();
     polylinesRef.current = [];
 
     const bounds = new google.maps.LatLngBounds();
@@ -224,7 +227,7 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay }, ref) {
             'box-shadow:0 10px 40px rgba(0,0,0,0.5);opacity:0;transition:opacity 0.2s,box-shadow 0.2s;',
             'font-family:inherit;min-width:340px;border:1px solid rgba(255,255,255,0.1);',
             'display:flex;z-index:3000;',
-            'filter:invert(100%) hue-rotate(180deg);',
+            darkMode ? 'filter:invert(100%) hue-rotate(180deg);' : '',
           ].join('');
 
           let tooltipHtml;
@@ -365,6 +368,7 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay }, ref) {
           }
 
           markersRef.current.push(marker);
+          if (stop.id) markerMapRef.current.set(stop.id, marker);
         }
       });
 
@@ -426,31 +430,41 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay }, ref) {
     }
   }, [activeTrip, mapReady, t, darkMode]);
 
-  // Handle Hover Synchronization
+  // Handle Hover Synchronization — O(1) via markerMapRef
   useEffect(() => {
     if (!mapReady) return;
-    markersRef.current.forEach(marker => {
-      const content = marker.content;
-      if (!content) return;
-      
-      const isHovered = marker.stopId === state.hoveredStopId;
-      if (isHovered) {
-        content.style.transform = 'scale(1.2) translateY(-4px)';
-        content.style.zIndex = '1000';
-        content.querySelector('path')?.setAttribute('stroke-width', '4');
-      } else {
+    const prev = prevHoveredRef.current;
+    const next = state.hoveredStopId;
+    if (prev === next) return;
+
+    // Un-hover previous
+    if (prev) {
+      const marker = markerMapRef.current.get(prev);
+      const content = marker?.content;
+      if (content) {
         content.style.transform = 'scale(1)';
         content.style.zIndex = 'auto';
         content.querySelector('path')?.setAttribute('stroke-width', '2');
       }
-    });
+    }
+    // Hover next
+    if (next) {
+      const marker = markerMapRef.current.get(next);
+      const content = marker?.content;
+      if (content) {
+        content.style.transform = 'scale(1.2) translateY(-4px)';
+        content.style.zIndex = '1000';
+        content.querySelector('path')?.setAttribute('stroke-width', '4');
+      }
+    }
+    prevHoveredRef.current = next;
   }, [state.hoveredStopId, mapReady]);
 
   // Expose focusStop method via ref (no state change = no re-render = no flash)
   const focusStop = useCallback((stopId) => {
     if (!mapInstanceRef.current) return;
     const map = mapInstanceRef.current;
-    const marker = markersRef.current.find(m => m.stopId === stopId);
+    const marker = markerMapRef.current.get(stopId) || markersRef.current.find(m => m.stopId === stopId);
     if (!marker?.position) return;
 
     const pos = marker.position;
@@ -535,7 +549,7 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay }, ref) {
         'box-shadow:0 10px 40px rgba(0,0,0,0.5);opacity:0;transition:opacity 0.2s,transform 0.2s;',
         'font-family:inherit;min-width:300px;border:1px solid rgba(255,255,255,0.1);',
         'display:flex;gap:16px;z-index:3000;transform-origin:bottom center;',
-        'filter:invert(100%) hue-rotate(180deg);',
+        darkMode ? 'filter:invert(100%) hue-rotate(180deg);' : '',
       ].join('');
 
       let tooltipHtml = `

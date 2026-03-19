@@ -89,7 +89,9 @@ export function useTripEditor(tripId) {
         stop.transitMode || 'DRIVE'
       );
       
-      if (JSON.stringify(stop.transitToNext) !== JSON.stringify(res)) {
+      if (!res && !stop.transitToNext || (res && stop.transitToNext && res.duration === stop.transitToNext.duration && res.distance === stop.transitToNext.distance)) {
+        // no change
+      } else {
         stop.transitToNext = res;
         changed = true;
       }
@@ -290,13 +292,12 @@ export function useTripEditor(tripId) {
     }
   }, [trip, applyUpdate]);
 
-  const addNote = useCallback((dayId, afterStopId = null) => {
+  // Shared helper: insert a new stop into a day at the right position
+  const insertStop = useCallback((dayId, newStop, afterStopId = null) => {
     if (!trip) return;
     const updated = JSON.parse(JSON.stringify(trip));
     const day = updated.days.find(d => d.id === dayId);
     if (!day) return;
-
-    const newStop = { id: 'n' + Date.now(), type: 'note', content: '', checked: false };
 
     if (afterStopId === '__prepend__') {
       day.stops.unshift(newStop);
@@ -309,26 +310,14 @@ export function useTripEditor(tripId) {
     applyUpdate(updated);
     return newStop.id;
   }, [trip, applyUpdate]);
+
+  const addNote = useCallback((dayId, afterStopId = null) => {
+    return insertStop(dayId, { id: 'n' + Date.now(), type: 'note', content: '', checked: false }, afterStopId);
+  }, [insertStop]);
 
   const addList = useCallback((dayId, afterStopId = null) => {
-    if (!trip) return;
-    const updated = JSON.parse(JSON.stringify(trip));
-    const day = updated.days.find(d => d.id === dayId);
-    if (!day) return;
-
-    const newStop = { id: 'l' + Date.now(), type: 'list', title: '', items: [{ text: '', checked: false }] };
-
-    if (afterStopId === '__prepend__') {
-      day.stops.unshift(newStop);
-    } else if (afterStopId) {
-      const idx = day.stops.findIndex(s => s.id === afterStopId);
-      day.stops.splice(idx >= 0 ? idx + 1 : day.stops.length, 0, newStop);
-    } else {
-      day.stops.push(newStop);
-    }
-    applyUpdate(updated);
-    return newStop.id;
-  }, [trip, applyUpdate]);
+    return insertStop(dayId, { id: 'l' + Date.now(), type: 'list', title: '', items: [{ text: '', checked: false }] }, afterStopId);
+  }, [insertStop]);
 
   const updateNoteContent = useCallback((dayId, stopId, content) => {
     updateStop(dayId, stopId, { content });

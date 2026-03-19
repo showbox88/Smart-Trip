@@ -1,12 +1,12 @@
-import { useState, useRef, useEffect, forwardRef } from 'react';
+import { useState, useRef, useEffect, forwardRef, memo } from 'react';
 import { createPortal } from 'react-dom';
 import { useApp } from '../../context/AppContext';
 import { useI18n } from '../../context/I18nContext';
-import { 
-  Heart, Utensils, Landmark, MapPin, 
-  Bed, Plane, Leaf, User, ShoppingBag, Tag, Globe, 
-  Clock, CreditCard, CheckCircle2, Phone, Navigation2, Camera, MoreHorizontal,
-  Hotel, LogIn, LogOut, Receipt, Coffee, Croissant, Store
+import {
+  Utensils, Landmark, MapPin,
+  Bed, Plane, Leaf, ShoppingBag,
+  Clock, CheckCircle2, Phone,
+  Hotel, LogIn, LogOut, Receipt, Coffee, Croissant
 } from 'lucide-react';
 import { formatCurrency } from '../../utils/formatters';
 import TransitInfo from './TransitInfo';
@@ -42,7 +42,7 @@ function getCategoryIcon(cat, iconName) {
   return MapPin;
 }
 
-export default function StopCard({
+export default memo(function StopCard({
   stop, dayId, dayColor, index, showTransit, dayWeekdayIdx,
   onDelete, onToggleTransitMode, onOpenTimePicker, onOpenExpense, onOpenStayInfo,
   onChangePhoto, onAddStop, onAddNote, onAddList, onFocusStop,
@@ -547,7 +547,7 @@ export default function StopCard({
 
     </div>
   );
-}
+})
 
 const PhotoPickerDropdown = forwardRef(function PhotoPickerDropdown(
   { anchorEl, loading, photos, currentPhoto, noPhotosText, uploadText, onSelect, onUpload },

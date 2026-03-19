@@ -9,7 +9,8 @@
       "Bash(npm run build)",
       "Bash(ls \"c:\\\\Users\\\\Showbox\\\\Desktop\\\\Smat Trip\\\\react-app\\\\src\\\\components\\\\itinerary\"\" && ls \"c:UsersShowboxDesktopSmat Tripreact-appsrccomponentsmodals\"\")",
       "Bash(grep -n \"onUpdateListItem\\\\|onToggleListItem\\\\|onAddListItem\" react-app/src/components/itinerary/*.jsx)",
-      "Bash(npx react-scripts build)"
+      "Bash(npx react-scripts build)",
+      "Read(//c/Users/Showbox/Desktop/Smat/ Trip/react-app/src/components/itinerary/**)"
     ]
   }
 }

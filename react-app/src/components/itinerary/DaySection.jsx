@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo, memo } from 'react';
 import { useI18n } from '../../context/I18nContext';
 import DayHeader from './DayHeader';
 import StopCard from './StopCard';
@@ -7,7 +7,7 @@ import ListCard from './ListCard';
 import AddStopRow from './AddStopRow';
 import TransitInfo from './TransitInfo';
 
-export default function DaySection({
+export default memo(function DaySection({
   day, dayIndex, trip,
   isCollapsed, onToggleCollapse,
   onAddStop, onDeleteStop, onEditStop, onToggleTransitMode,
@@ -28,29 +28,32 @@ export default function DaySection({
   const [insertingAfterStopId, setInsertingAfterStopId] = useState(null);
   const activeColor = day.color || '#5b7a99';
 
-  const hotelContext = getHotelContext(day, trip);
+  const hotelContext = useMemo(() => getHotelContext(day, trip), [day, trip]);
   const stops = day.stops || [];
 
   // Compute the weekday index (Mon=0...Sun=6) for this day
-  const dayWeekdayIdx = (() => {
+  const dayWeekdayIdx = useMemo(() => {
     if (!trip?.startDate) return -1;
     const d = new Date(trip.startDate.replace(/-/g, '/'));
     if (isNaN(d)) return -1;
     d.setDate(d.getDate() + dayIndex);
     return (d.getDay() + 6) % 7;
-  })();
-
-  // ── Render ─────────────────────────────────────────────────────────────────
+  }, [trip?.startDate, dayIndex]);
 
   // First and last plain POI indices (location type, not hotel/note/list) for hotel context lines
-  const plainPois = stops
-    .map((s, i) => ({ s, i }))
-    .filter(({ s }) => s.type !== 'hotel_checkin' && s.type !== 'hotel_checkout' && s.type !== 'note' && s.type !== 'list');
-  const plainPoiIndices = plainPois.map(({ i }) => i);
-  const firstPlainPoiIdx = plainPoiIndices[0] ?? -1;
-  const lastPlainPoiIdx = plainPoiIndices[plainPoiIndices.length - 1] ?? -1;
-  const firstPlainStop = plainPois[0]?.s ?? null;
-  const lastPlainStop = plainPois[plainPois.length - 1]?.s ?? null;
+  const { plainPois, firstPlainPoiIdx, lastPlainPoiIdx, firstPlainStop, lastPlainStop } = useMemo(() => {
+    const pois = stops
+      .map((s, i) => ({ s, i }))
+      .filter(({ s }) => s.type !== 'hotel_checkin' && s.type !== 'hotel_checkout' && s.type !== 'note' && s.type !== 'list');
+    const indices = pois.map(({ i }) => i);
+    return {
+      plainPois: pois,
+      firstPlainPoiIdx: indices[0] ?? -1,
+      lastPlainPoiIdx: indices[indices.length - 1] ?? -1,
+      firstPlainStop: pois[0]?.s ?? null,
+      lastPlainStop: pois[pois.length - 1]?.s ?? null,
+    };
+  }, [stops]);
 
   const renderStop = (stop, index) => {
     const isPoi = stop.type === 'location' || !stop.type || stop.type === 'hotel_checkin' || stop.type === 'hotel_checkout';
@@ -262,7 +265,7 @@ export default function DaySection({
       )}
     </div>
   );
-}
+})
 
 function getHotelContext(day, trip) {
   if (!trip?.days) return {};

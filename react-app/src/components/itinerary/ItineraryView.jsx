@@ -20,7 +20,7 @@ function scrollToNewStop(id, attempts = 0) {
   const el = document.querySelector(`.id-${id}`);
   if (el) {
     el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  } else if (attempts < 20) {
+  } else if (attempts < 60) {
     requestAnimationFrame(() => scrollToNewStop(id, attempts + 1));
   }
 }
@@ -92,24 +92,24 @@ export default function ItineraryView({ tripId }) {
   const [pendingInsertion, setPendingInsertion] = useState(null); // { dayId, afterStopId }
   const [activeDayIdLocal, setActiveDayIdLocal] = useState(null);
 
-  const openConfirm = (message, onConfirm) => setConfirmModal({ message, onConfirm });
+  const openConfirm = useCallback((message, onConfirm) => setConfirmModal({ message, onConfirm }), []);
 
   // --- Stop actions ---
-  const handleDeleteStop = (dayId, stopId) => {
+  const handleDeleteStop = useCallback((dayId, stopId) => {
     deleteStop(dayId, stopId);
-  };
+  }, [deleteStop]);
 
-  const handleEditStop = (dayId, stopId) => {
+  const handleEditStop = useCallback((dayId, stopId) => {
     const day = trip?.days.find(d => d.id === dayId);
     const stop = day?.stops.find(s => s.id === stopId);
     if (stop) setStopEditModal({ dayId, stop });
-  };
+  }, [trip?.days]);
 
-  const handleSaveStop = (dayId, stopId, patch) => {
+  const handleSaveStop = useCallback((dayId, stopId, patch) => {
     updateStop(dayId, stopId, patch);
-  };
+  }, [updateStop]);
 
-  const handleOpenTimePicker = (dayId, stopId) => {
+  const handleOpenTimePicker = useCallback((dayId, stopId) => {
     const day = trip?.days.find(d => d.id === dayId);
     const stop = day?.stops.find(s => s.id === stopId);
     if (stop && day) {
@@ -124,56 +124,58 @@ export default function ItineraryView({ tripId }) {
       }
       setTimePickerModal({ dayId, stop, dayDate: displayDate });
     }
-  };
+  }, [trip?.days, trip?.startDate]);
 
-  const handleOpenExpense = (dayId, stopId) => {
+  const handleOpenExpense = useCallback((dayId, stopId) => {
     const day = trip?.days.find(d => d.id === dayId);
     const stop = day?.stops.find(s => s.id === stopId);
     if (stop) {
       setExpenseModal({ dayId, stop });
     }
-  };
+  }, [trip?.days]);
 
-  const handleOpenStayInfo = (dayId, stopId) => {
+  const handleOpenStayInfo = useCallback((dayId, stopId) => {
     setStayInfoModal({ dayId, stopId });
-  };
+  }, []);
 
   // --- Note/List delete (confirmation is handled inside the card) ---
-  const handleDeleteNote = (dayId, stopId) => {
+  const handleDeleteNote = useCallback((dayId, stopId) => {
     deleteStop(dayId, stopId);
-  };
+  }, [deleteStop]);
 
-  const handleDeleteList = (dayId, stopId) => {
+  const handleDeleteList = useCallback((dayId, stopId) => {
     deleteStop(dayId, stopId);
-  };
+  }, [deleteStop]);
 
   // --- Day actions ---
-  const handleDeleteDay = (dayId) => {
+  const handleDeleteDay = useCallback((dayId) => {
     openConfirm(
       t('common.confirm_delete') || 'Delete this day?',
       () => deleteDay(dayId)
     );
-  };
+  }, [t, deleteDay]);
 
-  const handleEditDay = (dayId) => {
+  const handleEditDay = useCallback((dayId) => {
     const dayIndex = trip?.days.findIndex(d => d.id === dayId);
     const day = trip?.days[dayIndex];
     if (day) setDayEditModal({ day, dayIndex });
-  };
+  }, [trip?.days]);
 
   // --- Trip delete ---
-  const handleDeleteTrip = (tripId) => {
+  const handleDeleteTrip = useCallback((tripIdArg) => {
     openConfirm(
       t('itinerary.delete_trip') || 'Delete this trip?',
       async () => {
-        await deleteTrip(tripId);
+        await deleteTrip(tripIdArg);
         navigate('/');
       }
     );
-  };
+  }, [t, deleteTrip, navigate]);
 
   const handleMapAddToDay = useCallback(async (dayId, placeId) => {
     const afterId = (pendingInsertion?.dayId === dayId) ? pendingInsertion.afterStopId : null;
+    // Expand the target day so the new card renders
+    setCollapsedDays(prev => ({ ...prev, [dayId]: false }));
     const newId = await addStopFromPlace(dayId, placeId, afterId);
     setPendingInsertion(null);
     if (newId) scrollToNewStop(newId);
@@ -192,12 +194,38 @@ export default function ItineraryView({ tripId }) {
 
   const activeDayId = activeDayIdLocal || trip.activeDayId || trip.days[0]?.id;
 
-  const handleToggleDayCollapse = (dayId, forceValue) => {
+  const handleToggleDayCollapse = useCallback((dayId, forceValue) => {
     setCollapsedDays(prev => ({
       ...prev,
       [dayId]: forceValue !== undefined ? forceValue : !prev[dayId]
     }));
-  };
+  }, []);
+
+  const handleAddStop = useCallback(async (dayId, placeId, afterStopId) => {
+    if (placeId) {
+      setCollapsedDays(prev => ({ ...prev, [dayId]: false }));
+      const newId = await addStopFromPlace(dayId, placeId, afterStopId || null);
+      if (newId) scrollToNewStop(newId);
+    }
+  }, [addStopFromPlace]);
+
+  const handleAddNote = useCallback(async (dayId, afterId) => {
+    const newId = await addNote(dayId, afterId);
+    if (newId) scrollToNewStop(newId);
+  }, [addNote]);
+
+  const handleAddList = useCallback(async (dayId, afterId) => {
+    const newId = await addList(dayId, afterId);
+    if (newId) scrollToNewStop(newId);
+  }, [addList]);
+
+  const handleChangePhoto = useCallback((dayId, stopId, photoUrl) => {
+    updateStop(dayId, stopId, { photo: photoUrl });
+  }, [updateStop]);
+
+  const handleFocusStop = useCallback((stopId) => {
+    mapPanelRef.current?.focusAndOpen(stopId);
+  }, []);
 
   const handleSidebarDayClick = (dayId) => {
     setActiveDayIdLocal(dayId);
@@ -263,24 +291,13 @@ export default function ItineraryView({ tripId }) {
                   trip={trip}
                   isCollapsed={!!collapsedDays[day.id]}
                   onToggleCollapse={() => handleToggleDayCollapse(day.id)}
-                  onAddStop={async (dayId, placeId, afterStopId) => {
-                    if (placeId) {
-                      const newId = await addStopFromPlace(dayId, placeId, afterStopId || null);
-                      if (newId) scrollToNewStop(newId);
-                    }
-                  }}
+                  onAddStop={handleAddStop}
                   onDeleteStop={handleDeleteStop}
                   onEditStop={handleEditStop}
                   onToggleTransitMode={toggleTransitMode}
                   onToggleHotelTransitMode={toggleHotelTransitMode}
-                  onAddNote={async (dayId, afterId) => {
-                    const newId = await addNote(dayId, afterId);
-                    if (newId) scrollToNewStop(newId);
-                  }}
-                  onAddList={async (dayId, afterId) => {
-                    const newId = await addList(dayId, afterId);
-                    if (newId) scrollToNewStop(newId);
-                  }}
+                  onAddNote={handleAddNote}
+                  onAddList={handleAddList}
                   onDeleteNote={handleDeleteNote}
                   onUpdateNoteContent={updateNoteContent}
                   onDeleteList={handleDeleteList}
@@ -300,8 +317,8 @@ export default function ItineraryView({ tripId }) {
                   onOpenTimePicker={handleOpenTimePicker}
                   onOpenExpense={handleOpenExpense}
                   onOpenStayInfo={handleOpenStayInfo}
-                  onChangePhoto={(dayId, stopId, photoUrl) => updateStop(dayId, stopId, { photo: photoUrl })}
-                  onFocusStop={(stopId) => mapPanelRef.current?.focusAndOpen(stopId)}
+                  onChangePhoto={handleChangePhoto}
+                  onFocusStop={handleFocusStop}
                 />
               ))}
             </div>

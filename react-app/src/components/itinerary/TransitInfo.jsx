@@ -1,10 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, memo } from 'react';
 import { createPortal } from 'react-dom';
 import { useI18n } from '../../context/I18nContext';
 import { useApp } from '../../context/AppContext';
 import { formatDistance, formatDuration } from '../../utils/formatters';
 
-export default function TransitInfo({ transit, transitMode, onToggleMode, onAddStop, onAddNote, onAddList, hideAdd }) {
+export default memo(function TransitInfo({ transit, transitMode, onToggleMode, onAddStop, onAddNote, onAddList, hideAdd }) {
   const { t } = useI18n();
   const { state } = useApp();
   const [showAddMenu, setShowAddMenu] = useState(false);
@@ -128,4 +128,4 @@ export default function TransitInfo({ transit, transitMode, onToggleMode, onAddS
       )}
     </div>
   );
-}
+})

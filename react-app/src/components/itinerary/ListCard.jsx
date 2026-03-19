@@ -1,13 +1,12 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, memo } from 'react';
 import { useI18n } from '../../context/I18nContext';
 import { useApp } from '../../context/AppContext';
+import DeleteConfirm from './DeleteConfirm';
 
-export default function ListCard({ stop, dayId, dayColor, onDelete, onItemChange, onItemToggle, onAddItem, onDeleteItem }) {
+export default memo(function ListCard({ stop, dayId, dayColor, onDelete, onItemChange, onItemToggle, onAddItem, onDeleteItem }) {
   const { state, dispatch } = useApp();
   const { t } = useI18n();
-  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [focusIndex, setFocusIndex] = useState(null);
-  const deleteRef = useRef(null);
   const listContainerRef = useRef(null);
 
   useEffect(() => {
@@ -18,15 +17,6 @@ export default function ListCard({ stop, dayId, dayColor, onDelete, onItemChange
     }
     setFocusIndex(null);
   }, [focusIndex, stop.items]);
-
-  useEffect(() => {
-    if (!confirmingDelete) return;
-    const handler = (e) => {
-      if (deleteRef.current && !deleteRef.current.contains(e.target)) setConfirmingDelete(false);
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [confirmingDelete]);
 
   return (
     <div className={`timeline-item list-item id-${stop.id}`} style={{ position: 'relative', marginBottom: '0.75rem' }}>
@@ -49,27 +39,7 @@ export default function ListCard({ stop, dayId, dayColor, onDelete, onItemChange
           boxShadow: state.hoveredStopId === stop.id ? '0 20px 40px rgba(0,0,0,0.6)' : 'none'
         }}
       >
-        <div ref={deleteRef} style={{ position: 'absolute', top: '0.4rem', right: '0.4rem', zIndex: 5 }}>
-          <button
-            onClick={(e) => { e.stopPropagation(); setConfirmingDelete(true); }}
-            style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', opacity: 0.5 }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>close</span>
-          </button>
-          {confirmingDelete && (
-            <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: '4px', background: 'var(--bg-secondary)', border: '1px solid var(--glass-border)', borderRadius: '10px', padding: '0.6rem 0.8rem', boxShadow: '0 8px 24px rgba(0,0,0,0.5)', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '0.5rem', zIndex: 10 }}>
-              <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>{t('common.delete_confirm') || 'Delete?'}</span>
-              <button
-                onClick={(e) => { e.stopPropagation(); setConfirmingDelete(false); }}
-                style={{ padding: '0.25rem 0.6rem', borderRadius: '6px', background: 'var(--bg-primary)', border: '1px solid var(--glass-border)', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '0.78rem' }}
-              >{t('common.cancel') || 'Cancel'}</button>
-              <button
-                onClick={(e) => { e.stopPropagation(); onDelete?.(dayId, stop.id); setConfirmingDelete(false); }}
-                style={{ padding: '0.25rem 0.6rem', borderRadius: '6px', background: '#ef4444', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600 }}
-              >{t('common.delete') || 'Delete'}</button>
-            </div>
-          )}
-        </div>
+        <DeleteConfirm onDelete={() => onDelete?.(dayId, stop.id)} />
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
           <span className="material-symbols-outlined" style={{ fontSize: '14px', color: 'var(--text-muted)' }}>checklist</span>
@@ -87,7 +57,7 @@ export default function ListCard({ stop, dayId, dayColor, onDelete, onItemChange
                 onClick={() => onItemToggle?.(dayId, stop.id, idx)}
                 style={{
                   width: '16px', height: '16px', borderRadius: '4px', flexShrink: 0, cursor: 'pointer',
-                  border: `2px solid ${item.checked ? 'var(--text-secondary)' : 'var(--text-secondary)'}`,
+                  border: '2px solid var(--text-secondary)',
                   background: item.checked ? 'var(--text-secondary)' : 'transparent',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}
@@ -144,4 +114,4 @@ export default function ListCard({ stop, dayId, dayColor, onDelete, onItemChange
       </div>
     </div>
   );
-}
+})

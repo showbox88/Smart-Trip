@@ -1,11 +1,11 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect, useMemo, memo } from 'react';
 import { useI18n } from '../../context/I18nContext';
 import { useApp } from '../../context/AppContext';
 import { formatDistance, formatDuration } from '../../utils/formatters';
 
 const DAY_COLORS = ['#5b7a99', '#ef4444', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899'];
 
-export default function DayHeader({ day, dayIndex, isCollapsed, onToggleCollapse, onColorChange, onEditDay, onDeleteDay, onUpdateDay }) {
+export default memo(function DayHeader({ day, dayIndex, isCollapsed, onToggleCollapse, onColorChange, onEditDay, onDeleteDay, onUpdateDay }) {
   const { t } = useI18n();
   const { state } = useApp();
 
@@ -207,4 +207,4 @@ export default function DayHeader({ day, dayIndex, isCollapsed, onToggleCollapse
       </div>
     </div>
   );
-}
+})

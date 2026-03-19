@@ -1,9 +1,9 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, memo } from 'react';
 import { createPortal } from 'react-dom';
 import { useI18n } from '../../context/I18nContext';
 import { useStopSearch } from '../../hooks/useStopSearch';
 
-export default function AddStopRow({ dayId, onAddStop, onAddNote, onAddList, autoFocus, onClose }) {
+export default memo(function AddStopRow({ dayId, onAddStop, onAddNote, onAddList, autoFocus, onClose }) {
   const { t } = useI18n();
   const inputRef = useRef(null);
   const dropdownRef = useRef(null);
@@ -145,4 +145,4 @@ export default function AddStopRow({ dayId, onAddStop, onAddNote, onAddList, aut
       )}
     </div>
   );
-}
+})
