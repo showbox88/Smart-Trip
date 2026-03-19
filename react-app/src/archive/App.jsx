@@ -65,17 +65,18 @@ const formatDateHeader = (dateStr, language = 'zh') => {
 };
 
 function App({ smartTrips = [] }) {
-  const { 
-    initWorkspace, 
+  const {
+    initWorkspace,
     restoreWorkspace,
+    resyncExif,
     checkPersistedWorkspace,
     hasPersistedHandle,
-    isScanning, 
-    photoFiles, 
-    error, 
-    dbHandle, 
-    dbContent, 
-    saveToDatabase 
+    isScanning,
+    photoFiles,
+    error,
+    dbHandle,
+    dbContent,
+    saveToDatabase
   } = useFileSystemAccess();
   
   const { contextMenu, handleContextMenu, closeMenu } = useContextMenu();
@@ -1197,10 +1198,40 @@ function App({ smartTrips = [] }) {
               </div>
 
               <div className="flex items-center gap-6">
+                {isScanning ? (
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-neutral-400 text-xs font-bold">
+                    <div className="w-3.5 h-3.5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                    {language === 'zh' ? '扫描中...' : 'Scanning...'}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={async () => { await initWorkspace(); }}
+                      disabled={isScanning}
+                      title={language === 'zh' ? (dbHandle ? '重新选择文件夹' : '选择文件夹') : (dbHandle ? 'Reselect Folder' : 'Select Folder')}
+                      className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-neutral-400 hover:text-white hover:bg-white/10 transition-all text-xs font-bold"
+                    >
+                      <FolderOpen size={14} />
+                      {dbHandle
+                        ? (language === 'zh' ? '重新选择' : 'Reselect')
+                        : (language === 'zh' ? '选择文件夹' : 'Select Folder')}
+                    </button>
+                    {dbHandle && (
+                      <button
+                        onClick={resyncExif}
+                        title={language === 'zh' ? '重新读取照片信息' : 'Re-read photo info'}
+                        className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-neutral-400 hover:text-white hover:bg-white/10 transition-all text-xs font-bold"
+                      >
+                        <RefreshCw size={14} />
+                        {language === 'zh' ? '重新读取' : 'Resync'}
+                      </button>
+                    )}
+                  </div>
+                )}
                 <div className="relative group">
                   <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500 group-focus-within:text-[#0d7ff2] transition-colors" />
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     placeholder={t('app.searchPlaceholder')}
                     className="w-80 h-12 pl-12 pr-4 bg-slate-800/50 border border-slate-700 rounded-xl text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#0d7ff2] focus:border-transparent transition-all font-medium"
                   />
