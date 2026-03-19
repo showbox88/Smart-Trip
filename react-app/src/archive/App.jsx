@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { 
-  FolderOpen, Settings, ListFilter, Play, LayoutGrid, AlignJustify, 
+  FolderOpen, Settings, ListFilter, LayoutGrid, AlignJustify,
   SlidersHorizontal, ArrowUpDown, Search, Plane, Plus, Trash2, 
   ChevronRight, CheckCircle2, ChevronDown, Archive, Calendar, Clock, RefreshCw
 } from 'lucide-react';
@@ -1048,88 +1048,6 @@ function App({ smartTrips = [] }) {
         className="fixed bottom-1/4 right-1/4 w-[400px] h-[400px] bg-purple-600/20 rounded-full blur-[100px] pointer-events-none z-0" 
       />
       
-      {/* ----------------- HOME VIEW ----------------- */}
-      <AnimatePresence mode="wait">
-        {appMode === 'home' && (
-          <motion.div 
-            key="home"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, filter: "blur(10px)" }}
-            transition={{ duration: 0.6, ease: "circInOut" }}
-            className="text-center z-10 w-full max-w-4xl px-6"
-          >
-            <motion.div 
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.2, type: "spring" }}
-              className="inline-flex items-center justify-center p-6 bg-white/5 rounded-[2rem] mb-12 ring-2 ring-white/10 shadow-2xl backdrop-blur-3xl"
-            >
-              <FolderOpen size={64} className="text-blue-400 drop-shadow-lg" />
-            </motion.div>
-
-            <h1 className="text-6xl md:text-8xl font-black tracking-tighter mb-6 bg-gradient-to-br from-white via-white to-neutral-500 bg-clip-text text-transparent drop-shadow-sm">
-              {t('app.title')}
-            </h1>
-            <p className="text-xl md:text-2xl text-neutral-400 max-w-2xl mx-auto mb-16 font-light leading-relaxed">
-              {t('app.subtitle')} <br className="hidden md:block"/>
-              {t('app.zeroUploads')}
-            </p>
-            
-            <motion.button
-              onClick={handleInitialize}
-              disabled={isScanning}
-              whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.15)" }}
-              whileTap={{ scale: 0.95 }}
-              className={clsx(
-                  "relative group px-10 py-5 bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl text-xl font-medium transition-all shadow-2xl flex items-center justify-center gap-4 mx-auto",
-                  isScanning && "opacity-50 cursor-not-allowed"
-              )}
-            >
-              {isScanning ? (
-                <>
-                  <div className="w-6 h-6 border-4 border-white/20 border-t-white rounded-full animate-spin" />
-                  {t('app.grantingAccess')}
-                </>
-              ) : (
-                <>
-                  <Play size={24} className="text-blue-400 fill-blue-400/20 group-hover:fill-blue-400 transition-colors" />
-                  {hasPersistedHandle ? t('app.restoreArchive') : t('app.selectFolder')}
-                </>
-              )}
-            </motion.button>
-            
-            {hasPersistedHandle && !isScanning && (
-              <motion.button
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                onClick={async () => {
-                   const success = await initWorkspace();
-                   if (success) setAppMode('gallery');
-                }}
-                className="mt-6 mx-auto block text-sm font-semibold text-neutral-400 hover:text-white underline decoration-white/30 decoration-dashed transition-colors"
-              >
-                {t('app.reselectFolder') || "重新选择文件夹"}
-              </motion.button>
-            )}
-
-            <AnimatePresence>
-              {error && (
-                <motion.p 
-                  initial={{ opacity: 0, y: 10, scale: 0.9 }} 
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="mt-8 text-red-400 font-medium max-w-md mx-auto p-4 bg-red-500/10 rounded-2xl border border-red-500/20 shadow-xl backdrop-blur-md"
-                >
-                  {error}
-                </motion.p>
-              )}
-            </AnimatePresence>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-
       {/* ----------------- GALLERY LAYOUT (THE GATHERING) ----------------- */}
       <AnimatePresence>
         {appMode === 'gallery' && (
