@@ -1,10 +1,31 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useI18n } from '../../context/I18nContext';
+import { useApp } from '../../context/AppContext';
+import { formatDistance, formatDuration } from '../../utils/formatters';
 
 const DAY_COLORS = ['#5b7a99', '#ef4444', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899'];
 
 export default function DayHeader({ day, dayIndex, isCollapsed, onToggleCollapse, onColorChange, onEditDay, onDeleteDay, onUpdateDay }) {
   const { t } = useI18n();
+  const { state } = useApp();
+
+  // Sum transit durations/distances; include return-to-hotel leg when showReturnRoute is on
+  const { totalDuration, totalDistance } = useMemo(() => {
+    const stops = day.stops || [];
+    let dur = 0, dist = 0;
+    stops.forEach(s => {
+      if (s.transitToNext) {
+        if (s.transitToNext.duration) dur += s.transitToNext.duration;
+        if (s.transitToNext.distance) dist += s.transitToNext.distance;
+      }
+      // Add return-to-hotel leg if switch is on
+      if (day.showReturnRoute && s.transitToHotel) {
+        if (s.transitToHotel.duration) dur += s.transitToHotel.duration;
+        if (s.transitToHotel.distance) dist += s.transitToHotel.distance;
+      }
+    });
+    return { totalDuration: dur || null, totalDistance: dist || null };
+  }, [day.stops, day.showReturnRoute]);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [editingSubtitle, setEditingSubtitle] = useState(false);
@@ -106,11 +127,11 @@ export default function DayHeader({ day, dayIndex, isCollapsed, onToggleCollapse
         </div>
       </div>
 
-      {/* Subtitle + collapse arrow */}
-      <div className="day-subtitle-container" style={{ color: 'var(--text-secondary)', paddingLeft: '2.375rem', marginBottom: '0.3rem', fontSize: '0.95rem', display: 'flex', alignItems: 'center' }}>
+      {/* Subtitle + collapse arrow + stats + show return toggle */}
+      <div className="day-subtitle-container" style={{ color: 'var(--text-secondary)', paddingLeft: '2.375rem', paddingRight: '1rem', marginBottom: '0.3rem', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
         <span
           onClick={onToggleCollapse}
-          style={{ cursor: 'pointer', display: 'inline-block', transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)', marginRight: '4px', transition: 'transform 0.2s' }}
+          style={{ cursor: 'pointer', display: 'inline-block', transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)', marginRight: '4px', transition: 'transform 0.2s', flexShrink: 0 }}
         >▼</span>
         {editingSubtitle ? (
           <input
@@ -120,26 +141,69 @@ export default function DayHeader({ day, dayIndex, isCollapsed, onToggleCollapse
             onChange={(e) => setSubtitleValue(e.target.value)}
             onBlur={handleSubtitleBlur}
             onKeyDown={(e) => e.key === 'Enter' && handleSubtitleBlur()}
-            style={{ 
-              background: 'transparent', 
-              border: 'none', 
-              borderBottom: '1px solid var(--accent-primary)', 
-              outline: 'none', 
-              color: 'var(--text-primary)', 
-              fontSize: 'inherit', 
-              fontFamily: 'inherit', 
-              padding: 0, 
-              minWidth: '200px' 
+            style={{
+              background: 'transparent',
+              border: 'none',
+              borderBottom: '1px solid var(--accent-primary)',
+              outline: 'none',
+              color: 'var(--text-primary)',
+              fontSize: 'inherit',
+              fontFamily: 'inherit',
+              padding: 0,
+              minWidth: '200px'
             }}
           />
         ) : (
-          <span 
+          <span
             onClick={handleSubtitleClick}
             style={{ fontSize: '0.95rem', color: 'var(--text-secondary)', opacity: 0.8, fontWeight: 500, minHeight: '1em', minWidth: '10px', cursor: 'text' }}
           >
             {day.subtitle || t('itinerary.add_subtitle') || 'Add subtitle'}
           </span>
         )}
+
+        {/* Total duration + distance */}
+        {(totalDuration || totalDistance) && (
+          <>
+            <span style={{ color: 'var(--text-muted)', opacity: 0.4 }}>·</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.82rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '14px', color: 'var(--accent-primary)' }}>directions_car</span>
+              {totalDuration && <span>{formatDuration(totalDuration, t)}</span>}
+              {totalDistance && <span style={{ opacity: 0.7 }}>{formatDistance(totalDistance, state.settings, t)}</span>}
+            </div>
+          </>
+        )}
+
+        {/* Show Return switch */}
+        <div
+          onClick={(e) => { e.stopPropagation(); onUpdateDay?.(day.id, { showReturnRoute: !day.showReturnRoute }); }}
+          style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', flexShrink: 0, userSelect: 'none' }}
+          title={t('itinerary.show_return') || 'Show Return'}
+        >
+          <span style={{ fontSize: '0.7rem', fontWeight: 600, color: day.showReturnRoute ? 'var(--accent-primary)' : 'var(--text-muted)', letterSpacing: '0.04em', transition: 'color 0.2s' }}>
+            {t('itinerary.show_return') || 'SHOW RETURN'}
+          </span>
+          {/* Mini iOS-style switch */}
+          <div style={{
+            width: '28px', height: '16px',
+            borderRadius: '8px',
+            background: day.showReturnRoute ? 'var(--accent-primary)' : 'rgba(255,255,255,0.15)',
+            position: 'relative',
+            transition: 'background 0.2s',
+            flexShrink: 0,
+          }}>
+            <div style={{
+              position: 'absolute',
+              top: '2px',
+              left: day.showReturnRoute ? '14px' : '2px',
+              width: '12px', height: '12px',
+              borderRadius: '50%',
+              background: 'white',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+              transition: 'left 0.2s cubic-bezier(0.4,0,0.2,1)',
+            }} />
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -181,7 +181,9 @@
         "note_placeholder": "Add a note...",
         "change_photo": "Change photo",
         "no_photos": "No photos available",
-        "closed_today": "Closed today!"
+        "closed_today": "Closed today!",
+        "hotel_checkin": "Check-in",
+        "hotel_checkout": "Check-out"
     },
     "auth": {
         "tagline": "Start your smart travel planning journey globally",

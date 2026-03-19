@@ -112,10 +112,10 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay }, ref) {
   useEffect(() => {
     if (!mapInstanceRef.current || !activeTrip) return;
 
-    // Clear old elements
-    markersRef.current.forEach(m => m.map = null);
+    // Snapshot old elements — will be cleared AFTER new ones are drawn to avoid flash
+    const oldMarkers = markersRef.current.slice();
+    const oldPolylines = polylinesRef.current.slice();
     markersRef.current = [];
-    polylinesRef.current.forEach(p => p.setMap(null));
     polylinesRef.current = [];
 
     const bounds = new google.maps.LatLngBounds();
@@ -130,13 +130,14 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay }, ref) {
             staysMap.set(stop.stayId, { id: stop.stayId, cin: null, cout: null });
           }
           const stay = staysMap.get(stop.stayId);
-          if (stop.type === 'hotel_checkin') stay.cin = { ...stop, dayId: day.id };
-          if (stop.type === 'hotel_checkout') stay.cout = { ...stop, dayId: day.id };
+          if (stop.type === 'hotel_checkin') stay.cin = { ...stop, dayId: day.id, _dayDate: day.date || '' };
+          if (stop.type === 'hotel_checkout') stay.cout = { ...stop, dayId: day.id, _dayDate: day.date || '' };
         }
       });
     });
 
     const dayIndexMap = new Map(activeTrip.days.map((d, i) => [d.id, i]));
+    const routeJobs = [];
 
     activeTrip.days.forEach(day => {
       const dayColor = day.color || '#5b7a99';
@@ -174,65 +175,156 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay }, ref) {
 
           // Create Marker
           const markerColor = isHotel ? '#f97316' : dayColor;
-          const label = isHotel ? '🏨' : (locationIdx + 1);
+          const label = isHotel ? 'H' : (locationIdx + 1);
           if (isLoc) locationIdx++;
 
           const content = document.createElement('div');
           content.className = 'custom-marker';
-          content.style.cssText = `
-            width: 32px; height: 40px;
-            cursor: pointer;
-            transition: transform 0.2s;
-            position: relative;
-          `;
-          content.innerHTML = `
-            <svg width="32" height="40" viewBox="0 0 36 44" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5));">
-              <path d="M18 0 C8.06 0 0 8.06 0 18 C0 31.5 18 44 18 44 C18 44 36 31.5 36 18 C36 8.06 27.94 0 18 0Z" fill="${markerColor}" stroke="white" stroke-width="2"/>
-              <circle cx="18" cy="18" r="10" fill="#1a2235" opacity="0.9"/>
-              <text x="18" y="24" text-anchor="middle" fill="white" font-size="14" font-weight="900" font-family="Arial">${label}</text>
-            </svg>
-          `;
 
-          // Premium Hover tooltip (Light Glass theme matching user's newest screenshot)
+          if (isHotel) {
+            content.style.cssText = `
+              width: 36px; height: 44px;
+              cursor: pointer;
+              transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
+              transform-origin: bottom center;
+              position: relative;
+            `;
+            content.innerHTML = `
+              <svg width="36" height="44" viewBox="0 0 36 44" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 3px 6px rgba(0,0,0,0.6));">
+                <path d="M18 0 C8.06 0 0 8.06 0 18 C0 31.5 18 44 18 44 C18 44 36 31.5 36 18 C36 8.06 27.94 0 18 0Z" fill="#f97316" stroke="white" stroke-width="2"/>
+                <text x="18" y="24" text-anchor="middle" fill="white" font-size="18" font-weight="900" font-family="Arial,sans-serif">H</text>
+              </svg>
+            `;
+          } else {
+            content.style.cssText = `
+              width: 32px; height: 40px;
+              cursor: pointer;
+              transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
+              transform-origin: bottom center;
+              position: relative;
+            `;
+            content.innerHTML = `
+              <svg width="32" height="40" viewBox="0 0 36 44" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5));">
+                <path d="M18 0 C8.06 0 0 8.06 0 18 C0 31.5 18 44 18 44 C18 44 36 31.5 36 18 C36 8.06 27.94 0 18 0Z" fill="${markerColor}" stroke="white" stroke-width="2"/>
+                <circle cx="18" cy="18" r="10" fill="#1a2235" opacity="0.9"/>
+                <text x="18" y="24" text-anchor="middle" fill="white" font-size="14" font-weight="900" font-family="Arial">${label}</text>
+              </svg>
+            `;
+          }
+
+          // Premium Hover tooltip
           const tooltip = document.createElement('div');
-          const maxName = stop.location?.length > 32 ? stop.location.slice(0, 32) + '…' : (stop.location || '');
+          const maxName = stop.location?.length > 36 ? stop.location.slice(0, 36) + '…' : (stop.location || '');
           const catLabel = stop.category ? (t(stop.category) !== stop.category ? t(stop.category) : stop.category) : t('map.place_default');
-          
+
           tooltip.style.cssText = [
             'position:absolute;bottom:calc(100% + 12px);left:50%;transform:translateX(-50%);',
-            'background:rgba(20,24,38,0.97);border-radius:12px;overflow:hidden;',
-            'padding:14px 16px;pointer-events:none;white-space:nowrap;',
+            'background:rgba(20,24,38,0.97);border-radius:14px;overflow:hidden;',
+            'padding:0;pointer-events:none;white-space:nowrap;',
             'box-shadow:0 10px 40px rgba(0,0,0,0.5);opacity:0;transition:opacity 0.2s,box-shadow 0.2s;',
-            'font-family:inherit;min-width:320px;border:1px solid rgba(255,255,255,0.1);',
-            'display:flex;gap:16px;z-index:3000;',
+            'font-family:inherit;min-width:340px;border:1px solid rgba(255,255,255,0.1);',
+            'display:flex;z-index:3000;',
             'filter:invert(100%) hue-rotate(180deg);',
           ].join('');
 
-          let tooltipHtml = `
-            <div style="flex:1; display:flex; flex-direction:column; justify-content:space-between; min-width:180px;">
-              <div>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; gap:12px;">
-                  <span style="font-size:15px; font-weight:800; color:white; overflow:hidden; text-overflow:ellipsis;">${maxName}</span>
-                  <div style="display:flex; align-items:center; gap:4px; color:rgba(255,255,255,0.55); font-size:12px; font-weight:600;">
-                    <span class="material-symbols-outlined" style="font-size:14px">${stop.categoryIcon || 'place'}</span>
-                    <span>${catLabel}</span>
+          let tooltipHtml;
+
+          if (isHotel && stop.stayId) {
+            // Find stay info
+            const stay = staysMap.get(stop.stayId);
+            const cin = stay?.cin;
+            const cout = stay?.cout;
+
+            // Compute nights
+            let nights = '';
+            if (cin?._dayDate && cout?._dayDate) {
+              const d1 = new Date(cin._dayDate.replace(/-/g, '/'));
+              const d2 = new Date(cout._dayDate.replace(/-/g, '/'));
+              if (!isNaN(d1) && !isNaN(d2)) nights = Math.round((d2 - d1) / 86400000);
+            } else if (cin && cout) {
+              // Estimate from day indices
+              const cinIdx = dayIndexMap.get(cin.dayId) ?? 0;
+              const coutIdx = dayIndexMap.get(cout.dayId) ?? 0;
+              nights = coutIdx - cinIdx;
+            }
+
+            const cinDateStr = cin?._dayDate || cin?.date || '';
+            const cinTimeStr = cin?.time ? `${cin.time}${cin.period ? ' ' + cin.period : ''}` : '';
+            const coutDateStr = cout?._dayDate || cout?.date || '';
+            const coutTimeStr = cout?.time ? `${cout.time}${cout.period ? ' ' + cout.period : ''}` : '';
+            const rating = stop.rating || '';
+            const phone = stop.phone || '';
+            const price = stop.price && parseFloat(stop.price) > 0 ? `$${parseFloat(stop.price).toFixed(2)}` : '$0.00';
+
+            tooltipHtml = `
+              <div style="flex:1; padding:16px 16px 14px; display:flex; flex-direction:column; gap:10px; min-width:200px;">
+                <div>
+                  <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+                    <span style="font-size:15px; font-weight:800; color:white; flex:1; overflow:hidden; text-overflow:ellipsis;">${maxName}</span>
+                    <div style="display:flex; align-items:center; gap:5px; background:rgba(255,255,255,0.08); border-radius:6px; padding:2px 8px; flex-shrink:0;">
+                      <span class="material-symbols-outlined" style="font-size:13px; color:rgba(255,255,255,0.6);">bed</span>
+                      <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.7); letter-spacing:0.04em;">Stay</span>
+                      ${rating ? `<span style="color:#f59e0b; font-size:12px; margin-left:4px;">★</span><span style="color:white; font-weight:700; font-size:12px;">${rating}</span>` : ''}
+                    </div>
                   </div>
+                  ${cinDateStr ? `
+                  <div style="display:flex; align-items:center; gap:8px; margin-bottom:5px; font-size:12.5px;">
+                    <span class="material-symbols-outlined" style="font-size:14px; color:#22c55e;">login</span>
+                    <span style="color:rgba(255,255,255,0.5); width:72px; font-weight:600;">Check-in:</span>
+                    <span style="color:rgba(255,255,255,0.85); font-weight:600;">${cinDateStr}</span>
+                    ${cinTimeStr ? `<span style="color:#22c55e; font-weight:700; margin-left:auto;">${cinTimeStr}</span>` : ''}
+                  </div>` : ''}
+                  ${coutDateStr ? `
+                  <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px; font-size:12.5px;">
+                    <span class="material-symbols-outlined" style="font-size:14px; color:#ef4444;">logout</span>
+                    <span style="color:rgba(255,255,255,0.5); width:72px; font-weight:600;">Check-out:</span>
+                    <span style="color:rgba(255,255,255,0.85); font-weight:600;">${coutDateStr}</span>
+                    ${coutTimeStr ? `<span style="color:#ef4444; font-weight:700; margin-left:auto;">${coutTimeStr}</span>` : ''}
+                  </div>` : ''}
+                  ${stop.address ? `
+                  <div style="display:flex; gap:6px; color:rgba(255,255,255,0.55); font-size:12px; line-height:1.4; margin-bottom:4px;">
+                    <span class="material-symbols-outlined" style="font-size:14px; color:#f97316; margin-top:1px; flex-shrink:0;">location_on</span>
+                    <span style="white-space:normal; -webkit-line-clamp:2; display:-webkit-box; -webkit-box-orient:vertical; overflow:hidden;">${stop.address}</span>
+                  </div>` : ''}
+                  ${phone ? `
+                  <div style="display:flex; gap:6px; color:rgba(255,255,255,0.55); font-size:12px; line-height:1.4;">
+                    <span class="material-symbols-outlined" style="font-size:14px; color:#3b82f6; flex-shrink:0;">call</span>
+                    <span>${phone}</span>
+                  </div>` : ''}
                 </div>
-                <div style="display:flex; gap:6px; color:rgba(255,255,255,0.6); font-size:12.5px; line-height:1.4;">
-                  <span class="material-symbols-outlined" style="font-size:15px; color:#f97316; margin-top:1px;">location_on</span>
-                  <span style="white-space:normal; -webkit-line-clamp:2; display:-webkit-box; -webkit-box-orient:vertical; overflow:hidden;">${stop.address || stop.location || ''}</span>
+                <div style="display:flex; gap:8px; margin-top:2px;">
+                  ${nights !== '' ? `<div style="background:#f59e0b; color:#1a1200; padding:4px 12px; border-radius:8px; font-size:12px; font-weight:700;">${nights} Night${nights !== 1 ? 's' : ''}</div>` : ''}
+                  <div style="background:rgba(34,197,94,0.15); border:1px solid rgba(34,197,94,0.3); color:#22c55e; padding:4px 12px; border-radius:8px; font-size:12px; font-weight:700;">${price}</div>
                 </div>
               </div>
-              ${stop.time ? `
-              <div style="margin-top:12px; background:rgba(255,255,255,0.12); color:white; padding:4px 12px; border-radius:8px; font-size:12px; font-weight:800; width:fit-content;">
-                ${stop.time} ${stop.period || ''}
-              </div>` : ''}
-            </div>
-          `;
+            `;
+          } else {
+            tooltipHtml = `
+              <div style="flex:1; padding:14px 16px; display:flex; flex-direction:column; justify-content:space-between; min-width:180px;">
+                <div>
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; gap:12px;">
+                    <span style="font-size:15px; font-weight:800; color:white; overflow:hidden; text-overflow:ellipsis;">${maxName}</span>
+                    <div style="display:flex; align-items:center; gap:4px; color:rgba(255,255,255,0.55); font-size:12px; font-weight:600;">
+                      <span class="material-symbols-outlined" style="font-size:14px">${stop.categoryIcon || 'place'}</span>
+                      <span>${catLabel}</span>
+                    </div>
+                  </div>
+                  <div style="display:flex; gap:6px; color:rgba(255,255,255,0.6); font-size:12.5px; line-height:1.4;">
+                    <span class="material-symbols-outlined" style="font-size:15px; color:#f97316; margin-top:1px;">location_on</span>
+                    <span style="white-space:normal; -webkit-line-clamp:2; display:-webkit-box; -webkit-box-orient:vertical; overflow:hidden;">${stop.address || stop.location || ''}</span>
+                  </div>
+                </div>
+                ${stop.time ? `
+                <div style="margin-top:12px; background:rgba(255,255,255,0.12); color:white; padding:4px 12px; border-radius:8px; font-size:12px; font-weight:800; width:fit-content;">
+                  ${stop.time} ${stop.period || ''}
+                </div>` : ''}
+              </div>
+            `;
+          }
 
           if (stop.photo) {
             tooltipHtml += `
-              <div style="width:110px; height:85px; border-radius:10px; overflow:hidden; flex-shrink:0;">
+              <div style="width:${isHotel ? '130px' : '110px'}; align-self:stretch; flex-shrink:0; overflow:hidden; ${isHotel ? '' : 'border-radius:0 12px 12px 0;'}">
                 <img src="${stop.photo}" style="width:100%; height:100%; object-fit:cover;" onerror="this.parentElement.style.display='none'" />
               </div>
             `;
@@ -244,11 +336,13 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay }, ref) {
           content.addEventListener('mouseenter', () => {
             tooltip.style.opacity = '1';
             tooltip.style.transform = 'translateX(-50%) scale(1)';
+            content.style.transform = 'scale(1.25) translateY(-4px)';
             marker.zIndex = 9999;
           });
           content.addEventListener('mouseleave', () => {
             tooltip.style.opacity = '0';
             tooltip.style.transform = 'translateX(-50%) scale(0.95)';
+            content.style.transform = 'scale(1) translateY(0)';
             marker.zIndex = null;
           });
 
@@ -286,28 +380,38 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay }, ref) {
       if (routePath.length >= 2) {
         const color = dayColor;
         const mapInst = mapInstanceRef.current;
-        // Straight-line fallback immediately
-        const fallbackPoly = new google.maps.Polyline({
-          path: routePath,
-          strokeColor: color,
-          strokeOpacity: 0.35,
-          strokeWeight: 3,
-          strokeDash: [4, 4],
-          map: mapInst,
-        });
-        polylinesRef.current.push(fallbackPoly);
 
-        // Async: replace with real route polylines
-        (async () => {
+        // Collect async jobs — old polylines cleared after ALL days resolve
+        routeJobs.push((async () => {
           try {
             const realPolylines = await fetchAndDrawRoute(routePath, color, mapInst);
             if (realPolylines.length > 0 && mapInstanceRef.current) {
-              fallbackPoly.setMap(null);
               polylinesRef.current.push(...realPolylines);
+            } else {
+              const fallbackPoly = new google.maps.Polyline({
+                path: routePath,
+                strokeColor: color,
+                strokeOpacity: 0.35,
+                strokeWeight: 3,
+                map: mapInst,
+              });
+              polylinesRef.current.push(fallbackPoly);
             }
-          } catch (err) { console.warn('[MapPanel] route fetch failed:', err); }
-        })();
+          } catch (err) {
+            console.warn('[MapPanel] route fetch failed:', err);
+          }
+        })());
       }
+    });
+
+    // Remove old markers on next animation frame so new ones are already painted
+    requestAnimationFrame(() => {
+      oldMarkers.forEach(m => m.map = null);
+    });
+
+    // Remove old polylines only after all new routes are drawn
+    Promise.all(routeJobs).then(() => {
+      oldPolylines.forEach(p => p.setMap(null));
     });
 
     if (hasCoords) {
@@ -400,7 +504,7 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay }, ref) {
       if (!place.geometry?.location) return;
 
       const content = document.createElement('div');
-      content.style.cssText = 'display:flex;flex-direction:column;align-items:center;cursor:pointer;';
+      content.style.cssText = 'display:flex;flex-direction:column;align-items:center;cursor:pointer;transition:transform 0.2s cubic-bezier(0.34,1.56,0.64,1);transform-origin:bottom center;';
 
       const pin = document.createElement('div');
       pin.style.cssText = [
@@ -466,15 +570,15 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay }, ref) {
       content.style.position = 'relative';
       content.appendChild(label);
 
-      pin.onmouseenter = () => {
-        pin.style.transform = 'rotate(-45deg) scale(1.25)';
+      content.onmouseenter = () => {
+        content.style.transform = 'scale(1.25) translateY(-4px)';
         pin.style.boxShadow = '0 6px 18px rgba(0,0,0,0.6)';
         label.style.opacity = '1';
         label.style.transform = 'translateX(-50%) scale(1)';
         marker.zIndex = 9999;
       };
-      pin.onmouseleave = () => {
-        pin.style.transform = 'rotate(-45deg) scale(1)';
+      content.onmouseleave = () => {
+        content.style.transform = 'scale(1) translateY(0)';
         pin.style.boxShadow = '0 4px 12px rgba(0,0,0,0.5)';
         label.style.opacity = '0';
         label.style.transform = 'translateX(-50%) scale(0.95)';

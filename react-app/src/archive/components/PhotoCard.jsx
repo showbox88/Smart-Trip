@@ -2,9 +2,34 @@ import { memo, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import * as idb from '../utils/idb';
 import { useObjectUrl } from '../hooks/useObjectUrl';
-import { Image, Heart } from 'lucide-react';
+import { 
+  Image, Heart, Utensils, Landmark, MapPin, 
+  Bed, Plane, Leaf, User, ShoppingBag, Tag, Globe, Map
+} from 'lucide-react';
 import { format } from 'date-fns';
 import clsx from 'clsx';
+
+// 图标映射表
+const CATEGORY_ICONS = {
+  '美食': Utensils,
+  'Food': Utensils,
+  '景点': Landmark,
+  'Attractions': Landmark,
+  '街景': MapPin,
+  'Street': MapPin,
+  '酒店': Bed,
+  'Hotel': Bed,
+  '交通': Plane,
+  'Transport': Plane,
+  '自然': Leaf,
+  'Nature': Leaf,
+  '人像': User,
+  'Portrait': User,
+  '购物': ShoppingBag,
+  'Shopping': ShoppingBag,
+  '其他': Tag,
+  'Others': Tag
+};
 
 export const PhotoCard = memo(function PhotoCard({ fileInfo, index, onContextMenu, isSelected, onToggleSelection, onNavigate, onUpdate, animatingTargetId, metadata }) {
   const categories = metadata?.categories || [];
@@ -136,37 +161,23 @@ export const PhotoCard = memo(function PhotoCard({ fileInfo, index, onContextMen
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 overflow-hidden">
-          {fileInfo.category && (
-            <div 
-              className="flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-white/5 border border-white/5 max-w-[50%] overflow-hidden backdrop-blur-sm"
-              style={{ 
-                backgroundColor: `${getPropertyColor(fileInfo.category, categories)}15`,
-                borderColor: `${getPropertyColor(fileInfo.category, categories)}40`
-              }}
-            >
-              <div 
-                className="w-1.5 h-1.5 rounded-full shrink-0 shadow-[0_0_8px_rgba(255,255,255,0.3)]" 
-                style={{ backgroundColor: getPropertyColor(fileInfo.category, categories) }}
-              />
-              <span className="text-[10px] text-white/95 font-black truncate tracking-wide">
-                {fileInfo.category}
-              </span>
-            </div>
-          )}
+        <div className="flex items-center gap-3 overflow-hidden mt-0.5">
+          {fileInfo.category && (() => {
+            const Icon = CATEGORY_ICONS[fileInfo.category] || Tag;
+            return (
+              <div className="flex items-center gap-1.5 min-w-0 opacity-80 group-hover:opacity-100 transition-opacity">
+                <Icon size={12} strokeWidth={2.5} className="text-white shrink-0" />
+                <span className="text-[10px] text-white font-black truncate tracking-wide">
+                  {fileInfo.category}
+                </span>
+              </div>
+            );
+          })()}
+          
           {fileInfo.city && (
-            <div 
-              className="flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-white/5 border border-white/5 max-w-[50%] overflow-hidden backdrop-blur-sm"
-              style={{ 
-                backgroundColor: `${getPropertyColor(fileInfo.city, cities)}15`,
-                borderColor: `${getPropertyColor(fileInfo.city, cities)}40`
-              }}
-            >
-              <div 
-                className="w-1.5 h-1.5 rounded-full shrink-0 shadow-[0_0_8px_rgba(255,255,255,0.3)]" 
-                style={{ backgroundColor: getPropertyColor(fileInfo.city, cities) }}
-              />
-              <span className="text-[10px] text-white/95 font-black truncate tracking-wide">
+            <div className="flex items-center gap-1.5 min-w-0 opacity-80 group-hover:opacity-100 transition-opacity">
+              <Globe size={11} strokeWidth={2.5} className="text-white shrink-0" />
+              <span className="text-[10px] text-white font-black truncate tracking-wide">
                 {fileInfo.city}
               </span>
             </div>

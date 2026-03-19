@@ -2,9 +2,45 @@ import { useState, useRef, useEffect, forwardRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useApp } from '../../context/AppContext';
 import { useI18n } from '../../context/I18nContext';
+import { 
+  Heart, Utensils, Landmark, MapPin, 
+  Bed, Plane, Leaf, User, ShoppingBag, Tag, Globe, 
+  Clock, CreditCard, CheckCircle2, Phone, Navigation2, Camera, MoreHorizontal,
+  Hotel, LogIn, LogOut, Receipt, Coffee, Croissant, Store
+} from 'lucide-react';
 import { formatCurrency } from '../../utils/formatters';
 import TransitInfo from './TransitInfo';
 import { uploadToSupabase } from '../../utils/uploadHelpers';
+
+// 分类图标映射
+const CATEGORY_MAP = {
+  'lodging': Hotel,
+  'hotel': Hotel,
+  'restaurant': Utensils,
+  'food': Utensils,
+  'cafe': Coffee,
+  'coffee': Coffee,
+  'bakery': Croissant,
+  'bread': Croissant,
+  'attraction': Landmark,
+  'museum': Landmark,
+  'park': Leaf,
+  'nature': Leaf,
+  'shopping': ShoppingBag,
+  'store': ShoppingBag,
+  'transit_station': Plane,
+  'airport': Plane,
+  'point_of_interest': MapPin,
+};
+
+function getCategoryIcon(cat, iconName) {
+  if (!cat) return MapPin;
+  const lowerCat = String(cat).toLowerCase();
+  for (const [key, icon] of Object.entries(CATEGORY_MAP)) {
+    if (lowerCat.includes(key)) return icon;
+  }
+  return MapPin;
+}
 
 export default function StopCard({
   stop, dayId, dayColor, index, showTransit, dayWeekdayIdx,
@@ -273,65 +309,78 @@ export default function StopCard({
           <div style={{ flex: 1 }}>
              {/* Hotel badge */}
             {isHotel && (
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(139,107,59,0.2)', border: '1px solid rgba(139,107,59,0.4)', borderRadius: '6px', padding: '2px 8px', fontSize: '0.75rem', color: '#c8a96e', marginBottom: '0.5rem' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>hotel</span>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '2px 8px', fontSize: '0.75rem', color: 'white', marginBottom: '0.5rem' }}>
+                <Hotel size={13} strokeWidth={2.5} />
                 {typeLabel}
               </div>
             )}
 
-            {/* Title Row */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.3rem', flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div style={{ 
+            {/* Title Row: pin + name + category badge + rating */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.4rem', flexWrap: 'wrap' }}>
+              <div style={{
+                position: 'relative',
+                width: '24px',
+                height: '30px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0
+              }}>
+                <div style={{
+                  position: 'absolute',
+                  top: '4px',
+                  width: '14px',
+                  height: '14px',
+                  borderRadius: '50%',
+                  background: isHotelType ? '#f59e0b' : (dayColor || '#52c41a'),
+                  zIndex: 0
+                }} />
+                <span className="material-symbols-outlined" style={{
+                  fontSize: '32px',
+                  color: isHotelType ? '#f59e0b' : (dayColor || '#52c41a'),
+                  position: 'absolute',
+                  fontVariationSettings: "'FILL' 1",
+                  zIndex: 1
+                }}>location_on</span>
+                <span style={{
                   position: 'relative',
-                  width: '24px',
-                  height: '30px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0
-                }}>
-                  {/* Fill the hole in the center of location_on icon */}
-                  <div style={{
-                    position: 'absolute',
-                    top: '4px',
-                    width: '14px',
-                    height: '14px',
-                    borderRadius: '50%',
-                    background: dayColor || '#52c41a',
-                    zIndex: 0
-                  }} />
-                  <span className="material-symbols-outlined" style={{ 
-                    fontSize: '32px', 
-                    color: dayColor || '#52c41a',
-                    position: 'absolute',
-                    fontVariationSettings: "'FILL' 1",
-                    zIndex: 1
-                  }}>location_on</span>
-                  <span style={{ 
-                    position: 'relative', 
-                    color: 'white', 
-                    fontSize: '0.75rem', 
-                    fontWeight: 900,
-                    marginTop: '-6px',
-                    zIndex: 2
-                  }}>{index + 1}</span>
+                  color: 'white',
+                  fontSize: '0.75rem',
+                  fontWeight: 900,
+                  marginTop: '-6px',
+                  zIndex: 2
+                }}>{index + 1}</span>
+              </div>
+              <h4 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-bright)', letterSpacing: '-0.02em' }}>
+                {stop.location}
+              </h4>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginLeft: '4px', flexShrink: 0 }} title={stop.category ? (t(stop.category) !== stop.category ? t(stop.category) : stop.category) : t('map.place_default')}>
+                {(() => {
+                  const Icon = getCategoryIcon(stop.category, stop.categoryIcon);
+                  return <Icon size={16} strokeWidth={2.5} className="text-white opacity-90" />;
+                })()}
+              </div>
+              {stop.rating && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '3px', flexShrink: 0 }}>
+                  <span style={{ color: '#f59e0b', fontSize: '13px' }}>★</span>
+                  <span style={{ color: 'var(--text-secondary)', fontSize: '0.82rem', fontWeight: 700 }}>{stop.rating}</span>
                 </div>
-                <h4 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-bright)', letterSpacing: '-0.02em' }}>
-                  {stop.location}
-                </h4>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-secondary)', fontSize: '0.8rem', background: 'rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: '20px', border: '1px solid var(--glass-border)' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '12px', color: '#ff4d4f' }}>location_on</span>
-                {stop.category ? (t(stop.category) !== stop.category ? t(stop.category) : stop.category) : t('map.place_default')}
-              </div>
+              )}
             </div>
 
             {/* Address */}
             {stop.address && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '0.8rem' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#f97316' }}>near_me</span>
-                <span style={{ opacity: 0.8 }}>{stop.address}</span>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', color: 'var(--text-muted)', fontSize: '0.86rem', marginBottom: '0.6rem', lineHeight: 1.5 }}>
+                <MapPin size={14} strokeWidth={2.5} className="text-white mt-[6px] shrink-0" />
+                <span style={{ opacity: 0.85 }}>{stop.address}</span>
+              </div>
+            )}
+
+            {/* Phone */}
+            {stop.phone && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '0.4rem' }}>
+                <Phone size={14} strokeWidth={2.5} className="text-white shrink-0" />
+                <span style={{ opacity: 0.85 }}>{stop.phone}</span>
               </div>
             )}
           </div>
@@ -369,11 +418,9 @@ export default function StopCard({
 
         {/* Note / Placeholder */}
         {stop.type === 'hotel_checkin' || stop.type === 'hotel_checkout' ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '1.2rem', padding: '4px 0' }}>
-            <span style={{ fontSize: '1rem' }}>
-              {stop.type === 'hotel_checkin' ? '🏨' : '🔑'}
-            </span>
-            <span style={{ fontSize: '0.9rem', fontWeight: 600, color: stop.type === 'hotel_checkin' ? '#f59e0b' : '#ef4444' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1.2rem', padding: '4px 0' }}>
+            {stop.type === 'hotel_checkin' ? <LogIn size={14} strokeWidth={2.5} className="text-white" /> : <LogOut size={14} strokeWidth={2.5} className="text-white" />}
+            <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'white' }}>
               {typeLabel}
             </span>
           </div>
@@ -399,26 +446,20 @@ export default function StopCard({
               className="stop-chip editable"
               onClick={handleTimeClick}
               style={{
-                background: stop.type === 'hotel_checkin' ? 'rgba(245,158,11,0.15)'
-                  : stop.type === 'hotel_checkout' ? 'rgba(239,68,68,0.15)'
-                  : 'rgba(91, 122, 153, 0.15)',
-                color: stop.type === 'hotel_checkin' ? '#f59e0b'
-                  : stop.type === 'hotel_checkout' ? '#ef4444'
-                  : '#9ebad6',
+                background: 'rgba(255, 255, 255, 0.05)',
+                color: 'white',
                 padding: '0.5rem 1rem',
                 borderRadius: '10px',
                 fontSize: '0.85rem',
                 fontWeight: 700,
                 display: 'flex',
                 alignItems: 'center',
-                gap: '6px',
-                border: stop.type === 'hotel_checkin' ? '1px solid rgba(245,158,11,0.3)'
-                  : stop.type === 'hotel_checkout' ? '1px solid rgba(239,68,68,0.3)'
-                  : '1px solid rgba(91, 122, 153, 0.2)',
+                gap: '8px',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
                 cursor: 'pointer'
               }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>schedule</span>
+              <Clock size={16} strokeWidth={2.5} />
               {stop.time} {stop.period}
             </div>
           )}
@@ -428,20 +469,20 @@ export default function StopCard({
               className="stop-chip editable"
               onClick={(e) => { e.stopPropagation(); onOpenStayInfo?.(dayId, stop.id); }}
               style={{
-                background: 'rgba(245,158,11,0.12)',
-                color: '#f59e0b',
+                background: 'rgba(255, 255, 255, 0.05)',
+                color: 'white',
                 padding: '0.5rem 1rem',
                 borderRadius: '10px',
                 fontSize: '0.85rem',
                 fontWeight: 700,
                 display: 'flex',
                 alignItems: 'center',
-                gap: '6px',
-                border: '1px solid rgba(245,158,11,0.25)',
+                gap: '8px',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
                 cursor: 'pointer'
               }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>hotel</span>
+              <Bed size={16} strokeWidth={2.5} />
               {t('itinerary.stay_info') || 'Stay Info'}
             </div>
           )}
@@ -451,19 +492,19 @@ export default function StopCard({
             onClick={handleExpenseClick}
             style={{ 
               background: 'rgba(255, 255, 255, 0.05)', 
-              color: 'var(--text-secondary)', 
+              color: 'white', 
               padding: '0.5rem 1rem', 
               borderRadius: '10px', 
               fontSize: '0.85rem', 
               fontWeight: 700,
               display: 'flex',
               alignItems: 'center',
-              gap: '6px',
-              border: '1px solid var(--glass-border)',
+              gap: '8px',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
               cursor: 'pointer'
             }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>payments</span>
+            <Receipt size={16} strokeWidth={2.5} />
             {stop.price && parseFloat(stop.price) > 0 
               ? formatCurrency(stop.price, state.settings) 
               : (t('itinerary.add_expense') || '添加消费')}
@@ -473,19 +514,19 @@ export default function StopCard({
             <div 
               className="stop-chip"
               style={{ 
-                background: 'rgba(34, 197, 94, 0.1)', 
-                color: '#4ade80', 
+                background: 'rgba(255, 255, 255, 0.05)', 
+                color: 'white', 
                 padding: '0.5rem 1rem', 
                 borderRadius: '10px', 
                 fontSize: '0.85rem', 
                 fontWeight: 700,
                 display: 'flex',
                 alignItems: 'center',
-                gap: '6px',
-                border: '1px solid rgba(34, 197, 94, 0.2)'
+                gap: '8px',
+                border: '1px solid rgba(255, 255, 255, 0.1)'
               }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>event_available</span>
+              <CheckCircle2 size={16} strokeWidth={2.5} />
               {stop.reservationTime}
             </div>
           )}
