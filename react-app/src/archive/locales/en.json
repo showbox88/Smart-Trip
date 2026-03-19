@@ -43,7 +43,15 @@
       "systemSettings": "System Settings",
       "propertyEdge": "Property Editor",
       "language": "Language",
+      "changeFolder": "Switch Workspace Folder",
+      "refreshFolder": "Refresh Current Folder",
       "settingsWip": "Settings features coming soon (WIP)"
+    },
+    "welcome": {
+      "title": "Welcome to Trip Archive",
+      "subtitle": "A dynamic local travel memory database. Zero uploads. Infinite capacity.",
+      "button": "Select Folder to Start",
+      "hint": "Choose a folder containing photos, and we'll automatically identify trips and events."
     },
     "syncSmartTrip": "Sync from Smart Trip",
     "controls": {

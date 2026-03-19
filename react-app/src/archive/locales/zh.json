@@ -43,7 +43,15 @@
       "systemSettings": "系统设置",
       "propertyEdge": "属性编辑",
       "language": "语言切换",
+      "changeFolder": "切换工作区文件夹",
+      "refreshFolder": "刷新当前文件夹",
       "settingsWip": "设置功能即将上线 (WIP)"
+    },
+    "welcome": {
+      "title": "欢迎来到行程相册",
+      "subtitle": "灵动的本地旅游记忆数据库。零上传。无限容量。",
+      "button": "选择文件夹开始",
+      "hint": "选择一个包含照片的文件夹，我们将自动识别其中的行程和事件。"
     },
     "syncSmartTrip": "同步 Smart Trip",
     "controls": {

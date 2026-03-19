@@ -15,7 +15,8 @@ export const PhotoCard = memo(function PhotoCard({ fileInfo, index, onContextMen
     return found?.color || found?.hex || '#60a5fa';
   };
   const [thumbUrl, setThumbUrl] = useState(null);
-  const rawUrl = useObjectUrl(fileInfo.handle);
+  // Skip blob URL generation if we already have a thumbnail
+  const rawUrl = useObjectUrl(fileInfo.handle, !!thumbUrl);
   
   const date = fileInfo.timestamp ? new Date(fileInfo.timestamp) : null;
   const rating = fileInfo.rating ?? 0;

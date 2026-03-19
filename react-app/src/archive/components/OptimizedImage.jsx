@@ -10,7 +10,8 @@ import clsx from 'clsx';
 export function OptimizedImage({ fileHandle, path, className, alt, layoutId, transition }) {
   const [thumbUrl, setThumbUrl] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const rawUrl = useObjectUrl(fileHandle);
+  // Skip blob URL generation if we already have a thumbnail
+  const rawUrl = useObjectUrl(fileHandle, !!thumbUrl);
 
   useEffect(() => {
     let isMounted = true;

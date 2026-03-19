@@ -70,7 +70,7 @@ export function useFileSystemAccess() {
     }
   }, []);
 
-  const saveToDatabase = async (newContent) => {
+  const saveToDatabase = useCallback(async (newContent) => {
     if (!dbHandle) {
       console.error('No database handle available for saving.');
       return;
@@ -85,9 +85,9 @@ export function useFileSystemAccess() {
       console.error('Failed to save to local JSON:', err);
       setError('Failed to save changes to the local database file.');
     }
-  };
+  }, [dbHandle]);
 
-  const initWorkspace = async () => {
+  const initWorkspace = useCallback(async () => {
     try {
       setIsScanning(true);
       setError(null);
@@ -181,9 +181,10 @@ export function useFileSystemAccess() {
     } finally {
       setIsScanning(false);
     }
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const restoreWorkspace = async () => {
+  const restoreWorkspace = useCallback(async () => {
     try {
       setIsScanning(true);
       setError(null);
@@ -316,7 +317,8 @@ export function useFileSystemAccess() {
     } finally {
       setIsScanning(false);
     }
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   /**
    * 增量同步照片的 EXIF 信息

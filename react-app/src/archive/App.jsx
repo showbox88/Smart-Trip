@@ -100,7 +100,7 @@ function App({ smartTrips = [] }) {
     });
   }, [photoFiles, dbPhotoMap]);
 
-  const [appMode, setAppMode] = useState('gallery');
+  const [appMode, setAppMode] = useState('gallery'); // Always start in gallery mode
   const [activeFilter, setActiveFilter] = useState({ type: 'all' });
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [toast, setToast] = useState(null);
@@ -201,9 +201,15 @@ function App({ smartTrips = [] }) {
   }, [dbContent.categories, dbContent.cities, dbContent.tags]);
 
 
-  useEffect(() => {
-    checkPersistedWorkspace();
-  }, [checkPersistedWorkspace]);
+   useEffect(() => {
+    const autoInit = async () => {
+      const hasHandle = await checkPersistedWorkspace();
+      if (hasHandle) {
+        await restoreWorkspace();
+      }
+    };
+    autoInit();
+  }, [checkPersistedWorkspace, restoreWorkspace]);
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
@@ -1049,7 +1055,7 @@ function App({ smartTrips = [] }) {
       />
       
       {/* ----------------- GALLERY LAYOUT (THE GATHERING) ----------------- */}
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {appMode === 'gallery' && (
           <motion.div 
             key="gallery"
@@ -1223,10 +1229,28 @@ function App({ smartTrips = [] }) {
 
                           <button
                             onClick={() => { setIsAvatarMenuOpen(false); setIsPropertyModalOpen(true); }}
-                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10 transition-all group text-blue-400"
+                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10 transition-all group text-neutral-400"
                           >
                             <SlidersHorizontal size={18} className="group-hover:scale-110 transition-transform" />
                             <span className="text-sm font-medium text-neutral-200 group-hover:text-white">{t('app.account.propertyEdge')}</span>
+                          </button>
+
+                          <div className="h-px bg-white/5 my-1" />
+
+                          <button
+                            onClick={async () => { setIsAvatarMenuOpen(false); await handleInitialize(); }}
+                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10 transition-all group text-blue-400"
+                          >
+                            <FolderOpen size={18} className="group-hover:scale-110 transition-transform" />
+                            <span className="text-sm font-medium text-neutral-200 group-hover:text-white">{t('app.account.changeFolder')}</span>
+                          </button>
+
+                          <button
+                            onClick={async () => { setIsAvatarMenuOpen(false); await restoreWorkspace(); }}
+                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10 transition-all group text-emerald-400"
+                          >
+                            <RefreshCw size={18} className="group-hover:rotate-180 transition-transform duration-500" />
+                            <span className="text-sm font-medium text-neutral-200 group-hover:text-white">{t('app.account.refreshFolder')}</span>
                           </button>
                         </motion.div>
                       </>
@@ -1269,6 +1293,50 @@ function App({ smartTrips = [] }) {
               )}
 
               <div className="flex-1 flex flex-col relative">
+                {/* Welcome Overlay / Empty State */}
+                {photoFiles.length === 0 && !isScanning && (
+                  <div className="absolute inset-0 z-[60] flex items-center justify-center p-6 text-center">
+                    <motion.div 
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="max-w-md w-full p-12 bg-[#1a1b1e]/80 backdrop-blur-3xl border border-white/10 rounded-[3rem] shadow-2xl"
+                    >
+                      <div className="w-20 h-20 bg-blue-600/20 rounded-3xl flex items-center justify-center mx-auto mb-8">
+                        <FolderOpen size={40} className="text-blue-400" />
+                      </div>
+                      <h3 className="text-3xl font-black text-white mb-4">{t('app.welcome.title')}</h3>
+                      <p className="text-neutral-400 mb-10 leading-relaxed font-medium">
+                        {t('app.welcome.subtitle')}
+                        <br/>
+                        <span className="text-xs text-neutral-500 mt-2 block">{t('app.welcome.hint')}</span>
+                      </p>
+                      <button
+                        onClick={handleInitialize}
+                        className="w-full py-5 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-bold text-lg transition-all shadow-xl shadow-blue-600/20 active:scale-95 flex items-center justify-center gap-3"
+                      >
+                        <Play size={20} fill="currentColor" />
+                        {t('app.welcome.button')}
+                      </button>
+                      
+                      {error && (
+                        <p className="mt-6 text-sm text-red-400 font-bold bg-red-400/10 py-3 px-4 rounded-xl border border-red-400/20">
+                          {error}
+                        </p>
+                      )}
+                    </motion.div>
+                  </div>
+                )}
+
+                {/* Loading Overlay */}
+                {isScanning && photoFiles.length === 0 && (
+                  <div className="absolute inset-0 z-[70] flex items-center justify-center bg-[#0b1014]/50 backdrop-blur-sm">
+                    <div className="flex flex-col items-center gap-4">
+                      <div className="w-12 h-12 border-4 border-blue-600/20 border-t-blue-600 rounded-full animate-spin" />
+                      <span className="text-blue-400 font-bold tracking-widest text-xs uppercase">{t('app.grantingAccess')}</span>
+                    </div>
+                  </div>
+                )}
+
                 {/* Virtualized Infinite Grid */}
                 <VirtualGrid
                   items={displayedItems}

@@ -3,8 +3,11 @@ import { useState, useEffect } from 'react';
 /**
  * Custom hook to safely load an Object URL from a FileSystemFileHandle 
  * only when needed, to prevent massive memory leaks.
+ * 
+ * @param {FileSystemFileHandle} fileHandle 
+ * @param {boolean} skip If true, generation is skipped and existing URL is revoked (softly)
  */
-export function useObjectUrl(fileHandle) {
+export function useObjectUrl(fileHandle, skip = false) {
   const [url, setUrl] = useState(null);
   
   useEffect(() => {
@@ -12,7 +15,8 @@ export function useObjectUrl(fileHandle) {
     let objectUrl = null;
     
     async function generateUrl() {
-      if (!fileHandle) {
+      // If skip is true or no handle, just clear the URL state
+      if (skip || !fileHandle) {
         setUrl(null);
         return;
       }
@@ -42,10 +46,15 @@ export function useObjectUrl(fileHandle) {
     return () => {
       isCancelled = true;
       if (objectUrl) {
-        URL.revokeObjectURL(objectUrl);
+        // "Soft Revocation": Wait a few seconds before revoking to prevent 
+        // ERR_FILE_NOT_FOUND during rapid list updates or transitions
+        const urlToRevoke = objectUrl;
+        setTimeout(() => {
+          URL.revokeObjectURL(urlToRevoke);
+        }, 3000);
       }
     };
-  }, [fileHandle]);
+  }, [fileHandle, skip]);
 
   return url;
 }
