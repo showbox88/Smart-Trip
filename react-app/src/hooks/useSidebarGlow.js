@@ -1,86 +1,95 @@
 import { useEffect, useRef } from 'react';
 
 /**
- * Replicates the sidebar mouse-glow effect from ux.js.
+ * Sidebar mouse-glow effect.
  * Attach the returned ref to the <aside className="sidebar"> element.
  */
 export function useSidebarGlow(isCollapsed) {
   const sidebarRef = useRef(null);
-  const cacheRef = useRef(null);
+  const layerRef = useRef(null);
+  const dotsRef = useRef([]); // [{ item, activeDot, hoverDot }]
   const rafRef = useRef(null);
   const pointerRef = useRef({ x: -9999, y: -9999 });
+  const isCollapsedRef = useRef(isCollapsed);
 
-  const invalidateCache = () => { cacheRef.current = null; };
+  // Build / rebuild the glow layer and dot elements
+  const buildLayer = () => {
+    const sidebar = sidebarRef.current;
+    if (!sidebar) return;
 
-  const buildCache = (sidebar) => {
-    let layer = sidebar.querySelector('.sidebar-glow-layer');
-    if (!layer) {
-      layer = document.createElement('div');
-      layer.className = 'sidebar-glow-layer';
-      layer.style.cssText = 'position:absolute;inset:0;z-index:0;pointer-events:none;overflow:visible;';
-      sidebar.prepend(layer);
+    // Remove old layer
+    if (layerRef.current) {
+      layerRef.current.remove();
+      layerRef.current = null;
     }
-    layer.style.display = '';
+    dotsRef.current = [];
 
-    const sidebarRect = sidebar.getBoundingClientRect();
+    if (!isCollapsedRef.current) return;
+
+    const layer = document.createElement('div');
+    layer.className = 'sidebar-glow-layer';
+    layer.style.cssText = 'position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;';
+    sidebar.prepend(layer);
+    layerRef.current = layer;
+
     const items = sidebar.querySelectorAll('#sidebar-nav li, .add-day-btn');
-    const dots = [];
+    items.forEach(item => {
+      // Active dot — always visible on active item
+      const activeDot = document.createElement('div');
+      activeDot.style.cssText = 'position:absolute;width:0;height:0;pointer-events:none;';
+      layer.appendChild(activeDot);
 
-    items.forEach((item, i) => {
-      let dot = layer.children[i];
-      if (!dot) {
-        dot = document.createElement('div');
-        layer.appendChild(dot);
-      }
-      const rect = item.getBoundingClientRect();
-      const centerY = rect.top + rect.height / 2 - sidebarRect.top;
-      dots.push({ dot, item, centerY });
+      // Hover dot — follows mouse proximity
+      const hoverDot = document.createElement('div');
+      hoverDot.style.cssText = 'position:absolute;width:0;height:0;pointer-events:none;';
+      layer.appendChild(hoverDot);
+
+      dotsRef.current.push({ item, activeDot, hoverDot });
     });
-
-    while (layer.children.length > items.length) {
-      layer.removeChild(layer.lastChild);
-    }
-
-    return { sidebar, layer, sidebarRight: sidebarRect.right, dots };
   };
 
   const applyGlow = () => {
     rafRef.current = null;
     const sidebar = sidebarRef.current;
-    if (!sidebar) return;
+    if (!sidebar || !isCollapsedRef.current || !layerRef.current) return;
 
-    if (!isCollapsed) {
-      // Hide glow layer when expanded
-      const layer = sidebar.querySelector('.sidebar-glow-layer');
-      if (layer) layer.style.display = 'none';
-      cacheRef.current = null;
-      return;
-    }
-
-    if (!cacheRef.current || cacheRef.current.sidebar !== sidebar) {
-      cacheRef.current = buildCache(sidebar);
-    }
-
-    const { sidebarRight, dots } = cacheRef.current;
+    const sidebarRect = sidebar.getBoundingClientRect();
     const { x: pointerX, y: pointerY } = pointerRef.current;
-    const isNear = pointerX < sidebarRight + 40;
+    const sidebarRight = sidebarRect.right;
+    const isNear = pointerX >= 0 && pointerX < sidebarRight + 60;
 
-    for (const { dot, item, centerY } of dots) {
+    for (const { item, activeDot, hoverDot } of dotsRef.current) {
+      const rect = item.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2 - sidebarRect.left;
+      const cy = rect.top + rect.height / 2 - sidebarRect.top;
       const isActive = item.classList.contains('active');
+
+      // Position both dots at item center
+      const pos = `position:absolute;width:0;height:0;left:${cx}px;top:${cy}px;pointer-events:none;`;
+      activeDot.style.cssText = pos;
+      hoverDot.style.cssText = pos;
+
+      // Active glow — steady, uses day color if available
+      const activeColor = item.style.getPropertyValue('--active-color') || '#3b82f6';
+      activeDot.style.boxShadow = isActive
+        ? `0 0 28px 14px ${activeColor}99`
+        : 'none';
+
+      // Hover glow — proximity-based
       if (!isNear) {
-        dot.style.boxShadow = isActive ? '0 0 30px 12px rgba(96,165,250,0.7)' : 'none';
+        hoverDot.style.boxShadow = 'none';
       } else {
-        const dy = pointerY - centerY;
-        const distance = Math.abs(dy);
-        const maxDistance = 120;
+        const itemCenterYViewport = rect.top + rect.height / 2;
+        const distance = Math.abs(pointerY - itemCenterYViewport);
+        const maxDistance = 100;
         if (distance < maxDistance) {
           const strength = 1 - distance / maxDistance;
-          const b = 20 + strength * 20;
-          const s = 8 + strength * 8;
-          const a = (strength * 0.8).toFixed(2);
-          dot.style.boxShadow = `0 0 ${b}px ${s}px rgba(96,165,250,${a})`;
+          const blur = 24 + strength * 28;
+          const spread = 10 + strength * 14;
+          const alpha = (0.25 + strength * 0.65).toFixed(2);
+          hoverDot.style.boxShadow = `0 0 ${blur}px ${spread}px rgba(148,180,255,${alpha})`;
         } else {
-          dot.style.boxShadow = isActive ? '0 0 30px 12px rgba(96,165,250,0.7)' : 'none';
+          hoverDot.style.boxShadow = 'none';
         }
       }
     }
@@ -103,28 +112,21 @@ export function useSidebarGlow(isCollapsed) {
     };
 
     window.addEventListener('mousemove', onMove);
-    window.addEventListener('pointermove', onMove);
     window.addEventListener('mouseleave', onLeave);
-    window.addEventListener('scroll', invalidateCache, true);
-    window.addEventListener('resize', invalidateCache);
-
-    // Initial render
-    setTimeout(() => { invalidateCache(); scheduleGlow(); }, 100);
+    window.addEventListener('resize', buildLayer);
 
     return () => {
       window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('pointermove', onMove);
       window.removeEventListener('mouseleave', onLeave);
-      window.removeEventListener('scroll', invalidateCache, true);
-      window.removeEventListener('resize', invalidateCache);
+      window.removeEventListener('resize', buildLayer);
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
   }, []);
 
-  // Re-apply when collapsed state changes
+  // Rebuild when collapsed state changes
   useEffect(() => {
-    invalidateCache();
-    setTimeout(() => { invalidateCache(); scheduleGlow(); }, 350);
+    isCollapsedRef.current = isCollapsed;
+    setTimeout(() => { buildLayer(); scheduleGlow(); }, 350);
   }, [isCollapsed]);
 
   return sidebarRef;
