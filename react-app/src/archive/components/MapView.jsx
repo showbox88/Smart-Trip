@@ -17,10 +17,14 @@ function normPath(p) {
 }
 
 function getEventCoords(event, allPhotos) {
+  // 1. Event 自身坐标（如从 Smart Trip 同步来的）
+  if (event.latitude && event.longitude) return [event.latitude, event.longitude];
+  // 2. 封面照片的坐标
   if (event.cover_photo_id) {
     const p = allPhotos.find(p => normPath(p.path) === normPath(event.cover_photo_id));
     if (p?.latitude && p?.longitude) return [p.latitude, p.longitude];
   }
+  // 3. 该 event 下任意有 GPS 的照片
   const fb = allPhotos.find(
     p => String(p.event_id) === String(event.event_id) && p.latitude && p.longitude
   );
@@ -207,7 +211,7 @@ function MapClickHandler({ onClick }) {
 
 // ─── Speech bubble hover card ─────────────────────────────────────────────────
 
-function HoverBubble({ eventData }) {
+function HoverBubble({ eventData, t }) {
   const map = useMap();
   const [pixelPos, setPixelPos] = useState(null);
 
@@ -543,7 +547,7 @@ export function MapView({ trips, allPhotos, onNavigate, t }) {
           })}
 
           {/* Speech bubble — event hover */}
-          {!selectedEventId && <HoverBubble eventData={hoveredEventData} />}
+          {!selectedEventId && <HoverBubble eventData={hoveredEventData} t={t} />}
 
           {/* Speech bubble — photo (pinned takes priority over hover) */}
           {selectedEventId && (

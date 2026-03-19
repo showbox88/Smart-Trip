@@ -5,12 +5,13 @@ export function useArchiveSync() {
   const [archiveDb, setArchiveDb] = useState(null);
   const [isLinked, setIsLinked] = useState(false);
   const [thumbnails, setThumbnails] = useState({});
+  const [rootHandle, setRootHandle] = useState(null);
 
   const loadArchiveDb = useCallback(async () => {
     try {
       const handle = await idb.get('last_handle');
       if (!handle) return false;
-      
+
       const options = { mode: 'readwrite' };
       if ((await handle.queryPermission(options)) === 'granted') {
          const dbFileHandle = await handle.getFileHandle('trip_database.json', { create: false });
@@ -18,6 +19,7 @@ export function useArchiveSync() {
          const text = await file.text();
          const data = JSON.parse(text);
          setArchiveDb(data);
+         setRootHandle(handle);
          setIsLinked(true);
          return data;
       }
@@ -77,12 +79,25 @@ export function useArchiveSync() {
            stTrip.days.forEach(day => {
              if (day.stops) {
                day.stops.forEach(stop => {
-                  let aEvent = newDb.events.find(e => e.title === (stop.location || stop.name) && e.trip_id === aTrip.trip_id);
-                  if (!aEvent) { // create 
+                  let stopTitle, stopNotes;
+                  if (stop.type === 'note') {
+                    stopTitle = `📝 ${stop.content ? stop.content.split('\n')[0].slice(0, 20) || '备注' : '备注'}`;
+                    stopNotes = stop.content || '';
+                  } else if (stop.type === 'list') {
+                    stopTitle = `📋 ${stop.title || '清单'}`;
+                    stopNotes = stop.items ? stop.items.map(item => `- [${item.checked ? 'x' : ' '}] ${item.text}`).join('\n') : '';
+                  } else {
+                    stopTitle = stop.location || stop.name;
+                    stopNotes = '';
+                  }
+
+                  let aEvent = newDb.events.find(e => e.title === stopTitle && e.trip_id === aTrip.trip_id);
+                  if (!aEvent) { // create
                      newDb.events.push({
                        event_id: stop.id || crypto.randomUUID(),
                        trip_id: aTrip.trip_id,
-                       title: stop.location || stop.name,
+                       title: stopTitle,
+                       notes: stopNotes,
                        date: day.date,
                        latitude: stop.lat,
                        longitude: stop.lng,
@@ -113,5 +128,5 @@ export function useArchiveSync() {
     }
   };
 
-  return { archiveDb, isLinked, thumbnails, getThumbnail, syncToArchive, loadArchiveDb };
+  return { archiveDb, isLinked, thumbnails, getThumbnail, syncToArchive, loadArchiveDb, rootHandle };
 }

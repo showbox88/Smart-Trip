@@ -4,7 +4,7 @@ import { useI18n } from '../../context/I18nContext';
 import { useApp } from '../../context/AppContext';
 import { formatDistance, formatDuration } from '../../utils/formatters';
 
-export default function TransitInfo({ transit, transitMode, onToggleMode, onAddStop, onAddNote, onAddList }) {
+export default function TransitInfo({ transit, transitMode, onToggleMode, onAddStop, onAddNote, onAddList, hideAdd }) {
   const { t } = useI18n();
   const { state } = useApp();
   const [showAddMenu, setShowAddMenu] = useState(false);
@@ -35,30 +35,34 @@ export default function TransitInfo({ transit, transitMode, onToggleMode, onAddS
 
   const hasData = transit?.duration || transit?.distance;
 
+  if (hideAdd && !hasData) return null;
+
   const modeIcon = transitMode === 'WALK' ? 'directions_walk' : 'directions_car';
   const modeLabel = transitMode === 'WALK' ? t('itinerary.walk') || '步行' : t('itinerary.drive') || '驾车';
 
   return (
     <div className="transit-info-row" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0 0.4rem 2.5rem', color: 'var(--text-muted)', fontSize: '0.8rem', position: 'relative' }}>
-      <button
-        ref={btnRef}
-        onClick={handleOpenMenu}
-        style={{
-          width: '24px',
-          height: '24px',
-          borderRadius: '50%',
-          border: '1px solid rgba(255,255,255,0.2)',
-          background: 'rgba(255,255,255,0.05)',
-          color: 'var(--text-bright)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'pointer',
-          padding: 0,
-        }}
-      >
-        <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>add</span>
-      </button>
+      {!hideAdd && (
+        <button
+          ref={btnRef}
+          onClick={handleOpenMenu}
+          style={{
+            width: '24px',
+            height: '24px',
+            borderRadius: '50%',
+            border: '1px solid rgba(255,255,255,0.2)',
+            background: 'rgba(255,255,255,0.05)',
+            color: 'var(--text-bright)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            padding: 0,
+          }}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>add</span>
+        </button>
+      )}
 
       {showAddMenu && createPortal(
         <div

@@ -63,15 +63,16 @@ export const PhotoCard = memo(function PhotoCard({ fileInfo, index, onContextMen
       whileTap={{ scale: 0.98 }}
       data-item-key={fileInfo.path}
       className={clsx(
-        "relative flex flex-col cursor-pointer group rounded-xl overflow-visible",
-        "bg-[#191a21] border border-white/5 shadow-lg transition-all duration-300",
+        "relative flex flex-col cursor-pointer group rounded-2xl overflow-visible",
+        "bg-white/[0.03] border border-white/5 shadow-xl transition-all duration-500",
+        "backdrop-blur-md",
         isSelected 
-          ? "ring-4 ring-blue-500/50 shadow-[0_0_30px_rgba(59,130,246,0.4)]" 
-          : "hover:border-blue-500/30 hover:shadow-[0_0_40px_rgba(59,130,246,0.3)] hover:bg-[#1e1f28]"
+          ? "ring-2 ring-blue-500 shadow-[0_0_40px_rgba(59,130,246,0.3)] bg-blue-500/5 border-blue-500/30" 
+          : "hover:border-blue-500/20 hover:shadow-[0_0_60px_rgba(59,130,246,0.15)] hover:bg-white/[0.06]"
       )}
     >
-      <div className="pt-2 pb-1 flex justify-center bg-[#191a21] rounded-t-xl shrink-0">
-        <div className="relative w-[92%] aspect-[4/3] overflow-hidden rounded-lg bg-neutral-900 shadow-inner group-hover:shadow-[0_0_15px_rgba(59,130,246,0.3)] transition-all">
+      <div className="pt-2 pb-1 flex justify-center rounded-t-2xl shrink-0">
+        <div className="relative w-[88%] aspect-square overflow-hidden rounded-xl bg-neutral-900 shadow-inner group-hover:shadow-[0_0_20px_rgba(59,130,246,0.2)] transition-all">
           {displayUrl ? (
             <motion.img 
               layoutId={finalLayoutId}
@@ -108,8 +109,8 @@ export const PhotoCard = memo(function PhotoCard({ fileInfo, index, onContextMen
       </div>
 
       <div className="p-1.5 flex flex-col gap-0.5 relative border-t border-white/[0.03]">
-        <div className="flex flex-col gap-0 min-w-0">
-          <h3 className="text-white text-[9px] font-bold truncate leading-tight">
+        <div className="flex flex-col gap-0 min-w-0 font-title">
+          <h3 className="text-white text-[10px] font-black truncate leading-tight tracking-tight">
             {displayTitle}
           </h3>
           <div className="flex items-center">

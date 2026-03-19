@@ -100,6 +100,69 @@ export function useTripEditor(tripId) {
       changed = true;
     }
 
+    // Compute hotel ↔ day transit for "from/to hotel" hints
+    // Find any active stay for this day (checkin ≤ dayIdx ≤ checkout, cross-day)
+    const allStops = updated.days.flatMap(d => d.stops.map(s => ({ ...s, _dayId: d.id })));
+    const staysMap = new Map();
+    allStops.forEach(s => {
+      if (!s.stayId) return;
+      if (!staysMap.has(s.stayId)) staysMap.set(s.stayId, { checkinStop: null, checkoutStop: null });
+      const stay = staysMap.get(s.stayId);
+      if (s.type === 'hotel_checkin') stay.checkinStop = s;
+      if (s.type === 'hotel_checkout') stay.checkoutStop = s;
+    });
+    const dayIdxMap = new Map(updated.days.map((d, i) => [d.id, i]));
+    const dIdx = dayIdxMap.get(day.id);
+    const plainStops = day.stops.filter(s =>
+      s.type !== 'hotel_checkin' && s.type !== 'hotel_checkout' && s.type !== 'note' && s.type !== 'list' && s.lat && s.lng
+    );
+    const firstPlain = plainStops[0];
+    const lastPlain = plainStops[plainStops.length - 1];
+
+    for (const [, stay] of staysMap) {
+      const { checkinStop, checkoutStop } = stay;
+      if (!checkinStop || !checkoutStop) continue;
+      const cinIdx = dayIdxMap.get(checkinStop._dayId);
+      const coutIdx = dayIdxMap.get(checkoutStop._dayId);
+      if (dIdx === undefined || cinIdx === undefined || coutIdx === undefined) continue;
+      if (dIdx < cinIdx || dIdx > coutIdx) continue;
+
+      // "from hotel": checkin stop → first plain stop of this day (if checkin is on a different day)
+      if (firstPlain && checkinStop._dayId !== day.id && checkinStop.lat && checkinStop.lng) {
+        const res = await fetchRouteDuration(
+          { lat: Number(checkinStop.lat), lng: Number(checkinStop.lng) },
+          { lat: Number(firstPlain.lat), lng: Number(firstPlain.lng) },
+          'DRIVE'
+        );
+        const target = day.stops.find(s => s.id === firstPlain.id);
+        if (target && JSON.stringify(target.transitFromHotel) !== JSON.stringify(res)) {
+          target.transitFromHotel = res;
+          changed = true;
+        }
+      } else if (firstPlain) {
+        // Checkin is on same day — clear transitFromHotel if set
+        const target = day.stops.find(s => s.id === firstPlain.id);
+        if (target && target.transitFromHotel) { target.transitFromHotel = null; changed = true; }
+      }
+
+      // "to hotel": last plain stop of this day → checkout stop (if checkout is on a different day)
+      if (lastPlain && checkoutStop._dayId !== day.id && checkoutStop.lat && checkoutStop.lng) {
+        const res = await fetchRouteDuration(
+          { lat: Number(lastPlain.lat), lng: Number(lastPlain.lng) },
+          { lat: Number(checkoutStop.lat), lng: Number(checkoutStop.lng) },
+          'DRIVE'
+        );
+        const target = day.stops.find(s => s.id === lastPlain.id);
+        if (target && JSON.stringify(target.transitToHotel) !== JSON.stringify(res)) {
+          target.transitToHotel = res;
+          changed = true;
+        }
+      } else if (lastPlain) {
+        const target = day.stops.find(s => s.id === lastPlain.id);
+        if (target && target.transitToHotel) { target.transitToHotel = null; changed = true; }
+      }
+    }
+
     if (changed) {
       applyUpdate(updated);
     }
@@ -117,6 +180,23 @@ export function useTripEditor(tripId) {
       applyUpdate(updated);
       await computeTransitData(dayId, updated);
     }
+  }, [trip, applyUpdate, computeTransitData]);
+
+  // Toggle transit mode for hotel → first stop ('from') or last stop → hotel ('to')
+  const toggleHotelTransitMode = useCallback(async (dayId, stopId, direction) => {
+    if (!trip) return;
+    const updated = JSON.parse(JSON.stringify(trip));
+    const day = updated.days.find(d => d.id === dayId);
+    if (!day) return;
+    const stop = day.stops.find(s => s.id === stopId);
+    if (!stop) return;
+    if (direction === 'from') {
+      stop.transitModeFromHotel = (stop.transitModeFromHotel === 'WALK' ? 'DRIVE' : 'WALK');
+    } else {
+      stop.transitModeToHotel = (stop.transitModeToHotel === 'WALK' ? 'DRIVE' : 'WALK');
+    }
+    applyUpdate(updated);
+    await computeTransitData(dayId, updated);
   }, [trip, applyUpdate, computeTransitData]);
 
   const addDay = useCallback(() => {
@@ -218,7 +298,9 @@ export function useTripEditor(tripId) {
 
     const newStop = { id: 'n' + Date.now(), type: 'note', content: '', checked: false };
 
-    if (afterStopId) {
+    if (afterStopId === '__prepend__') {
+      day.stops.unshift(newStop);
+    } else if (afterStopId) {
       const idx = day.stops.findIndex(s => s.id === afterStopId);
       day.stops.splice(idx >= 0 ? idx + 1 : day.stops.length, 0, newStop);
     } else {
@@ -236,7 +318,9 @@ export function useTripEditor(tripId) {
 
     const newStop = { id: 'l' + Date.now(), type: 'list', title: '', items: [{ text: '', checked: false }] };
 
-    if (afterStopId) {
+    if (afterStopId === '__prepend__') {
+      day.stops.unshift(newStop);
+    } else if (afterStopId) {
       const idx = day.stops.findIndex(s => s.id === afterStopId);
       day.stops.splice(idx >= 0 ? idx + 1 : day.stops.length, 0, newStop);
     } else {
@@ -362,7 +446,9 @@ export function useTripEditor(tripId) {
         openingHours: place.regularOpeningHours?.weekdayDescriptions || [],
       };
 
-      if (afterStopId) {
+      if (afterStopId === '__prepend__') {
+        day.stops.unshift(newStop);
+      } else if (afterStopId) {
         const idx = day.stops.findIndex(s => s.id === afterStopId);
         day.stops.splice(idx >= 0 ? idx + 1 : day.stops.length, 0, newStop);
       } else {
@@ -445,6 +531,63 @@ export function useTripEditor(tripId) {
     applyUpdate(updated);
   }, [trip, applyUpdate]);
 
+  // Save hotel stay info: converts the accommodation stop into hotel_checkin,
+  // creates/updates hotel_checkout on the target day.
+  const saveStayInfo = useCallback((dayId, stopId, { cinDate, cinTime, cinPeriod, coutDate, coutTime, coutPeriod }) => {
+    if (!trip) return;
+    const updated = JSON.parse(JSON.stringify(trip));
+
+    // Find original stop
+    let origDay = null, stop = null;
+    for (const d of updated.days) {
+      const s = d.stops.find(st => st.id === stopId);
+      if (s) { origDay = d; stop = s; break; }
+    }
+    if (!stop) return;
+
+    const stayId = stop.stayId || ('stay-' + Date.now());
+
+    // Remove any existing checkout stop for this stayId (will recreate)
+    updated.days.forEach(d => {
+      d.stops = d.stops.filter(s => !(s.stayId === stayId && s.type === 'hotel_checkout'));
+    });
+
+    // Find target days by matching date string
+    const cinDay = updated.days.find(d => d.date === cinDate);
+    const coutDay = updated.days.find(d => d.date === coutDate);
+    if (!cinDay || !coutDay) {
+      alert('所选日期不在行程范围内');
+      return;
+    }
+
+    // Update the original stop → hotel_checkin
+    stop.stayId = stayId;
+    stop.type = 'hotel_checkin';
+    stop.time = cinTime;
+    stop.period = cinPeriod;
+
+    // Move to cin day if needed
+    if (origDay.id !== cinDay.id) {
+      origDay.stops = origDay.stops.filter(s => s.id !== stopId);
+      cinDay.stops.push(stop);
+    }
+
+    // Create checkout stop
+    const coutStop = {
+      ...JSON.parse(JSON.stringify(stop)),
+      id: 'cout-' + Date.now(),
+      type: 'hotel_checkout',
+      stayId,
+      time: coutTime,
+      period: coutPeriod,
+    };
+    coutDay.stops.push(coutStop);
+
+    applyUpdate(updated);
+    computeTransitData(cinDay.id, updated);
+    if (coutDay.id !== cinDay.id) computeTransitData(coutDay.id, updated);
+  }, [trip, applyUpdate, computeTransitData]);
+
   return {
     trip,
     addDay,
@@ -464,6 +607,8 @@ export function useTripEditor(tripId) {
     addStopFromPlace,
     updateTripMetadata,
     toggleTransitMode,
+    toggleHotelTransitMode,
     computeTransitData,
+    saveStayInfo,
   };
 }

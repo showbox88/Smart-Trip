@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import * as idb from '../utils/idb';
 import { useObjectUrl } from '../hooks/useObjectUrl';
 import { Image as ImageIcon } from 'lucide-react';
@@ -43,12 +44,21 @@ export function OptimizedImage({ fileHandle, path, className, alt, layoutId, tra
     );
   }
 
-  // If we have framer-motion props, use motion.img, otherwise standard img
-  const Tag = layoutId ? 'motion.img' : 'img';
-  
-  // Note: We're using standard img here for simplicity unless layoutId is passed
-  // In our case, PhotoCard uses motion.img, so we should stay flexible
-  
+  // If we have layoutId, we must use motion.img for shared element transitions
+  if (layoutId) {
+    return (
+      <motion.img
+        layoutId={layoutId}
+        src={displayUrl}
+        alt={alt}
+        className={className}
+        transition={transition || { type: 'spring', stiffness: 300, damping: 30 }}
+        loading="lazy"
+        style={{ opacity: isLoading && !thumbUrl ? 0 : 1, transition: 'opacity 0.3s' }}
+      />
+    );
+  }
+
   return (
     <img
       src={displayUrl}

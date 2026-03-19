@@ -27,13 +27,6 @@ export default function DashboardFilters() {
       </div>
       <div className="view-toggles" id="dashboard-view-toggles">
         <button
-          className={`view-icon${state.dashboardView === 'album' ? ' active' : ''}`}
-          onClick={() => dispatch({ type: 'SET_DASHBOARD_VIEW', payload: 'album' })}
-          title={t('dashboard.view_album') || 'Album Mode'}
-        >
-          <span className="material-symbols-outlined">photo_album</span>
-        </button>
-        <button
           className={`view-icon${state.dashboardView === 'grid' || !state.dashboardView ? ' active' : ''}`}
           onClick={() => dispatch({ type: 'SET_DASHBOARD_VIEW', payload: 'grid' })}
         >
@@ -44,6 +37,13 @@ export default function DashboardFilters() {
           onClick={() => dispatch({ type: 'SET_DASHBOARD_VIEW', payload: 'list' })}
         >
           <span className="material-symbols-outlined">list</span>
+        </button>
+        <button
+          className={`view-icon${state.dashboardView === 'album' ? ' active' : ''}`}
+          onClick={() => dispatch({ type: 'SET_DASHBOARD_VIEW', payload: 'album' })}
+          title={t('dashboard.view_album') || 'Album Mode'}
+        >
+          <span className="material-symbols-outlined">collections</span>
         </button>
       </div>
     </div>

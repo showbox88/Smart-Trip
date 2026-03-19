@@ -17,17 +17,31 @@
   --background: #0b0c10;
   --foreground: #f8f9fa;
   --accent: #3b82f6;
-  --neutral-800: #1a1b1e;
-  --neutral-900: #111215;
+  --accent-orange: #f97316;
+  --glass-bg: rgba(30, 41, 59, 0.5);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --card-bg: #1a1b1e;
+  --font-title: 'Outfit', sans-serif;
+  --font-body: 'Noto Sans SC', sans-serif;
 }
 
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-body);
   margin: 0;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, .font-title {
+  font-family: var(--font-title);
+}
+
+.premium-glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
 }
 
 .trip-card-gradient {

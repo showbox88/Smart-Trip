@@ -5,6 +5,7 @@ import StopCard from './StopCard';
 import NoteCard from './NoteCard';
 import ListCard from './ListCard';
 import AddStopRow from './AddStopRow';
+import TransitInfo from './TransitInfo';
 
 export default function DaySection({
   day, dayIndex, trip,
@@ -16,7 +17,9 @@ export default function DaySection({
   onColorChange, onEditDay, onDeleteDay, onUpdateDay,
   onOpenTimePicker,
   onOpenExpense,
+  onOpenStayInfo,
   onChangePhoto,
+  onToggleHotelTransitMode,
   draggingStopId,
   onDragPointerDown, onDragPointerMove, onDragPointerUp,
   onFocusStop
@@ -38,6 +41,16 @@ export default function DaySection({
   })();
 
   // ── Render ─────────────────────────────────────────────────────────────────
+
+  // First and last plain POI indices (location type, not hotel/note/list) for hotel context lines
+  const plainPois = stops
+    .map((s, i) => ({ s, i }))
+    .filter(({ s }) => s.type !== 'hotel_checkin' && s.type !== 'hotel_checkout' && s.type !== 'note' && s.type !== 'list');
+  const plainPoiIndices = plainPois.map(({ i }) => i);
+  const firstPlainPoiIdx = plainPoiIndices[0] ?? -1;
+  const lastPlainPoiIdx = plainPoiIndices[plainPoiIndices.length - 1] ?? -1;
+  const firstPlainStop = plainPois[0]?.s ?? null;
+  const lastPlainStop = plainPois[plainPois.length - 1]?.s ?? null;
 
   const renderStop = (stop, index) => {
     const isPoi = stop.type === 'location' || !stop.type || stop.type === 'hotel_checkin' || stop.type === 'hotel_checkout';
@@ -70,6 +83,9 @@ export default function DaySection({
         />
       );
     } else {
+      const isPlainPoi = stop.type !== 'hotel_checkin' && stop.type !== 'hotel_checkout' && stop.type !== 'note' && stop.type !== 'list';
+      const hasHotelAbove = (hotelContext.isBetween || hotelContext.isCoutOnly) && hotelContext.stay;
+      const hasHotelBelow = (hotelContext.isBetween || hotelContext.isCinOnly || hotelContext.isSameDayStay) && hotelContext.stay;
       card = (
         <StopCard
           stop={stop} dayId={day.id} dayColor={activeColor}
@@ -81,10 +97,13 @@ export default function DaySection({
           onToggleTransitMode={onToggleTransitMode}
           onOpenTimePicker={onOpenTimePicker}
           onOpenExpense={onOpenExpense}
+          onOpenStayInfo={onOpenStayInfo}
           onAddStop={(dId, afterId) => setInsertingAfterStopId(afterId)}
           onAddNote={onAddNote}
           onAddList={onAddList}
           onFocusStop={onFocusStop}
+          fromHotel={isPlainPoi && hasHotelAbove && index === firstPlainPoiIdx}
+          toHotel={isPlainPoi && hasHotelBelow && index === lastPlainPoiIdx}
         />
       );
     }
@@ -155,14 +174,43 @@ export default function DaySection({
               </button>
             </div>
 
-            {/* "From hotel" hint */}
+            {/* "From hotel" hint — between days */}
             {(hotelContext.isBetween || hotelContext.isCoutOnly) && hotelContext.stay && (
-              <div style={{ paddingLeft: '2.25rem', marginBottom: '0.8rem', color: '#f59e0b', fontSize: '0.85rem', fontWeight: 600, display: 'flex', flexDirection: 'column', gap: '4px', position: 'relative', cursor: 'pointer' }}>
-                <div style={{ position: 'absolute', left: '10px', top: '-10rem', bottom: '-1rem', width: '4px', background: '#8b6b3b', opacity: 1, zIndex: 1, borderRadius: 0, transition: 'all 0.3s ease' }} />
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span>🏨</span>
-                  <span>{t('itinerary.from_hotel') || 'From hotel:'} {hotelContext.stay.location}</span>
+              <>
+                <div style={{ paddingLeft: '2.25rem', marginBottom: '0.2rem', color: '#f59e0b', fontSize: '0.85rem', fontWeight: 600, display: 'flex', flexDirection: 'column', gap: '4px', position: 'relative', cursor: 'pointer' }}>
+                  {/* amber line from top of day down through hint, connects to first card's fromHotel line */}
+                  <div style={{ position: 'absolute', left: '1.05rem', top: 0, bottom: '-0.2rem', width: '4px', background: 'rgba(245,158,11,0.7)', zIndex: 1 }} />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span>🏨</span>
+                    <span>{t('itinerary.from_hotel') || 'From hotel:'} {hotelContext.stay.location}</span>
+                  </div>
                 </div>
+                <TransitInfo
+                  transit={firstPlainStop?.transitFromHotel}
+                  transitMode={firstPlainStop?.transitModeFromHotel || 'DRIVE'}
+                  onToggleMode={firstPlainStop ? () => onToggleHotelTransitMode?.(day.id, firstPlainStop.id, 'from') : null}
+                  onAddStop={() => setInsertingAfterStopId('__before_first__')}
+                  onAddNote={() => onAddNote?.(day.id, '__prepend__')}
+                  onAddList={() => onAddList?.(day.id, '__prepend__')}
+                />
+              </>
+            )}
+
+            {/* Inline insert before first stop (from hotel TransitInfo + button) */}
+            {insertingAfterStopId === '__before_first__' && (
+              <div style={{ marginTop: '0.5rem', marginBottom: '1rem' }}>
+                <AddStopRow
+                  dayId={day.id}
+                  afterStopId="__prepend__"
+                  onAddStop={(dayId, placeId) => {
+                    onAddStop?.(dayId, placeId, '__prepend__');
+                    setInsertingAfterStopId(null);
+                  }}
+                  onAddNote={(dayId) => { onAddNote?.(dayId, '__prepend__'); setInsertingAfterStopId(null); }}
+                  onAddList={(dayId) => { onAddList?.(dayId, '__prepend__'); setInsertingAfterStopId(null); }}
+                  autoFocus
+                  onClose={() => setInsertingAfterStopId(null)}
+                />
               </div>
             )}
 
@@ -181,15 +229,26 @@ export default function DaySection({
 
             {stops.map(renderStop)}
 
-            {/* "Return to hotel" hint */}
+            {/* "Return to hotel" hint — between days */}
             {(hotelContext.isBetween || hotelContext.isCinOnly || hotelContext.isSameDayStay) && hotelContext.stay && (
-              <div style={{ paddingLeft: '2.25rem', marginTop: '0.8rem', color: '#f59e0b', fontSize: '0.85rem', fontWeight: 600, display: 'flex', flexDirection: 'column', gap: '4px', position: 'relative', cursor: 'pointer' }}>
-                <div style={{ position: 'absolute', left: '10px', top: '-1rem', bottom: '-10rem', width: '4px', background: '#8b6b3b', opacity: 1, zIndex: 1, borderRadius: 0, transition: 'all 0.3s ease' }} />
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span>🏨</span>
-                  <span>{t('itinerary.return_hotel') || 'Return to hotel:'} {hotelContext.stay.location}</span>
+              <>
+                <TransitInfo
+                  transit={lastPlainStop?.transitToHotel}
+                  transitMode={lastPlainStop?.transitModeToHotel || 'DRIVE'}
+                  onToggleMode={lastPlainStop ? () => onToggleHotelTransitMode?.(day.id, lastPlainStop.id, 'to') : null}
+                  onAddStop={() => setInsertingAfterStopId(lastPlainStop?.id)}
+                  onAddNote={() => onAddNote?.(day.id, lastPlainStop?.id)}
+                  onAddList={() => onAddList?.(day.id, lastPlainStop?.id)}
+                />
+                <div style={{ paddingLeft: '2.25rem', marginTop: '0.2rem', color: '#f59e0b', fontSize: '0.85rem', fontWeight: 600, display: 'flex', flexDirection: 'column', gap: '4px', position: 'relative', cursor: 'pointer' }}>
+                  {/* amber line from last card's toHotel line, connects through hint */}
+                  <div style={{ position: 'absolute', left: '1.05rem', top: '-0.2rem', bottom: 0, width: '4px', background: 'rgba(245,158,11,0.7)', zIndex: 1 }} />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span>🏨</span>
+                    <span>{t('itinerary.return_hotel') || 'Return to hotel:'} {hotelContext.stay.location}</span>
+                  </div>
                 </div>
-              </div>
+              </>
             )}
 
             <AddStopRow

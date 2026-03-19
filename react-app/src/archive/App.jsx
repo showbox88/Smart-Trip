@@ -3,7 +3,8 @@ import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { 
   FolderOpen, Settings, ListFilter, LayoutGrid, AlignJustify,
   SlidersHorizontal, ArrowUpDown, Search, Plane, Plus, Trash2, 
-  ChevronRight, CheckCircle2, ChevronDown, Archive, Calendar, Clock, RefreshCw
+  ChevronRight, CheckCircle2, ChevronDown, Archive, Calendar, Clock, RefreshCw, Play,
+  MapPin, Tag
 } from 'lucide-react';
 import { useFileSystemAccess } from './hooks/useFileSystemAccess';
 import { useContextMenu } from './hooks/useContextMenu';
@@ -19,13 +20,24 @@ import { ActionBar } from './components/ActionBar';
 import { AlbumsView } from './components/AlbumsView';
 import { MapView } from './components/MapView';
 import { PropertyManagerModal } from './components/PropertyManagerModal';
-import { MapPin, Tag } from 'lucide-react';
+
 import { FilterMenu } from './components/FilterMenu';
 import clsx from 'clsx';
-import zh from './locales/zh.json';
-import en from './locales/en.json';
+// Automatically import all JSON files in ./locales/
+const modules = import.meta.glob('./locales/*.json', { eager: true });
+const locales = {};
+const availableLanguages = [];
 
-const locales = { zh, en };
+for (const path in modules) {
+  const code = path.match(/\/(\w+)\.json$/)?.[1];
+  if (!code) continue;
+  const data = modules[path].default ?? modules[path];
+  locales[code] = data;
+  availableLanguages.push({
+    code,
+    label: data?._meta?.label || code.toUpperCase(),
+  });
+}
 
 function NavLink({ label, active, onClick }) {
   return (
@@ -118,7 +130,11 @@ function App({ smartTrips = [] }) {
   const [isPropertyModalOpen, setIsPropertyModalOpen] = useState(false);
   const [isAvatarMenuOpen, setIsAvatarMenuOpen] = useState(false);
   const [selectedTripId, setSelectedTripId] = useState(null); // 当前选中的行程作用域
-  const [language, setLanguage] = useState('zh');
+  const [language, setLanguageState] = useState(() => localStorage.getItem('smart-trip-lang') || 'zh');
+  const setLanguage = (lang) => {
+    setLanguageState(lang);
+    localStorage.setItem('smart-trip-lang', lang);
+  };
 
   const PRESET_COLORS = useMemo(() => [
     '#60a5fa', '#f87171', '#34d399', '#fb923c', '#a78bfa',
@@ -128,7 +144,7 @@ function App({ smartTrips = [] }) {
 
   const t = (path) => {
     const keys = path.split('.');
-    let result = locales[language];
+    let result = locales[language] || locales['en'] || {};
     for (const key of keys) {
       if (result != null && typeof result === 'object' && key in result) {
         result = result[key];
@@ -280,12 +296,26 @@ function App({ smartTrips = [] }) {
          stTrip.days.forEach(day => {
            if (day.stops) {
              day.stops.forEach(stop => {
-                let aEvent = newDb.events.find(e => e.title === (stop.location || stop.name) && String(e.trip_id) === String(aTrip.trip_id));
-                if (!aEvent) { // create 
+                // Derive title and notes based on stop type
+                let stopTitle, stopNotes;
+                if (stop.type === 'note') {
+                  stopTitle = `📝 ${stop.content ? stop.content.split('\n')[0].slice(0, 20) || '备注' : '备注'}`;
+                  stopNotes = stop.content || '';
+                } else if (stop.type === 'list') {
+                  stopTitle = `📋 ${stop.title || '清单'}`;
+                  stopNotes = stop.items ? stop.items.map(item => `- [${item.checked ? 'x' : ' '}] ${item.text}`).join('\n') : '';
+                } else {
+                  stopTitle = stop.location || stop.name;
+                  stopNotes = '';
+                }
+
+                let aEvent = newDb.events.find(e => e.title === stopTitle && String(e.trip_id) === String(aTrip.trip_id));
+                if (!aEvent) { // create
                    newDb.events.push({
                      event_id: stop.id || (window.crypto?.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)),
                      trip_id: aTrip.trip_id,
-                     title: stop.location || stop.name,
+                     title: stopTitle,
+                     notes: stopNotes,
                      date: day.date,
                      latitude: stop.lat,
                      longitude: stop.lng,
@@ -562,8 +592,30 @@ function App({ smartTrips = [] }) {
       setDetailItem({ type, data });
       setIsDetailModalOpen(true);
     } else if (actionId === 'delete') {
-      // Implement basic delete if exists (or skip if not requested, but good practice)
-      showToast('删除功能尚未完全实现', 'orange');
+      const itemType = targetItem.type || (targetItem.event_id ? 'event' : (targetItem.trip_id ? 'trip' : (targetItem.path ? 'photo' : null)));
+
+      if (itemType === 'event') {
+        const eventId = targetItem.event_id || targetItem.id;
+        if (!eventId) return;
+        const event = dbContent.events.find(e => String(e.event_id) === String(eventId));
+        const eventTitle = event?.title || '该事件';
+        if (!confirm(`确认删除事件「${eventTitle}」？该事件下的照片将变为未归类状态。`)) return;
+        const newDb = {
+          ...dbContent,
+          events: dbContent.events.filter(e => String(e.event_id) !== String(eventId)),
+          photos: dbContent.photos.map(p =>
+            String(p.event_id) === String(eventId) ? { ...p, event_id: null } : p
+          ),
+        };
+        await saveToDatabase(newDb);
+        showToast(`已删除事件「${eventTitle}」`, 'orange');
+        // If we were viewing inside this event, go back to all
+        if (activeFilter.type === 'event' && String(activeFilter.id) === String(eventId)) {
+          setActiveFilter({ type: 'all' });
+        }
+      } else {
+        showToast('暂不支持删除此类型', 'orange');
+      }
     }
   };
 
@@ -1089,7 +1141,7 @@ function App({ smartTrips = [] }) {
                   </div>
                 </div>
                 
-                <nav className="hidden md:flex items-center gap-8">
+                <nav className="flex items-center gap-8">
                   <NavLink 
                     label={t('app.nav.albums')} 
                     active={activeFilter.type === 'all-albums' && !selectedTripId}
@@ -1299,9 +1351,9 @@ function App({ smartTrips = [] }) {
                     <motion.div 
                       initial={{ opacity: 0, scale: 0.95 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      className="max-w-md w-full p-12 bg-[#1a1b1e]/80 backdrop-blur-3xl border border-white/10 rounded-[3rem] shadow-2xl"
+                      className="max-w-md w-full p-12 premium-glass rounded-[3rem] shadow-2xl shadow-blue-900/10"
                     >
-                      <div className="w-20 h-20 bg-blue-600/20 rounded-3xl flex items-center justify-center mx-auto mb-8">
+                      <div className="w-20 h-20 bg-blue-600/15 rounded-3xl flex items-center justify-center mx-auto mb-8 border border-blue-500/20 shadow-inner">
                         <FolderOpen size={40} className="text-blue-400" />
                       </div>
                       <h3 className="text-3xl font-black text-white mb-4">{t('app.welcome.title')}</h3>
@@ -1350,7 +1402,7 @@ function App({ smartTrips = [] }) {
                   metadata={dbContent}
                   t={t}
                   subHeader={
-                    <div className="px-0 pt-12 pb-8 flex items-center justify-between">
+                    <div className="px-0 pt-12 pb-8 flex items-center justify-between font-title">
                       <div className="space-y-2">
                         <h2 className="text-4xl font-black tracking-tight text-white">{t('app.pageTitle')}</h2>
                         <div className="flex items-center gap-3 text-neutral-500 font-bold text-sm">

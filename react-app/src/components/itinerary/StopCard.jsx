@@ -8,8 +8,9 @@ import { uploadToSupabase } from '../../utils/uploadHelpers';
 
 export default function StopCard({
   stop, dayId, dayColor, index, showTransit, dayWeekdayIdx,
-  onDelete, onToggleTransitMode, onOpenTimePicker, onOpenExpense,
-  onChangePhoto, onAddStop, onAddNote, onAddList, onFocusStop
+  onDelete, onToggleTransitMode, onOpenTimePicker, onOpenExpense, onOpenStayInfo,
+  onChangePhoto, onAddStop, onAddNote, onAddList, onFocusStop,
+  fromHotel, toHotel,
 }) {
   const { state, dispatch } = useApp();
   const { t } = useI18n();
@@ -39,11 +40,16 @@ export default function StopCard({
     return () => document.removeEventListener('mousedown', handler);
   }, [showPhotoPicker, confirmingDelete]);
 
-  const isHotel = stop.type === 'hotel_checkin' || stop.type === 'hotel_checkout';
+  const HOTEL_CATEGORIES = ['酒店', '住宿', 'lodging', 'Accommodation', 'Hotel', 'map.place_lodging'];
+  const isHotel = stop.type === 'hotel_checkin' || stop.type === 'hotel_checkout'
+    || HOTEL_CATEGORIES.includes(stop.category)
+    || (typeof stop.category === 'string' && stop.category.includes('lodging'));
   const typeLabel = stop.type === 'hotel_checkin'
     ? (t('itinerary.hotel_checkin') || 'Check-in')
     : stop.type === 'hotel_checkout'
     ? (t('itinerary.hotel_checkout') || 'Check-out')
+    : isHotel
+    ? (t('itinerary.hotel_checkin') || 'Check-in')
     : null;
 
   // Closed-day detection
@@ -112,23 +118,66 @@ export default function StopCard({
     }
   };
 
+  const isHotelType = stop.type === 'hotel_checkin' || stop.type === 'hotel_checkout';
+  const dotColor = isHotelType ? '#f59e0b' : (dayColor || '#5b7a99');
+
   return (
     <div className={`timeline-item id-${stop.id}`} style={{ position: 'relative', marginBottom: '0.75rem' }}>
-      {/* Timeline Numbered Dot */}
-      <div style={{ 
-        position: 'absolute', 
-        left: '0.75rem', 
-        top: '1.7rem', 
-        width: '8px', 
-        height: '8px', 
-        borderRadius: '50%', 
-        background: dayColor || '#5b7a99', 
+      {/* Timeline Numbered Dot — amber for hotel */}
+      <div style={{
+        position: 'absolute',
+        left: '0.75rem',
+        top: '1.7rem',
+        width: '8px',
+        height: '8px',
+        borderRadius: '50%',
+        background: dotColor,
         zIndex: 2,
-        boxShadow: `0 0 10px ${dayColor || '#5b7a99'}`
+        boxShadow: `0 0 10px ${dotColor}`
       }} />
 
+      {/* Hotel stay vertical line — amber, extends full card height */}
+      {isHotelType && (
+        <div style={{
+          position: 'absolute',
+          left: '1.05rem',
+          top: stop.type === 'hotel_checkin' ? '2.2rem' : 0,
+          bottom: stop.type === 'hotel_checkout' ? '1rem' : 0,
+          width: '4px',
+          background: stop.type === 'hotel_checkout' ? 'rgba(239,68,68,0.7)' : 'rgba(245,158,11,0.7)',
+          borderRadius: stop.type === 'hotel_checkin' ? '2px 2px 0 0' : '0 0 2px 2px',
+          zIndex: 1,
+        }} />
+      )}
+
+      {/* fromHotel: amber line from above (covering gap) down to dot */}
+      {fromHotel && !isHotelType && (
+        <div style={{
+          position: 'absolute',
+          left: '1.05rem',
+          top: '-1.2rem',
+          height: 'calc(1.7rem + 1.2rem)',
+          width: '4px',
+          background: 'rgba(245,158,11,0.7)',
+          zIndex: 1,
+        }} />
+      )}
+
+      {/* toHotel: amber line from dot down, extending below to cover gap to hint */}
+      {toHotel && !isHotelType && (
+        <div style={{
+          position: 'absolute',
+          left: '1.05rem',
+          top: '1.7rem',
+          bottom: '-1.2rem',
+          width: '4px',
+          background: 'rgba(245,158,11,0.7)',
+          zIndex: 1,
+        }} />
+      )}
+
       {/* Timeline line */}
-      {showTransit && (
+      {showTransit && !isHotelType && (
         <div style={{ position: 'absolute', left: '1.22rem', top: '2.5rem', bottom: '-0.5rem', width: '2px', background: `${dayColor || '#5b7a99'}40`, zIndex: 1 }} />
       )}
 
@@ -154,6 +203,26 @@ export default function StopCard({
           minHeight: '100px'
         }}
       >
+        {/* Hotel check-in/out time badge — top right */}
+        {(stop.type === 'hotel_checkin' || stop.type === 'hotel_checkout') && stop.time && (
+          <div style={{
+            position: 'absolute',
+            top: '-10px',
+            right: '2.8rem',
+            background: stop.type === 'hotel_checkout' ? '#ef4444' : '#f59e0b',
+            color: 'white',
+            padding: '2px 10px',
+            borderRadius: '6px',
+            fontSize: '0.72rem',
+            fontWeight: 700,
+            boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+            zIndex: 3,
+            letterSpacing: '0.02em',
+          }}>
+            {stop.time}{stop.period ? ` ${stop.period}` : ''} {typeLabel}
+          </div>
+        )}
+
         {/* Delete button (Top Right) */}
         <div ref={deleteRef} style={{ position: 'absolute', top: '0.6rem', right: '0.6rem', zIndex: 5 }}>
           <button
@@ -299,41 +368,81 @@ export default function StopCard({
         </div>
 
         {/* Note / Placeholder */}
-        <div 
-          style={{ 
-            fontSize: '0.95rem', 
-            color: stop.note ? 'var(--text-secondary)' : 'var(--text-muted)', 
-            marginBottom: '1.2rem', 
-            lineHeight: 1.5,
-            padding: '4px 0',
-            fontStyle: stop.note ? 'normal' : 'italic'
-          }}
-        >
-          {stop.note || t('itinerary.add_note') || '点击添加备注...'}
-        </div>
+        {stop.type === 'hotel_checkin' || stop.type === 'hotel_checkout' ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '1.2rem', padding: '4px 0' }}>
+            <span style={{ fontSize: '1rem' }}>
+              {stop.type === 'hotel_checkin' ? '🏨' : '🔑'}
+            </span>
+            <span style={{ fontSize: '0.9rem', fontWeight: 600, color: stop.type === 'hotel_checkin' ? '#f59e0b' : '#ef4444' }}>
+              {typeLabel}
+            </span>
+          </div>
+        ) : (
+          <div
+            style={{
+              fontSize: '0.95rem',
+              color: stop.note ? 'var(--text-secondary)' : 'var(--text-muted)',
+              marginBottom: '1.2rem',
+              lineHeight: 1.5,
+              padding: '4px 0',
+              fontStyle: stop.note ? 'normal' : 'italic'
+            }}
+          >
+            {stop.note || t('itinerary.add_note') || '点击添加备注...'}
+          </div>
+        )}
 
         {/* Bottom Actions: Time & Expense Chips */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginTop: 'auto' }}>
           {stop.time && (
-            <div 
+            <div
               className="stop-chip editable"
               onClick={handleTimeClick}
-              style={{ 
-                background: 'rgba(91, 122, 153, 0.15)', 
-                color: '#9ebad6', 
-                padding: '0.5rem 1rem', 
-                borderRadius: '10px', 
-                fontSize: '0.85rem', 
+              style={{
+                background: stop.type === 'hotel_checkin' ? 'rgba(245,158,11,0.15)'
+                  : stop.type === 'hotel_checkout' ? 'rgba(239,68,68,0.15)'
+                  : 'rgba(91, 122, 153, 0.15)',
+                color: stop.type === 'hotel_checkin' ? '#f59e0b'
+                  : stop.type === 'hotel_checkout' ? '#ef4444'
+                  : '#9ebad6',
+                padding: '0.5rem 1rem',
+                borderRadius: '10px',
+                fontSize: '0.85rem',
                 fontWeight: 700,
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
-                border: '1px solid rgba(91, 122, 153, 0.2)',
+                border: stop.type === 'hotel_checkin' ? '1px solid rgba(245,158,11,0.3)'
+                  : stop.type === 'hotel_checkout' ? '1px solid rgba(239,68,68,0.3)'
+                  : '1px solid rgba(91, 122, 153, 0.2)',
                 cursor: 'pointer'
               }}
             >
               <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>schedule</span>
               {stop.time} {stop.period}
+            </div>
+          )}
+
+          {isHotel && (
+            <div
+              className="stop-chip editable"
+              onClick={(e) => { e.stopPropagation(); onOpenStayInfo?.(dayId, stop.id); }}
+              style={{
+                background: 'rgba(245,158,11,0.12)',
+                color: '#f59e0b',
+                padding: '0.5rem 1rem',
+                borderRadius: '10px',
+                fontSize: '0.85rem',
+                fontWeight: 700,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                border: '1px solid rgba(245,158,11,0.25)',
+                cursor: 'pointer'
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>hotel</span>
+              {t('itinerary.stay_info') || 'Stay Info'}
             </div>
           )}
 

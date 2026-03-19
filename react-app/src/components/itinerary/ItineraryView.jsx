@@ -13,6 +13,7 @@ import DayEditModal from '../modals/DayEditModal';
 import TripEditModal from '../modals/TripEditModal';
 import TimePickerModal from '../modals/TimePickerModal';
 import ExpenseModal from '../modals/ExpenseModal';
+import StayInfoModal from '../modals/StayInfoModal';
 import { useI18n } from '../../context/I18nContext';
 
 function scrollToNewStop(id, attempts = 0) {
@@ -34,8 +35,8 @@ export default function ItineraryView({ tripId }) {
     deleteStop, updateStop, moveStop,
     addNote, addList,
     updateNoteContent, updateListItem, toggleListItem, addListItem, deleteListItem,
-    addStopFromPlace, updateTripMetadata, toggleTransitMode,
-    computeTransitData,
+    addStopFromPlace, updateTripMetadata, toggleTransitMode, toggleHotelTransitMode,
+    computeTransitData, saveStayInfo,
   } = useTripEditor(tripId);
 
   const {
@@ -86,6 +87,7 @@ export default function ItineraryView({ tripId }) {
   const [tripEditModal, setTripEditModal] = useState(false);
   const [timePickerModal, setTimePickerModal] = useState(null); // { dayId, stop, dayDate }
   const [expenseModal, setExpenseModal] = useState(null); // { dayId, stop }
+  const [stayInfoModal, setStayInfoModal] = useState(null); // { dayId, stopId }
   const [collapsedDays, setCollapsedDays] = useState({}); // { [dayId]: boolean }
   const [pendingInsertion, setPendingInsertion] = useState(null); // { dayId, afterStopId }
   const [activeDayIdLocal, setActiveDayIdLocal] = useState(null);
@@ -130,6 +132,10 @@ export default function ItineraryView({ tripId }) {
     if (stop) {
       setExpenseModal({ dayId, stop });
     }
+  };
+
+  const handleOpenStayInfo = (dayId, stopId) => {
+    setStayInfoModal({ dayId, stopId });
   };
 
   // --- Note/List delete (confirmation is handled inside the card) ---
@@ -266,6 +272,7 @@ export default function ItineraryView({ tripId }) {
                   onDeleteStop={handleDeleteStop}
                   onEditStop={handleEditStop}
                   onToggleTransitMode={toggleTransitMode}
+                  onToggleHotelTransitMode={toggleHotelTransitMode}
                   onAddNote={async (dayId, afterId) => {
                     const newId = await addNote(dayId, afterId);
                     if (newId) scrollToNewStop(newId);
@@ -292,6 +299,7 @@ export default function ItineraryView({ tripId }) {
                   onUpdateDay={updateDay}
                   onOpenTimePicker={handleOpenTimePicker}
                   onOpenExpense={handleOpenExpense}
+                  onOpenStayInfo={handleOpenStayInfo}
                   onChangePhoto={(dayId, stopId, photoUrl) => updateStop(dayId, stopId, { photo: photoUrl })}
                   onFocusStop={(stopId) => mapPanelRef.current?.focusAndOpen(stopId)}
                 />
@@ -366,6 +374,16 @@ export default function ItineraryView({ tripId }) {
             setExpenseModal(null);
           }}
           onClose={() => setExpenseModal(null)}
+        />
+      )}
+
+      {stayInfoModal && (
+        <StayInfoModal
+          trip={trip}
+          dayId={stayInfoModal.dayId}
+          stopId={stayInfoModal.stopId}
+          onSave={(stayData) => saveStayInfo(stayInfoModal.dayId, stayInfoModal.stopId, stayData)}
+          onClose={() => setStayInfoModal(null)}
         />
       )}
     </div>
