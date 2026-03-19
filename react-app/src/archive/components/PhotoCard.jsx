@@ -43,12 +43,11 @@ export const PhotoCard = memo(function PhotoCard({ fileInfo, index, onContextMen
 
   return (
     <motion.div
-      layout
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ 
-        delay: index * 0.01, 
-        duration: 0.4,
+      transition={{
+        delay: Math.min(index * 0.01, 0.15),
+        duration: 0.25,
         ease: "easeOut"
       }}
       onContextMenu={(e) => onContextMenu(e, fileInfo)}
@@ -71,7 +70,7 @@ export const PhotoCard = memo(function PhotoCard({ fileInfo, index, onContextMen
       )}
     >
       <div className="pt-2 pb-1 flex justify-center bg-[#191a21] rounded-t-xl shrink-0">
-        <div className="relative w-[85%] aspect-square overflow-hidden rounded-lg bg-neutral-900 shadow-inner group-hover:shadow-[0_0_15px_rgba(59,130,246,0.3)] transition-all">
+        <div className="relative w-[92%] aspect-[4/3] overflow-hidden rounded-lg bg-neutral-900 shadow-inner group-hover:shadow-[0_0_15px_rgba(59,130,246,0.3)] transition-all">
           {displayUrl ? (
             <motion.img 
               layoutId={finalLayoutId}

@@ -3,7 +3,7 @@ import { PlusCircle, Info, Trash2, Tag, Move, Layers, ChevronRight, Briefcase, I
 import { useState, useMemo } from 'react';
 import clsx from 'clsx';
 
-export function ContextMenu({ menu, onClose, onAction, selectionCount, trips = [], events = [], categories = [], cities = [], selectedTripId = null, t }) {
+export function ContextMenu({ menu, onClose, onAction, trips = [], events = [], categories = [], cities = [], selectedTripId = null, t }) {
   const [activeSubmenu, setActiveSubmenu] = useState(null);
   const [hoveredRating, setHoveredRating] = useState(null);
 
@@ -38,7 +38,6 @@ export function ContextMenu({ menu, onClose, onAction, selectionCount, trips = [
 
   if (!menu) return null;
 
-  const isBulk = selectionCount > 1;
   const targetType = menu.data?.type || 'photo';
 
   // Extract implicit trip_id from event if necessary
@@ -56,9 +55,9 @@ export function ContextMenu({ menu, onClose, onAction, selectionCount, trips = [
   };
 
   // Constants for sizing
-  const MENU_WIDTH = 220;
+  const MENU_WIDTH = 280;
   const SUBMENU_WIDTH = 210; // Safe max for sub-menus
-  const MENU_HEIGHT_ESTIMATE = 400; // Vertical safe area
+  const MENU_HEIGHT_ESTIMATE = 480; // Vertical safe area
 
   // Calculate main menu position
   let finalX = menu.mouseX;
@@ -85,31 +84,22 @@ export function ContextMenu({ menu, onClose, onAction, selectionCount, trips = [
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: 0.1 }}
-      className="fixed z-[100] min-w-[220px] bg-[#1a1b1e]/90 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl p-2 flex flex-col gap-1 ring-1 ring-black/50"
+      className="fixed z-[100] min-w-[280px] bg-[#0e0f12] border border-white/10 rounded-2xl shadow-2xl p-3 flex flex-col gap-2.5 ring-1 ring-black/50"
       style={{ top: finalY, left: finalX }}
       onMouseLeave={() => {
         setActiveSubmenu(null);
         setHoveredRating(null);
       }}
     >
-      <div className="px-3 py-2 border-b border-white/5 mb-1">
-        <p className="text-[10px] uppercase tracking-widest text-neutral-500 font-bold">
-          {isBulk ? t('app.context.batchManage') : t('app.context.manage')}
-        </p>
-        <p className="text-xs text-neutral-300 truncate font-medium">
-          {isBulk ? t('app.context.itemsSelected').replace('{{count}}', selectionCount) : menu.data?.name || menu.data?.title}
-        </p>
-      </div>
-      
       {/* Photo Actions */}
       {targetType === 'photo' && (
         <>
           <button
             onClick={() => handleAction('create-event', { skipModal: true })}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10 transition-all group text-orange-400"
+            className="w-full flex items-center gap-3 pl-5 pr-4 py-4 rounded-xl hover:bg-[#252629]! transition-all group text-orange-400"
           >
-            <PlusCircle size={18} className="group-hover:scale-110 transition-transform" />
-            <span className="text-sm font-medium text-neutral-200 group-hover:text-white">
+            <PlusCircle size={20} className="group-hover:scale-110 transition-transform" />
+            <span className="text-[16px] font-medium text-neutral-200 group-hover:text-white">
               {t('app.context.gatherNew')}
             </span>
           </button>
@@ -117,11 +107,11 @@ export function ContextMenu({ menu, onClose, onAction, selectionCount, trips = [
           <div className="relative">
             <button
               onMouseEnter={() => setActiveSubmenu('category')}
-              className="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10 transition-all group text-blue-400"
+              className="w-full flex items-center justify-between gap-3 pl-5 pr-4 py-4 rounded-xl hover:bg-[#252629]! transition-all group text-blue-400"
             >
               <div className="flex items-center gap-3">
-                <Tag size={18} className="group-hover:scale-110 transition-transform" />
-                <span className="text-sm font-medium text-neutral-200 group-hover:text-white">
+                <Tag size={20} className="group-hover:scale-110 transition-transform" />
+                <span className="text-[16px] font-medium text-neutral-200 group-hover:text-white">
                   {t('app.context.editCategory')}
                 </span>
               </div>
@@ -134,7 +124,7 @@ export function ContextMenu({ menu, onClose, onAction, selectionCount, trips = [
                   initial={{ opacity: 0, x: subMenuAnimX }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: subMenuAnimX }}
-                  className={`${subMenuPosClass} min-w-max bg-[#1a1b1e]/95 backdrop-blur-3xl border border-white/10 rounded-[2rem] shadow-2xl p-4 flex flex-col gap-4 ring-1 ring-black/50 translate-z-0`}
+                  className={`${subMenuPosClass} min-w-max bg-[#0e0f12] border border-white/10 rounded-[2rem] shadow-2xl p-5 flex flex-col gap-5 ring-1 ring-black/50 translate-z-0`}
                 >
                   <div className="flex flex-col gap-2">
                     <p className="px-3 py-1 text-[9px] uppercase tracking-widest text-neutral-600 font-black">
@@ -143,10 +133,10 @@ export function ContextMenu({ menu, onClose, onAction, selectionCount, trips = [
                     {/* Top-level Add New Category Action */}
                     <button
                       onClick={() => handleAction('create-category')}
-                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 transition-all group text-left border border-blue-500/20 shadow-md shadow-blue-500/5 mb-0.5"
+                      className="w-full flex items-center gap-3 pl-5 pr-4 py-4 rounded-xl bg-blue-500/10 hover:bg-[#252629]! transition-all group text-left border border-blue-500/20 shadow-md shadow-blue-500/5 mb-0.5"
                     >
-                      <PlusCircle size={16} className="text-blue-400" />
-                      <span className="text-xs font-bold text-blue-400">
+                      <PlusCircle size={20} className="text-blue-400" />
+                      <span className="text-[16px] font-medium text-blue-400">
                         {t('app.context.addCategory')}
                       </span>
                     </button>
@@ -156,7 +146,7 @@ export function ContextMenu({ menu, onClose, onAction, selectionCount, trips = [
                   <div className="flex gap-4">
                     {categoryChunks.length > 0 ? (
                       categoryChunks.map((chunk, colIdx) => (
-                        <div key={colIdx} className="flex flex-col gap-1 min-w-[150px]">
+                        <div key={colIdx} className="flex flex-col gap-2.5 min-w-[180px]">
                           {chunk.map((cat, rowIdx) => {
                             const name = typeof cat === 'object' ? cat.name : cat;
                             const color = typeof cat === 'object' ? cat.color : '#60a5fa';
@@ -164,10 +154,10 @@ export function ContextMenu({ menu, onClose, onAction, selectionCount, trips = [
                               <button
                                 key={`${name}-${colIdx}-${rowIdx}`}
                                 onClick={() => handleAction('set-category', { category: name })}
-                                className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-blue-500/20 transition-all group text-left"
+                                className="w-full flex items-center gap-3 pl-5 pr-4 py-4 rounded-xl hover:bg-[#252629]! transition-all group text-left"
                               >
-                                <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: color }} />
-                                <span className="text-xs font-medium text-neutral-300 group-hover:text-white truncate max-w-[120px]">{name}</span>
+                                <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                                <span className="text-[16px] font-medium text-neutral-300 group-hover:text-white truncate max-w-[130px]">{name}</span>
                               </button>
                             );
                           })}
@@ -187,11 +177,11 @@ export function ContextMenu({ menu, onClose, onAction, selectionCount, trips = [
           <div className="relative">
             <button
               onMouseEnter={() => setActiveSubmenu('city')}
-              className="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10 transition-all group text-emerald-400"
+              className="w-full flex items-center justify-between gap-3 pl-5 pr-4 py-4 rounded-xl hover:bg-[#252629]! transition-all group text-emerald-400"
             >
               <div className="flex items-center gap-3">
-                <MapPin size={18} className="group-hover:scale-110 transition-transform" />
-                <span className="text-sm font-medium text-neutral-200 group-hover:text-white">
+                <MapPin size={20} className="group-hover:scale-110 transition-transform" />
+                <span className="text-[16px] font-medium text-neutral-200 group-hover:text-white">
                   {t('app.context.editCity')}
                 </span>
               </div>
@@ -204,7 +194,7 @@ export function ContextMenu({ menu, onClose, onAction, selectionCount, trips = [
                   initial={{ opacity: 0, x: subMenuAnimX }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: subMenuAnimX }}
-                  className={`${subMenuPosClass} min-w-max bg-[#1a1b1e]/95 backdrop-blur-3xl border border-white/10 rounded-[2rem] shadow-2xl p-4 flex flex-col gap-4 ring-1 ring-black/50 translate-z-0`}
+                  className={`${subMenuPosClass} min-w-max bg-[#0e0f12] border border-white/10 rounded-[2rem] shadow-2xl p-5 flex flex-col gap-5 ring-1 ring-black/50 translate-z-0`}
                 >
                   <div className="flex flex-col gap-2">
                     <p className="px-3 py-1 text-[9px] uppercase tracking-widest text-neutral-600 font-black">
@@ -214,10 +204,10 @@ export function ContextMenu({ menu, onClose, onAction, selectionCount, trips = [
                     {/* Top-level Add New City Action */}
                     <button
                       onClick={() => handleAction('create-city')}
-                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 transition-all group text-left border border-emerald-500/20 shadow-md shadow-emerald-500/5 mb-0.5"
+                      className="w-full flex items-center gap-3 pl-5 pr-4 py-4 rounded-xl bg-emerald-500/10 hover:bg-[#252629]! transition-all group text-left border border-emerald-500/20 shadow-md shadow-emerald-500/5 mb-0.5"
                     >
-                      <PlusCircle size={16} className="text-emerald-400" />
-                      <span className="text-xs font-bold text-emerald-400">
+                      <PlusCircle size={20} className="text-emerald-400" />
+                      <span className="text-[16px] font-medium text-emerald-400">
                         {t('app.context.addCity')}
                       </span>
                     </button>
@@ -227,7 +217,7 @@ export function ContextMenu({ menu, onClose, onAction, selectionCount, trips = [
                   <div className="flex gap-4">
                     {cityChunks.length > 0 ? (
                       cityChunks.map((chunk, colIdx) => (
-                        <div key={colIdx} className="flex flex-col gap-1 min-w-[150px]">
+                        <div key={colIdx} className="flex flex-col gap-2.5 min-w-[180px]">
                           {chunk.map((city, rowIdx) => {
                             const name = typeof city === 'object' ? city.name : city;
                             const color = typeof city === 'object' ? city.color : '#10b981';
@@ -235,10 +225,10 @@ export function ContextMenu({ menu, onClose, onAction, selectionCount, trips = [
                               <button
                                 key={`${name}-${colIdx}-${rowIdx}`}
                                 onClick={() => handleAction('set-city', { city: name })}
-                                className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-emerald-500/20 transition-all group text-left"
+                                className="w-full flex items-center gap-3 pl-5 pr-4 py-4 rounded-xl hover:bg-[#252629]! transition-all group text-left"
                               >
-                                <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: color }} />
-                                <span className="text-xs font-medium text-neutral-300 group-hover:text-white truncate max-w-[120px]">{name}</span>
+                                <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                                <span className="text-[16px] font-medium text-neutral-300 group-hover:text-white truncate max-w-[130px]">{name}</span>
                               </button>
                             );
                           })}
@@ -258,11 +248,11 @@ export function ContextMenu({ menu, onClose, onAction, selectionCount, trips = [
           <div className="relative">
             <button
               onMouseEnter={() => setActiveSubmenu('rating')}
-              className="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10 transition-all group text-red-500"
+              className="w-full flex items-center justify-between gap-3 pl-5 pr-4 py-4 rounded-xl hover:bg-[#252629]! transition-all group text-red-500"
             >
               <div className="flex items-center gap-3">
-                <Heart size={18} className="group-hover:scale-110 transition-transform" />
-                <span className="text-sm font-medium text-neutral-200 group-hover:text-white">
+                <Heart size={20} className="group-hover:scale-110 transition-transform" />
+                <span className="text-[16px] font-medium text-neutral-200 group-hover:text-white">
                   {t('app.context.editRating')}
                 </span>
               </div>
@@ -275,9 +265,9 @@ export function ContextMenu({ menu, onClose, onAction, selectionCount, trips = [
                   initial={{ opacity: 0, x: subMenuAnimX }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: subMenuAnimX }}
-                  className={`${subMenuPosClass} min-w-[240px] bg-[#1a1b1e]/98 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl p-2 flex flex-col gap-1 ring-1 ring-black/50 overflow-hidden`}
+                  className={`${subMenuPosClass} min-w-[260px] bg-[#0e0f12] border border-white/10 rounded-2xl shadow-2xl p-3 flex flex-col gap-2 ring-1 ring-black/50 overflow-hidden`}
                 >
-                  <p className="px-3 py-1.5 text-[9px] uppercase tracking-widest text-neutral-600 font-black">
+                  <p className="px-3 py-2 text-[9px] uppercase tracking-widest text-neutral-600 font-black">
                     {t('app.context.updateRating')}
                   </p>
                   
@@ -335,11 +325,11 @@ export function ContextMenu({ menu, onClose, onAction, selectionCount, trips = [
           <div className="relative">
             <button
               onMouseEnter={() => setActiveSubmenu('events')}
-              className="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10 transition-all group text-orange-400"
+              className="w-full flex items-center justify-between gap-3 pl-5 pr-4 py-4 rounded-xl hover:bg-[#252629]! transition-all group text-orange-400"
             >
               <div className="flex items-center gap-3">
-                <PlusCircle size={18} className="group-hover:scale-110 transition-transform" />
-                <span className="text-sm font-medium text-neutral-200 group-hover:text-white">
+                <PlusCircle size={20} className="group-hover:scale-110 transition-transform" />
+                <span className="text-[16px] font-medium text-neutral-200 group-hover:text-white">
                   {t('app.context.addToEvent')}
                 </span>
               </div>
@@ -352,9 +342,9 @@ export function ContextMenu({ menu, onClose, onAction, selectionCount, trips = [
                   initial={{ opacity: 0, x: subMenuAnimX }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: subMenuAnimX }}
-                  className={`${subMenuPosClass} min-w-[200px] bg-[#1a1b1e]/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl p-2 flex flex-col gap-1 ring-1 ring-black/50`}
+                  className={`${subMenuPosClass} min-w-[240px] bg-[#0e0f12] border border-white/10 rounded-2xl shadow-2xl p-3 flex flex-col gap-2 ring-1 ring-black/50`}
                 >
-                  <p className="px-3 py-1.5 text-[9px] uppercase tracking-widest text-neutral-600 font-black">
+                  <p className="px-3 py-2 text-[9px] uppercase tracking-widest text-neutral-600 font-black">
                     {t('app.context.selectTargetEvent')}
                   </p>
                   {events.length === 0 ? (
@@ -363,16 +353,25 @@ export function ContextMenu({ menu, onClose, onAction, selectionCount, trips = [
                     </p>
                   ) : (
                     <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
-                      {events.map(event => (
-                        <button
-                          key={event.event_id}
-                          onClick={() => handleAction('assign-to-event', { eventId: event.event_id, title: event.title })}
-                          className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-orange-500/20 transition-all group text-left"
-                        >
-                          <Tag size={14} className="text-orange-400/50 group-hover:text-orange-400" />
-                          <span className="text-xs font-medium text-neutral-300 group-hover:text-white truncate">{event.title}</span>
-                        </button>
-                      ))}
+                      {events.map(event => {
+                        const isCurrentEvent = event.event_id === menu.data?.event_id;
+                        return (
+                          <button
+                            key={event.event_id}
+                            onClick={() => handleAction('assign-to-event', { eventId: event.event_id, title: event.title })}
+                            className={clsx(
+                              "w-full flex items-center gap-3 pl-5 pr-4 py-4 rounded-xl transition-all group text-left",
+                              isCurrentEvent
+                                ? "bg-orange-500/15 border border-orange-500/30"
+                                : "hover:bg-[#252629]!"
+                            )}
+                          >
+                            <Tag size={20} className={isCurrentEvent ? "text-orange-400" : "text-orange-400/50 group-hover:text-orange-400"} />
+                            <span className={clsx("text-[16px] font-medium truncate", isCurrentEvent ? "text-orange-300" : "text-neutral-300 group-hover:text-white")}>{event.title}</span>
+                            {isCurrentEvent && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-orange-400 shrink-0" />}
+                          </button>
+                        );
+                      })}
                     </div>
                   )}
                 </motion.div>
@@ -387,10 +386,10 @@ export function ContextMenu({ menu, onClose, onAction, selectionCount, trips = [
         <>
           <button
             onClick={() => handleAction('create-trip')}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10 transition-all group text-purple-400"
+            className="w-full flex items-center gap-3 pl-5 pr-4 py-4 rounded-xl hover:bg-[#252629]! transition-all group text-purple-400"
           >
-            <PlusCircle size={18} className="group-hover:scale-110 transition-transform" />
-            <span className="text-sm font-medium text-neutral-200 group-hover:text-white">
+            <PlusCircle size={20} className="group-hover:scale-110 transition-transform" />
+            <span className="text-[16px] font-medium text-neutral-200 group-hover:text-white">
               {t('app.context.archiveToNewTrip')}
             </span>
           </button>
@@ -398,11 +397,11 @@ export function ContextMenu({ menu, onClose, onAction, selectionCount, trips = [
           <div className="relative">
             <button
               onMouseEnter={() => setActiveSubmenu('trips')}
-              className="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10 transition-all group text-purple-400"
+              className="w-full flex items-center justify-between gap-3 pl-5 pr-4 py-4 rounded-xl hover:bg-[#252629]! transition-all group text-purple-400"
             >
               <div className="flex items-center gap-3">
-                <Layers size={18} className="group-hover:scale-110 transition-transform" />
-                <span className="text-sm font-medium text-neutral-200 group-hover:text-white">
+                <Layers size={20} className="group-hover:scale-110 transition-transform" />
+                <span className="text-[16px] font-medium text-neutral-200 group-hover:text-white">
                   {t('app.context.archiveToExistingTrip')}
                 </span>
               </div>
@@ -415,9 +414,9 @@ export function ContextMenu({ menu, onClose, onAction, selectionCount, trips = [
                   initial={{ opacity: 0, x: subMenuAnimX }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: subMenuAnimX }}
-                  className={`${subMenuPosClass} min-w-[200px] bg-[#1a1b1e]/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl p-2 flex flex-col gap-1 ring-1 ring-black/50`}
+                  className={`${subMenuPosClass} min-w-[240px] bg-[#0e0f12] border border-white/10 rounded-2xl shadow-2xl p-3 flex flex-col gap-2 ring-1 ring-black/50`}
                 >
-                  <p className="px-3 py-1.5 text-[9px] uppercase tracking-widest text-neutral-600 font-black">
+                  <p className="px-3 py-2 text-[9px] uppercase tracking-widest text-neutral-600 font-black">
                     {t('app.context.selectTargetTrip')}
                   </p>
                   {trips.length === 0 ? (
@@ -430,10 +429,10 @@ export function ContextMenu({ menu, onClose, onAction, selectionCount, trips = [
                         <button
                           key={trip.trip_id}
                           onClick={() => handleAction('assign-to-trip', { tripId: trip.trip_id, title: trip.title })}
-                          className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-purple-500/20 transition-all group text-left"
+                          className="w-full flex items-center gap-3 pl-5 pr-4 py-4 rounded-xl hover:bg-[#252629]! transition-all group text-left"
                         >
-                          <Briefcase size={14} className="text-purple-400/50 group-hover:text-purple-400" />
-                          <span className="text-xs font-medium text-neutral-300 group-hover:text-white truncate">{trip.title}</span>
+                          <Briefcase size={20} className="text-purple-400/50 group-hover:text-purple-400" />
+                          <span className="text-[16px] font-medium text-neutral-300 group-hover:text-white truncate">{trip.title}</span>
                         </button>
                       ))}
                     </div>
@@ -445,15 +444,15 @@ export function ContextMenu({ menu, onClose, onAction, selectionCount, trips = [
         </>
       )}
 
-      <div className="h-px bg-white/5 my-1" />
+      <div className="h-px bg-white/5 my-2" />
       
       {targetType === 'photo' && currentTripId && (
         <button
           onClick={() => handleAction('set-trip-cover', { trip_id: currentTripId })}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10 transition-all group text-purple-400"
+          className="w-full flex items-center gap-3 pl-5 pr-4 py-4 rounded-xl hover:bg-[#252629]! transition-all group text-purple-400"
         >
-          <ImagePlus size={18} className="group-hover:scale-110 transition-transform" />
-          <span className="text-sm font-medium text-purple-400/80 group-hover:text-purple-400">
+          <ImagePlus size={20} className="group-hover:scale-110 transition-transform" />
+          <span className="text-[16px] font-medium text-purple-400/80 group-hover:text-purple-400">
             {t('app.context.setTripCover')}
           </span>
         </button>
@@ -462,10 +461,10 @@ export function ContextMenu({ menu, onClose, onAction, selectionCount, trips = [
       {targetType === 'photo' && menu.data?.event_id && (
         <button
           onClick={() => handleAction('set-event-cover', { event_id: menu.data.event_id })}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10 transition-all group text-orange-400"
+          className="w-full flex items-center gap-3 pl-5 pr-4 py-4 rounded-xl hover:bg-[#252629]! transition-all group text-orange-400"
         >
-          <ImagePlus size={18} className="group-hover:scale-110 transition-transform" />
-          <span className="text-sm font-medium text-orange-400/80 group-hover:text-orange-400">
+          <ImagePlus size={20} className="group-hover:scale-110 transition-transform" />
+          <span className="text-[16px] font-medium text-orange-400/80 group-hover:text-orange-400">
             {t('app.context.setEventCover')}
           </span>
         </button>
@@ -473,20 +472,20 @@ export function ContextMenu({ menu, onClose, onAction, selectionCount, trips = [
 
       <button
         onClick={() => handleAction('info')}
-        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10 transition-all group text-neutral-400"
+        className="w-full flex items-center gap-3 pl-5 pr-4 py-4 rounded-xl hover:bg-[#252629]! transition-all group text-neutral-400"
       >
-        <Info size={18} className="group-hover:scale-110 transition-transform" />
-        <span className="text-sm font-medium text-neutral-200 group-hover:text-white">
+        <Info size={20} className="group-hover:scale-110 transition-transform" />
+        <span className="text-[16px] font-medium text-neutral-200 group-hover:text-white">
           {t('app.context.viewDetail')}
         </span>
       </button>
       
       <button
         onClick={() => handleAction('delete')}
-        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-red-500/10 transition-all group text-red-400"
+        className="w-full flex items-center gap-3 pl-5 pr-4 py-4 rounded-xl hover:bg-red-500/10 transition-all group text-red-400"
       >
-        <Trash2 size={18} className="group-hover:scale-110 transition-transform" />
-        <span className="text-sm font-medium text-red-400/80 group-hover:text-red-400">
+        <Trash2 size={20} className="group-hover:scale-110 transition-transform" />
+        <span className="text-[16px] font-medium text-red-400/80 group-hover:text-red-400">
           {t('app.context.remove')}
         </span>
       </button>
