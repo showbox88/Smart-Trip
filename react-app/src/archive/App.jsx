@@ -100,7 +100,7 @@ function App({ smartTrips = [] }) {
     });
   }, [photoFiles, dbPhotoMap]);
 
-  const [appMode, setAppMode] = useState('home');
+  const [appMode, setAppMode] = useState('gallery');
   const [activeFilter, setActiveFilter] = useState({ type: 'all' });
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [toast, setToast] = useState(null);
@@ -1205,17 +1205,26 @@ function App({ smartTrips = [] }) {
                   </div>
                 ) : (
                   <div className="flex items-center gap-2">
-                    <button
-                      onClick={async () => { await initWorkspace(); }}
-                      disabled={isScanning}
-                      title={language === 'zh' ? (dbHandle ? '重新选择文件夹' : '选择文件夹') : (dbHandle ? 'Reselect Folder' : 'Select Folder')}
-                      className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-neutral-400 hover:text-white hover:bg-white/10 transition-all text-xs font-bold"
-                    >
-                      <FolderOpen size={14} />
-                      {dbHandle
-                        ? (language === 'zh' ? '重新选择' : 'Reselect')
-                        : (language === 'zh' ? '选择文件夹' : 'Select Folder')}
-                    </button>
+                    {hasPersistedHandle && !dbHandle ? (
+                      <button
+                        onClick={handleInitialize}
+                        className="flex items-center gap-2 px-3 py-2 rounded-xl bg-blue-600/20 border border-blue-500/40 text-blue-400 hover:bg-blue-600/30 transition-all text-xs font-bold animate-pulse"
+                      >
+                        <FolderOpen size={14} />
+                        {language === 'zh' ? '恢复档案' : 'Restore Archive'}
+                      </button>
+                    ) : (
+                      <button
+                        onClick={async () => { await initWorkspace(); }}
+                        title={language === 'zh' ? (dbHandle ? '重新选择文件夹' : '选择文件夹') : (dbHandle ? 'Reselect Folder' : 'Select Folder')}
+                        className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-neutral-400 hover:text-white hover:bg-white/10 transition-all text-xs font-bold"
+                      >
+                        <FolderOpen size={14} />
+                        {dbHandle
+                          ? (language === 'zh' ? '重新选择' : 'Reselect')
+                          : (language === 'zh' ? '选择文件夹' : 'Select Folder')}
+                      </button>
+                    )}
                     {dbHandle && (
                       <button
                         onClick={resyncExif}
