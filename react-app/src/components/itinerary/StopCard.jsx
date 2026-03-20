@@ -370,10 +370,46 @@ export default memo(function StopCard({
 
             {/* Address */}
             {stop.address && (
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', color: 'var(--text-muted)', fontSize: '0.86rem', marginBottom: '0.6rem', lineHeight: 1.5 }}>
-                <MapPin size={14} strokeWidth={2.5} className="text-white mt-[6px] shrink-0" />
-                <span style={{ opacity: 0.85 }}>{stop.address}</span>
-              </div>
+                        <div style={{ fontSize: '0.86rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
+                          {stop.city && (
+                            <div style={{ 
+                              display: 'inline-block', 
+                              fontSize: '0.72rem', 
+                              color: '#60a5fa', 
+                              background: 'rgba(96,165,250,0.1)', 
+                              padding: '1px 6px', 
+                              borderRadius: '4px', 
+                              marginBottom: '4px',
+                              fontWeight: 700,
+                              textTransform: 'uppercase'
+                            }}>
+                              City: {stop.city}
+                            </div>
+                          )}
+                          {(() => {
+                            const addr = stop.address;
+                            if (addr.includes(',')) {
+                              const idx = addr.indexOf(',');
+                              return (
+                                <>
+                                  <div style={{ color: 'var(--text-bright)', fontWeight: 500 }}>{addr.substring(0, idx).trim()}</div>
+                                  <div style={{ fontSize: '0.8rem', opacity: 0.7 }}>{addr.substring(idx + 1).trim()}</div>
+                                </>
+                              );
+                            }
+                            // 中文地址拆分：尝试匹配 市/县/区
+                            const splitMatch = addr.match(/(.*?[省市区县])(.*)/);
+                            if (splitMatch) {
+                              return (
+                                <>
+                                  <div style={{ color: 'var(--text-bright)', fontWeight: 500 }}>{splitMatch[1]}</div>
+                                  <div style={{ fontSize: '0.8rem', opacity: 0.7 }}>{splitMatch[2]}</div>
+                                </>
+                              );
+                            }
+                            return addr;
+                          })()}
+                        </div>
             )}
 
             {/* Phone */}

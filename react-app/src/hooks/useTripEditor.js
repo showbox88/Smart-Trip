@@ -378,7 +378,7 @@ export function useTripEditor(tripId) {
       const { Place } = await google.maps.importLibrary('places');
       const place = new Place({ id: placeId });
       await place.fetchFields({
-        fields: ['displayName', 'formattedAddress', 'nationalPhoneNumber', 'location', 'photos', 'rating', 'editorialSummary', 'types', 'regularOpeningHours'],
+        fields: ['displayName', 'formattedAddress', 'addressComponents', 'nationalPhoneNumber', 'location', 'photos', 'rating', 'editorialSummary', 'types', 'regularOpeningHours'],
       });
 
       const updated = JSON.parse(JSON.stringify(trip));
@@ -413,11 +413,31 @@ export function useTripEditor(tripId) {
 
       const categoryInfo = getCategoryFromTypes(place.types || []);
 
+      // 提取城市信息
+      let city = '';
+      if (place.addressComponents) {
+        const getCompData = (comp) => {
+          const names = comp.long_name || comp.longName || comp.nh || '';
+          const types = comp.types || comp.mh || [];
+          return { names, types };
+        };
+
+        const targetTypes = ['locality', 'ward', 'sublocality_level_1', 'administrative_area_level_2'];
+        for (const type of targetTypes) {
+           const found = place.addressComponents.find(c => getCompData(c).types.includes(type));
+           if (found) {
+             city = getCompData(found).names;
+             break;
+           }
+        }
+      }
+
       const newStop = {
         id: 's' + Date.now(),
         location: place.displayName,
         desc: place.editorialSummary || '',
         address: place.formattedAddress || '',
+        city: city,
         phone: place.nationalPhoneNumber || '',
         time: timeStr,
         period,

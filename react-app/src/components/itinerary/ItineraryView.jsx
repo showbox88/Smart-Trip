@@ -181,18 +181,14 @@ export default function ItineraryView({ tripId }) {
     if (newId) scrollToNewStop(newId);
   }, [pendingInsertion, addStopFromPlace]);
 
-  if (!trip) {
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: 'var(--text-secondary)' }}>
-        <div style={{ textAlign: 'center' }}>
-          <span className="material-symbols-outlined" style={{ fontSize: '3rem', opacity: 0.3 }}>travel_explore</span>
-          <p>Loading trip...</p>
-        </div>
-      </div>
-    );
-  }
+  // ─── 计算派生值（必须在 if (!trip) return 之前，遵守 Hooks 规则）───
+  const activeDayId = activeDayIdLocal || trip?.activeDayId || trip?.days[0]?.id;
 
-  const activeDayId = activeDayIdLocal || trip.activeDayId || trip.days[0]?.id;
+  // 计算所有当前展开的天 ID 数组
+  const expandedDayIds = trip?.days?.filter(d => !collapsedDays[d.id]).map(d => d.id) || [];
+  
+  // 原有的逻辑保留做向下兼容或显示逻辑，但地图使用 expandedDayIds
+  const expandedDayId = expandedDayIds.length > 0 ? expandedDayIds[0] : null;
 
   const handleToggleDayCollapse = useCallback((dayId, forceValue) => {
     setCollapsedDays(prev => ({
@@ -227,7 +223,7 @@ export default function ItineraryView({ tripId }) {
     mapPanelRef.current?.focusAndOpen(stopId);
   }, []);
 
-  const handleSidebarDayClick = (dayId) => {
+  const handleSidebarDayClick = useCallback((dayId) => {
     setActiveDayIdLocal(dayId);
 
     // Scroll to day
@@ -236,11 +232,23 @@ export default function ItineraryView({ tripId }) {
 
     // Auto-expand this day and collapse others
     const newCollapsed = {};
-    trip.days.forEach(d => {
+    trip?.days?.forEach(d => {
       newCollapsed[d.id] = d.id !== dayId;
     });
     setCollapsedDays(newCollapsed);
-  };
+  }, [trip?.days]);
+
+  // ─── 早期返回：trip 未加载时显示 Loading ───
+  if (!trip) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: 'var(--text-secondary)' }}>
+        <div style={{ textAlign: 'center' }}>
+          <span className="material-symbols-outlined" style={{ fontSize: '3rem', opacity: 0.3 }}>travel_explore</span>
+          <p>Loading trip...</p>
+        </div>
+      </div>
+    );
+  }
 
       return (
         <div className="dashboard-view fade-in">
@@ -324,7 +332,7 @@ export default function ItineraryView({ tripId }) {
             </div>
           </section>
 
-          <MapPanel ref={mapPanelRef} onAddToDay={handleMapAddToDay} />
+          <MapPanel ref={mapPanelRef} onAddToDay={handleMapAddToDay} focusDayIds={expandedDayIds} />
 
       {/* Mobile view switcher */}
       <div className="mobile-view-switcher">

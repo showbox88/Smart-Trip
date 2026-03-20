@@ -317,6 +317,7 @@ function App({ smartTrips = [] }) {
                      title: stopTitle,
                      notes: stopNotes,
                      date: day.date,
+                     city: stop.city || '',
                      latitude: stop.lat,
                      longitude: stop.lng,
                      spending: parseFloat(stop.price) || 0,
@@ -324,6 +325,12 @@ function App({ smartTrips = [] }) {
                      category: stop.category || '未分类'
                    });
                    changed = true;
+                } else {
+                   // 更新已有事件的城市
+                   if (aEvent.city !== stop.city) {
+                      aEvent.city = stop.city || '';
+                      changed = true;
+                   }
                 }
              });
            }

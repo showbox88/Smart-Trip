@@ -46,6 +46,7 @@ export function useArchiveSync() {
   }, [thumbnails]);
 
   const syncToArchive = async (smartTrips) => {
+    console.log('[SYNC ENTRY] Tripping started with trips count:', smartTrips?.length);
     if (!isLinked) {
       alert("请先进入相册 (Archive) 页面初始化工作区并授予文件夹权限！");
       return;
@@ -92,13 +93,17 @@ export function useArchiveSync() {
                   }
 
                   let aEvent = newDb.events.find(e => e.title === stopTitle && e.trip_id === aTrip.trip_id);
+                  console.log(`[SYNC DEBUG] Title: "${stopTitle}", City: "${stop.city}", Found Match:`, !!aEvent);
+                  
                   if (!aEvent) { // create
+                     console.log(`[SYNC DEBUG] Creating New Event for: ${stopTitle}`);
                      newDb.events.push({
                        event_id: stop.id || crypto.randomUUID(),
                        trip_id: aTrip.trip_id,
                        title: stopTitle,
                        notes: stopNotes,
                        date: day.date,
+                       city: stop.city || '',
                        latitude: stop.lat,
                        longitude: stop.lng,
                        spending: parseFloat(stop.price) || 0,
@@ -106,6 +111,16 @@ export function useArchiveSync() {
                        category: stop.category || '未分类'
                      });
                      changed = true;
+                  } else {
+                     // 即使事件存在，也强制同步最新的城市、日期和其他核心信息
+                     if (aEvent.city !== stop.city || aEvent.date !== day.date || aEvent.latitude !== stop.lat) {
+                        console.log(`[SYNC DEBUG] Updating Existing Event: ${stopTitle}, New City: ${stop.city}`);
+                        aEvent.city = stop.city || '';
+                        aEvent.date = day.date;
+                        aEvent.latitude = stop.lat;
+                        aEvent.longitude = stop.lng;
+                        changed = true;
+                     }
                   }
                });
              }

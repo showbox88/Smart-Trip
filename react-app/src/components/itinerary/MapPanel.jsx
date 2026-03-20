@@ -36,7 +36,7 @@ async function fetchAndDrawRoute(routePath, color, mapInstance) {
   }
 }
 
-const MapPanel = forwardRef(function MapPanel({ onAddToDay }, ref) {
+const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [] }, ref) {
   const { state } = useApp();
   const { t } = useI18n();
   const mapRef = useRef(null);
@@ -110,6 +110,22 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay }, ref) {
     }
   }, [darkMode]);
 
+  // 地址换行辅助函数 (用于 Google Maps Tooltip HTML 拼串)
+  const formatAddressHTML = (addr) => {
+    if (!addr) return '';
+    if (addr.includes(',')) {
+      const idx = addr.indexOf(',');
+      return `<div style="color:white; font-weight:700;">${addr.substring(0, idx).trim()}</div>
+              <div style="font-size:11px; opacity:0.6; margin-top:2px;">${addr.substring(idx + 1).trim()}</div>`;
+    }
+    const splitMatch = addr.match(/(.*?[省市区县])(.*)/);
+    if (splitMatch) {
+      return `<div style="color:white; font-weight:700;">${splitMatch[1]}</div>
+              <div style="font-size:11px; opacity:0.6; margin-top:2px;">${splitMatch[2]}</div>`;
+    }
+    return addr;
+  };
+
   // Render Markers and Routes
   useEffect(() => {
     if (!mapInstanceRef.current || !activeTrip) return;
@@ -120,6 +136,15 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay }, ref) {
     markersRef.current = [];
     markerMapRef.current = new Map();
     polylinesRef.current = [];
+
+    // 如果没有展开的天（全部折叠），清除所有标记和路线，直接返回
+    if (!focusDayIds || focusDayIds.length === 0) {
+      requestAnimationFrame(() => {
+        oldMarkers.forEach(m => m.map = null);
+        oldPolylines.forEach(p => p.setMap(null));
+      });
+      return;
+    }
 
     const bounds = new google.maps.LatLngBounds();
     let hasCoords = false;
@@ -142,7 +167,9 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay }, ref) {
     const dayIndexMap = new Map(activeTrip.days.map((d, i) => [d.id, i]));
     const routeJobs = [];
 
-    activeTrip.days.forEach(day => {
+    // 只渲染 focusDayIds 对应的天
+    const daysToRender = activeTrip.days.filter(day => (focusDayIds || []).includes(day.id));
+    daysToRender.forEach(day => {
       const dayColor = day.color || '#5b7a99';
       const routePath = [];
 
@@ -285,9 +312,9 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay }, ref) {
                     ${coutTimeStr ? `<span style="color:#ef4444; font-weight:700; margin-left:auto;">${coutTimeStr}</span>` : ''}
                   </div>` : ''}
                   ${stop.address ? `
-                  <div style="display:flex; gap:6px; color:rgba(255,255,255,0.55); font-size:12px; line-height:1.4; margin-bottom:4px;">
+                  <div style="display:flex; gap:6px; color:rgba(255,255,255,0.55); font-size:12px; line-height:1.3; margin-bottom:4px;">
                     <span class="material-symbols-outlined" style="font-size:14px; color:#f97316; margin-top:1px; flex-shrink:0;">location_on</span>
-                    <span style="white-space:normal; -webkit-line-clamp:2; display:-webkit-box; -webkit-box-orient:vertical; overflow:hidden;">${stop.address}</span>
+                    <div style="white-space:normal; overflow:hidden;">${formatAddressHTML(stop.address)}</div>
                   </div>` : ''}
                   ${phone ? `
                   <div style="display:flex; gap:6px; color:rgba(255,255,255,0.55); font-size:12px; line-height:1.4;">
@@ -312,9 +339,9 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay }, ref) {
                       <span>${catLabel}</span>
                     </div>
                   </div>
-                  <div style="display:flex; gap:6px; color:rgba(255,255,255,0.6); font-size:12.5px; line-height:1.4;">
+                  <div style="display:flex; gap:6px; color:rgba(255,255,255,0.6); font-size:12.5px; line-height:1.3;">
                     <span class="material-symbols-outlined" style="font-size:15px; color:#f97316; margin-top:1px;">location_on</span>
-                    <span style="white-space:normal; -webkit-line-clamp:2; display:-webkit-box; -webkit-box-orient:vertical; overflow:hidden;">${stop.address || stop.location || ''}</span>
+                    <div style="white-space:normal; overflow:hidden;">${formatAddressHTML(stop.address || stop.location || '')}</div>
                   </div>
                 </div>
                 ${stop.time ? `
@@ -419,16 +446,13 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay }, ref) {
     });
 
     if (hasCoords) {
-      const shouldFit = hasInitialFitRef.current !== activeTrip.id;
-      if (shouldFit) {
-        mapInstanceRef.current.fitBounds(bounds, { top: 50, bottom: 50, left: 50, right: 50 });
-        hasInitialFitRef.current = activeTrip.id;
-        if (markersRef.current.length === 1) {
-          setTimeout(() => mapInstanceRef.current.setZoom(15), 100);
-        }
+      // 每次切换展开天时都自动 fit 视野
+      mapInstanceRef.current.fitBounds(bounds, { top: 50, bottom: 50, left: 50, right: 50 });
+      if (markersRef.current.length === 1) {
+        setTimeout(() => mapInstanceRef.current.setZoom(15), 100);
       }
     }
-  }, [activeTrip, mapReady, t, darkMode]);
+  }, [activeTrip, focusDayIds, mapReady, t, darkMode]);
 
   // Handle Hover Synchronization — O(1) via markerMapRef
   useEffect(() => {
@@ -558,9 +582,9 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay }, ref) {
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; gap:8px;">
               <span style="font-size:15px; font-weight:800; color:white; overflow:hidden; text-overflow:ellipsis;">${maxName}</span>
             </div>
-            <div style="display:flex; gap:6px; color:rgba(255,255,255,0.6); font-size:12px; line-height:1.4;">
+            <div style="display:flex; gap:6px; color:rgba(255,255,255,0.6); font-size:12px; line-height:1.3;">
               <span class="material-symbols-outlined" style="font-size:15px; color:#f97316; margin-top:1px;">location_on</span>
-              <span style="white-space:normal; -webkit-line-clamp:2; display:-webkit-box; -webkit-box-orient:vertical; overflow:hidden;">${place.formatted_address || place.vicinity || ''}</span>
+              <div style="white-space:normal; overflow:hidden;">${formatAddressHTML(place.formatted_address || place.vicinity || '')}</div>
             </div>
           </div>
           ${place.rating ? `

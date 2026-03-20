@@ -300,7 +300,30 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay }) {
                     {place.formattedAddress && (
                       <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
                         <span className="material-symbols-outlined" style={{ color: '#f97316', fontSize: '16px', flexShrink: 0, marginTop: '1px' }}>location_on</span>
-                        <span style={{ fontSize: '0.82rem', color: '#cbd5e1', lineHeight: 1.5 }}>{place.formattedAddress}</span>
+                        <div style={{ fontSize: '0.82rem', color: '#cbd5e1', lineHeight: 1.4 }}>
+                          {(() => {
+                            const addr = place.formattedAddress;
+                            if (addr.includes(',')) {
+                              const idx = addr.indexOf(',');
+                              return (
+                                <>
+                                  <div style={{ color: 'white', fontWeight: 600 }}>{addr.substring(0, idx).trim()}</div>
+                                  <div style={{ fontSize: '0.75rem', opacity: 0.7 }}>{addr.substring(idx + 1).trim()}</div>
+                                </>
+                              );
+                            }
+                            const splitMatch = addr.match(/(.*?[省市区县])(.*)/);
+                            if (splitMatch) {
+                              return (
+                                <>
+                                  <div style={{ color: 'white', fontWeight: 600 }}>{splitMatch[1]}</div>
+                                  <div style={{ fontSize: '0.75rem', opacity: 0.7 }}>{splitMatch[2]}</div>
+                                </>
+                              );
+                            }
+                            return addr;
+                          })()}
+                        </div>
                       </div>
                     )}
                     {place.internationalPhoneNumber && (

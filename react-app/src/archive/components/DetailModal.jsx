@@ -25,10 +25,11 @@ export function DetailModal({ isOpen, onClose, type, item, allPhotos = [], metad
     if (isPhoto) return [formData.city].filter(Boolean);
     
     if (isEvent) {
-      // Aggregate cities from all photos in this event
+      // Aggregate cities from all photos in this event, AND include the event's own city
       const eventPhotos = allPhotos.filter(p => String(p.event_id) === String(item.event_id));
       const citiesFromPhotos = eventPhotos.map(p => p.city).filter(Boolean);
-      return Array.from(new Set(citiesFromPhotos));
+      const eventCity = item.city;
+      return Array.from(new Set([eventCity, ...citiesFromPhotos].filter(Boolean)));
     }
 
     if (isTrip) {
