@@ -1,126 +1,16 @@
-# Smart Trip | 智能旅行规划
+# React + Vite
 
-Smart Trip 是一款以用户体验为核心的旅行规划应用，深度集成 Google Maps、Supabase 云端服务及全面国际化支持，为用户提供沉浸式的旅行规划体验。
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-## 🌟 核心功能亮点
+Currently, two official plugins are available:
 
-### 1. 用户认证与设置持久化
-- **Supabase 云端认证**：Email/Password 注册登录，Session 自动恢复。
-- **设置持久化**：语言、货币、距离、温度单位保存至云端，登录后自动加载并应用。
-- **冷启动优化**：语言偏好缓存至 `localStorage`，下次打开无需等待云端响应即可立即显示正确语言。
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
 
-### 2. 全自动国际化 (i18n)
-- **中英双语**：全站 UI 完全国际化，无任何硬编码中文。
-- **动态切换**：设置页一键切换语言，所有界面元素即时同步更新。
-- **分类翻译**：费用类别（航班、餐饮、购物等）在英文界面正确显示英文。
+## React Compiler
 
-### 3. 智能仪表盘中心
-- **多维度筛选**：按行程状态（全部/进行中/计划中/已完成）实时过滤。
-- **视图切换**：网格视图与列表视图无缝切换。
-- **真实费用统计**：看板卡片显示所有站点累计支出。
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-### 4. 行程管理
-- **智能默认值**：新建行程时，入住日期默认为今天，退房日期默认为5天后。
-- **封面图默认关键词**：中文用"旅行"，英文用"Trip"，展示相关旅行图片。
-- **完整级联删除**：删除行程时自动清理 Supabase Storage 上的所有关联图片（封面 + 站点图）。
+## Expanding the ESLint configuration
 
-### 5. 行程详情引擎
-- **时间轴**：连续垂直虚线时间轴。
-- **零闪烁局部更新**：添加/删除项目时无页面抖动，仅更新受影响的局部 DOM。
-- **拖拽排序**：支持任意拖拽重排，边缘自动滚动。
-
-### 6. 智能交通计算引擎
-- **Google Routes v2 API**：实时计算驾车/步行路程与时长。
-- **Bug 修复**：正确解析 API 返回的 `"1234s"` 字符串格式，彻底解决"永远在计算中"问题。
-- **优雅降级**：坐标无效时显示"暂无数据"而非永久 Loading 状态。
-
-### 7. 酒店住宿管理
-- **入住/退房卡片**：自动创建 Check-in/Check-out 事件。
-- **清爽 UI 风格**：移除了多余的垂直订阅连线，消除了视觉干扰，界面更现代。
-- **交通提示**：每天行程自动显示从酒店出发 / 返回酒店的距离与时间。
-
-### 8. Google Maps 深度集成
-- **主题化渲染**：仅显示当前选中天的路线，颜色与天数主题色同步，重排顺序或更换颜色后地图即时刷新。
-- **POI 搜索**：地图顶部集成分类快捷搜索，支持键盘上下键导航建议列表，一键添加到行程。
-- **地图稳定性**：优化渲染流程，添加/删除地址时地图零闪烁。
-- **悬停信息窗**：双栏排版（地点信息 + 实拍图），酒店卡片展示住宿详情。
-- **街景图自动填充**：无 Google Photos 的地点自动使用街景截图（`streetviewpixels-pa.googleapis.com`），效果与 Google Maps 一致。
-- **日夜切换**：☀️/🌙 两种地图风格实时切换。
-
-### 9. 费用追踪
-- **12 类图标选择器**：航班、住宿、餐饮、购物、交通、活动、汽油、杂货等。
-- **完全本地化**：选择分类后按当前语言显示翻译名称。
-- **付款人/分摊**：支持查看付款人与分摊信息。
-
-### 10. 极致 UX
-- **毛玻璃美学 (Glassmorphism)**：全站深度采用背景模糊与半透明边框。
-- **零闪烁局部渲染**：切换视图时仅更新受影响的 DOM 区域。
-- **智能预约时间选择器**：支持 24 小时制物理惯性滚轮及 Google 营业时间休息日红色智能预警。
-- **Google Places 换图**：集成 Google Places Photo API，支持直接替换实拍图。
-
-## 11. 多端自适应响应式布局 (Multi-terminal Adaptive Layout)
-
-- **模块化 CSS 设计**：采用物理隔离的响应式 CSS 模块 (`desktop.css` / `tablet.css` / `mobile.css`)，通过 HTML `media` 属性按需激活。
-- **移动端视图切换 (Map vs Plan)**：针对手机窄屏，内置智能视图切换器，支持在"行程列表"与"全屏地图"之间一键切换。
-- **自适应侧栏**：在移动端自动折叠为顶部滑条导航，在桌面端根据宽度自动切换宽窄状态。
-- **零干扰修改**：由于模块彻底解耦，修改桌面端排版时绝不影响移动端样式。
-
-
-
-## 📂 项目结构
-
-```
-Smat Trip/
-├── index.html              # 主入口文件
-├── css/                    # 模块化样式系统
-│   ├── variables.css       # 设计系统变量
-│   ├── base.css            # 全局重置与基础
-│   ├── layout.css          # 核心布局（解耦后）
-│   ├── components.css      # UI 组件
-│   └── responsive/         # 响应式模块（按需激活）
-│       ├── desktop.css     # 桌面端
-│       ├── tablet.css      # 平板端
-│       └── mobile.css      # 移动端
-├── i18n/                   # 国际化语言包
-│   ├── en.json
-│   └── zh.json
-├── js/                     # ES Module 模块化源码
-    ├── main.js             # 总入口
-    ├── state.js            # 状态管理
-    ├── maps.js             # Google Maps + 响应式 View
-    └── ui/
-        ├── render.js       # 渲染引擎
-        └── templates/
-            └── itinerary.js # 含移动端视图切换器
-```
-
-*详见 [js/ARCHITECTURE.md](./js/ARCHITECTURE.md) 获取完整模块说明与数据流图。*
-
-## 🚀 快速启动
-
-### 云端模式（推荐）
-直接访问部署地址，使用 Email/Password 注册登录即可。
-
-### 本地开发模式
-1. 启动本地后端服务：
-   ```bash
-   python server.py
-   ```
-   服务将在 `http://localhost:8000` 启动。
-
-2. 打开浏览器访问 `http://localhost:8000`。
-
-## 🛠️ 技术栈
-
-| 层 | 技术 |
-|---|---|
-| 前端 | Vanilla JavaScript (ES Modules), HTML5, CSS3 |
-| 认证 & 数据库 | Supabase (PostgreSQL + Auth) |
-| 文件存储 | Supabase Storage (`trip-media` bucket) |
-| 地图 | Google Maps JavaScript API + Routes v2 REST API |
-| 日历 | Flatpickr |
-| 本地后端 (备用) | Python 3 `http.server` |
-| 国际化 | 自研 JSON-based i18n 引擎 |
-
----
-*Created with ♥ by Antigravity AI Assistant. Last updated: 2026-03-15*
+If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.

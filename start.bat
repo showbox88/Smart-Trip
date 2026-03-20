@@ -24,9 +24,6 @@ echo [INFO] npm version:
 npm --version
 echo.
 
-:: Enter react-app directory
-cd /d "%~dp0react-app"
-
 :: Check .env file
 if not exist ".env" (
     echo [WARNING] .env file not found!
@@ -34,7 +31,7 @@ if not exist ".env" (
     if exist ".env.example" (
         echo Creating .env from .env.example...
         copy ".env.example" ".env" >nul
-        echo [ACTION] Please edit react-app\.env and fill in your keys:
+        echo [ACTION] Please edit .env and fill in your keys:
         echo   - VITE_SUPABASE_URL
         echo   - VITE_SUPABASE_ANON_KEY
         echo   - VITE_GOOGLE_MAPS_KEY
@@ -43,7 +40,7 @@ if not exist ".env" (
         pause
         exit /b 1
     ) else (
-        echo [ERROR] .env.example also missing. Please create react-app\.env manually.
+        echo [ERROR] .env.example also missing. Please create .env manually.
         pause
         exit /b 1
     )
