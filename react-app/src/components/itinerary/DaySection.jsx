@@ -22,7 +22,8 @@ export default memo(function DaySection({
   onToggleHotelTransitMode,
   draggingStopId,
   onDragPointerDown, onDragPointerMove, onDragPointerUp,
-  onFocusStop
+  onFocusStop,
+  pendingFocusId, setPendingFocusId
 }) {
   const { t } = useI18n();
   const [insertingAfterStopId, setInsertingAfterStopId] = useState(null);
@@ -74,6 +75,7 @@ export default memo(function DaySection({
         <NoteCard
           stop={stop} dayId={day.id} dayColor={activeColor}
           onDelete={onDeleteNote} onContentChange={onUpdateNoteContent}
+          pendingFocusId={pendingFocusId} setPendingFocusId={setPendingFocusId}
         />
       );
     } else if (stop.type === 'list') {
@@ -83,6 +85,7 @@ export default memo(function DaySection({
           onDelete={onDeleteList} onTitleChange={onUpdateListTitle} onItemChange={onUpdateListItem}
           onItemToggle={onToggleListItem} onAddItem={onAddListItem}
           onDeleteItem={onDeleteListItem}
+          pendingFocusId={pendingFocusId} setPendingFocusId={setPendingFocusId}
         />
       );
     } else {

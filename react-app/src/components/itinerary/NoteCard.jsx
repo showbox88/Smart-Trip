@@ -3,7 +3,7 @@ import { useI18n } from '../../context/I18nContext';
 import { useApp } from '../../context/AppContext';
 import DeleteConfirm from './DeleteConfirm';
 
-export default memo(function NoteCard({ stop, dayId, dayColor, onDelete, onContentChange }) {
+export default memo(function NoteCard({ stop, dayId, dayColor, onDelete, onContentChange, pendingFocusId, setPendingFocusId }) {
   const { state, dispatch } = useApp();
   const { t } = useI18n();
   const textareaRef = useRef(null);
@@ -12,6 +12,13 @@ export default memo(function NoteCard({ stop, dayId, dayColor, onDelete, onConte
     el.style.height = 'auto';
     el.style.height = el.scrollHeight + 'px';
   };
+
+  useEffect(() => {
+    if (pendingFocusId === stop.id && textareaRef.current) {
+      textareaRef.current.focus();
+      setPendingFocusId(null);
+    }
+  }, [pendingFocusId, stop.id, setPendingFocusId]);
 
   return (
     <div className={`timeline-item note-item id-${stop.id}`} style={{ position: 'relative', marginBottom: '0.75rem' }}>

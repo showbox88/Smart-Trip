@@ -4,11 +4,19 @@ import { useApp } from '../../context/AppContext';
 import DeleteConfirm from './DeleteConfirm';
 
 export default memo(function ListCard(props) {
-  const { stop, dayId, dayColor, onDelete, onTitleChange, onItemChange, onItemToggle, onAddItem, onDeleteItem } = props;
+  const { stop, dayId, dayColor, onDelete, onTitleChange, onItemChange, onItemToggle, onAddItem, onDeleteItem, pendingFocusId, setPendingFocusId } = props;
   const { state, dispatch } = useApp();
   const { t } = useI18n();
   const [focusIndex, setFocusIndex] = useState(null);
   const listContainerRef = useRef(null);
+  const titleRef = useRef(null);
+
+  useEffect(() => {
+    if (pendingFocusId === stop.id && titleRef.current) {
+      titleRef.current.focus();
+      setPendingFocusId(null);
+    }
+  }, [pendingFocusId, stop.id, setPendingFocusId]);
 
   useEffect(() => {
     if (focusIndex === null || !listContainerRef.current) return;
@@ -45,6 +53,7 @@ export default memo(function ListCard(props) {
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
           <span className="material-symbols-outlined" style={{ fontSize: '14px', color: 'var(--text-muted)' }}>checklist</span>
           <input
+            ref={titleRef}
             defaultValue={stop.title || ''}
             placeholder={t('itinerary.list_title_placeholder') || 'List title...'}
             onChange={(e) => onTitleChange?.(dayId, stop.id, e.target.value)}

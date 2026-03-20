@@ -92,6 +92,7 @@ export default function ItineraryView({ tripId }) {
   const [collapsedDays, setCollapsedDays] = useState({}); // { [dayId]: boolean }
   const [pendingInsertion, setPendingInsertion] = useState(null); // { dayId, afterStopId }
   const [activeDayIdLocal, setActiveDayIdLocal] = useState(null);
+  const [pendingFocusId, setPendingFocusId] = useState(null);
   const isManualScroll = useRef(false);
   const manualScrollTimer = useRef(null);
 
@@ -212,12 +213,18 @@ export default function ItineraryView({ tripId }) {
 
   const handleAddNote = useCallback(async (dayId, afterId) => {
     const newId = await addNote(dayId, afterId);
-    if (newId) scrollToNewStop(newId);
+    if (newId) {
+      setPendingFocusId(newId);
+      scrollToNewStop(newId);
+    }
   }, [addNote]);
 
   const handleAddList = useCallback(async (dayId, afterId) => {
     const newId = await addList(dayId, afterId);
-    if (newId) scrollToNewStop(newId);
+    if (newId) {
+      setPendingFocusId(newId);
+      scrollToNewStop(newId);
+    }
   }, [addList]);
 
   const handleChangePhoto = useCallback((dayId, stopId, photoUrl) => {
@@ -341,6 +348,8 @@ export default function ItineraryView({ tripId }) {
                   onOpenStayInfo={handleOpenStayInfo}
                   onChangePhoto={handleChangePhoto}
                   onFocusStop={handleFocusStop}
+                  pendingFocusId={pendingFocusId}
+                  setPendingFocusId={setPendingFocusId}
                 />
               ))}
             </div>
