@@ -1,4 +1,4 @@
-import { useRef, memo } from 'react';
+import { useRef, useEffect, memo } from 'react';
 import { useI18n } from '../../context/I18nContext';
 import { useApp } from '../../context/AppContext';
 import DeleteConfirm from './DeleteConfirm';
