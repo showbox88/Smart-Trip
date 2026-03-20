@@ -5,7 +5,7 @@ import { useI18n } from '../../context/I18nContext';
 
 export default function AuthForm() {
   const { t } = useI18n();
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
 
   const [tab, setTab] = useState('signin');
@@ -48,7 +48,11 @@ export default function AuthForm() {
           <div className="login-logo">Smart<span>Trip</span></div>
           <div className="login-tagline">{t('auth.tagline')}</div>
 
-          <button className="auth-btn-google" disabled style={{ opacity: 0.5, cursor: 'not-allowed' }}>
+          <button 
+            className="auth-btn-google" 
+            type="button"
+            onClick={() => signInWithGoogle()}
+          >
             <svg width="18" height="18" viewBox="0 0 24 24">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h6.38c-.26 1.37-1.04 2.53-2.21 3.31l3.57 2.77c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
               <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-1 .67-2.28 1.07-3.71 1.07-2.85 0-5.27-1.92-6.13-4.51H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>

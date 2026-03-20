@@ -76,7 +76,7 @@ const formatDateHeader = (dateStr, language = 'zh') => {
   }
 };
 
-function App({ smartTrips = [] }) {
+function App({ smartTrips = [], currentUser }) {
   const {
     initWorkspace,
     restoreWorkspace,
@@ -1278,7 +1278,12 @@ function App({ smartTrips = [] }) {
                     onClick={() => setIsAvatarMenuOpen(!isAvatarMenuOpen)}
                     className="h-10 w-10 rounded-full bg-[#0d7ff2]/20 border border-[#0d7ff2]/40 flex items-center justify-center text-[#0d7ff2] font-bold overflow-hidden active:scale-95 transition-transform cursor-pointer ring-offset-2 ring-offset-black hover:ring-2 hover:ring-[#0d7ff2]/50 transition-all"
                   >
-                    <img src="https://ui-avatars.com/api/?name=User&background=333&color=fff" alt="Avatar" className="w-full h-full object-cover" />
+                    <img 
+                      src={currentUser?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser?.name || 'User')}&background=0d7ff2&color=fff`} 
+                      alt="Avatar" 
+                      className="w-full h-full object-cover" 
+                      referrerPolicy="no-referrer"
+                    />
                   </div>
 
                   <AnimatePresence>
@@ -1295,8 +1300,8 @@ function App({ smartTrips = [] }) {
                           className="absolute right-0 mt-3 w-56 bg-[#1a1b1e]/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl p-2 z-[150] ring-1 ring-black/50"
                         >
                           <div className="px-3 py-2 border-b border-white/5 mb-1">
-                            <p className="text-xs font-bold text-white">{t('app.account.title')}</p>
-                            <p className="text-[10px] text-neutral-500">{t('app.account.offlineMode')}</p>
+                            <p className="text-xs font-bold text-white">{currentUser?.name || t('app.account.title')}</p>
+                            <p className="text-[10px] text-neutral-500">{currentUser?.email || t('app.account.offlineMode')}</p>
                           </div>
                           
                           <button

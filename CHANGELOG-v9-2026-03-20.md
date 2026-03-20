@@ -43,14 +43,23 @@
 
 ---
 
-## 5. 文件变动统计
+## 5. Google Login (OAuth) 授权登录支持
+
+### 新增功能
+- **一键授权登录**：启用了 Google OAuth 授权。用户可以通过点击 Google 按钮快速登录，无需输入密码。
+- **头像自动同步**：登录后，系统会自动提取 Google 账号的个人头像，并显示在右上角的导航栏及 Trip Archive 的用户中心。
+- **用户信息集成**：系统会自动记录 Google 提供的 `full_name` 作为用户昵称，并在个人中心显示完整。
+- **架构升级**：更新了 `useAuth` 钩子，支持 OAuth 回调处理策略，并增强了用户元数据的提取逻辑。
+
+---
+
+## 6. 文件变动统计
 
 | 模块 | 主要文件 |
 |------|---------|
-| **Core App** | `App.jsx` |
-| **Map Rendering** | `MapView.jsx` |
-| **Gallery View** | `AlbumsView.jsx` |
-| **Components** | `DayHeader.jsx` |
+| **Auth** | `AuthForm.jsx`, `useAuth.js` |
+| **Nav & Profile** | `Navbar.jsx`, `App.jsx` (archive) |
+| **Route Sync** | `ArchivePage.jsx` |
 
 ---
 *Generated 2026-03-20 by AntiGravity*

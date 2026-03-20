@@ -48,9 +48,29 @@ export default function Navbar() {
               <div
                 className="user-avatar"
                 onClick={() => setDropdownOpen(v => !v)}
-                style={{ cursor: 'pointer' }}
+                style={{ 
+                  cursor: 'pointer',
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  overflow: 'hidden',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)'
+                }}
               >
-                <span className="material-symbols-outlined" style={{ fontSize: '1.8rem', color: 'var(--text-secondary)' }}>account_circle</span>
+                {state.user.avatar ? (
+                  <img 
+                    src={state.user.avatar} 
+                    alt={state.user.name} 
+                    style={{ width: '100%', height: '100%', objectCover: 'cover' }}
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <span className="material-symbols-outlined" style={{ fontSize: '1.8rem', color: 'var(--text-secondary)' }}>account_circle</span>
+                )}
               </div>
               {dropdownOpen && (
                 <div className="user-dropdown" style={{ position: 'absolute', right: 0, top: 'calc(100% + 8px)', background: '#1a1d24', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '12px', padding: '6px', minWidth: '180px', zIndex: 200, boxShadow: '0 8px 24px rgba(0,0,0,0.6)' }}>

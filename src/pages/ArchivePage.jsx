@@ -25,7 +25,7 @@ export default function ArchivePage() {
         <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>arrow_back</span>
         Back to Smart Trip
       </button>
-      <ArchiveApp smartTrips={state.trips || []} />
+      <ArchiveApp smartTrips={state.trips || []} currentUser={state.user} />
     </div>
   );
 }

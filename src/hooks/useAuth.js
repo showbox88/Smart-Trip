@@ -19,6 +19,7 @@ export function useAuth() {
             id: u.id,
             email: u.email,
             name: u.user_metadata?.full_name || u.email.split('@')[0],
+            avatar: u.user_metadata?.avatar_url || null,
           },
         });
       }
@@ -35,6 +36,7 @@ export function useAuth() {
             id: u.id,
             email: u.email,
             name: u.user_metadata?.full_name || u.email.split('@')[0],
+            avatar: u.user_metadata?.avatar_url || null,
           },
         });
       } else {
@@ -103,11 +105,21 @@ export function useAuth() {
     return data;
   }, []);
 
+  const signInWithGoogle = useCallback(async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin
+      }
+    });
+    if (error) throw error;
+  }, []);
+
   const signOut = useCallback(async () => {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
     dispatch({ type: 'LOGOUT' });
   }, [dispatch]);
 
-  return { user: state.user, isLoading: state.isLoading, signIn, signUp, signOut };
+  return { user: state.user, isLoading: state.isLoading, signIn, signUp, signOut, signInWithGoogle };
 }
