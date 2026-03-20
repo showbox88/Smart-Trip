@@ -323,6 +323,10 @@ export function useTripEditor(tripId) {
     updateStop(dayId, stopId, { content });
   }, [updateStop]);
 
+  const updateListTitle = useCallback((dayId, stopId, title) => {
+    updateStop(dayId, stopId, { title });
+  }, [updateStop]);
+
   const updateListItem = useCallback((dayId, stopId, index, text) => {
     if (!trip) return;
     const updated = JSON.parse(JSON.stringify(trip));
@@ -609,6 +613,7 @@ export function useTripEditor(tripId) {
     addNote,
     addList,
     updateNoteContent,
+    updateListTitle,
     updateListItem,
     toggleListItem,
     addListItem,

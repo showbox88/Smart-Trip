@@ -3,7 +3,8 @@ import { useI18n } from '../../context/I18nContext';
 import { useApp } from '../../context/AppContext';
 import DeleteConfirm from './DeleteConfirm';
 
-export default memo(function ListCard({ stop, dayId, dayColor, onDelete, onItemChange, onItemToggle, onAddItem, onDeleteItem }) {
+export default memo(function ListCard(props) {
+  const { stop, dayId, dayColor, onDelete, onTitleChange, onItemChange, onItemToggle, onAddItem, onDeleteItem } = props;
   const { state, dispatch } = useApp();
   const { t } = useI18n();
   const [focusIndex, setFocusIndex] = useState(null);
@@ -46,6 +47,18 @@ export default memo(function ListCard({ stop, dayId, dayColor, onDelete, onItemC
           <input
             defaultValue={stop.title || ''}
             placeholder={t('itinerary.list_title_placeholder') || 'List title...'}
+            onChange={(e) => onTitleChange?.(dayId, stop.id, e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                if (!stop.items || stop.items.length === 0) {
+                  onAddItem?.(dayId, stop.id);
+                  setFocusIndex(0);
+                } else {
+                  setFocusIndex(0);
+                }
+              }
+            }}
             style={{ background: 'none', border: 'none', outline: 'none', color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 600, flex: 1, fontFamily: 'inherit' }}
           />
         </div>

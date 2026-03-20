@@ -13,7 +13,7 @@ export default memo(function DaySection({
   onAddStop, onDeleteStop, onEditStop, onToggleTransitMode,
   onAddNote, onAddList,
   onDeleteNote, onUpdateNoteContent,
-  onDeleteList, onUpdateListItem, onToggleListItem, onAddListItem, onDeleteListItem,
+  onDeleteList, onUpdateListTitle, onUpdateListItem, onToggleListItem, onAddListItem, onDeleteListItem,
   onColorChange, onEditDay, onDeleteDay, onUpdateDay,
   onOpenTimePicker,
   onOpenExpense,
@@ -80,7 +80,7 @@ export default memo(function DaySection({
       card = (
         <ListCard
           stop={stop} dayId={day.id} dayColor={activeColor}
-          onDelete={onDeleteList} onItemChange={onUpdateListItem}
+          onDelete={onDeleteList} onTitleChange={onUpdateListTitle} onItemChange={onUpdateListItem}
           onItemToggle={onToggleListItem} onAddItem={onAddListItem}
           onDeleteItem={onDeleteListItem}
         />

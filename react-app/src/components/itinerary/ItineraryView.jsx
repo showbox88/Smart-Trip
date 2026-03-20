@@ -34,7 +34,7 @@ export default function ItineraryView({ tripId }) {
     addDay, deleteDay, setDayColor, updateDay,
     deleteStop, updateStop, moveStop,
     addNote, addList,
-    updateNoteContent, updateListItem, toggleListItem, addListItem, deleteListItem,
+    updateNoteContent, updateListTitle, updateListItem, toggleListItem, addListItem, deleteListItem,
     addStopFromPlace, updateTripMetadata, toggleTransitMode, toggleHotelTransitMode,
     computeTransitData, saveStayInfo,
   } = useTripEditor(tripId);
@@ -321,6 +321,7 @@ export default function ItineraryView({ tripId }) {
                   onAddList={handleAddList}
                   onDeleteNote={handleDeleteNote}
                   onUpdateNoteContent={updateNoteContent}
+                  onUpdateListTitle={updateListTitle}
                   onDeleteList={handleDeleteList}
                   onUpdateListItem={updateListItem}
                   onToggleListItem={toggleListItem}
