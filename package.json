@@ -1,0 +1,9 @@
+{
+  "name": "smart-trip-root",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "install": "cd react-app && npm install",
+    "build": "cd react-app && npm run build"
+  }
+}
