@@ -5,7 +5,10 @@ import { formatDistance, formatDuration } from '../../utils/formatters';
 
 const DAY_COLORS = ['#5b7a99', '#ef4444', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899'];
 
-export default memo(function DayHeader({ day, dayIndex, isCollapsed, onToggleCollapse, onColorChange, onEditDay, onDeleteDay, onUpdateDay }) {
+export default memo(function DayHeader({ 
+  day, dayIndex, isCollapsed, dayDateString,
+  onToggleCollapse, onColorChange, onEditDay, onDeleteDay, onUpdateDay 
+}) {
   const { t } = useI18n();
   const { state } = useApp();
 
@@ -36,7 +39,7 @@ export default memo(function DayHeader({ day, dayIndex, isCollapsed, onToggleCol
   const activeColor = day.color || '#5b7a99';
 
   const suffix = t('itinerary.day_suffix');
-  const dayLabel = `${t('itinerary.day_label') || 'Day'}${dayIndex + 1}${suffix === 'itinerary.day_suffix' ? '' : suffix}`;
+  const dayLabel = `${t('itinerary.day_label') || 'Day'} ${dayIndex + 1}${suffix === 'itinerary.day_suffix' ? '' : suffix}`;
 
   // Close pickers on outside click
   useEffect(() => {
@@ -74,10 +77,15 @@ export default memo(function DayHeader({ day, dayIndex, isCollapsed, onToggleCol
         onClick={onToggleCollapse}
         style={{ display: 'flex', alignItems: 'center', marginBottom: '0.3rem', paddingLeft: '2.25rem', paddingRight: '2.875rem', cursor: 'pointer' }}
       >
-        <h3 className="day-title" style={{ margin: 0 }}>
-          <span style={{ color: 'var(--accent-primary)', fontWeight: 800, marginRight: '8px' }}>{dayLabel}</span>
-          {day.name || ''}
-        </h3>
+        <div className="day-title" style={{ margin: 0, display: 'flex', alignItems: 'baseline', gap: '10px' }}>
+          <span style={{ color: 'var(--accent-primary)', fontWeight: 800, fontSize: '1.25rem' }}>{dayLabel}</span>
+          {dayDateString && (
+            <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 500, opacity: 0.8 }}>
+              {dayDateString}
+            </span>
+          )}
+          <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{day.name || ''}</span>
+        </div>
 
         <div className="day-header-controls" style={{ display: 'flex', alignItems: 'center', marginLeft: 'auto' }}>
           {/* Color picker */}

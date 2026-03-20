@@ -1,4 +1,6 @@
 import { useState, useMemo, memo } from 'react';
+import { format, addDays } from 'date-fns';
+import { zhCN, enUS } from 'date-fns/locale';
 import { useI18n } from '../../context/I18nContext';
 import DayHeader from './DayHeader';
 import StopCard from './StopCard';
@@ -25,12 +27,31 @@ export default memo(function DaySection({
   onFocusStop,
   pendingFocusId, setPendingFocusId
 }) {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const [insertingAfterStopId, setInsertingAfterStopId] = useState(null);
   const activeColor = day.color || '#5b7a99';
 
   const hotelContext = useMemo(() => getHotelContext(day, trip), [day, trip]);
   const stops = day.stops || [];
+
+  // Localized date string for the header
+  const dayDateString = useMemo(() => {
+    if (!trip?.startDate) return '';
+    try {
+      // trip.startDate is 'YYYY-MM-DD'
+      const baseDate = new Date(trip.startDate.replace(/-/g, '/'));
+      if (isNaN(baseDate)) return '';
+      const currentDate = addDays(baseDate, dayIndex);
+      
+      const locale = language === 'zh' ? zhCN : enUS;
+      // Chinese: 3月20日 星期五 | English: Mar 20, Friday
+      const formatStr = language === 'zh' ? 'M月d日 EEEE' : 'MMM d, EEEE';
+      return format(currentDate, formatStr, { locale });
+    } catch (e) {
+      console.error('[DaySection] Error formatting date:', e);
+      return '';
+    }
+  }, [trip?.startDate, dayIndex, language]);
 
   // Compute the weekday index (Mon=0...Sun=6) for this day
   const dayWeekdayIdx = useMemo(() => {
@@ -157,6 +178,7 @@ export default memo(function DaySection({
     >
       <DayHeader
         day={day} dayIndex={dayIndex} isCollapsed={isCollapsed}
+        dayDateString={dayDateString}
         onToggleCollapse={onToggleCollapse}
         onColorChange={onColorChange} 
         onEditDay={onEditDay} 
