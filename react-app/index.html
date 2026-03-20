@@ -11,17 +11,6 @@
   </head>
     <body class="dark-theme">
     <div id="root"></div>
-    <script>
-        window.initGoogleMaps = function () {
-            window.googleMapsReady = true;
-            if (window._dispatchGoogleMapsReady) {
-                window._dispatchGoogleMapsReady();
-            }
-        };
-    </script>
-    <script
-        src="https://maps.googleapis.com/maps/api/js?key=%VITE_GOOGLE_MAPS_KEY%&libraries=places,geometry,marker,routes&callback=initGoogleMaps&loading=async"
-        async defer></script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

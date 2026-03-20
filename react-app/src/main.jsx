@@ -5,6 +5,10 @@ import { BrowserRouter } from 'react-router-dom';
 import { I18nProvider } from './context/I18nContext';
 import { AppProvider } from './context/AppContext';
 import App from './App';
+import { loadGoogleMaps } from './utils/googleMapsLoader';
+
+// Initialize Google Maps
+loadGoogleMaps();
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
