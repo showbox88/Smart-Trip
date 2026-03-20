@@ -34,22 +34,25 @@ export default memo(function DaySection({
   const hotelContext = useMemo(() => getHotelContext(day, trip), [day, trip]);
   const stops = day.stops || [];
 
-  // Localized date string for the header
-  const dayDateString = useMemo(() => {
-    if (!trip?.startDate) return '';
+  // Localized date parts for the header
+  const dateInfo = useMemo(() => {
+    if (!trip?.startDate) return { date: '', weekday: '' };
     try {
-      // trip.startDate is 'YYYY-MM-DD'
       const baseDate = new Date(trip.startDate.replace(/-/g, '/'));
-      if (isNaN(baseDate)) return '';
+      if (isNaN(baseDate)) return { date: '', weekday: '' };
       const currentDate = addDays(baseDate, dayIndex);
       
       const locale = language === 'zh' ? zhCN : enUS;
-      // Chinese: 3月20日 星期五 | English: Mar 20, Friday
-      const formatStr = language === 'zh' ? 'M月d日 EEEE' : 'MMM d, EEEE';
-      return format(currentDate, formatStr, { locale });
+      const dateStr = language === 'zh' ? 'M月d日' : 'MMM d';
+      const weekdayStr = 'EEEE';
+      
+      return {
+        date: format(currentDate, dateStr, { locale }),
+        weekday: format(currentDate, weekdayStr, { locale })
+      };
     } catch (e) {
       console.error('[DaySection] Error formatting date:', e);
-      return '';
+      return { date: '', weekday: '' };
     }
   }, [trip?.startDate, dayIndex, language]);
 
@@ -178,7 +181,7 @@ export default memo(function DaySection({
     >
       <DayHeader
         day={day} dayIndex={dayIndex} isCollapsed={isCollapsed}
-        dayDateString={dayDateString}
+        date={dateInfo.date} weekday={dateInfo.weekday}
         onToggleCollapse={onToggleCollapse}
         onColorChange={onColorChange} 
         onEditDay={onEditDay} 

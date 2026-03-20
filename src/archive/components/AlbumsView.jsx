@@ -13,7 +13,7 @@ export function AlbumsView({ trips, onNavigate, onContextMenu, onUpdateTrip, onC
   const totalPhotos = trips.reduce((acc, tripData) => acc + (tripData.photos?.length || 0), 0);
 
   return (
-    <div className="flex-1 overflow-y-auto w-full bg-[#101922] text-slate-100 flex flex-col">
+    <div className="flex-1 overflow-y-auto w-full bg-[#0f172a] text-slate-100 flex flex-col">
       {/* Container matching the max-w from mockup */}
       <div className="px-6 lg:px-12 py-8 max-w-[1600px] mx-auto w-full h-full flex flex-col">
         
@@ -105,46 +105,44 @@ function TripCard({ trip, photos, associatedEvents, onNavigate, onContextMenu, o
     <div 
       onClick={() => onNavigate({ type: 'trip', id: trip.trip_id })}
       onContextMenu={(e) => onContextMenu(e, { ...trip, type: 'trip' })}
-      className="group relative aspect-[4/5] rounded-xl overflow-hidden cursor-pointer bg-slate-800 border border-slate-700/50 hover:border-[#0d7ff2]/50 transition-all shadow-lg"
+      className="group relative aspect-[4/5] rounded-xl overflow-hidden cursor-pointer bg-slate-800 border border-slate-700 hover:border-blue-500 transition-all shadow-2xl"
     >
       {/* Background Image */}
       {imgUrl ? (
-        <div 
-          className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110" 
-          style={{ backgroundImage: `url(${imgUrl})` }}
+        <img 
+          src={imgUrl}
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+          alt=""
         />
       ) : (
-        <div className="absolute inset-0 bg-neutral-900 flex items-center justify-center transition-transform duration-500 group-hover:scale-110">
-           <MapPin size={32} className="text-neutral-700" />
+        <div className="absolute inset-0 bg-slate-900 flex items-center justify-center">
+           <MapPin size={32} className="text-slate-700" />
         </div>
       )}
       
-      {/* Gradient Overlay */}
-      <div className="absolute inset-0 trip-card-gradient"></div>
-      
       {/* Top Right Icon */}
-      <div className="absolute top-4 right-4">
-        <LinkIcon size={20} className="text-white/40 group-hover:text-[#0d7ff2] transition-colors" />
+      <div className="absolute top-4 right-4 z-10">
+        <LinkIcon size={20} className="text-white/60 drop-shadow-lg" />
       </div>
       
-      {/* Bottom Content */}
-      <div className="absolute bottom-0 left-0 p-6 w-full">
+      {/* Bottom Content Area with a clear, localized background */}
+      <div className="absolute bottom-0 left-0 w-full p-5 pt-10 bg-gradient-to-t from-black/80 via-black/40 to-transparent z-10">
         {subtitle && (
-          <p className="text-xs font-bold uppercase tracking-widest text-[#0d7ff2] mb-1">
+          <p className="text-[10px] font-black uppercase tracking-widest text-blue-400 mb-1 drop-shadow-md">
             {subtitle}
           </p>
         )}
-        <h3 className="text-xl font-bold text-white mb-2 leading-tight">
+        <h3 className="text-lg font-black text-white mb-2 leading-tight drop-shadow-md">
           {trip.title}
         </h3>
         
-        <div className="flex items-center gap-3 text-slate-300 text-sm">
-          <span className="flex items-center gap-1.5 font-medium">
-            <ImageIcon size={14} className="text-white/60" /> 
+        <div className="flex items-center gap-3 text-slate-200 text-xs font-bold">
+          <span className="flex items-center gap-1.5 drop-shadow-md">
+            <ImageIcon size={14} className="text-white" /> 
             {photoCount}
           </span>
-          <span className="flex items-center gap-1.5 font-medium truncate">
-            <MapPin size={14} className="text-white/60 shrink-0" /> 
+          <span className="flex items-center gap-1.5 truncate drop-shadow-md">
+            <MapPin size={14} className="text-white shrink-0" /> 
             <span className="truncate">{locationString}</span>
           </span>
         </div>

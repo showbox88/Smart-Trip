@@ -1,21 +1,21 @@
 import { useState, useRef, useEffect, useMemo, memo } from 'react';
 import { useI18n } from '../../context/I18nContext';
 import { useApp } from '../../context/AppContext';
-import { formatDistance, formatDuration } from '../../utils/formatters';
+import { formatDistance, formatDuration, formatCurrency } from '../../utils/formatters';
 
-const DAY_COLORS = ['#5b7a99', '#ef4444', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899'];
+const DAY_COLORS = ['#0e27b4ff', '#ef4444', '#f59e0b', '#10b981', '#0ea5e9', '#8b5cf6', '#ec4899'];
 
-export default memo(function DayHeader({ 
-  day, dayIndex, isCollapsed, dayDateString,
-  onToggleCollapse, onColorChange, onEditDay, onDeleteDay, onUpdateDay 
+export default memo(function DayHeader({
+  day, dayIndex, isCollapsed, date, weekday,
+  onToggleCollapse, onColorChange, onEditDay, onDeleteDay, onUpdateDay
 }) {
   const { t } = useI18n();
   const { state } = useApp();
 
   // Sum transit durations/distances; include return-to-hotel leg when showReturnRoute is on
-  const { totalDuration, totalDistance } = useMemo(() => {
+  const { totalDuration, totalDistance, stopCount, totalExpense } = useMemo(() => {
     const stops = day.stops || [];
-    let dur = 0, dist = 0;
+    let dur = 0, dist = 0, expense = 0;
     stops.forEach(s => {
       if (s.transitToNext) {
         if (s.transitToNext.duration) dur += s.transitToNext.duration;
@@ -26,8 +26,16 @@ export default memo(function DayHeader({
         if (s.transitToHotel.duration) dur += s.transitToHotel.duration;
         if (s.transitToHotel.distance) dist += s.transitToHotel.distance;
       }
+      if (s.price && !isNaN(parseFloat(s.price))) {
+        expense += parseFloat(s.price);
+      }
     });
-    return { totalDuration: dur || null, totalDistance: dist || null };
+    return {
+      totalDuration: dur || null,
+      totalDistance: dist || null,
+      stopCount: stops.length,
+      totalExpense: expense
+    };
   }, [day.stops, day.showReturnRoute]);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
@@ -75,33 +83,66 @@ export default memo(function DayHeader({
       <div
         className="day-header"
         onClick={onToggleCollapse}
-        style={{ display: 'flex', alignItems: 'center', marginBottom: '0.3rem', paddingLeft: '2.25rem', paddingRight: '2.875rem', cursor: 'pointer' }}
+        style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem', paddingLeft: '1.25rem', paddingRight: '2.875rem', cursor: 'pointer', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', padding: '0.8rem 1.25rem' }}
       >
-        <div className="day-title" style={{ margin: 0, display: 'flex', alignItems: 'baseline', gap: '10px' }}>
-          <span style={{ color: 'var(--accent-primary)', fontWeight: 800, fontSize: '1.25rem' }}>{dayLabel}</span>
-          {dayDateString && (
-            <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 500, opacity: 0.8 }}>
-              {dayDateString}
+        {/* Date column: 3 rows centered */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minWidth: '85px', flexShrink: 0, borderRight: '1px solid rgba(255,255,255,0.1)', paddingRight: '15px', marginRight: '15px' }}>
+          <span style={{ color: 'var(--accent-primary)', fontWeight: 800, fontSize: '1.1rem', lineHeight: 1.1 }}>{dayLabel}</span>
+          {date && (
+            <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', fontWeight: 600, marginTop: '2px', whiteSpace: 'nowrap' }}>
+              {date}
             </span>
           )}
-          <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{day.name || ''}</span>
+          {weekday && (
+            <span style={{ color: 'var(--text-secondary)', fontSize: '0.72rem', fontWeight: 500, opacity: 0.6, whiteSpace: 'nowrap' }}>
+              {weekday}
+            </span>
+          )}
         </div>
 
-        <div className="day-header-controls" style={{ display: 'flex', alignItems: 'center', marginLeft: 'auto' }}>
+        <div className="day-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '10px', flex: 1, overflow: 'hidden' }}>
+          <span style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: '1.1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{day.name || ''}</span>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+            {/* Stop Count */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.82rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '14px', color: 'var(--accent-primary)', opacity: 0.8 }}>location_on</span>
+              <span>{stopCount} {t('itinerary.stops_count') || 'Stops'}</span>
+            </div>
+
+            {/* Total Duration */}
+            {totalDuration && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.82rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '14px', color: 'var(--accent-primary)', opacity: 0.8 }}>directions_car</span>
+                <span>{formatDuration(totalDuration, t)}</span>
+              </div>
+            )}
+
+            {/* Total Expense */}
+            {totalExpense > 0 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.82rem', color: '#10b981', fontWeight: 800 }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>payments</span>
+                <span>{formatCurrency(totalExpense, state.settings)}</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="day-header-controls" style={{ display: 'flex', alignItems: 'center', marginLeft: '10px', flexShrink: 0 }}>
           {/* Color picker */}
           <div
             ref={colorRef}
             onClick={(e) => e.stopPropagation()}
-            style={{ position: 'relative', marginLeft: 'auto', marginRight: '15px', display: 'flex', alignItems: 'center' }}
+            style={{ position: 'relative', display: 'flex', alignItems: 'center' }}
           >
             <div
               onClick={() => setShowColorPicker(v => !v)}
-              style={{ width: '14px', height: '14px', borderRadius: '50%', background: activeColor, cursor: 'pointer', border: '2px solid var(--glass-border)', boxShadow: '0 1px 3px rgba(0,0,0,0.3)', transition: 'transform 0.1s' }}
+              style={{ width: '14px', height: '14px', borderRadius: '50%', background: activeColor, cursor: 'pointer', border: '2px solid var(--glass-border)', boxShadow: '0 1px 3px rgba(0,0,0,0.3)', transition: 'transform 0.1s', marginRight: '15px' }}
               title={t('itinerary.change_color') || 'Change color'}
             />
             {showColorPicker && (
               <div
-                style={{ position: 'absolute', top: '1.5rem', right: '-0.5rem', display: 'flex', flexDirection: 'row', padding: '0.4rem', gap: '6px', background: 'var(--bg-secondary)', border: '1px solid var(--glass-border)', borderRadius: '30px', zIndex: 100, boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}
+                style={{ position: 'absolute', top: '1.5rem', right: '0.5rem', display: 'flex', flexDirection: 'row', padding: '0.4rem', gap: '6px', background: 'var(--bg-secondary)', border: '1px solid var(--glass-border)', borderRadius: '30px', zIndex: 100, boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}
               >
                 {DAY_COLORS.map(c => (
                   <div
@@ -135,52 +176,43 @@ export default memo(function DayHeader({
         </div>
       </div>
 
-      {/* Subtitle + collapse arrow + stats + show return toggle */}
-      <div className="day-subtitle-container" style={{ color: 'var(--text-secondary)', paddingLeft: '2.375rem', paddingRight: '1rem', marginBottom: '0.3rem', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+      {/* Subtitle row */}
+      <div className="day-subtitle-container" style={{ color: 'var(--text-secondary)', paddingLeft: '2.375rem', paddingRight: '1.5rem', marginBottom: '0.3rem', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
         <span
           onClick={onToggleCollapse}
           style={{ cursor: 'pointer', display: 'inline-block', transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)', marginRight: '4px', transition: 'transform 0.2s', flexShrink: 0 }}
         >▼</span>
-        {editingSubtitle ? (
-          <input
-            ref={inputRef}
-            type="text"
-            value={subtitleValue}
-            onChange={(e) => setSubtitleValue(e.target.value)}
-            onBlur={handleSubtitleBlur}
-            onKeyDown={(e) => e.key === 'Enter' && handleSubtitleBlur()}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              borderBottom: '1px solid var(--accent-primary)',
-              outline: 'none',
-              color: 'var(--text-primary)',
-              fontSize: 'inherit',
-              fontFamily: 'inherit',
-              padding: 0,
-              minWidth: '200px'
-            }}
-          />
-        ) : (
-          <span
-            onClick={handleSubtitleClick}
-            style={{ fontSize: '0.95rem', color: 'var(--text-secondary)', opacity: 0.8, fontWeight: 500, minHeight: '1em', minWidth: '10px', cursor: 'text' }}
-          >
-            {day.subtitle || t('itinerary.add_subtitle') || 'Add subtitle'}
-          </span>
-        )}
 
-        {/* Total duration + distance */}
-        {(totalDuration || totalDistance) && (
-          <>
-            <span style={{ color: 'var(--text-muted)', opacity: 0.4 }}>·</span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.82rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '14px', color: 'var(--accent-primary)' }}>directions_car</span>
-              {totalDuration && <span>{formatDuration(totalDuration, t)}</span>}
-              {totalDistance && <span style={{ opacity: 0.7 }}>{formatDistance(totalDistance, state.settings, t)}</span>}
-            </div>
-          </>
-        )}
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
+          {editingSubtitle ? (
+            <input
+              ref={inputRef}
+              type="text"
+              value={subtitleValue}
+              onChange={(e) => setSubtitleValue(e.target.value)}
+              onBlur={handleSubtitleBlur}
+              onKeyDown={(e) => e.key === 'Enter' && handleSubtitleBlur()}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                borderBottom: '1px solid var(--accent-primary)',
+                outline: 'none',
+                color: 'var(--text-primary)',
+                fontSize: 'inherit',
+                fontFamily: 'inherit',
+                padding: 0,
+                minWidth: '150px'
+              }}
+            />
+          ) : (
+            <span
+              onClick={handleSubtitleClick}
+              style={{ fontSize: '0.95rem', color: 'var(--text-secondary)', opacity: 0.8, fontWeight: 500, minHeight: '1em', cursor: 'text', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+            >
+              {day.subtitle || t('itinerary.add_subtitle') || 'Add subtitle'}
+            </span>
+          )}
+        </div>
 
         {/* Show Return switch */}
         <div

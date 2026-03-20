@@ -4,8 +4,9 @@ import { MapContainer, TileLayer, Marker, Polyline, useMap, useMapEvents } from 
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useObjectUrl } from '../hooks/useObjectUrl';
-import { MapPin, Camera, Navigation2, Route, ArrowLeft, X } from 'lucide-react';
+import { MapPin, Camera, Navigation2, Route, ArrowLeft, X, Globe, Layers } from 'lucide-react';
 import { format } from 'date-fns';
+import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import clsx from 'clsx';
 
 delete L.Icon.Default.prototype._getIconUrl;
@@ -410,6 +411,7 @@ export function MapView({ trips, allPhotos, onNavigate, t }) {
   const [hoveredPhoto, setHoveredPhoto] = useState(null);
   const [pinnedPhoto, setPinnedPhoto] = useState(null);
   const [expandedPhoto, setExpandedPhoto] = useState(null);
+  const [mapProvider, setMapProvider] = useState('dark'); // 'dark' | 'google-road' | 'google-hyb'
 
   const selectedTrip = useMemo(() => trips.find(t => t.id === selectedTripId), [trips, selectedTripId]);
 
@@ -479,11 +481,31 @@ export function MapView({ trips, allPhotos, onNavigate, t }) {
 
       {/* Map */}
       <div className="flex-1 relative">
+        <style>{`
+          .google-night-layer {
+            filter: invert(100%) hue-rotate(180deg) brightness(0.6) contrast(1.2) saturate(1.2) !important;
+          }
+          .google-night-layer img {
+            background: #0b1520 !important;
+          }
+        `}</style>
         <MapContainer center={[20, 0]} zoom={2} className="w-full h-full" zoomControl={false} style={{ background: '#060d14' }}>
           <TileLayer
-            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-            maxZoom={19}
+            key={mapProvider}
+            className={mapProvider === 'google-night' ? 'google-night-layer' : ''}
+            url={
+              mapProvider === 'dark' 
+                ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                : (mapProvider === 'google-road' || mapProvider === 'google-night')
+                ? "https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
+                : "https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"
+            }
+            attribution={
+              mapProvider === 'dark'
+                ? '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+                : '&copy; Google Maps'
+            }
+            maxZoom={(mapProvider === 'google-road' || mapProvider === 'google-night' || mapProvider === 'google-hyb') ? 21 : 19}
           />
 
           {/* Fit to route when trip changes */}
@@ -558,6 +580,55 @@ export function MapView({ trips, allPhotos, onNavigate, t }) {
             />
           )}
         </MapContainer>
+
+        {/* Floating Map Provider Switcher */}
+        <div className="absolute bottom-8 right-8 z-[1000] flex flex-col items-end gap-3 pointer-events-auto">
+          <div className="flex flex-col bg-[#0b1520]/80 backdrop-blur-2xl border border-white/10 rounded-2xl p-1.5 shadow-2xl overflow-hidden ring-1 ring-black/50">
+            <button
+              onClick={() => setMapProvider('dark')}
+              className={clsx(
+                "p-2.5 rounded-xl transition-all duration-300 relative flex items-center justify-center",
+                mapProvider === 'dark' ? "bg-blue-600/20 text-blue-400 ring-1 ring-blue-500/50 shadow-lg shadow-blue-500/10" : "text-slate-500 hover:text-white"
+              )}
+              title="Dark Mode (Carto)"
+            >
+              <div className="w-5 h-5 flex items-center justify-center font-black text-[10px] leading-none">D</div>
+            </button>
+            <button
+              onClick={() => setMapProvider('google-road')}
+              className={clsx(
+                "p-2.5 rounded-xl transition-all duration-300 relative flex items-center justify-center",
+                mapProvider === 'google-road' ? "bg-blue-600/20 text-blue-400 ring-1 ring-blue-500/50 shadow-lg shadow-blue-500/10" : "text-slate-500 hover:text-white"
+              )}
+              title="Google Maps"
+            >
+              <Globe size={18} />
+            </button>
+            <button
+              onClick={() => setMapProvider('google-night')}
+              className={clsx(
+                "p-2.5 rounded-xl transition-all duration-300 relative flex items-center justify-center",
+                mapProvider === 'google-night' ? "bg-blue-600/20 text-blue-400 ring-1 ring-blue-500/50 shadow-lg shadow-blue-500/10" : "text-slate-500 hover:text-white"
+              )}
+              title="Google Night"
+            >
+              <div className="relative">
+                <Globe size={18} />
+                <div className="absolute -top-1.5 -right-1.5 w-2.5 h-2.5 bg-blue-500 rounded-full border border-black shadow-sm" />
+              </div>
+            </button>
+            <button
+              onClick={() => setMapProvider('google-hyb')}
+              className={clsx(
+                "p-2.5 rounded-xl transition-all duration-300 relative flex items-center justify-center",
+                mapProvider === 'google-hyb' ? "bg-blue-600/20 text-blue-400 ring-1 ring-blue-500/50 shadow-lg shadow-blue-500/10" : "text-slate-500 hover:text-white"
+              )}
+              title="Satellite Hybrid"
+            >
+              <Layers size={18} />
+            </button>
+          </div>
+        </div>
 
         {/* Event detail banner (shown when event is selected) */}
         {selectedEventData && (

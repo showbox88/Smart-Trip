@@ -272,9 +272,29 @@ function App({ smartTrips = [] }) {
     }
 
     const newDb = { ...dbContent };
+    if (!newDb.cities) newDb.cities = [];
+    if (!newDb.trips) newDb.trips = [];
+    if (!newDb.events) newDb.events = [];
+    if (!newDb.photos) newDb.photos = [];
+    
     let changed = false;
 
+    // Keep track of existing cities to avoid duplicates
+    const citySet = new Set(newDb.cities.map(c => c.name));
+
     smartTrips.forEach(stTrip => {
+       // Sync Trip-level City if exists
+       const tripCity = stTrip.city || stTrip.location;
+       if (tripCity) {
+         const trimmedTripCity = tripCity.trim();
+         if (trimmedTripCity && !citySet.has(trimmedTripCity)) {
+           const sequentialColor = PRESET_COLORS[newDb.cities.length % PRESET_COLORS.length];
+           newDb.cities.push({ name: trimmedTripCity, color: sequentialColor });
+           citySet.add(trimmedTripCity);
+           changed = true;
+         }
+       }
+
        // Find matching trip in archive by title
        let aTrip = newDb.trips.find(t => t.title === stTrip.title || t.folder_name === stTrip.title);
        if (!aTrip) {
@@ -291,11 +311,23 @@ function App({ smartTrips = [] }) {
           changed = true;
        }
 
-       // Map Stops to Events
+       // Map Stops to Events and Sync Cities
        if (stTrip.days) {
          stTrip.days.forEach(day => {
            if (day.stops) {
              day.stops.forEach(stop => {
+                // 1. Sync City to Global Database
+                if (stop.city) {
+                  const trimmedCity = stop.city.trim();
+                  if (trimmedCity && !citySet.has(trimmedCity)) {
+                    const sequentialColor = PRESET_COLORS[newDb.cities.length % PRESET_COLORS.length];
+                    newDb.cities.push({ name: trimmedCity, color: sequentialColor });
+                    citySet.add(trimmedCity);
+                    changed = true;
+                  }
+                }
+
+                // 2. Sync Event
                 // Derive title and notes based on stop type
                 let stopTitle, stopNotes;
                 if (stop.type === 'note') {
@@ -339,6 +371,8 @@ function App({ smartTrips = [] }) {
     });
 
     if (changed) {
+       // Sort cities alphabetically
+       newDb.cities.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'zh-CN'));
        await saveToDatabase(newDb);
        showToast("同步成功！Smart Trip 的行程和地标已导入为本地相册事件。", "purple");
     } else {
@@ -657,7 +691,8 @@ function App({ smartTrips = [] }) {
             return { 
               ...p, 
               event_id: newEventId, 
-              trip_id: eventData.tripId || p.trip_id
+              trip_id: eventData.tripId || p.trip_id,
+              city: eventData.city || p.city
             };
         }
         return p;
@@ -762,10 +797,19 @@ function App({ smartTrips = [] }) {
 
   const handleAssignToEvent = async (eventId, photoPaths) => {
     setAnimatingTargetId(`event:${eventId}`);
+    
+    const targetEvent = dbContent.events.find(e => String(e.event_id) === String(eventId));
+    const eventCity = targetEvent?.city || '';
+
     const updatedPhotos = dbContent.photos.map(p => {
         const pNormalized = p.file_name.replace(/\\/g, '/').toLowerCase();
         if (photoPaths.some(path => path.replace(/\\/g, '/').toLowerCase() === pNormalized)) {
-            return { ...p, event_id: eventId };
+            return { 
+              ...p, 
+              event_id: eventId,
+              // Auto-sync city from event if available
+              city: eventCity || p.city 
+            };
         }
         return p;
     });
@@ -1121,7 +1165,7 @@ function App({ smartTrips = [] }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8 }}
-            className="fixed inset-0 z-20 flex flex-col bg-black/40 backdrop-blur-3xl"
+            className="fixed inset-0 z-20 flex flex-col bg-black/60"
           >
             <LayoutGroup id="main-archive-layout">
             {/* ── Design-Specific Top Header ── */}

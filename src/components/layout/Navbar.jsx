@@ -24,10 +24,12 @@ export default function Navbar() {
         Smart<span>Trip</span>
       </div>
 
+      {/* 
       <div className="nav-search-bar">
         <span className="material-symbols-outlined">search</span>
         <input type="text" placeholder="Search..." id="main-search" />
       </div>
+      */}
 
       <nav>
         <ul>
