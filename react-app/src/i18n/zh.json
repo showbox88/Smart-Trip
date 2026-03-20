@@ -141,8 +141,8 @@
         "stay_info": "住宿详情",
         "add_expense": "添加支出",
         "edit_expense": "修改支出",
-        "select_appointment_time": "选择预约时间",
         "select_appointment_approx": "选择预约大概时间",
+        "scheduled_time": "预约时间",
         "opening_hours": "地点营业时间",
         "toggle_transit": "切换交通方式",
         "settings": "系统设置",
@@ -292,7 +292,9 @@
     },
     "app": {
         "albums": {
-            "title": "我的本地相册"
+            "title": "我的本地相册",
+            "linked": "本地相册已链接",
+            "not_linked": "未链接本地相册，点击任意相册进行配置"
         }
     }
 }

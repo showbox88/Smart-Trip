@@ -4,7 +4,7 @@ import * as idb from '../utils/idb';
 import { useObjectUrl } from '../hooks/useObjectUrl';
 import { 
   Image, Heart, Utensils, Landmark, MapPin, 
-  Bed, Plane, Leaf, User, ShoppingBag, Tag, Globe, Map
+  Bed, Plane, Leaf, User, ShoppingBag, Tag, Globe, Map, Camera, MoreHorizontal
 } from 'lucide-react';
 import { format } from 'date-fns';
 import clsx from 'clsx';
@@ -15,8 +15,8 @@ const CATEGORY_ICONS = {
   'Food': Utensils,
   '景点': Landmark,
   'Attractions': Landmark,
-  '街景': MapPin,
-  'Street': MapPin,
+  '街景': Camera,
+  'Street View': Camera,
   '酒店': Bed,
   'Hotel': Bed,
   '交通': Plane,
@@ -27,11 +27,13 @@ const CATEGORY_ICONS = {
   'Portrait': User,
   '购物': ShoppingBag,
   'Shopping': ShoppingBag,
-  '其他': Tag,
-  'Others': Tag
+  '其他': MoreHorizontal,
+  'Other': MoreHorizontal,
+  '旅行': Globe,
+  'Travel': Globe
 };
 
-export const PhotoCard = memo(function PhotoCard({ fileInfo, index, onContextMenu, isSelected, onToggleSelection, onNavigate, onUpdate, animatingTargetId, metadata }) {
+export const PhotoCard = memo(function PhotoCard({ fileInfo, index, onContextMenu, isSelected, onToggleSelection, onNavigate, onUpdate, animatingTargetId, metadata, t }) {
   const categories = metadata?.categories || [];
   const cities = metadata?.cities || [];
 
@@ -166,9 +168,9 @@ export const PhotoCard = memo(function PhotoCard({ fileInfo, index, onContextMen
             const Icon = CATEGORY_ICONS[fileInfo.category] || Tag;
             return (
               <div className="flex items-center gap-1.5 min-w-0 opacity-80 group-hover:opacity-100 transition-opacity">
-                <Icon size={12} strokeWidth={2.5} className="text-white shrink-0" />
+                <Icon size={12} strokeWidth={2.5} style={{ color: getPropertyColor(fileInfo.category, categories) }} className="shrink-0" />
                 <span className="text-[10px] text-white font-black truncate tracking-wide">
-                  {fileInfo.category}
+                  {t('app.category.' + fileInfo.category) !== 'app.category.' + fileInfo.category ? t('app.category.' + fileInfo.category) : fileInfo.category}
                 </span>
               </div>
             );

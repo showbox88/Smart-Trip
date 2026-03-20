@@ -140,7 +140,7 @@ export default function TripAlbumGrid({ trips, onAddTrip }) {
             {t('app.albums.title') || 'Trip Archive Albums'}
           </h3>
           <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-            {isLinked ? "本地相册已链接" : "未链接本地相册，点击任意相册进行配置"}
+            {isLinked ? t('app.albums.linked') : t('app.albums.not_linked')}
           </p>
         </div>
       </div>

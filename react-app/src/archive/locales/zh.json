@@ -1,5 +1,7 @@
 {
-  "_meta": { "label": "中文" },
+  "_meta": {
+    "label": "中文"
+  },
   "app": {
     "title": "Trip Photo Archive Board",
     "subtitle": "灵动的本地旅游记忆数据库。",
@@ -87,7 +89,9 @@
       "photosCount": "{{count}} 张照片",
       "newPage": "新建页面",
       "unnamedTrip": "未命名行程",
-      "unnamedEvent": "未命名事件"
+      "unnamedEvent": "未命名事件",
+      "duration": "时长",
+      "days": "天"
     },
     "filters": {
       "label": "筛选器",
@@ -120,6 +124,27 @@
       "addCity": "添加新城市",
       "addCategory": "添加新分类",
       "more": "更多"
+    },
+    "category": {
+      "美食": "美食",
+      "景点": "景点",
+      "街景": "街景",
+      "酒店": "酒店",
+      "交通": "交通",
+      "自然": "自然",
+      "人像": "人像",
+      "购物": "购物",
+      "其他": "其他",
+      "旅行": "旅行",
+      "Food": "美食",
+      "Attractions": "景点",
+      "Street View": "街景",
+      "Hotel": "酒店",
+      "Transport": "交通",
+      "Nature": "自然",
+      "Portrait": "人像",
+      "Shopping": "购物",
+      "Other": "其他"
     }
   },
   "sidebar": {

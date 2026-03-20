@@ -228,6 +228,7 @@ export function VirtualGrid({ items, onContextMenu, selectedIds, onToggleSelecti
                   fileInfo={item}
                   animatingTargetId={animatingTargetId}
                   metadata={metadata}
+                  t={t}
                 />
               );
             }
@@ -245,6 +246,8 @@ export function VirtualGrid({ items, onContextMenu, selectedIds, onToggleSelecti
                 onUpdateTrip={updateHandler}
                 onNavigate={onNavigate}
                 onContextMenu={onContextMenu}
+                metadata={metadata}
+                t={t}
               />
             );
           })}

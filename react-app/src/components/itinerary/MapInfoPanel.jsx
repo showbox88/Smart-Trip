@@ -36,7 +36,10 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay }) {
   const [isAnimating, setIsAnimating] = useState(false);
   const [addedDays, setAddedDays] = useState(new Set());
   const [dayPickerPos, setDayPickerPos] = useState({ top: 0, left: 0 });
+  const [hoverHours, setHoverHours] = useState(false);
+  const [hoursPos, setHoursPos] = useState({ bottom: 0, left: 0 });
   const addBtnRef = useRef(null);
+  const hoursTriggerRef = useRef(null);
 
   const trip = state.trips.find(tr => tr.id === state.activeTripId);
 
@@ -279,45 +282,55 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay }) {
             {activeTab === 'about' && (
               <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start' }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  {/* Name + Category + Rating row */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
-                    <h1 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, letterSpacing: '-0.02em', color: 'white' }}>{place.displayName}</h1>
-                    {category && (
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#94a3b8', fontSize: '0.8rem', fontWeight: 600, flexShrink: 0 }}>
-                        <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>restaurant</span>
-                        {category}
-                      </span>
-                    )}
-                    {place.rating && (
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
-                        <span style={{ color: '#f97316', fontSize: '15px' }}>★</span>
-                        <span style={{ color: 'white', fontWeight: 700, fontSize: '0.85rem' }}>{place.rating}</span>
-                      </span>
-                    )}
+                  {/* Compact Header: Name + Category + Rating */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '1rem' }}>
+                    <h1 style={{ margin: 0, fontSize: '1.35rem', fontWeight: 800, letterSpacing: '-0.02em', color: 'white', lineHeight: 1.1 }}>
+                      {place.displayName}
+                    </h1>
+                    
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      {category && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(255,255,255,0.06)', padding: '3px 8px', borderRadius: '5px' }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: '13px', color: '#94a3b8' }}>restaurant</span>
+                          <span style={{ color: '#cbd5e1', fontSize: '0.7rem', fontWeight: 700 }}>{category}</span>
+                        </div>
+                      )}
+                      
+                      {place.rating && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '3px', background: 'rgba(249,115,22,0.08)', padding: '3px 8px', borderRadius: '5px' }}>
+                          <span style={{ color: '#f97316', fontSize: '13px' }}>★</span>
+                          <span style={{ color: 'white', fontWeight: 800, fontSize: '0.8rem' }}>{place.rating}</span>
+                          <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.65rem' }}>({place.userRatingCount})</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
+                  {/* Vertical Details List: Address -> Phone -> Website */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '1rem' }}>
                     {place.formattedAddress && (
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
-                        <span className="material-symbols-outlined" style={{ color: '#f97316', fontSize: '16px', flexShrink: 0, marginTop: '1px' }}>location_on</span>
+                      <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                        <span className="material-symbols-outlined" style={{ color: '#f97316', fontSize: '16px', flexShrink: 0, marginTop: '2px' }}>location_on</span>
                         <div style={{ fontSize: '0.82rem', color: '#cbd5e1', lineHeight: 1.4 }}>
                           {(() => {
                             const addr = place.formattedAddress;
+                            // Western: Street, City, ...
                             if (addr.includes(',')) {
-                              const idx = addr.indexOf(',');
+                              const parts = addr.split(',');
                               return (
                                 <>
-                                  <div style={{ color: 'white', fontWeight: 600 }}>{addr.substring(0, idx).trim()}</div>
-                                  <div style={{ fontSize: '0.75rem', opacity: 0.7 }}>{addr.substring(idx + 1).trim()}</div>
+                                  <div style={{ color: 'white', fontWeight: 700, marginBottom: '2px' }}>{parts[0].trim()}</div>
+                                  <div style={{ opacity: 0.6, fontSize: '0.8rem' }}>{parts.slice(1).join(',').trim()}</div>
                                 </>
                               );
                             }
-                            const splitMatch = addr.match(/(.*?[省市区县])(.*)/);
-                            if (splitMatch) {
+                            // Asian: StateCityWard...
+                            const match = addr.match(/(.*?[市区町村])(.*)/);
+                            if (match) {
                               return (
                                 <>
-                                  <div style={{ color: 'white', fontWeight: 600 }}>{splitMatch[1]}</div>
-                                  <div style={{ fontSize: '0.75rem', opacity: 0.7 }}>{splitMatch[2]}</div>
+                                  <div style={{ color: 'white', fontWeight: 700, marginBottom: '2px' }}>{match[1]}</div>
+                                  <div style={{ opacity: 0.6, fontSize: '0.8rem' }}>{match[2]}</div>
                                 </>
                               );
                             }
@@ -326,22 +339,98 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay }) {
                         </div>
                       </div>
                     )}
+
                     {place.internationalPhoneNumber && (
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                        <span className="material-symbols-outlined" style={{ color: '#f97316', fontSize: '16px', flexShrink: 0 }}>call</span>
-                        <span style={{ fontSize: '0.82rem', color: '#f97316', fontWeight: 600 }}>{place.internationalPhoneNumber}</span>
+                      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                        <span className="material-symbols-outlined" style={{ color: '#3b82f6', fontSize: '16px', flexShrink: 0 }}>call</span>
+                        <a href={`tel:${place.internationalPhoneNumber}`} style={{ fontSize: '0.82rem', color: '#3b82f6', fontWeight: 700, textDecoration: 'none' }}>
+                          {place.internationalPhoneNumber}
+                        </a>
+                      </div>
+                    )}
+                    
+                    {place.websiteURI && (
+                      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                        <span className="material-symbols-outlined" style={{ color: '#10b981', fontSize: '16px', flexShrink: 0 }}>public</span>
+                        <a href={place.websiteURI} target="_blank" rel="noreferrer" style={{ fontSize: '0.82rem', color: '#10b981', fontWeight: 700, textDecoration: 'none', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {place.websiteURI.replace(/^https?:\/\//, '').replace(/\/$/, '')}
+                        </a>
                       </div>
                     )}
                   </div>
 
-                  {/* Time badge */}
+                  {/* Divider */}
+                  <div style={{ height: '1px', background: 'rgba(255,255,255,0.08)', margin: '1rem 0' }} />
+
+                  {/* Business Hours Timetable */}
+                  {place.regularOpeningHours?.weekdayDescriptions && (
+                    <div 
+                      ref={hoursTriggerRef}
+                      style={{ position: 'relative', marginBottom: '1.2rem' }}
+                      onMouseEnter={() => {
+                        if (hoursTriggerRef.current) {
+                          const rect = hoursTriggerRef.current.getBoundingClientRect();
+                          setHoursPos({
+                            bottom: window.innerHeight - rect.top + 8,
+                            left: rect.left
+                          });
+                        }
+                        setHoverHours(true);
+                      }}
+                      onMouseLeave={() => setHoverHours(false)}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'help' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#f59e0b' }}>schedule</span>
+                        <span style={{ color: 'white', fontSize: '0.85rem', fontWeight: 700 }}>
+                          {place.regularOpeningHours.weekdayDescriptions[new Date().getDay()] || 'Business Hours'}
+                        </span>
+                        <span className="material-symbols-outlined" style={{ fontSize: '14px', color: 'rgba(255,255,255,0.4)' }}>expand_less</span>
+                      </div>
+
+                      {/* Floating full timetable (UPWARDS via Portal) */}
+                      {hoverHours && createPortal(
+                        <div style={{
+                          position: 'fixed',
+                          bottom: hoursPos.bottom,
+                          left: hoursPos.left,
+                          zIndex: 9999,
+                          background: 'rgba(23, 27, 41, 0.98)',
+                          backdropFilter: 'blur(12px)',
+                          border: '1px solid rgba(255, 255, 255, 0.12)',
+                          borderRadius: '12px',
+                          padding: '16px',
+                          boxShadow: '0 10px 40px rgba(0,0,0,0.6)',
+                          display: 'grid',
+                          gap: '10px',
+                          minWidth: '240px'
+                        }}>
+                          {place.regularOpeningHours.weekdayDescriptions.map((desc, i) => {
+                            const splitIdx = desc.indexOf(': ');
+                            const dayStr = splitIdx > -1 ? desc.substring(0, splitIdx) : desc;
+                            const hoursStr = splitIdx > -1 ? desc.substring(splitIdx + 2) : '';
+                            const isToday = i === new Date().getDay();
+                            return (
+                              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: '2rem', fontSize: '0.78rem', color: isToday ? 'white' : 'rgba(255,255,255,0.6)' }}>
+                                <span style={{ fontWeight: isToday ? 800 : 500 }}>{dayStr}</span>
+                                <span style={{ fontWeight: isToday ? 800 : 600 }}>{hoursStr}</span>
+                              </div>
+                            );
+                          })}
+                        </div>,
+                        document.body
+                      )}
+                    </div>
+                  )}
+
+                  {/* Itinerary Scheduled Time */}
                   {matchedStop?.time && (
                     <div style={{
                       display: 'inline-flex', alignItems: 'center', gap: '6px',
-                      background: 'rgba(255,255,255,0.1)', borderRadius: '8px',
-                      padding: '6px 14px', fontSize: '0.85rem', fontWeight: 700, color: 'white'
+                      background: 'rgba(255,255,255,0.08)', borderRadius: '8px',
+                      padding: '8px 14px', fontSize: '0.82rem', fontWeight: 800, color: 'white'
                     }}>
-                      {matchedStop.time} {matchedStop.period || ''}
+                      <span className="material-symbols-outlined" style={{ fontSize: '15px', color: '#f97316' }}>event_note</span>
+                      {t('itinerary.scheduled_time') || 'Scheduled'}: {matchedStop.time} {matchedStop.period || ''}
                     </div>
                   )}
                 </div>
@@ -349,7 +438,18 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay }) {
                 {photo && (
                   <div
                     onClick={() => handlePhotoClick(0)}
-                    style={{ width: '200px', height: '140px', borderRadius: '10px', overflow: 'hidden', flexShrink: 0, boxShadow: '0 8px 25px rgba(0,0,0,0.5)', cursor: 'pointer' }}
+                    style={{ 
+                      flex: 1,
+                      height: '240px', 
+                      borderRadius: '16px', 
+                      overflow: 'hidden', 
+                      boxShadow: '0 10px 40px rgba(0,0,0,0.6)', 
+                      cursor: 'pointer', 
+                      border: '4px solid rgba(255,255,255,0.08)', 
+                      transition: 'transform 0.3s ease' 
+                    }}
+                    onMouseOver={e => e.currentTarget.style.transform = 'scale(1.01)'}
+                    onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
                   >
                     <img src={photo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </div>

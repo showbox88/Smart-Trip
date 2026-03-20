@@ -1,3 +1,4 @@
+import { useState, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useI18n } from '../../context/I18nContext';
 import { useSidebarGlow } from '../../hooks/useSidebarGlow';
@@ -24,6 +25,24 @@ export default function TripSidebar({ trip, activeDayId, onAddDay, onDayClick })
     }
   };
 
+  const [highlight, setHighlight] = useState({ opacity: 0, transform: 'translate(0, 0)', height: 0, width: 0, color: 'transparent' });
+  const navRef = useRef(null);
+
+  const handleMouseEnter = (e, color) => {
+    const item = e.currentTarget;
+    setHighlight({
+      opacity: 1,
+      transform: `translate(${item.offsetLeft}px, ${item.offsetTop}px)`,
+      width: item.offsetWidth,
+      height: item.offsetHeight,
+      color: color
+    });
+  };
+
+  const handleMouseLeave = () => {
+    setHighlight(prev => ({ ...prev, opacity: 0 }));
+  };
+
   return (
     <aside ref={sidebarRef} className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
       <div
@@ -33,7 +52,33 @@ export default function TripSidebar({ trip, activeDayId, onAddDay, onDayClick })
         <span className="material-symbols-outlined">chevron_left</span>
       </div>
 
-      <ul className="trip-navigation" id="sidebar-nav" style={{ flex: 1, marginTop: '1rem' }}>
+      <ul 
+        className="trip-navigation" 
+        id="sidebar-nav" 
+        ref={navRef}
+        onMouseLeave={handleMouseLeave}
+        style={{ flex: 1, marginTop: '1rem', position: 'relative' }}
+      >
+        <div 
+          className="nav-highlight"
+          style={{
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            width: `${highlight.width}px`,
+            height: `${highlight.height}px`,
+            transform: highlight.transform,
+            borderRadius: '10px',
+            background: highlight.color === 'transparent' ? 'transparent' : `${highlight.color}26`,
+            outline: `2px solid ${highlight.color}`,
+            outlineOffset: '-2px',
+            opacity: highlight.opacity,
+            transition: 'all 0.25s ease',
+            pointerEvents: 'none',
+            zIndex: 10
+          }}
+        />
+
         {(trip?.days || []).map((day, index) => {
           const activeColor = day.color || '#5b7a99';
           const suffix = t('itinerary.day_suffix');
@@ -46,7 +91,8 @@ export default function TripSidebar({ trip, activeDayId, onAddDay, onDayClick })
               id={`nav-day-${day.id}`}
               className={day.id === activeDayId ? 'active' : ''}
               onClick={() => handleDayClick(day.id)}
-              style={{ '--active-color': activeColor, cursor: 'pointer' }}
+              onMouseEnter={(e) => handleMouseEnter(e, activeColor)}
+              style={{ '--active-color': activeColor, cursor: 'pointer', position: 'relative', zIndex: 1 }}
             >
               <div className="nav-day-main" style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, width: '100%' }}>
                 <div className="sidebar-color-dot" style={{ width: '10px', height: '10px', borderRadius: '50%', background: activeColor, flexShrink: 0 }} />

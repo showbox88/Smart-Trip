@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTripEditor } from '../../hooks/useTripEditor';
 import { useTimelineDrag } from '../../hooks/useTimelineDrag';
@@ -52,6 +52,7 @@ export default function ItineraryView({ tripId }) {
     if (!trip?.days?.length) return;
     const observer = new IntersectionObserver(
       (entries) => {
+        if (isManualScroll.current) return;
         const visible = entries.find(e => e.isIntersecting);
         if (visible) setActiveDayIdLocal(visible.target.id);
       },
@@ -91,6 +92,8 @@ export default function ItineraryView({ tripId }) {
   const [collapsedDays, setCollapsedDays] = useState({}); // { [dayId]: boolean }
   const [pendingInsertion, setPendingInsertion] = useState(null); // { dayId, afterStopId }
   const [activeDayIdLocal, setActiveDayIdLocal] = useState(null);
+  const isManualScroll = useRef(false);
+  const manualScrollTimer = useRef(null);
 
   const openConfirm = useCallback((message, onConfirm) => setConfirmModal({ message, onConfirm }), []);
 
@@ -184,8 +187,10 @@ export default function ItineraryView({ tripId }) {
   // ─── 计算派生值（必须在 if (!trip) return 之前，遵守 Hooks 规则）───
   const activeDayId = activeDayIdLocal || trip?.activeDayId || trip?.days[0]?.id;
 
-  // 计算所有当前展开的天 ID 数组
-  const expandedDayIds = trip?.days?.filter(d => !collapsedDays[d.id]).map(d => d.id) || [];
+  // 计算所有当前展开的天 ID 数组 (加 useMemo 避免 hover 导致频繁 fitBounds)
+  const expandedDayIds = useMemo(() => {
+    return trip?.days?.filter(d => !collapsedDays[d.id]).map(d => d.id) || [];
+  }, [trip?.days, collapsedDays]);
   
   // 原有的逻辑保留做向下兼容或显示逻辑，但地图使用 expandedDayIds
   const expandedDayId = expandedDayIds.length > 0 ? expandedDayIds[0] : null;
@@ -224,6 +229,9 @@ export default function ItineraryView({ tripId }) {
   }, []);
 
   const handleSidebarDayClick = useCallback((dayId) => {
+    isManualScroll.current = true;
+    if (manualScrollTimer.current) clearTimeout(manualScrollTimer.current);
+    
     setActiveDayIdLocal(dayId);
 
     // Scroll to day
@@ -236,6 +244,11 @@ export default function ItineraryView({ tripId }) {
       newCollapsed[d.id] = d.id !== dayId;
     });
     setCollapsedDays(newCollapsed);
+
+    // Release the manual scroll lock after animation
+    manualScrollTimer.current = setTimeout(() => {
+      isManualScroll.current = false;
+    }, 1000);
   }, [trip?.days]);
 
   // ─── 早期返回：trip 未加载时显示 Loading ───

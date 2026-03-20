@@ -47,6 +47,7 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [] }, 
   const polylinesRef = useRef([]);
   const hasInitialFitRef = useRef(null); // stores tripId
   const prevHoveredRef = useRef(null); // track previous hovered stopId
+  const prevFocusDayIdsRef = useRef([]); // track previous focusDayIds to avoid redundant fitBounds
   const [mapReady, setMapReady] = useState(!!window.googleMapsReady);
   const [darkMode, setDarkMode] = useState(true);
   const [selectedPlaceId, setSelectedPlaceId] = useState(null);
@@ -329,23 +330,34 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [] }, 
               </div>
             `;
           } else {
+            const rating = stop.rating || '';
+            const phone = stop.phone || '';
+            
             tooltipHtml = `
-              <div style="flex:1; padding:14px 16px; display:flex; flex-direction:column; justify-content:space-between; min-width:180px;">
+              <div style="flex:1; padding:16px 16px 14px; display:flex; flex-direction:column; gap:10px; min-width:220px;">
                 <div>
-                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; gap:12px;">
-                    <span style="font-size:15px; font-weight:800; color:white; overflow:hidden; text-overflow:ellipsis;">${maxName}</span>
-                    <div style="display:flex; align-items:center; gap:4px; color:rgba(255,255,255,0.55); font-size:12px; font-weight:600;">
-                      <span class="material-symbols-outlined" style="font-size:14px">${stop.categoryIcon || 'place'}</span>
-                      <span>${catLabel}</span>
+                  <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+                    <span style="font-size:15px; font-weight:800; color:white; flex:1; overflow:hidden; text-overflow:ellipsis;">${maxName}</span>
+                    <div style="display:flex; align-items:center; gap:5px; background:rgba(255,255,255,0.08); border-radius:6px; padding:2px 8px; flex-shrink:0;">
+                      <span class="material-symbols-outlined" style="font-size:13px; color:rgba(255,255,255,0.6);">${stop.categoryIcon || 'place'}</span>
+                      <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.7); letter-spacing:0.04em;">${catLabel}</span>
+                      ${rating ? `<span style="color:#f59e0b; font-size:12px; margin-left:4px;">★</span><span style="color:white; font-weight:700; font-size:12px;">${rating}</span>` : ''}
                     </div>
                   </div>
-                  <div style="display:flex; gap:6px; color:rgba(255,255,255,0.6); font-size:12.5px; line-height:1.3;">
-                    <span class="material-symbols-outlined" style="font-size:15px; color:#f97316; margin-top:1px;">location_on</span>
-                    <div style="white-space:normal; overflow:hidden;">${formatAddressHTML(stop.address || stop.location || '')}</div>
+                  <div style="display:flex; flex-direction:column; gap:6px;">
+                    <div style="display:flex; gap:6px; color:rgba(255,255,255,0.55); font-size:12px; line-height:1.3;">
+                      <span class="material-symbols-outlined" style="font-size:14px; color:#f97316; margin-top:1px; flex-shrink:0;">location_on</span>
+                      <div style="white-space:normal; overflow:hidden;">${formatAddressHTML(stop.address || stop.location || '')}</div>
+                    </div>
+                    ${phone ? `
+                    <div style="display:flex; gap:6px; color:rgba(255,255,255,0.55); font-size:12px; line-height:1.4;">
+                      <span class="material-symbols-outlined" style="font-size:14px; color:#3b82f6; flex-shrink:0;">call</span>
+                      <span>${phone}</span>
+                    </div>` : ''}
                   </div>
                 </div>
                 ${stop.time ? `
-                <div style="margin-top:12px; background:rgba(255,255,255,0.12); color:white; padding:4px 12px; border-radius:8px; font-size:12px; font-weight:800; width:fit-content;">
+                <div style="background:rgba(255,255,255,0.12); color:white; padding:4px 12px; border-radius:8px; font-size:12px; font-weight:800; width:fit-content;">
                   ${stop.time} ${stop.period || ''}
                 </div>` : ''}
               </div>
@@ -447,10 +459,18 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [] }, 
 
     if (hasCoords) {
       // 每次切换展开天时都自动 fit 视野
-      mapInstanceRef.current.fitBounds(bounds, { top: 50, bottom: 50, left: 50, right: 50 });
-      if (markersRef.current.length === 1) {
-        setTimeout(() => mapInstanceRef.current.setZoom(15), 100);
+      // BUG FIX: 如果当前正处于选中某个地点的详情状态，或者 focusDayIds 引用变化但内容没变，不要强制 fitBounds
+      const prevIds = prevFocusDayIdsRef.current || [];
+      const currentIds = focusDayIds || [];
+      const idsChanged = prevIds.length !== currentIds.length || prevIds.some((id, i) => id !== currentIds[i]);
+      
+      if (!selectedPlaceId && idsChanged) {
+        mapInstanceRef.current.fitBounds(bounds, { top: 50, bottom: 50, left: 50, right: 50 });
+        if (markersRef.current.length === 1) {
+          setTimeout(() => mapInstanceRef.current.setZoom(15), 100);
+        }
       }
+      prevFocusDayIdsRef.current = currentIds;
     }
   }, [activeTrip, focusDayIds, mapReady, t, darkMode]);
 
@@ -497,17 +517,26 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [] }, 
 
     map.panTo({ lat, lng });
 
+    // BUG FIX: Offset the center by ~150px downwards so the marker moves UP
+    // This ensures it appears in the top visible half of the map, above the info panel (350px+).
+    setTimeout(() => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.panBy(0, 160); 
+      }
+    }, 50);
+
     const currentZoom = map.getZoom();
     const targetZoom = 16;
     if (currentZoom < targetZoom) {
       let zoom = currentZoom;
       const smoothZoom = () => {
+        if (!mapInstanceRef.current) return;
         if (zoom >= targetZoom) return;
-        zoom = Math.min(zoom + 0.5, targetZoom);
-        map.setZoom(zoom);
+        zoom = Math.min(zoom + 0.8, targetZoom);
+        mapInstanceRef.current.setZoom(zoom);
         requestAnimationFrame(smoothZoom);
       };
-      setTimeout(smoothZoom, 300);
+      setTimeout(smoothZoom, 350);
     }
 
     // Pulse marker
@@ -577,22 +606,29 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [] }, 
       ].join('');
 
       let tooltipHtml = `
-        <div style="flex:1; display:flex; flex-direction:column; justify-content:space-between; min-width:160px;">
+        <div style="flex:1; padding:16px 16px 14px; display:flex; flex-direction:column; gap:10px; min-width:220px;">
           <div>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; gap:8px;">
-              <span style="font-size:15px; font-weight:800; color:white; overflow:hidden; text-overflow:ellipsis;">${maxName}</span>
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+              <span style="font-size:15px; font-weight:800; color:white; flex:1; overflow:hidden; text-overflow:ellipsis;">${maxName}</span>
+              ${place.rating ? `
+              <div style="display:flex; align-items:center; gap:4px; background:rgba(255,255,255,0.08); border-radius:6px; padding:2px 8px; flex-shrink:0;">
+                <span style="color:#f59e0b; font-size:12px;">★</span>
+                <span style="color:white; font-weight:700; font-size:12px;">${place.rating}</span>
+                <span style="color:rgba(255,255,255,0.45); font-size:11px;">(${place.user_ratings_total || 0})</span>
+              </div>` : ''}
             </div>
-            <div style="display:flex; gap:6px; color:rgba(255,255,255,0.6); font-size:12px; line-height:1.3;">
-              <span class="material-symbols-outlined" style="font-size:15px; color:#f97316; margin-top:1px;">location_on</span>
-              <div style="white-space:normal; overflow:hidden;">${formatAddressHTML(place.formatted_address || place.vicinity || '')}</div>
+            <div style="display:flex; flex-direction:column; gap:6px;">
+              <div style="display:flex; gap:6px; color:rgba(255,255,255,0.55); font-size:12px; line-height:1.3;">
+                <span class="material-symbols-outlined" style="font-size:14px; color:#f97316; margin-top:1px; flex-shrink:0;">location_on</span>
+                <div style="white-space:normal; overflow:hidden;">${formatAddressHTML(place.formatted_address || place.vicinity || '')}</div>
+              </div>
+              ${place.international_phone_number || place.national_phone_number ? `
+              <div style="display:flex; gap:6px; color:rgba(255,255,255,0.55); font-size:12px; line-height:1.4;">
+                <span class="material-symbols-outlined" style="font-size:14px; color:#3b82f6; flex-shrink:0;">call</span>
+                <span>${place.international_phone_number || place.national_phone_number}</span>
+              </div>` : ''}
             </div>
           </div>
-          ${place.rating ? `
-          <div style="display:flex; align-items:center; gap:4px; margin-top:10px;">
-            <span style="color:#f97316; font-size:14px;">★</span>
-            <span style="color:white; font-weight:700; font-size:13px;">${place.rating}</span>
-            <span style="color:rgba(255,255,255,0.45); font-size:12px;">(${place.user_ratings_total || 0})</span>
-          </div>` : ''}
         </div>
       `;
 

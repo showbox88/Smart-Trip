@@ -47,7 +47,7 @@ function Tag({ label, small }) {
 }
 
 // ─── Collection Card (竖向 Notion 画廊样式) ──────────────────────────────────────────
-export function CollectionCard({ type, item, photos, associatedEvents = [], index, isSelected, onToggleSelection, onNavigate, onContextMenu, onUpdateTrip }) {
+export function CollectionCard({ type, item, photos, associatedEvents = [], index, isSelected, onToggleSelection, onNavigate, onContextMenu, onUpdateTrip, metadata, t }) {
   const isTrip = type === 'trip';
   const itemId = isTrip ? item.trip_id : item.event_id;
   const selectionId = `${type}:${itemId}`;
@@ -72,10 +72,17 @@ export function CollectionCard({ type, item, photos, associatedEvents = [], inde
     tags.push(item.city); 
   }
   if (item.category) {
-    tags.push(item.category);
+    const catName = (item.category || '').trim();
+    const translatedCat = t('app.category.' + catName);
+    const catMetadata = (metadata?.categories || []).find(c => c.name === catName);
+    
+    tags.push({
+      label: translatedCat !== 'app.category.' + catName ? translatedCat : catName,
+      color: catMetadata?.color || catMetadata?.hex
+    });
   }
   if (item.tags && Array.from(item.tags).length > 0) {
-    tags.push(...item.tags);
+    Array.from(item.tags).forEach(tag => tags.push({ label: tag }));
   }
 
   const [activeMenu, setActiveMenu] = useState(null);
@@ -180,7 +187,7 @@ export function CollectionCard({ type, item, photos, associatedEvents = [], inde
         </button>
 
         {/* Duration (Only for Trip) */}
-        {isTrip && <p className="text-[9px] text-neutral-600">Duration: {duration} Days</p>}
+        {isTrip && <p className="text-[9px] text-neutral-600">{t('app.grid.duration') || 'Duration'}: {duration} {t('app.grid.days') || 'Days'}</p>}
 
         {/* Status badge area: Fixed at bottom left */}
         <div className="mt-auto pt-1">
@@ -191,10 +198,22 @@ export function CollectionCard({ type, item, photos, associatedEvents = [], inde
               theme.bg, theme.border, theme.color
             )}>
               <theme.icon size={10} strokeWidth={2.5} />
-              {isTrip ? 'Trip' : 'Event'}
+              {isTrip ? (t('sidebar.trips') || 'Trip') : (t('map.event') || 'Event')}
             </div>
 
-            {/* 内容标签已移除 */}
+            {/* 内容标签 */}
+            {tags.map((tag, idx) => (
+              <span 
+                key={idx}
+                className={clsx(
+                  'rounded px-1.5 py-0.5 font-semibold whitespace-nowrap text-[8px]',
+                  tag.color ? 'bg-white/5 border border-white/10' : tagColor(tag.label)
+                )}
+                style={tag.color ? { color: tag.color, borderColor: `${tag.color}40`, backgroundColor: `${tag.color}15` } : {}}
+              >
+                {tag.label}
+              </span>
+            ))}
 
             {/* Trip 专属状态标识 */}
             {isTrip && (

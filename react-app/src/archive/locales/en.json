@@ -1,5 +1,7 @@
 {
-  "_meta": { "label": "English" },
+  "_meta": {
+    "label": "English"
+  },
   "app": {
     "title": "Trip Photo Archive Board",
     "subtitle": "A dynamic local travel memory database.",
@@ -87,7 +89,9 @@
       "photosCount": "{{count}} photos",
       "newPage": "New Page",
       "unnamedTrip": "Unnamed Trip",
-      "unnamedEvent": "Unnamed Event"
+      "unnamedEvent": "Unnamed Event",
+      "duration": "Duration",
+      "days": "Days"
     },
     "filters": {
       "label": "Filters",
@@ -120,6 +124,27 @@
       "addCity": "Add New City",
       "addCategory": "Add New Category",
       "more": "More"
+    },
+    "category": {
+      "美食": "Food",
+      "景点": "Attractions",
+      "街景": "Street View",
+      "酒店": "Hotel",
+      "交通": "Transport",
+      "自然": "Nature",
+      "人像": "Portrait",
+      "购物": "Shopping",
+      "其他": "Other",
+      "旅行": "Travel",
+      "Food": "Food",
+      "Attractions": "Attractions",
+      "Street View": "Street View",
+      "Hotel": "Hotel",
+      "Transport": "Transport",
+      "Nature": "Nature",
+      "Portrait": "Portrait",
+      "Shopping": "Shopping",
+      "Other": "Other"
     }
   },
   "sidebar": {

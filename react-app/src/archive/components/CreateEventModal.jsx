@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useObjectUrl } from '../hooks/useObjectUrl';
 import clsx from 'clsx';
 
-export function CreateEventModal({ isOpen, onClose, photos, metadata = {}, onCreate }) {
+export function CreateEventModal({ isOpen, onClose, photos, metadata = {}, onCreate, t }) {
   const categories = metadata.categories || [];
   
   const [title, setTitle] = useState('');
@@ -80,9 +80,9 @@ export function CreateEventModal({ isOpen, onClose, photos, metadata = {}, onCre
                     <Calendar size={20} className="text-orange-400" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold tracking-tight text-white">创建新事件</h3>
+                    <h3 className="text-xl font-bold tracking-tight text-white">{t('app.context.gatherNew')}</h3>
                     <p className="text-xs text-neutral-500 font-medium">
-                      正在将 {photos.length} 张照片归档至此事件
+                      {t('app.grid.photosCount').replace('{{count}}', photos.length)}
                     </p>
                   </div>
                 </div>
@@ -161,7 +161,7 @@ export function CreateEventModal({ isOpen, onClose, photos, metadata = {}, onCre
                   {/* Left Column: Core */}
                   <div className="space-y-6">
                     <div>
-                      <label className="block text-[10px] font-bold uppercase tracking-[0.15em] text-neutral-500 mb-2 ml-1">事件名称</label>
+                      <label className="block text-[10px] font-bold uppercase tracking-[0.15em] text-neutral-500 mb-2 ml-1">{t('app.propertyModal.title').includes('Editor') ? 'Event Name' : '事件名称'}</label>
                       <input
                         autoFocus
                         type="text"
@@ -193,14 +193,16 @@ export function CreateEventModal({ isOpen, onClose, photos, metadata = {}, onCre
                       </div>
                     </div>
                     <div>
-                      <label className="block text-[10px] font-bold uppercase tracking-[0.15em] text-neutral-500 mb-2 ml-1">分类</label>
+                      <label className="block text-[10px] font-bold uppercase tracking-[0.15em] text-neutral-500 mb-2 ml-1">{t('app.propertyModal.tabCategories')}</label>
                       <select
                         className="w-full bg-[#1e1f28] border border-white/10 focus:border-orange-500/50 rounded-2xl px-4 py-4 font-medium outline-none transition-all text-white text-sm cursor-pointer"
                         value={category}
                         onChange={(e) => setCategory(e.target.value)}
                       >
                         {categories.map(cat => (
-                          <option key={cat.name} value={cat.name}>{cat.name}</option>
+                          <option key={cat.name} value={cat.name}>
+                            {t('app.category.' + cat.name) !== 'app.category.' + cat.name ? t('app.category.' + cat.name) : cat.name}
+                          </option>
                         ))}
                       </select>
                     </div>

@@ -368,57 +368,60 @@ export default memo(function StopCard({
               )}
             </div>
 
-            {/* Address */}
-            {stop.address && (
-                        <div style={{ fontSize: '0.86rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
-                          {stop.city && (
-                            <div style={{ 
-                              display: 'inline-block', 
-                              fontSize: '0.72rem', 
-                              color: '#60a5fa', 
-                              background: 'rgba(96,165,250,0.1)', 
-                              padding: '1px 6px', 
-                              borderRadius: '4px', 
-                              marginBottom: '4px',
-                              fontWeight: 700,
-                              textTransform: 'uppercase'
-                            }}>
-                              City: {stop.city}
-                            </div>
-                          )}
-                          {(() => {
-                            const addr = stop.address;
-                            if (addr.includes(',')) {
-                              const idx = addr.indexOf(',');
-                              return (
-                                <>
-                                  <div style={{ color: 'var(--text-bright)', fontWeight: 500 }}>{addr.substring(0, idx).trim()}</div>
-                                  <div style={{ fontSize: '0.8rem', opacity: 0.7 }}>{addr.substring(idx + 1).trim()}</div>
-                                </>
-                              );
-                            }
-                            // 中文地址拆分：尝试匹配 市/县/区
-                            const splitMatch = addr.match(/(.*?[省市区县])(.*)/);
-                            if (splitMatch) {
-                              return (
-                                <>
-                                  <div style={{ color: 'var(--text-bright)', fontWeight: 500 }}>{splitMatch[1]}</div>
-                                  <div style={{ fontSize: '0.8rem', opacity: 0.7 }}>{splitMatch[2]}</div>
-                                </>
-                              );
-                            }
-                            return addr;
-                          })()}
-                        </div>
-            )}
+            {/* Vertical Details List: Address -> Phone */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '0.8rem' }}>
+              {/* Address */}
+              {stop.address && (
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+                  <span className="material-symbols-outlined" style={{ color: '#f97316', fontSize: '15px', flexShrink: 0, marginTop: '2px' }}>location_on</span>
+                  <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
+                    {(() => {
+                      const addr = stop.address;
+                      if (addr.includes(',')) {
+                        const parts = addr.split(',');
+                        return (
+                          <>
+                            <div style={{ color: 'white', fontWeight: 700, marginBottom: '2px' }}>{parts[0].trim()}</div>
+                            <div style={{ opacity: 0.6, fontSize: '0.78rem' }}>{parts.slice(1).join(',').trim()}</div>
+                          </>
+                        );
+                      }
+                      // Asian split
+                      const match = addr.match(/(.*?[市区町村])(.*)/);
+                      if (match) {
+                        return (
+                          <>
+                            <div style={{ color: 'white', fontWeight: 700, marginBottom: '2px' }}>{match[1]}</div>
+                            <div style={{ opacity: 0.6, fontSize: '0.78rem' }}>{match[2]}</div>
+                          </>
+                        );
+                      }
+                      return addr;
+                    })()}
+                  </div>
+                </div>
+              )}
 
-            {/* Phone */}
-            {stop.phone && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '0.4rem' }}>
-                <Phone size={14} strokeWidth={2.5} className="text-white shrink-0" />
-                <span style={{ opacity: 0.85 }}>{stop.phone}</span>
-              </div>
-            )}
+              {/* Phone */}
+              {stop.phone && (
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <Phone size={14} strokeWidth={2.5} style={{ color: '#3b82f6', flexShrink: 0 }} />
+                  <a href={`tel:${stop.phone}`} style={{ fontSize: '0.82rem', color: '#3b82f6', fontWeight: 700, textDecoration: 'none' }}>
+                    {stop.phone}
+                  </a>
+                </div>
+              )}
+
+              {/* Website (if available) */}
+              {stop.website && (
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <span className="material-symbols-outlined" style={{ color: '#10b981', fontSize: '15px', flexShrink: 0 }}>public</span>
+                  <a href={stop.website} target="_blank" rel="noreferrer" style={{ fontSize: '0.82rem', color: '#10b981', fontWeight: 700, textDecoration: 'none', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {stop.website.replace(/^https?:\/\//, '').replace(/\/$/, '')}
+                  </a>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Thumbnail (Right) - click to change photo */}
@@ -482,20 +485,20 @@ export default memo(function StopCard({
               className="stop-chip editable"
               onClick={handleTimeClick}
               style={{
-                background: 'rgba(255, 255, 255, 0.05)',
-                color: 'white',
-                padding: '0.5rem 1rem',
-                borderRadius: '10px',
-                fontSize: '0.85rem',
-                fontWeight: 700,
+                background: 'rgba(249, 115, 22, 0.08)',
+                color: '#f97316',
+                padding: '4px 10px',
+                borderRadius: '8px',
+                fontSize: '0.78rem',
+                fontWeight: 800,
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
+                gap: '6px',
+                border: '1px solid rgba(249, 115, 22, 0.25)',
                 cursor: 'pointer'
               }}
             >
-              <Clock size={16} strokeWidth={2.5} />
+              <Clock size={14} strokeWidth={2.5} />
               {stop.time} {stop.period}
             </div>
           )}
@@ -527,20 +530,20 @@ export default memo(function StopCard({
             className="stop-chip editable"
             onClick={handleExpenseClick}
             style={{ 
-              background: 'rgba(255, 255, 255, 0.05)', 
-              color: 'white', 
-              padding: '0.5rem 1rem', 
-              borderRadius: '10px', 
-              fontSize: '0.85rem', 
-              fontWeight: 700,
+              background: 'rgba(16, 185, 129, 0.08)', 
+              color: '#10b981', 
+              padding: '4px 10px', 
+              borderRadius: '8px', 
+              fontSize: '0.78rem', 
+              fontWeight: 800,
               display: 'flex',
               alignItems: 'center',
-              gap: '8px',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
+              gap: '6px',
+              border: '1px solid rgba(16, 185, 129, 0.25)',
               cursor: 'pointer'
             }}
           >
-            <Receipt size={16} strokeWidth={2.5} />
+            <Receipt size={14} strokeWidth={2.5} />
             {stop.price && parseFloat(stop.price) > 0 
               ? formatCurrency(stop.price, state.settings) 
               : (t('itinerary.add_expense') || '添加消费')}
@@ -551,18 +554,18 @@ export default memo(function StopCard({
               className="stop-chip"
               style={{ 
                 background: 'rgba(255, 255, 255, 0.05)', 
-                color: 'white', 
-                padding: '0.5rem 1rem', 
-                borderRadius: '10px', 
-                fontSize: '0.85rem', 
+                color: 'var(--text-bright)', 
+                padding: '4px 10px', 
+                borderRadius: '8px', 
+                fontSize: '0.78rem', 
                 fontWeight: 700,
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px',
+                gap: '6px',
                 border: '1px solid rgba(255, 255, 255, 0.1)'
               }}
             >
-              <CheckCircle2 size={16} strokeWidth={2.5} />
+              <CheckCircle2 size={14} strokeWidth={2.5} />
               {stop.reservationTime}
             </div>
           )}

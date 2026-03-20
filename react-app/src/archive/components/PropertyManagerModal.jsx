@@ -162,7 +162,9 @@ export function PropertyManagerModal({ isOpen, onClose, metadata, onUpdate, t })
                           />
                         </div>
                         
-                        <span className="text-sm font-bold text-neutral-300 truncate">{item.name}</span>
+                        <span className="text-sm font-bold text-neutral-300 truncate">
+                          {activeTab === 'categories' && t('app.category.' + item.name) !== 'app.category.' + item.name ? t('app.category.' + item.name) : item.name}
+                        </span>
                       </div>
 
                       <button

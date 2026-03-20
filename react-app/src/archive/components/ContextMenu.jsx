@@ -1,7 +1,34 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { PlusCircle, Info, Trash2, Tag, Move, Layers, ChevronRight, Briefcase, ImagePlus, Heart, MapPin } from 'lucide-react';
+import { 
+  PlusCircle, Info, Trash2, Tag, Move, Layers, ChevronRight, Briefcase, 
+  ImagePlus, Heart, MapPin, Utensils, Landmark, Bed, Plane, Leaf, 
+  User, ShoppingBag, Camera, Globe, MoreHorizontal 
+} from 'lucide-react';
 import { useState, useMemo } from 'react';
 import clsx from 'clsx';
+
+const CATEGORY_ICONS = {
+  '美食': Utensils,
+  'Food': Utensils,
+  '景点': Landmark,
+  'Attractions': Landmark,
+  '街景': Camera,
+  'Street View': Camera,
+  '酒店': Bed,
+  'Hotel': Bed,
+  '交通': Plane,
+  'Transport': Plane,
+  '自然': Leaf,
+  'Nature': Leaf,
+  '人像': User,
+  'Portrait': User,
+  '购物': ShoppingBag,
+  'Shopping': ShoppingBag,
+  '其他': MoreHorizontal,
+  'Other': MoreHorizontal,
+  '旅行': Globe,
+  'Travel': Globe
+};
 
 export function ContextMenu({ menu, onClose, onAction, trips = [], events = [], categories = [], cities = [], selectedTripId = null, t }) {
   const [activeSubmenu, setActiveSubmenu] = useState(null);
@@ -148,18 +175,32 @@ export function ContextMenu({ menu, onClose, onAction, trips = [], events = [], 
                       categoryChunks.map((chunk, colIdx) => (
                         <div key={colIdx} className="flex flex-col gap-2.5 min-w-[180px]">
                           {chunk.map((cat, rowIdx) => {
-                            const name = typeof cat === 'object' ? cat.name : cat;
+                            const rawName = typeof cat === 'object' ? cat.name : cat;
+                            const name = (rawName || '').trim();
                             const color = typeof cat === 'object' ? cat.color : '#60a5fa';
-                            return (
-                              <button
-                                key={`${name}-${colIdx}-${rowIdx}`}
-                                onClick={() => handleAction('set-category', { category: name })}
-                                className="w-full flex items-center gap-3 pl-5 pr-4 py-4 rounded-xl hover:bg-[#252629]! transition-all group text-left"
-                              >
-                                <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: color }} />
-                                <span className="text-[16px] font-medium text-neutral-300 group-hover:text-white truncate max-w-[130px]">{name}</span>
-                              </button>
-                            );
+                              const Icon = CATEGORY_ICONS[name] || Tag;
+                              const translatedName = t('app.category.' + name);
+                              const displayName = translatedName !== 'app.category.' + name ? translatedName : name;
+                              
+                              return (
+                                <button
+                                  key={`${name}-${colIdx}-${rowIdx}`}
+                                  onClick={() => handleAction('set-category', { category: name })}
+                                  className="w-full flex items-center gap-3 pl-5 pr-4 py-4 rounded-xl hover:bg-[#252629]! transition-all group text-left"
+                                >
+                                  <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                                    <Icon 
+                                      size={16} 
+                                      style={{ color: color }} 
+                                      className="shrink-0 opacity-70 group-hover:opacity-100 transition-opacity" 
+                                    />
+                                    <span className="text-[16px] font-medium text-neutral-300 group-hover:text-white truncate">
+                                      {displayName}
+                                    </span>
+                                  </div>
+                                </button>
+                              );
                           })}
                         </div>
                       ))

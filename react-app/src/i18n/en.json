@@ -143,6 +143,7 @@
         "edit_expense": "Edit Expense",
         "select_appointment_time": "Select Appointment Time",
         "select_appointment_approx": "Select Approximate Appointment Time",
+        "scheduled_time": "Scheduled Time",
         "opening_hours": "Opening Hours",
         "toggle_transit": "Toggle Transit",
         "settings": "Settings",
@@ -292,7 +293,9 @@
     },
     "app": {
         "albums": {
-            "title": "Local Memories"
+            "title": "Local Memories",
+            "linked": "Local album linked",
+            "not_linked": "Local album not linked, click any album to configure"
         }
     }
 }

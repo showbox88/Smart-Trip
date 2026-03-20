@@ -1524,6 +1524,7 @@ function App({ smartTrips = [] }) {
               photos={activePhotos}
               metadata={metadata}
               onCreate={handleCreateEvent}
+              t={t}
             />
 
             <CreateTripModal
