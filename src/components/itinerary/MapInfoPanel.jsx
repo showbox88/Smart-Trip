@@ -130,7 +130,7 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay }) {
     setZoomedPhotoIdx(idx);
   };
 
-  const transitionToPhoto = (nextIdx) => {
+   const transitionToPhoto = (nextIdx) => {
     if (nextIdx === zoomedPhotoIdx) return;
     setPrevPhotoIdx(zoomedPhotoIdx);
     setZoomedPhotoIdx(nextIdx);
@@ -154,6 +154,61 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay }) {
     const prevIdx = (zoomedPhotoIdx - 1 + photos.length) % photos.length;
     transitionToPhoto(prevIdx);
   };
+
+  const swipedRef = useRef(false);
+  // Refs to access current values inside the touch event closure
+  const zoomedPhotoIdxRef = useRef(zoomedPhotoIdx);
+  const photosRef = useRef([]);
+  useEffect(() => { zoomedPhotoIdxRef.current = zoomedPhotoIdx; });
+  useEffect(() => { photosRef.current = photos; });
+
+  // Detect touch device for conditional UI rendering
+  const isMobileDevice = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+
+  // Native touch event listeners for reliable mobile swipe in the lightbox
+  const lightboxOpen = zoomedPhotoIdx !== null;
+  useEffect(() => {
+    if (!lightboxOpen) return;
+    let startX = null;
+    let startY = null;
+
+    const onTouchStart = (e) => {
+      if (e.touches.length !== 1) return;
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      swipedRef.current = false;
+    };
+
+    const onTouchEnd = (e) => {
+      if (startX === null || !e.changedTouches.length) return;
+      const dx = startX - e.changedTouches[0].clientX;
+      const dy = Math.abs(startY - e.changedTouches[0].clientY);
+      startX = null;
+      startY = null;
+      if (Math.abs(dx) > 40 && Math.abs(dx) > dy) {
+        swipedRef.current = true;
+        const curIdx = zoomedPhotoIdxRef.current;
+        const len = photosRef.current.length;
+        if (curIdx === null || len === 0) return;
+        const newIdx = dx > 0
+          ? (curIdx + 1) % len
+          : (curIdx - 1 + len) % len;
+        if (newIdx !== curIdx) {
+          setPrevPhotoIdx(curIdx);
+          setZoomedPhotoIdx(newIdx);
+          setIsAnimating(true);
+          setTimeout(() => { setIsAnimating(false); setPrevPhotoIdx(null); }, 800);
+        }
+      }
+    };
+
+    document.addEventListener('touchstart', onTouchStart, { passive: true });
+    document.addEventListener('touchend', onTouchEnd, { passive: true });
+    return () => {
+      document.removeEventListener('touchstart', onTouchStart);
+      document.removeEventListener('touchend', onTouchEnd);
+    };
+  }, [lightboxOpen]);
 
   const photos = place?.photos || [];
   const photo = photos[0] ? photos[0].getURI({ maxWidth: 680, maxHeight: 420 }) : null;
@@ -247,7 +302,7 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay }) {
         )}
 
         {/* Scrollable Content Area */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '1.25rem 1.5rem 1.5rem' }}>
+        <div className="poi-content-scroll" style={{ flex: 1, overflowY: 'auto', padding: '1.25rem 1.5rem 1.5rem' }}>
           {loading ? (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#94a3b8' }}>{t('common.loading')}</div>
           ) : place && (
@@ -280,8 +335,8 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay }) {
               </div>
 
             {activeTab === 'about' && (
-              <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start' }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
+              <div className="poi-about-container" style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start' }}>
+                <div className="poi-info-content" style={{ flex: 1, minWidth: 0 }}>
                   {/* Compact Header: Name + Category + Rating */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '1rem' }}>
                     <h1 style={{ margin: 0, fontSize: '1.35rem', fontWeight: 800, letterSpacing: '-0.02em', color: 'white', lineHeight: 1.1 }}>
@@ -437,6 +492,7 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay }) {
 
                 {photo && (
                   <div
+                    className="poi-photo-aside"
                     onClick={() => handlePhotoClick(0)}
                     style={{ 
                       flex: 1,
@@ -524,12 +580,15 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay }) {
 
       {zoomedPhotoIdx !== null && createPortal(
         <div 
-          onClick={() => setZoomedPhotoIdx(null)}
-          style={{ 
+          onClick={() => {
+            if (!swipedRef.current) setZoomedPhotoIdx(null);
+          }}
+          style={{
             position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-            background: 'rgba(0,0,0,0.95)', zIndex: 99999, 
-            display: 'flex', alignItems: 'center', justifyContent: 'center', 
-            padding: '2rem', backdropFilter: 'blur(20px)'
+            background: 'rgba(0,0,0,0.95)', zIndex: 99999,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '2rem', backdropFilter: 'blur(20px)',
+            touchAction: 'none'
           }}
         >
           {/* Close Button Top Right */}
@@ -540,8 +599,9 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay }) {
             <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>close</span>
           </button>
 
-          {/* Navigation Arrows */}
-          <button 
+          {/* Navigation Arrows — desktop only, mobile uses swipe */}
+          {!isMobileDevice && (
+          <button
             onClick={prevPhoto}
             style={{ position: 'absolute', left: '40px', background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', width: '60px', height: '60px', borderRadius: '50%', cursor: 'pointer', zIndex: 100005, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s' }}
             onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
@@ -549,6 +609,7 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay }) {
           >
             <span className="material-symbols-outlined" style={{ fontSize: '40px' }}>chevron_left</span>
           </button>
+          )}
           
           <div style={{ position: 'relative', width: '85vw', height: '85vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             {/* Background Image (Old) */}
@@ -566,17 +627,22 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay }) {
             )}
 
             {/* Foreground Image (New) */}
-            <img 
+            <img
               key={`curr-${zoomedPhotoIdx}`}
-              src={photos[zoomedPhotoIdx].getURI({ maxWidth: 2400, maxHeight: 1800 })} 
-              style={{ 
-                position: 'absolute', maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', 
+              src={photos[zoomedPhotoIdx].getURI({ maxWidth: 2400, maxHeight: 1800 })}
+              style={{
+                position: 'absolute', maxWidth: '100%', maxHeight: '100%', objectFit: 'contain',
                 borderRadius: '8px', boxShadow: '0 30px 90px rgba(0,0,0,0.8)',
                 animation: isAnimating && prevPhotoIdx !== null ? 'galleryFadeIn 0.6s forwards' : 'none',
                 opacity: (isAnimating && prevPhotoIdx !== null) ? 0 : 1,
-                zIndex: 100003
-              }} 
+                zIndex: 100003,
+                touchAction: 'none',
+                userSelect: 'none',
+                WebkitUserSelect: 'none',
+                draggable: false
+              }}
               onClick={e => e.stopPropagation()}
+              onDragStart={e => e.preventDefault()}
             />
             
             <style>{`
@@ -591,7 +657,8 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay }) {
             `}</style>
           </div>
 
-          <button 
+          {!isMobileDevice && (
+          <button
             onClick={nextPhoto}
             style={{ position: 'absolute', right: '40px', background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', width: '60px', height: '60px', borderRadius: '50%', cursor: 'pointer', zIndex: 100005, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s' }}
             onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
@@ -599,11 +666,28 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay }) {
           >
             <span className="material-symbols-outlined" style={{ fontSize: '40px' }}>chevron_right</span>
           </button>
+          )}
 
           {/* Counter Overlay */}
           <div style={{ position: 'absolute', bottom: '40px', color: 'white', fontSize: '1rem', fontWeight: 600, background: 'rgba(0,0,0,0.5)', padding: '6px 16px', borderRadius: '20px' }}>
             {zoomedPhotoIdx + 1} / {photos.length}
           </div>
+
+          {/* Mobile swipe dots indicator */}
+          {photos.length > 1 && (
+            <div className="lightbox-dots-indicator" style={{ position: 'absolute', bottom: '16px', left: '50%', transform: 'translateX(-50%)', display: 'none', gap: '6px', alignItems: 'center' }}>
+              {photos.slice(0, 15).map((_, i) => (
+                <div key={i} style={{
+                  width: i === zoomedPhotoIdx ? '18px' : '6px',
+                  height: '6px',
+                  borderRadius: '3px',
+                  background: i === zoomedPhotoIdx ? 'white' : 'rgba(255,255,255,0.35)',
+                  transition: 'all 0.3s ease',
+                  flexShrink: 0
+                }} />
+              ))}
+            </div>
+          )}
         </div>,
         document.body
       )}

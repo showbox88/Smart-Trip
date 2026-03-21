@@ -51,7 +51,19 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [] }, 
   const [mapReady, setMapReady] = useState(!!window.googleMapsReady);
   const [darkMode, setDarkMode] = useState(true);
   const [selectedPlaceId, setSelectedPlaceId] = useState(null);
+  const selectedPlaceIdRef = useRef(null);
+  const lastCloseTimeRef = useRef(0);
   const mapClickListenerRef = useRef(null);
+  const locationMarkerRef = useRef(null);
+  const locationAccuracyRef = useRef(null);
+  const locationDotRef = useRef(null);
+  const [locating, setLocating] = useState(false);
+  const [gpsToast, setGpsToast] = useState(null);
+  const [showLocPrompt, setShowLocPrompt] = useState(false);
+
+  useEffect(() => {
+    selectedPlaceIdRef.current = selectedPlaceId;
+  }, [selectedPlaceId]);
 
   const activeTrip = useMemo(() => {
     return state.trips.find(t => t.id === state.activeTripId);
@@ -99,9 +111,17 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [] }, 
         e.stop();
         setSelectedPlaceId(e.placeId);
       } else {
-        setSelectedPlaceId(null);
-        categoryMarkersRef.current.forEach(m => m.map = null);
-        categoryMarkersRef.current = [];
+        if (selectedPlaceIdRef.current) {
+          // Just close info panel on map click
+          setSelectedPlaceId(null);
+          lastCloseTimeRef.current = Date.now();
+        } else {
+          // Ignore ghost clicks right after closing
+          if (Date.now() - lastCloseTimeRef.current < 500) return;
+          
+          setSelectedPlaceId(null);
+          // 移除点击地图空白处清空大头针的逻辑，防止误点导致坐标消失
+        }
       }
     });
   }, [mapReady]);
@@ -110,6 +130,10 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [] }, 
   useEffect(() => {
     if (mapRef.current) {
       mapRef.current.style.filter = darkMode ? 'invert(100%) hue-rotate(180deg)' : '';
+    }
+    // Counter-invert the location dot so it stays blue regardless of dark mode
+    if (locationDotRef.current) {
+      locationDotRef.current.style.filter = darkMode ? 'invert(100%) hue-rotate(180deg)' : '';
     }
   }, [darkMode]);
 
@@ -683,6 +707,140 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [] }, 
 
   useImperativeHandle(ref, () => ({ focusStop, focusAndOpen }), [focusStop, focusAndOpen]);
 
+  const showGpsToast = useCallback((type, msg) => {
+    setGpsToast({ type, msg });
+    setTimeout(() => setGpsToast(null), 4000);
+  }, []);
+
+  const placeLocationMarker = useCallback(async (lat, lng, accuracy) => {
+    const latlng = { lat, lng };
+
+    // Remove previous marker / circle
+    if (locationMarkerRef.current) {
+      locationMarkerRef.current.map = null;
+      locationMarkerRef.current = null;
+    }
+    if (locationAccuracyRef.current) {
+      locationAccuracyRef.current.setMap(null);
+      locationAccuracyRef.current = null;
+    }
+
+    // Blue dot — use mix-blend-mode so dark-mode CSS filter doesn't invert it
+    const dot = document.createElement('div');
+    dot.style.cssText = `
+      width:20px;height:20px;border-radius:50%;
+      background:#4285f4;border:3px solid white;
+      box-shadow:0 2px 8px rgba(66,133,244,0.7);
+      position:relative;
+    `;
+    // Counter-invert so dark mode doesn't flip the dot color
+    dot.style.filter = darkMode ? 'invert(100%) hue-rotate(180deg)' : '';
+    locationDotRef.current = dot;
+
+    const pulse = document.createElement('div');
+    pulse.style.cssText = `
+      position:absolute;top:50%;left:50%;
+      transform:translate(-50%,-50%);
+      width:20px;height:20px;border-radius:50%;
+      background:rgba(66,133,244,0.4);
+      animation:gps-pulse 1.8s ease-out infinite;
+    `;
+    dot.appendChild(pulse);
+
+    const { AdvancedMarkerElement } = await google.maps.importLibrary('marker');
+    locationMarkerRef.current = new AdvancedMarkerElement({
+      map: mapInstanceRef.current,
+      position: latlng,
+      content: dot,
+      title: 'My Location',
+      zIndex: 9999,
+    });
+
+    if (accuracy < 5000) {
+      locationAccuracyRef.current = new google.maps.Circle({
+        map: mapInstanceRef.current,
+        center: latlng,
+        radius: accuracy,
+        strokeColor: '#4285f4',
+        strokeOpacity: 0.25,
+        strokeWeight: 1,
+        fillColor: '#4285f4',
+        fillOpacity: 0.07,
+      });
+    }
+
+    mapInstanceRef.current.panTo(latlng);
+    mapInstanceRef.current.setZoom(16);
+  }, [darkMode]);
+
+  const doGeolocate = useCallback(() => {
+    setLocating(true);
+    // Force high accuracy on mobile, as low accuracy Wi-Fi lookup can hang
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          await placeLocationMarker(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy);
+        } catch (err) {
+          console.error('[GPS] placement error:', err);
+          showGpsToast('error', '无法在地图上标记位置');
+        } finally {
+          setLocating(false);
+        }
+      },
+      (err) => {
+        setLocating(false);
+        console.warn('[GPS] code', err.code, err.message);
+        const msgs = {
+          1: '位置权限被拒绝，请在浏览器或系统设置中允许',
+          2: '无法获取位置，请检查设备定位是否已开启',
+          3: '定位超时，请移至开阔地带重试',
+        };
+        showGpsToast('error', msgs[err.code] || '定位失败，请稍后再试');
+      },
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+    );
+  }, [placeLocationMarker, showGpsToast]);
+
+  const handleLocate = useCallback(async () => {
+    if (!mapInstanceRef.current) return;
+
+    // Reject HTTP connections (unless localhost) for geolocation
+    if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
+      showGpsToast('error', '定位功能需要 HTTPS 连接或本地环境');
+      return;
+    }
+
+    if (!navigator.geolocation) {
+      showGpsToast('error', '当前浏览器不支持定位功能');
+      return;
+    }
+
+    // Re-center if marker already placed
+    if (locationMarkerRef.current) {
+      const pos = locationMarkerRef.current.position;
+      mapInstanceRef.current.panTo(pos);
+      mapInstanceRef.current.setZoom(16);
+      return;
+    }
+
+    // Check existing permission state — skip prompt if already granted or explicitly denied
+    try {
+      if (navigator.permissions && navigator.permissions.query) {
+        const perm = await navigator.permissions.query({ name: 'geolocation' });
+        if (perm.state === 'granted') {
+          doGeolocate();
+          return;
+        } else if (perm.state === 'denied') {
+          showGpsToast('error', '定位已被拒绝，请到浏览器设置中开启');
+          return;
+        }
+      }
+    } catch (_) { /* browser doesn't support permissions API */ }
+
+    // Show custom prompt before triggering browser dialog
+    setShowLocPrompt(true);
+  }, [doGeolocate, showGpsToast]);
+
   return (
     <section className="map-view">
       <div
@@ -710,6 +868,19 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [] }, 
           </button>
         )}
 
+        {mapReady && (
+          <button
+            id="map-gps-btn"
+            onClick={handleLocate}
+            title="我的位置"
+            className={locating ? 'locating' : ''}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>
+              {locating ? 'gps_not_fixed' : 'my_location'}
+            </span>
+          </button>
+        )}
+
         {!mapReady && (
           <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.05)', zIndex: 10 }}>
             <div style={{ textAlign: 'center', color: '#666', opacity: 0.5 }}>
@@ -719,10 +890,103 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [] }, 
           </div>
         )}
 
+        {gpsToast && (
+          <div style={{
+            position: 'absolute', bottom: '80px', left: '50%', transform: 'translateX(-50%)',
+            background: gpsToast.type === 'error' ? 'rgba(239,68,68,0.92)' : 'rgba(66,133,244,0.92)',
+            color: 'white', padding: '10px 18px', borderRadius: '24px',
+            fontSize: '0.82rem', fontWeight: 600, whiteSpace: 'nowrap',
+            backdropFilter: 'blur(8px)', boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+            zIndex: 2001, display: 'flex', alignItems: 'center', gap: '8px',
+            animation: 'gps-toast-in 0.25s ease',
+          }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '17px' }}>
+              {gpsToast.type === 'error' ? 'location_off' : 'my_location'}
+            </span>
+            {gpsToast.msg}
+          </div>
+        )}
+
+        {showLocPrompt && (
+          <div
+            className="modal-overlay active"
+            onClick={() => setShowLocPrompt(false)}
+          >
+            <div
+              onClick={e => e.stopPropagation()}
+              style={{
+                background: 'rgba(18,24,38,0.97)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: '20px',
+                padding: '28px 24px 20px',
+                width: '300px',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '12px',
+                boxShadow: '0 24px 60px rgba(0,0,0,0.7)',
+                backdropFilter: 'blur(16px)',
+              }}
+            >
+              {/* Icon */}
+              <div style={{
+                width: '64px', height: '64px', borderRadius: '50%',
+                background: 'rgba(66,133,244,0.15)',
+                border: '1.5px solid rgba(66,133,244,0.4)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '32px', color: '#4285f4' }}>
+                  my_location
+                </span>
+              </div>
+
+              {/* Title */}
+              <div style={{ textAlign: 'center' }}>
+                <p style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: 'white', lineHeight: 1.3 }}>
+                  Smart Trip 想要访问<br />您的位置
+                </p>
+                <p style={{ margin: '8px 0 0', fontSize: '0.78rem', color: 'rgba(255,255,255,0.5)', lineHeight: 1.5 }}>
+                  位置信息将用于在地图上标记您的当前所在地，不会被储存或分享。
+                </p>
+              </div>
+
+              {/* Buttons */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', marginTop: '4px' }}>
+                <button
+                  onClick={() => {
+                    setShowLocPrompt(false);
+                    doGeolocate();
+                  }}
+                  style={{
+                    width: '100%', padding: '11px', borderRadius: '12px',
+                    background: '#4285f4', border: 'none', color: 'white',
+                    fontSize: '0.9rem', fontWeight: 700, cursor: 'pointer',
+                  }}
+                >
+                  允许
+                </button>
+                <button
+                  onClick={() => setShowLocPrompt(false)}
+                  style={{
+                    width: '100%', padding: '11px', borderRadius: '12px',
+                    background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)',
+                    color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer',
+                  }}
+                >
+                  不允许
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {selectedPlaceId && (
-          <MapInfoPanel 
-            placeId={selectedPlaceId} 
-            onClose={() => setSelectedPlaceId(null)}
+          <MapInfoPanel
+            placeId={selectedPlaceId}
+            onClose={() => {
+              setSelectedPlaceId(null);
+              lastCloseTimeRef.current = Date.now();
+            }}
             onAddToDay={onAddToDay}
           />
         )}

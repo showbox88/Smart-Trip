@@ -173,6 +173,59 @@ gmp-advanced-marker::part(pin) {
     transform: scale(0.95);
 }
 
+/* --- GPS Location Button --- */
+#map-gps-btn {
+    position: absolute;
+    top: 69px; /* below dark toggle (15px + 44px + 10px) */
+    right: 15px;
+    width: 44px;
+    height: 44px;
+    background: rgba(13, 17, 27, 0.85);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    z-index: 1001;
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    padding: 0;
+    overflow: hidden;
+}
+
+#map-gps-btn:hover {
+    transform: scale(1.1);
+    background: #1a2235;
+    border-color: #4285f4;
+    box-shadow: 0 0 15px rgba(66, 133, 244, 0.4);
+}
+
+#map-gps-btn:active {
+    transform: scale(0.95);
+}
+
+#map-gps-btn.locating .material-symbols-outlined {
+    animation: gps-spin 1s linear infinite;
+}
+
+@keyframes gps-spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
+@keyframes gps-pulse {
+    0%   { transform: translate(-50%, -50%) scale(1); opacity: 0.7; }
+    100% { transform: translate(-50%, -50%) scale(4); opacity: 0; }
+}
+
+@keyframes gps-toast-in {
+    from { opacity: 0; transform: translateX(-50%) translateY(8px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
 /* --- Custom InfoWindow Styling (Strips default padding/close button) --- */
 .gm-style-iw {
     padding: 0 !important;

@@ -11,8 +11,8 @@ for (let h = 0; h < 24; h++) {
   }
 }
 
-const ITEM_HEIGHT = 84;
-const PADDING_TOP = 88;
+const ITEM_HEIGHT = 40;
+const PADDING_TOP = 55;
 
 export default function TimePickerModal({ stop, dayDate, onSave, onClose }) {
   const { t } = useI18n();
@@ -97,7 +97,7 @@ export default function TimePickerModal({ stop, dayDate, onSave, onClose }) {
   return (
     <div className="modal-overlay active" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, background: 'rgba(0,0,0,0.8)' }} onClick={onClose}>
       <div 
-        className="modal-content" 
+        className="modal-content time-picker-content" 
         onClick={(e) => e.stopPropagation()} 
         style={{ 
           width: '680px', 
@@ -118,25 +118,47 @@ export default function TimePickerModal({ stop, dayDate, onSave, onClose }) {
           <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>close</span>
         </button>
 
-        <h3 style={{ textAlign: 'center', margin: '0.5rem 0 2rem 0', fontSize: '1.6rem', fontWeight: 800, color: 'white', letterSpacing: '-0.01em' }}>
-          Select Appointment Time
-        </h3>
+        {dayDate && (
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            gap: '12px', 
+            marginBottom: '1rem',
+            padding: '8px 0',
+            borderBottom: '1px solid rgba(255,255,255,0.05)'
+          }}>
+            <span style={{ color: 'white', fontSize: '1rem', fontWeight: 800 }}>{dayDate}</span>
+            {todayName && (
+              <span style={{ 
+                background: 'rgba(249,115,22,0.15)', 
+                color: '#f97316', 
+                padding: '2px 10px', 
+                borderRadius: '6px', 
+                fontSize: '0.8rem', 
+                fontWeight: 800 
+              }}>
+                {todayName}
+              </span>
+            )}
+          </div>
+        )}
 
         {/* Closed-day warning */}
         {isTodayClosed && (
           <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.35)', borderRadius: '16px', padding: '12px 18px', marginBottom: '1.2rem', display: 'flex', alignItems: 'center', gap: '10px', animation: 'pulse-border 2s ease-in-out infinite' }}>
-            <span className="material-symbols-outlined" style={{ color: '#ef4444', fontSize: '22px', flexShrink: 0 }}>error</span>
-            <span style={{ color: '#ef4444', fontSize: '0.9rem', fontWeight: 700 }}>
-              This place is <strong>Closed</strong> on {todayName}!
+            <span className="material-symbols-outlined" style={{ color: '#ef4444', fontSize: '20px', flexShrink: 0 }}>error</span>
+            <span style={{ color: '#ef4444', fontSize: '0.85rem', fontWeight: 700 }}>
+              {todayName} Closed
             </span>
           </div>
         )}
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.1fr', gap: '2rem', marginBottom: '1.5rem', minHeight: '340px' }}>
+        <div className="time-picker-body" style={{ display: 'grid', gridTemplateColumns: '1fr 1.1fr', gap: '2rem', marginBottom: '1.5rem', minHeight: '340px' }}>
           {/* Left: Opening Hours */}
-          <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '24px', padding: '1.8rem', border: isTodayClosed ? '1px solid rgba(239,68,68,0.3)' : '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#f97316', marginBottom: '1.5rem', fontWeight: 800, fontSize: '1.1rem' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>schedule</span>
+          <div className="time-picker-hours" style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '24px', padding: '1.5rem', border: isTodayClosed ? '1px solid rgba(239,68,68,0.3)' : '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#f97316', marginBottom: '1rem', fontWeight: 800, fontSize: '0.9rem' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>schedule</span>
               Opening Hours
             </div>
 
@@ -173,37 +195,22 @@ export default function TimePickerModal({ stop, dayDate, onSave, onClose }) {
           </div>
 
           {/* Right: Time Selection */}
-          <div style={{ textAlign: 'center', position: 'relative', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ fontSize: '1.05rem', fontWeight: 800, marginBottom: '0.8rem', color: 'white', lineHeight: 1.3 }}>
-              Select Approximate<br/>Appointment Time
-            </div>
+          <div className="time-picker-selector" style={{ textAlign: 'center', position: 'relative', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             
-            {dayDate && (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', marginBottom: '1.5rem' }}>
-                <div style={{ background: 'rgba(249,115,22,0.12)', color: '#f97316', padding: '6px 16px', borderRadius: '12px', fontSize: '0.9rem', fontWeight: 800 }}>
-                  {dayDate}
-                </div>
-                {todayName && (
-                  <div style={{ fontSize: '0.8rem', fontWeight: 700, color: isTodayClosed ? '#ef4444' : 'rgba(255,255,255,0.5)' }}>
-                    {todayName}
-                  </div>
-                )}
-              </div>
-            )}
-            
-            <div style={{ position: 'relative', height: '260px' }}>
+            <div className="time-picker-scroll-container" style={{ position: 'relative', height: '150px' }}>
               {/* FIXED Selection Highlight (Stay in place, items roll behind it) */}
               <div style={{ 
                 position: 'absolute', 
                 top: '50%', 
                 left: '0', 
                 right: '0', 
-                height: '84px', 
+                height: '40px', 
                 transform: 'translateY(-50%)', 
                 background: '#3b82f6', 
-                borderRadius: '24px', 
+                borderRadius: '12px', 
                 zIndex: 0,
-                boxShadow: '0 12px 30px rgba(59,130,246,0.35)'
+                boxShadow: '0 6px 20px rgba(59,130,246,0.35)',
+                pointerEvents: 'none'
               }} />
 
               <div 
@@ -211,10 +218,10 @@ export default function TimePickerModal({ stop, dayDate, onSave, onClose }) {
                 onScroll={handleScroll}
                 className="custom-scrollbar hide-scrollbar"
                 style={{ 
-                  height: '260px', 
+                  height: '150px', 
                   overflowY: 'auto', 
                   position: 'relative',
-                  padding: '88px 0',
+                  padding: '55px 0',
                   zIndex: 2,
                   scrollSnapType: 'y mandatory',
                   maskImage: 'linear-gradient(to bottom, transparent, black 40%, black 60%, transparent)',
@@ -231,16 +238,16 @@ export default function TimePickerModal({ stop, dayDate, onSave, onClose }) {
                         scrollRef.current.children[i].scrollIntoView({ block: 'center', behavior: 'smooth' });
                       }}
                       style={{
-                        height: '84px',
+                        height: '40px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        gap: '8px',
-                        fontSize: '1.5rem',
+                        gap: '6px',
+                        fontSize: '1.25rem',
                         fontWeight: 800,
                         color: isSel ? 'white' : 'rgba(255,255,255,0.3)',
                         cursor: 'pointer',
-                        transform: isSel ? 'scale(1.45)' : 'scale(1)',
+                        transform: isSel ? 'scale(1.15)' : 'scale(1)',
                         transition: 'transform 0.2s ease, color 0.15s ease',
                         scrollSnapAlign: 'center',
                         lineHeight: 1,
@@ -248,7 +255,7 @@ export default function TimePickerModal({ stop, dayDate, onSave, onClose }) {
                       }}
                     >
                       <span>{t.h}:{t.m}</span>
-                      <span style={{ fontSize: '0.75rem', fontWeight: 700, opacity: isSel ? 0.9 : 0.7 }}>{t.p}</span>
+                      <span style={{ fontSize: '0.7rem', fontWeight: 700, opacity: isSel ? 0.9 : 0.7 }}>{t.p}</span>
                     </div>
                   );
                 })}

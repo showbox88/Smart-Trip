@@ -313,8 +313,8 @@ export default memo(function StopCard({
         )}
 
         {/* Layout: Main Info + Thumbnail */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
-          <div style={{ flex: 1 }}>
+        <div className="stop-card-main-info" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
+          <div className="stop-card-info-content" style={{ flex: 1 }}>
              {/* Hotel badge */}
             {isHotel && (
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '2px 8px', fontSize: '0.75rem', color: 'white', marginBottom: '0.5rem' }}>
@@ -359,7 +359,7 @@ export default memo(function StopCard({
                   zIndex: 2
                 }}>{index + 1}</span>
               </div>
-              <h4 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-bright)', letterSpacing: '-0.02em' }}>
+              <h4 className="rich-stop-card-title" style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-bright)', letterSpacing: '-0.02em' }}>
                 {stop.location}
               </h4>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginLeft: '4px', flexShrink: 0 }} title={stop.category ? (t(stop.category) !== stop.category ? t(stop.category) : stop.category) : t('map.place_default')}>
@@ -380,7 +380,7 @@ export default memo(function StopCard({
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '0.8rem' }}>
               {/* Address */}
               {stop.address && (
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+                <div className="rich-stop-card-address" style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
                   <span className="material-symbols-outlined" style={{ color: '#f97316', fontSize: '15px', flexShrink: 0, marginTop: '2px' }}>location_on</span>
                   <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
                     {(() => {
@@ -412,7 +412,7 @@ export default memo(function StopCard({
 
               {/* Phone */}
               {stop.phone && (
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <div className="rich-stop-card-phone" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                   <Phone size={14} strokeWidth={2.5} style={{ color: '#3b82f6', flexShrink: 0 }} />
                   <a href={`tel:${stop.phone}`} style={{ fontSize: '0.82rem', color: '#3b82f6', fontWeight: 700, textDecoration: 'none' }}>
                     {stop.phone}
@@ -434,6 +434,7 @@ export default memo(function StopCard({
 
           {/* Thumbnail (Right) - click to change photo */}
           <div
+            className="rich-stop-card-media"
             ref={thumbRef}
             onClick={handlePhotoClick}
             style={{ width: '100px', height: '65px', borderRadius: '10px', overflow: 'hidden', flexShrink: 0, border: '1px solid var(--glass-border)', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', cursor: 'pointer', background: 'rgba(255,255,255,0.03)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
