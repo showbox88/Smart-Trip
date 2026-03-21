@@ -82,12 +82,14 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [] }, 
   useEffect(() => {
     if (!mapReady || !mapRef.current || mapInstanceRef.current) return;
 
+    const isMobile = window.innerWidth < 768;
+
     mapInstanceRef.current = new google.maps.Map(mapRef.current, {
       center: { lat: 35.6895, lng: 139.6917 },
       zoom: 12,
       mapId: 'DEMO_MAP_ID',
       disableDefaultUI: true,
-      zoomControl: true,
+      zoomControl: !isMobile,
       gestureHandling: 'greedy',
     });
 

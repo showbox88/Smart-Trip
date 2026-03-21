@@ -16,6 +16,14 @@
     min-height: 28px !important;
 }
 
+/* 长按就绪反馈 */
+.dragging-hint {
+    transform: scale(1.05) !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+    z-index: 2000 !important;
+}
+
 .day-section {
     position: relative;
     margin-bottom: 1.5rem !important;
@@ -87,8 +95,12 @@
     width: 100% !important;
     max-width: none !important;
     min-width: 0 !important;
-    height: auto;
+    height: 0 !important; /* 让 flex: 1 接管高度 */
+    flex: 1 !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important; /* 开启 iOS 丝滑滚动 */
     border-right: none;
+    touch-action: pan-y !important;
 }
 
 .map-view {
@@ -279,6 +291,7 @@ body.mobile-mode-map .mobile-nav-btn[data-mode="map"] { color: var(--accent-prim
 .itinerary-timeline {
     padding-left: 18px !important;
     margin-top: 0.2rem !important;
+    touch-action: pan-y !important; /* 核心：确保整个时间轴容器允许垂直滑动 */
 }
 
 .timeline-item-wrapper {
@@ -288,6 +301,7 @@ body.mobile-mode-map .mobile-nav-btn[data-mode="map"] { color: var(--accent-prim
 .rich-stop-card {
     padding: 0.6rem !important;
     gap: 0.6rem !important;
+    touch-action: pan-y !important; /* 这个是关键：允许垂直滑动列表，不拦截滚动 */
 }
 
 .rich-stop-card-title {

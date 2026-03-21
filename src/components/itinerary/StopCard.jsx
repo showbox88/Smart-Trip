@@ -162,7 +162,7 @@ export default memo(function StopCard({
       {/* Timeline Numbered Dot — amber for hotel */}
       <div style={{
         position: 'absolute',
-        left: '0.75rem',
+        left: 'var(--timeline-dot-x)',
         top: '1.7rem',
         width: '8px',
         height: '8px',
@@ -176,7 +176,7 @@ export default memo(function StopCard({
       {isHotelType && (
         <div style={{
           position: 'absolute',
-          left: '1.05rem',
+          left: 'var(--hotel-line-x)',
           top: stop.type === 'hotel_checkin' ? '2.2rem' : 0,
           bottom: stop.type === 'hotel_checkout' ? '1rem' : 0,
           width: '4px',
@@ -190,7 +190,7 @@ export default memo(function StopCard({
       {fromHotel && !isHotelType && (
         <div style={{
           position: 'absolute',
-          left: '1.05rem',
+          left: 'var(--hotel-line-x)',
           top: '-1.2rem',
           height: 'calc(1.7rem + 1.2rem)',
           width: '4px',
@@ -203,7 +203,7 @@ export default memo(function StopCard({
       {toHotel && !isHotelType && (
         <div style={{
           position: 'absolute',
-          left: '1.05rem',
+          left: 'var(--hotel-line-x)',
           top: '1.7rem',
           bottom: '-1.2rem',
           width: '4px',
@@ -214,7 +214,7 @@ export default memo(function StopCard({
 
       {/* Timeline line */}
       {showTransit && !isHotelType && (
-        <div style={{ position: 'absolute', left: '1.22rem', top: '2.5rem', bottom: '-0.5rem', width: '2px', background: `${dayColor || '#5b7a99'}40`, zIndex: 1 }} />
+        <div style={{ position: 'absolute', left: 'var(--transit-line-x)', top: '2.5rem', bottom: '-0.5rem', width: '2px', background: `${dayColor || '#5b7a99'}40`, zIndex: 1 }} />
       )}
 
       {/* Card */}
@@ -224,12 +224,12 @@ export default memo(function StopCard({
         onMouseEnter={() => dispatch({ type: 'SET_HOVERED_STOP', payload: stop.id })}
         onMouseLeave={() => dispatch({ type: 'SET_HOVERED_STOP', payload: null })}
         style={{
-          marginLeft: '2.2rem',
+          marginLeft: 'var(--card-margin-l)',
           background: state.hoveredStopId === stop.id ? 'rgba(255,255,255,0.04)' : '#0a0c10',
           border: isClosed ? '1px solid rgba(239,68,68,0.35)' : '1px solid var(--glass-border)',
           borderColor: isClosed ? 'rgba(239,68,68,0.35)' : state.hoveredStopId === stop.id ? 'var(--accent-primary)' : 'rgba(255,255,255,0.05)',
           borderRadius: '1.2rem',
-          padding: '1.2rem',
+          padding: 'var(--stop-card-p)',
           transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
           transform: state.hoveredStopId === stop.id ? 'translateX(4px)' : 'none',
           boxShadow: state.hoveredStopId === stop.id ? '0 20px 40px rgba(0,0,0,0.6)' : 'none',
@@ -239,6 +239,14 @@ export default memo(function StopCard({
           minHeight: '100px'
         }}
       >
+        {/* 移动端专用的拖拽边缘把手（左右各一个，方便双手操作） */}
+        <div className="drag-handle left-handle" title={t('common.drag_to_reorder') || 'Drag to reorder'}>
+          <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>drag_indicator</span>
+        </div>
+        <div className="drag-handle right-handle" title={t('common.drag_to_reorder') || 'Drag to reorder'}>
+          <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>drag_indicator</span>
+        </div>
+
         {/* Hotel check-in/out time badge — top right */}
         {(stop.type === 'hotel_checkin' || stop.type === 'hotel_checkout') && stop.time && (
           <div style={{

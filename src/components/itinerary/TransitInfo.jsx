@@ -41,7 +41,7 @@ export default memo(function TransitInfo({ transit, transitMode, onToggleMode, o
   const modeLabel = transitMode === 'WALK' ? t('itinerary.walk') || '步行' : t('itinerary.drive') || '驾车';
 
   return (
-    <div className="transit-info-row" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0 0.4rem 2.5rem', color: 'var(--text-muted)', fontSize: '0.8rem', position: 'relative' }}>
+    <div className="transit-info-row" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0 0.4rem var(--transit-pl)', color: 'var(--text-muted)', fontSize: '0.8rem', position: 'relative' }}>
       {!hideAdd && (
         <button
           ref={btnRef}

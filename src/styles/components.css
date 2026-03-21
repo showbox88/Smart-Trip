@@ -1,3 +1,30 @@
+/* --- Variables for Compressed Mobile Timeline Space --- */
+:root {
+  --timeline-line-x: 22px;
+  --timeline-dot-x: 0.75rem;
+  --hotel-line-x: 1.05rem;
+  --transit-line-x: 1.22rem;
+  --card-margin-l: 2.2rem;
+  --stop-card-p: 1.2rem;
+  --note-card-px: 1rem;
+  --auto-fill-pl: 2.25rem;
+  --transit-pl: 2.5rem;
+}
+
+@media (max-width: 767px) {
+  :root {
+    --timeline-line-x: 10px;
+    --timeline-dot-x: 0.05rem;
+    --hotel-line-x: 0.35rem;
+    --transit-line-x: 0.52rem;
+    --card-margin-l: 1.2rem;
+    --stop-card-p: 0.8rem;
+    --note-card-px: 0.75rem;
+    --auto-fill-pl: 1.2rem;
+    --transit-pl: 1.4rem;
+  }
+}
+
 /* --- Buttons --- */
 .btn-primary a {
     background: var(--accent-primary);
@@ -783,4 +810,51 @@ input:checked+.slider-labeled .label-text {
 /* Ensure special hotel cards have specific highlight border */
 .special-hotel-card {
     border-left-width: 4px !important;
+}
+
+/* =========================================
+   拖拽把手 (Drag Handle)
+   ========================================= */
+.drag-handle {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 24px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    opacity: 0.3;
+    cursor: grab;
+    touch-action: none; /* 核心：点在把手上绝不允许滚动 */
+    z-index: 10;
+    transition: opacity 0.2s, color 0.2s;
+}
+
+.drag-handle.left-handle {
+    left: 2px;
+}
+
+.drag-handle.right-handle {
+    right: 2px;
+}
+
+.drag-handle:hover,
+.drag-handle:active {
+    opacity: 0.8;
+    color: var(--text-secondary);
+}
+
+.timeline-item-wrapper.dragging .drag-handle {
+    cursor: grabbing;
+    opacity: 1;
+    color: var(--accent-primary);
+}
+
+/* 在平板和电脑端（>= 768px）彻底隐藏拖拽把手，保持桌面版原有的清爽外观 */
+@media (min-width: 768px) {
+    .drag-handle {
+        display: none !important;
+    }
 }

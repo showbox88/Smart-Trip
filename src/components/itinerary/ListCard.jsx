@@ -30,24 +30,32 @@ export default memo(function ListCard(props) {
   return (
     <div className={`timeline-item list-item id-${stop.id}`} style={{ position: 'relative', marginBottom: '0.75rem' }}>
       {/* Dot */}
-      <div style={{ position: 'absolute', left: '0.75rem', top: '1rem', width: '8px', height: '8px', borderRadius: '50%', background: dayColor || '#5b7a99', opacity: 0.6, zIndex: 2 }} />
+      <div style={{ position: 'absolute', left: 'var(--timeline-dot-x)', top: '1rem', width: '8px', height: '8px', borderRadius: '50%', background: dayColor || '#5b7a99', opacity: 0.6, zIndex: 2 }} />
 
       <div
         onMouseEnter={() => dispatch({ type: 'SET_HOVERED_STOP', payload: stop.id })}
         onMouseLeave={() => dispatch({ type: 'SET_HOVERED_STOP', payload: null })}
         style={{
-          marginLeft: '2.2rem',
+          marginLeft: 'var(--card-margin-l)',
           background: state.hoveredStopId === stop.id ? 'rgba(255,255,255,0.04)' : '#0a0c10',
           border: '1px dashed var(--glass-border)',
           borderColor: state.hoveredStopId === stop.id ? 'var(--accent-primary)' : 'rgba(255,255,255,0.05)',
           borderRadius: '0.75rem',
-          padding: '0.75rem 1rem',
+          padding: '0.75rem var(--note-card-px)',
           position: 'relative',
           transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
           transform: state.hoveredStopId === stop.id ? 'translateX(4px)' : 'none',
           boxShadow: state.hoveredStopId === stop.id ? '0 20px 40px rgba(0,0,0,0.6)' : 'none'
         }}
       >
+        {/* 移动端专用的拖拽边缘把手（左右各一个，方便双手操作） */}
+        <div className="drag-handle left-handle" title={t('common.drag_to_reorder') || 'Drag to reorder'}>
+          <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>drag_indicator</span>
+        </div>
+        <div className="drag-handle right-handle" title={t('common.drag_to_reorder') || 'Drag to reorder'}>
+          <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>drag_indicator</span>
+        </div>
+
         <DeleteConfirm onDelete={() => onDelete?.(dayId, stop.id)} />
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>

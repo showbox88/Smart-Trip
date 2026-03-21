@@ -46,8 +46,8 @@ echo [Launch] Starting Vite...
 echo [Info] Server will open in your browser automatically.
 echo.
 
-:: Run dev with auto-open
-npm run dev -- --open
+:: Run dev with auto-open and LAN access
+npm run dev -- --host --open
 
 :: If the server crashes, keep window open
 if %errorlevel% neq 0 (

@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 
 const DRAG_THRESHOLD = 5;
 
@@ -11,6 +11,7 @@ export function useTimelineDrag(trip, moveStop) {
   const [draggingStopId, setDraggingStopId] = useState(null);
   const timelineRef = useRef(null);
   const dragRef = useRef(null);
+  const timerRef = useRef(null);
 
   const getWrappers = useCallback(() => {
     if (!timelineRef.current) return [];
@@ -20,20 +21,28 @@ export function useTimelineDrag(trip, moveStop) {
   const handlePointerDown = useCallback((e, stopId) => {
     if (e.button !== 0) return;
     if (e.target.closest('button, input, textarea, a, [contenteditable]')) return;
+    
+    // 移动端把手判定：只有在手机屏幕（<768px）且是触控操作时，才强制要求必须捏住 .drag-handle 才能拖拽。
+    // 在电脑或平板上，这段判定自动失效，恢复为“随处点击立可拖拽”的模式。
+    const isMobileBreakpoint = window.innerWidth < 768;
+    if (isMobileBreakpoint && e.pointerType === 'touch' && !e.target.closest('.drag-handle')) return;
 
-    // Don't preventDefault or setPointerCapture yet — allow normal clicks to fire.
-    // These are deferred until the drag threshold is exceeded in handlePointerMove.
     const wrapper = e.currentTarget;
 
     dragRef.current = {
-      phase: 'pending',
+      phase: 'pending', // 没有了长按判定，直接进入 pending 状态随时准备拖动
       stopId,
       sourceDayId: wrapper.dataset.dragDay,
       startX: e.clientX,
       startY: e.clientY,
       wrapper,
       pointerId: e.pointerId,
+      isTouch: e.pointerType === 'touch',
     };
+
+    if (e.pointerType === 'touch' && window.navigator.vibrate) {
+      window.navigator.vibrate(20); // 极短促的反馈提示抓取成功
+    }
   }, []);
 
   const initDrag = useCallback((e) => {
@@ -176,6 +185,7 @@ export function useTimelineDrag(trip, moveStop) {
       try { dragRef.current.wrapper.setPointerCapture(dragRef.current.pointerId); } catch (_) {}
       initDrag(e);
       dragRef.current.phase = 'active';
+      dragRef.current.wrapper.classList.remove('dragging-hint');
     }
 
     if (dragRef.current.phase === 'active') {
@@ -184,13 +194,53 @@ export function useTimelineDrag(trip, moveStop) {
   }, [initDrag, updateDrag]);
 
   const handlePointerUp = useCallback(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
     if (!dragRef.current) return;
+    
     if (dragRef.current.phase === 'active') {
       finishDrag();
     }
+    
+    if (dragRef.current.wrapper) {
+      dragRef.current.wrapper.classList.remove('dragging-hint');
+    }
+
     dragRef.current = null;
     setDraggingStopId(null);
   }, [finishDrag]);
+
+  // 原生手势拦截器：核心逻辑，仅当长按成功变为 pending（或拖拽 active）时才强制切断原生滚动
+  useEffect(() => {
+    const handleTouchMove = (e) => {
+      if (dragRef.current && (dragRef.current.phase === 'pending' || dragRef.current.phase === 'active')) {
+        e.preventDefault(); // 强行按住页面，阻止它随着手指滚动
+        if (e.touches && e.touches.length > 0) {
+          handlePointerMove({
+            clientX: e.touches[0].clientX,
+            clientY: e.touches[0].clientY,
+            preventDefault: () => {}
+          });
+        }
+      }
+    };
+
+    const handleTouchEnd = (e) => {
+      if (dragRef.current && (dragRef.current.phase === 'pending' || dragRef.current.phase === 'active')) {
+        handlePointerUp();
+      }
+    };
+
+    // 必须使用 { passive: false } 否则浏览器会忽略 e.preventDefault() 甚至报错
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
+    document.addEventListener('touchend', handleTouchEnd);
+    document.addEventListener('touchcancel', handleTouchEnd);
+    
+    return () => {
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
+      document.removeEventListener('touchcancel', handleTouchEnd);
+    };
+  }, [handlePointerMove, handlePointerUp]);
 
   return {
     timelineRef,

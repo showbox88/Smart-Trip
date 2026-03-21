@@ -149,7 +149,7 @@ export default memo(function DaySection({
         onPointerDown={(e) => onDragPointerDown?.(e, stop.id)}
         onPointerMove={onDragPointerMove}
         onPointerUp={onDragPointerUp}
-        style={{ position: 'relative', cursor: isDragging ? 'grabbing' : 'grab', touchAction: 'none' }}
+        style={{ position: 'relative', cursor: isDragging ? 'grabbing' : 'grab' }}
       >
         {card}
         {/* Inline insert search */}
@@ -193,9 +193,9 @@ export default memo(function DaySection({
         <div style={{ paddingLeft: 0 }}>
           <div className="timeline-container" style={{ position: 'relative' }}>
             {/* Dashed timeline line */}
-            <div style={{ position: 'absolute', top: 0, bottom: 0, left: '22px', width: 0, borderLeft: `2px dashed ${activeColor}`, opacity: 0.5, zIndex: 0, transform: 'translateX(-50%)', transition: 'border-color 0.2s' }} />
+            <div style={{ position: 'absolute', top: 0, bottom: 0, left: 'var(--timeline-line-x)', width: 0, borderLeft: `2px dashed ${activeColor}`, opacity: 0.5, zIndex: 0, transform: 'translateX(-50%)', transition: 'border-color 0.2s, left 0.3s' }} />
 
-            <div style={{ display: 'flex', gap: '15px', alignItems: 'center', marginBottom: '0.8rem', paddingLeft: '2.25rem', paddingRight: '1rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+            <div style={{ display: 'flex', gap: '15px', alignItems: 'center', marginBottom: '0.8rem', paddingLeft: 'var(--auto-fill-pl)', paddingRight: '1rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
               <button style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '5px', padding: 0 }}>
                 <span style={{ fontSize: '1.1rem' }}>🪄</span> {t('itinerary.auto_fill')}
               </button>

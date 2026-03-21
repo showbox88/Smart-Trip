@@ -93,8 +93,16 @@ export default function ItineraryView({ tripId }) {
   const [pendingInsertion, setPendingInsertion] = useState(null); // { dayId, afterStopId }
   const [activeDayIdLocal, setActiveDayIdLocal] = useState(null);
   const [pendingFocusId, setPendingFocusId] = useState(null);
+  const [viewMode, setViewMode] = useState('plan'); // 'plan' or 'map'
   const isManualScroll = useRef(false);
   const manualScrollTimer = useRef(null);
+
+  // Toggle body classes for mobile view mode
+  useEffect(() => {
+    document.body.classList.remove('mobile-mode-plan', 'mobile-mode-map');
+    document.body.classList.add(`mobile-mode-${viewMode}`);
+    return () => document.body.classList.remove('mobile-mode-plan', 'mobile-mode-map');
+  }, [viewMode]);
 
   const openConfirm = useCallback((message, onConfirm) => setConfirmModal({ message, onConfirm }), []);
 
@@ -359,11 +367,19 @@ export default function ItineraryView({ tripId }) {
 
       {/* Mobile view switcher */}
       <div className="mobile-view-switcher">
-        <button className="mobile-nav-btn active" data-mode="plan">
+        <button 
+          className={`mobile-nav-btn ${viewMode === 'plan' ? 'active' : ''}`} 
+          onClick={() => setViewMode('plan')}
+          data-mode="plan"
+        >
           <span className="material-symbols-outlined">event_note</span>
           {t('common.itinerary') || 'Itinerary'}
         </button>
-        <button className="mobile-nav-btn" data-mode="map">
+        <button 
+          className={`mobile-nav-btn ${viewMode === 'map' ? 'active' : ''}`} 
+          onClick={() => setViewMode('map')}
+          data-mode="map"
+        >
           <span className="material-symbols-outlined">map</span>
           {t('common.map') || 'Map'}
         </button>
