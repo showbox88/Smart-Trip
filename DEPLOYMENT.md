@@ -8,7 +8,7 @@
 
 | 环境 | URL |
 |---|---|
-| **生产环境 (Vercel)** | https://smart-trip-umber-gamma.vercel.app |
+| **生产环境 (Vercel)** | https://showbox88.vercel.app |
 | **后端 (Supabase)** | https://sqkhtmsjflrfjajingfg.supabase.co |
 
 ---
@@ -20,7 +20,7 @@
     │
     ▼
 Vercel (静态托管)
-https://smart-trip-umber-gamma.vercel.app
+https://showbox88.vercel.app
     │
     ├─── Supabase Auth (用户认证)
     ├─── Supabase PostgreSQL (行程/设置数据)
@@ -108,13 +108,13 @@ updated_at  timestamptz DEFAULT now()
 
 **Site URL：**
 ```
-https://smart-trip-umber-gamma.vercel.app/
+https://showbox88.vercel.app/
 ```
 
 **Redirect URLs（允许列表）：**
 ```
-https://smart-trip-umber-gamma.vercel.app/
-https://smart-trip-umber-gamma.vercel.app/**
+https://showbox88.vercel.app/
+https://showbox88.vercel.app/**
 ```
 
 配置路径：Supabase 控制台 → Authentication → URL Configuration
