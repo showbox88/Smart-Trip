@@ -95,7 +95,6 @@ export default function TripCard({ trip, isList = false, onEdit }) {
       <div className="trip-thumb">
         <div className="thumb-blur-bg" style={{ backgroundImage: `url('${trip.thumb}')` }} />
         <img className="thumb-main-img" src={trip.thumb} loading="lazy" alt={trip.title} />
-        <span className={`status-badge ${status.cls}`} style={{ top: '1rem', left: '1rem' }}>{status.label}</span>
         <button className="menu-dots" onClick={handleMenuToggle} style={{ position: 'absolute', top: '1rem', right: '1rem', transform: 'none', background: 'rgba(0,0,0,0.2)', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', backdropFilter: 'blur(4px)', zIndex: 10 }}>⋮</button>
       </div>
       <div className="trip-content">
@@ -120,6 +119,7 @@ export default function TripCard({ trip, isList = false, onEdit }) {
               <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>schedule</span>
               {duration} {t('itinerary.days')}
             </div>
+            <span className={`status-badge ${status.cls}`} style={{ position: 'static', padding: '4px 10px', borderRadius: '8px', backdropFilter: 'none' }}>{status.label}</span>
           </div>
         </div>
       </div>

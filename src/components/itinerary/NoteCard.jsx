@@ -23,7 +23,7 @@ export default memo(function NoteCard({ stop, dayId, dayColor, onDelete, onConte
   return (
     <div className={`timeline-item note-item id-${stop.id}`} style={{ position: 'relative', marginBottom: '0.75rem' }}>
       {/* Dot */}
-      <div style={{ position: 'absolute', left: 'var(--timeline-dot-x)', top: '1rem', width: '8px', height: '8px', borderRadius: '50%', background: dayColor || '#5b7a99', opacity: 0.6, zIndex: 2 }} />
+      <div style={{ position: 'absolute', left: 'var(--timeline-line-x)', top: '50%', transform: 'translate(-50%, -50%)', width: '8px', height: '8px', borderRadius: '50%', background: dayColor || '#5b7a99', opacity: 0.6, zIndex: 2 }} />
 
       <div
         onMouseEnter={() => dispatch({ type: 'SET_HOVERED_STOP', payload: stop.id })}

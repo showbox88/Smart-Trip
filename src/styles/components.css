@@ -292,17 +292,13 @@
 }
 
 .trip-dashboard-container .status-badge {
-    position: absolute;
-    top: 1rem;
-    left: 1rem;
     padding: 0.25rem 0.75rem;
-    border-radius: 9999px;
+    border-radius: 8px;
     font-size: 0.7rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    backdrop-filter: blur(8px);
-    z-index: 2;
+    white-space: nowrap;
 }
 
 .trip-dashboard-container .status-ongoing {

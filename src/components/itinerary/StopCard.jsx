@@ -42,8 +42,23 @@ function getCategoryIcon(cat, iconName) {
   return MapPin;
 }
 
+function getStopTimeStatus(stop, isToday, t) {
+  if (!isToday || !stop.time) return null;
+  const now = new Date();
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  let [hh, mm] = stop.time.split(':').map(Number);
+  if (stop.period === 'PM' && hh !== 12) hh += 12;
+  if (stop.period === 'AM' && hh === 12) hh = 0;
+  const stopMin = hh * 60 + (mm || 0);
+  const diff = nowMin - stopMin;
+  if (diff > 120) return { label: t('itinerary.stop_status_passed'), color: '#94a3b8', bg: 'rgba(148,163,184,0.1)', border: 'rgba(148,163,184,0.2)' };
+  if (diff >= 0) return { label: t('itinerary.stop_status_ongoing'), color: '#3b82f6', bg: 'rgba(59,130,246,0.1)', border: 'rgba(59,130,246,0.25)' };
+  if (diff > -60) return { label: t('itinerary.stop_status_soon'), color: '#f59e0b', bg: 'rgba(245,158,11,0.1)', border: 'rgba(245,158,11,0.25)' };
+  return { label: t('itinerary.stop_status_upcoming'), color: '#10b981', bg: 'rgba(16,185,129,0.08)', border: 'rgba(16,185,129,0.2)' };
+}
+
 export default memo(function StopCard({
-  stop, dayId, dayColor, index, showTransit, dayWeekdayIdx,
+  stop, dayId, dayColor, index, showTransit, dayWeekdayIdx, isToday,
   onDelete, onToggleTransitMode, onOpenTimePicker, onOpenExpense, onOpenStayInfo,
   onChangePhoto, onAddStop, onAddNote, onAddList, onFocusStop,
   fromHotel, toHotel,
@@ -162,8 +177,9 @@ export default memo(function StopCard({
       {/* Timeline Numbered Dot — amber for hotel */}
       <div style={{
         position: 'absolute',
-        left: 'var(--timeline-dot-x)',
-        top: '1.7rem',
+        left: 'var(--timeline-line-x)',
+        top: '50%',
+        transform: 'translate(-50%, -50%)',
         width: '8px',
         height: '8px',
         borderRadius: '50%',
@@ -487,7 +503,7 @@ export default memo(function StopCard({
         )}
 
         {/* Bottom Actions: Time & Expense Chips */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginTop: 'auto' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginTop: 'auto', flexWrap: 'wrap' }}>
           {stop.time && (
             <div
               className="stop-chip editable"
@@ -558,14 +574,14 @@ export default memo(function StopCard({
           </div>
 
           {stop.reservationTime && (
-            <div 
+            <div
               className="stop-chip"
-              style={{ 
-                background: 'rgba(255, 255, 255, 0.05)', 
-                color: 'var(--text-bright)', 
-                padding: '4px 10px', 
-                borderRadius: '8px', 
-                fontSize: '0.78rem', 
+              style={{
+                background: 'rgba(255, 255, 255, 0.05)',
+                color: 'var(--text-bright)',
+                padding: '4px 10px',
+                borderRadius: '8px',
+                fontSize: '0.78rem',
                 fontWeight: 700,
                 display: 'flex',
                 alignItems: 'center',
@@ -577,6 +593,27 @@ export default memo(function StopCard({
               {stop.reservationTime}
             </div>
           )}
+
+          {(() => {
+            const s = getStopTimeStatus(stop, isToday, t);
+            if (!s) return null;
+            return (
+              <div style={{
+                marginLeft: 'auto',
+                padding: '4px 10px',
+                borderRadius: '8px',
+                fontSize: '0.72rem',
+                fontWeight: 800,
+                color: s.color,
+                background: s.bg,
+                border: `1px solid ${s.border}`,
+                letterSpacing: '0.03em',
+                whiteSpace: 'nowrap',
+              }}>
+                {s.label}
+              </div>
+            );
+          })()}
         </div>
       </div>
 

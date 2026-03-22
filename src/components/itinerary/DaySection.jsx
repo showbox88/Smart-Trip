@@ -17,6 +17,7 @@ export default memo(function DaySection({
   onDeleteNote, onUpdateNoteContent,
   onDeleteList, onUpdateListTitle, onUpdateListItem, onToggleListItem, onAddListItem, onDeleteListItem,
   onColorChange, onEditDay, onDeleteDay, onUpdateDay,
+  onSortByTime,
   onOpenTimePicker,
   onOpenExpense,
   onOpenStayInfo,
@@ -63,6 +64,18 @@ export default memo(function DaySection({
     if (isNaN(d)) return -1;
     d.setDate(d.getDate() + dayIndex);
     return (d.getDay() + 6) % 7;
+  }, [trip?.startDate, dayIndex]);
+
+  // Check if this day section represents today
+  const isToday = useMemo(() => {
+    if (!trip?.startDate) return false;
+    const base = new Date(trip.startDate.replace(/-/g, '/'));
+    if (isNaN(base)) return false;
+    base.setDate(base.getDate() + dayIndex);
+    const now = new Date();
+    return base.getFullYear() === now.getFullYear() &&
+      base.getMonth() === now.getMonth() &&
+      base.getDate() === now.getDate();
   }, [trip?.startDate, dayIndex]);
 
   // First and last plain POI indices (location type, not hotel/note/list) for hotel context lines
@@ -122,6 +135,7 @@ export default memo(function DaySection({
           index={displayIndex ? displayIndex - 1 : index}
           showTransit={showTransit}
           dayWeekdayIdx={dayWeekdayIdx}
+          isToday={isToday}
           onDelete={onDeleteStop}
           onChangePhoto={onChangePhoto}
           onToggleTransitMode={onToggleTransitMode}
@@ -200,9 +214,17 @@ export default memo(function DaySection({
                 <span style={{ fontSize: '1.1rem' }}>🪄</span> {t('itinerary.auto_fill')}
               </button>
               <button style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '5px', padding: 0 }}>
-                <span style={{ fontSize: '1.1rem' }}>📍</span> {t('itinerary.optimize_route')} 
+                <span style={{ fontSize: '1.1rem' }}>📍</span> {t('itinerary.optimize_route')}
                 <span style={{ background: 'var(--accent-primary)', color: '#FFF', fontSize: '0.65rem', padding: '1px 4px', borderRadius: '4px', marginLeft: '2px' }}>PRO</span>
               </button>
+              {stops.some(s => s.time) && (
+                <button
+                  onClick={onSortByTime}
+                  style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '5px', padding: 0 }}
+                >
+                  <span style={{ fontSize: '1.1rem' }}>🕐</span> {t('itinerary.sort_by_time')}
+                </button>
+              )}
             </div>
 
             {/* "From hotel" hint — between days */}

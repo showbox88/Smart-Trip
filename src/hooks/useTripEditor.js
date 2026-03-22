@@ -310,6 +310,38 @@ export function useTripEditor(tripId) {
     }
   }, [trip, applyUpdate]);
 
+  const timeToMinutes = (time, period) => {
+    if (!time) return Infinity;
+    let [hh, mm] = time.split(':').map(Number);
+    if (period === 'PM' && hh !== 12) hh += 12;
+    if (period === 'AM' && hh === 12) hh = 0;
+    return hh * 60 + (mm || 0);
+  };
+
+  // Update stop time and re-sort the day by time in one atomic operation
+  const updateStopAndSort = useCallback((dayId, stopId, patch) => {
+    if (!trip) return;
+    const updated = JSON.parse(JSON.stringify(trip));
+    const day = updated.days.find(d => d.id === dayId);
+    if (!day) return;
+    const stop = day.stops.find(s => s.id === stopId);
+    if (stop) Object.assign(stop, patch);
+    day.stops.sort((a, b) => timeToMinutes(a.time, a.period) - timeToMinutes(b.time, b.period));
+    applyUpdate(updated);
+    computeTransitData(dayId, updated);
+  }, [trip, applyUpdate, computeTransitData]);
+
+  // Manually sort all stops in a day by scheduled time
+  const sortDayByTime = useCallback((dayId) => {
+    if (!trip) return;
+    const updated = JSON.parse(JSON.stringify(trip));
+    const day = updated.days.find(d => d.id === dayId);
+    if (!day) return;
+    day.stops.sort((a, b) => timeToMinutes(a.time, a.period) - timeToMinutes(b.time, b.period));
+    applyUpdate(updated);
+    computeTransitData(dayId, updated);
+  }, [trip, applyUpdate, computeTransitData]);
+
   // Shared helper: insert a new stop into a day at the right position
   const insertStop = useCallback((dayId, newStop, afterStopId = null) => {
     if (!trip) return;
@@ -654,6 +686,8 @@ export function useTripEditor(tripId) {
     updateDay,
     deleteStop,
     updateStop,
+    updateStopAndSort,
+    sortDayByTime,
     moveStop,
     moveDay,
     addNote,
