@@ -28,7 +28,7 @@ export function useSidebarGlow(isCollapsed) {
 
     const layer = document.createElement('div');
     layer.className = 'sidebar-glow-layer';
-    layer.style.cssText = 'position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;';
+    layer.style.cssText = 'position:absolute;inset:0;z-index:0;pointer-events:none;overflow:visible;';
     sidebar.prepend(layer);
     layerRef.current = layer;
 
@@ -104,6 +104,12 @@ export function useSidebarGlow(isCollapsed) {
   useEffect(() => {
     const onMove = (e) => {
       pointerRef.current = { x: e.clientX, y: e.clientY };
+      // Rebuild if item count changed (e.g. "-" button appeared/disappeared)
+      const sidebar = sidebarRef.current;
+      if (sidebar && layerRef.current) {
+        const expected = sidebar.querySelectorAll('#sidebar-nav li, .add-day-btn').length;
+        if (expected !== dotsRef.current.length) buildLayer();
+      }
       scheduleGlow();
     };
     const onLeave = () => {

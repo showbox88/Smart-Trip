@@ -27,7 +27,7 @@ function formatDate(startDate, dayIndex) {
   const d = new Date(startDate.replace(/-/g, '/'));
   d.setDate(d.getDate() + dayIndex);
   if (isNaN(d)) return '';
-  return d.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric', year: 'numeric' });
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
 export function useTripEditor(tripId) {
@@ -238,6 +238,24 @@ export function useTripEditor(tripId) {
     const day = updated.days.find(d => d.id === dayId);
     if (!day) return;
     day.stops = [];
+    applyUpdate(updated);
+  }, [trip, applyUpdate]);
+
+  const removeDay = useCallback((dayId) => {
+    if (!trip) return;
+    const updated = JSON.parse(JSON.stringify(trip));
+    updated.days = updated.days.filter(d => d.id !== dayId);
+    if (updated.activeDayId === dayId) {
+      updated.activeDayId = updated.days[updated.days.length - 1]?.id || null;
+    }
+    // Sync endDate to match new days count
+    if (updated.startDate && updated.days.length > 0) {
+      const end = new Date(updated.startDate.replace(/-/g, '/'));
+      end.setDate(end.getDate() + updated.days.length - 1);
+      if (!isNaN(end)) {
+        updated.endDate = `${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2, '0')}-${String(end.getDate()).padStart(2, '0')}`;
+      }
+    }
     applyUpdate(updated);
   }, [trip, applyUpdate]);
 
@@ -631,6 +649,7 @@ export function useTripEditor(tripId) {
     trip,
     addDay,
     deleteDay,
+    removeDay,
     setDayColor,
     updateDay,
     deleteStop,

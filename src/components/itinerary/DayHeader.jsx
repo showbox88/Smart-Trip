@@ -39,6 +39,7 @@ export default memo(function DayHeader({
   }, [day.stops, day.showReturnRoute]);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [editingSubtitle, setEditingSubtitle] = useState(false);
   const [subtitleValue, setSubtitleValue] = useState(day.subtitle || '');
   const colorRef = useRef(null);
@@ -53,7 +54,7 @@ export default memo(function DayHeader({
   useEffect(() => {
     const onMouseDown = (e) => {
       if (colorRef.current && !colorRef.current.contains(e.target)) setShowColorPicker(false);
-      if (menuRef.current && !menuRef.current.contains(e.target)) setShowMenu(false);
+      if (menuRef.current && !menuRef.current.contains(e.target)) { setShowMenu(false); setConfirmingDelete(false); }
     };
     document.addEventListener('mousedown', onMouseDown);
     return () => document.removeEventListener('mousedown', onMouseDown);
@@ -163,13 +164,31 @@ export default memo(function DayHeader({
               style={{ position: 'static', transform: 'none', padding: '0 5px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', fontSize: '1.2rem' }}
             >⋮</button>
             {showMenu && (
-              <div className="menu-dropdown show" style={{ top: '2rem', right: 0 }}>
-                <button onClick={() => { onEditDay?.(day.id); setShowMenu(false); }}>
-                  {t('itinerary.edit_day_label') || 'Edit day'}
-                </button>
-                <button className="danger" onClick={() => { onDeleteDay?.(day.id); setShowMenu(false); }}>
-                  {t('common.delete') || 'Delete'}
-                </button>
+              <div className="menu-dropdown active" style={{ top: '2rem', right: 0 }}>
+                {!confirmingDelete ? (
+                  <>
+                    <button onClick={() => { onEditDay?.(day.id); setShowMenu(false); }}>
+                      {t('itinerary.edit_day_label') || 'Edit day'}
+                    </button>
+                    <button className="danger" onClick={() => setConfirmingDelete(true)}>
+                      {t('itinerary.delete_day') || 'Clear Day'}
+                    </button>
+                  </>
+                ) : (
+                  <div style={{ padding: '0.4rem 0.2rem' }}>
+                    <p style={{ margin: '0 0 0.6rem', fontSize: '0.82rem', color: 'var(--text-secondary)', whiteSpace: 'normal', maxWidth: '180px', lineHeight: 1.4 }}>
+                      {t('common.clear_day_confirm') || 'Clear all items for this day?'}
+                    </p>
+                    <div style={{ display: 'flex', gap: '0.4rem' }}>
+                      <button onClick={() => setConfirmingDelete(false)} style={{ flex: 1 }}>
+                        {t('common.cancel') || 'Cancel'}
+                      </button>
+                      <button className="danger" style={{ flex: 1 }} onClick={() => { onDeleteDay?.(day.id); setShowMenu(false); setConfirmingDelete(false); }}>
+                        {t('common.delete') || 'Delete'}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>

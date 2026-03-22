@@ -162,8 +162,8 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay }) {
   useEffect(() => { zoomedPhotoIdxRef.current = zoomedPhotoIdx; });
   useEffect(() => { photosRef.current = photos; });
 
-  // Detect touch device for conditional UI rendering
-  const isMobileDevice = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+  // Detect mobile by viewport width (touch laptops should still show desktop arrows)
+  const isMobileDevice = typeof window !== 'undefined' && window.innerWidth < 768;
 
   // Native touch event listeners for reliable mobile swipe in the lightbox
   const lightboxOpen = zoomedPhotoIdx !== null;

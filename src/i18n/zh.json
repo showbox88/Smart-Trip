@@ -35,6 +35,8 @@
         "not_found_alt": "未找到结果",
         "search_placeholder": "搜索...",
         "date": "日期",
+        "start_date": "出发日期",
+        "end_date": "结束日期",
         "itinerary": "行程",
         "map": "地图"
     },
@@ -53,6 +55,7 @@
         "budget_title": "旅行概览",
         "budget_desc_prefix": "您目前有",
         "budget_desc_suffix": "个计划中的行程，继续加油！",
+        "trip_title": "旅行标题",
         "stat_trips": "已规划旅行",
         "stat_destinations": "访问目的地",
         "stat_completed": "已完成探险",
@@ -118,6 +121,7 @@
         "add_day": "添加日期",
         "edit_day_label": "调整日期",
         "delete_day": "清空当天",
+        "remove_day": "删除当天",
         "change_color": "更换主题色",
         "auto_fill": "自动填充日程",
         "optimize_route": "优化路线",
@@ -183,7 +187,11 @@
         "no_photos": "暂无可用照片",
         "closed_today": "今天休息！",
         "hotel_checkin": "入住登记",
-        "hotel_checkout": "办理退房"
+        "hotel_checkout": "办理退房",
+        "day_name": "天的名称",
+        "day_subtitle": "副标题",
+        "day_subtitle_placeholder": "如：抵达日",
+        "day_date": "日期"
     },
     "auth": {
         "tagline": "开启您的全球智能旅行规划之旅",

@@ -31,7 +31,7 @@ export default function ItineraryView({ tripId }) {
   const { deleteTrip } = useTrips();
   const {
     trip,
-    addDay, deleteDay, setDayColor, updateDay,
+    addDay, deleteDay, removeDay, setDayColor, updateDay,
     deleteStop, updateStop, moveStop, moveDay,
     addNote, addList,
     updateNoteContent, updateListTitle, updateListItem, toggleListItem, addListItem, deleteListItem,
@@ -161,11 +161,22 @@ export default function ItineraryView({ tripId }) {
 
   // --- Day actions ---
   const handleDeleteDay = useCallback((dayId) => {
-    openConfirm(
-      t('common.confirm_delete') || 'Delete this day?',
-      () => deleteDay(dayId)
-    );
-  }, [t, deleteDay]);
+    deleteDay(dayId);
+  }, [deleteDay]);
+
+  const handleRemoveLastDay = useCallback(() => {
+    if (!trip?.days?.length) return;
+    const lastDay = trip.days[trip.days.length - 1];
+    const hasStops = (lastDay.stops || []).length > 0;
+    if (hasStops) {
+      openConfirm(
+        t('common.clear_day_confirm') || 'This day has stops. Delete anyway?',
+        () => removeDay(lastDay.id)
+      );
+    } else {
+      removeDay(lastDay.id);
+    }
+  }, [trip?.days, removeDay, openConfirm, t]);
 
   const handleEditDay = useCallback((dayId) => {
     const dayIndex = trip?.days.findIndex(d => d.id === dayId);
@@ -284,6 +295,7 @@ export default function ItineraryView({ tripId }) {
             trip={trip}
             activeDayId={activeDayId}
             onAddDay={addDay}
+            onRemoveLastDay={handleRemoveLastDay}
             onDayClick={handleSidebarDayClick}
             moveDay={moveDay}
           />

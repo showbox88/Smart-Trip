@@ -35,6 +35,8 @@
         "not_found_alt": "No results found",
         "search_placeholder": "Search...",
         "date": "Date",
+        "start_date": "Start Date",
+        "end_date": "End Date",
         "itinerary": "Itinerary",
         "map": "Map"
     },
@@ -53,6 +55,7 @@
         "budget_title": "Trip Overview",
         "budget_desc_prefix": "You have",
         "budget_desc_suffix": "planned trips, keep going!",
+        "trip_title": "Trip Title",
         "stat_trips": "Trips Planned",
         "stat_destinations": "Countries/Cities",
         "stat_completed": "Adventures Finished",
@@ -118,6 +121,7 @@
         "add_day": "Add Day",
         "edit_day_label": "Adjust Date",
         "delete_day": "Clear Day",
+        "remove_day": "Remove Day",
         "change_color": "Theme Color",
         "auto_fill": "Auto Fill",
         "optimize_route": "Optimize Route",
@@ -184,7 +188,11 @@
         "no_photos": "No photos available",
         "closed_today": "Closed today!",
         "hotel_checkin": "Check-in",
-        "hotel_checkout": "Check-out"
+        "hotel_checkout": "Check-out",
+        "day_name": "Day Name",
+        "day_subtitle": "Subtitle",
+        "day_subtitle_placeholder": "e.g. Arrival day",
+        "day_date": "Date"
     },
     "auth": {
         "tagline": "Start your smart travel planning journey globally",
