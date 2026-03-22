@@ -32,7 +32,7 @@ export default function ItineraryView({ tripId }) {
   const {
     trip,
     addDay, deleteDay, setDayColor, updateDay,
-    deleteStop, updateStop, moveStop,
+    deleteStop, updateStop, moveStop, moveDay,
     addNote, addList,
     updateNoteContent, updateListTitle, updateListItem, toggleListItem, addListItem, deleteListItem,
     addStopFromPlace, updateTripMetadata, toggleTransitMode, toggleHotelTransitMode,
@@ -280,11 +280,12 @@ export default function ItineraryView({ tripId }) {
 
       return (
         <div className="dashboard-view fade-in">
-          <TripSidebar 
-            trip={trip} 
-            activeDayId={activeDayId} 
-            onAddDay={addDay} 
+          <TripSidebar
+            trip={trip}
+            activeDayId={activeDayId}
+            onAddDay={addDay}
             onDayClick={handleSidebarDayClick}
+            moveDay={moveDay}
           />
 
           <section className="main-itinerary" id="itinerary-scroll-container">

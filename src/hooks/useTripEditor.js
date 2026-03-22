@@ -538,6 +538,32 @@ export function useTripEditor(tripId) {
     }
   }, [trip, applyUpdate, computeTransitData]);
 
+  const moveDay = useCallback((dayId, afterDayId) => {
+    if (!trip) return;
+    const updated = JSON.parse(JSON.stringify(trip));
+
+    // Keep calendar dates fixed — save them before reordering
+    const dates = updated.days.map(d => d.date);
+
+    const fromIdx = updated.days.findIndex(d => d.id === dayId);
+    if (fromIdx === -1) return;
+    const [day] = updated.days.splice(fromIdx, 1);
+
+    if (afterDayId == null) {
+      updated.days.unshift(day);
+    } else {
+      const afterIdx = updated.days.findIndex(d => d.id === afterDayId);
+      updated.days.splice(afterIdx + 1, 0, day);
+    }
+
+    // Reassign dates so calendar positions stay stable
+    updated.days.forEach((d, i) => {
+      if (dates[i] !== undefined) d.date = dates[i];
+    });
+
+    applyUpdate(updated);
+  }, [trip, applyUpdate]);
+
   const updateTripMetadata = useCallback((patch) => {
     if (!trip) return;
     const updated = { ...trip, ...patch };
@@ -610,6 +636,7 @@ export function useTripEditor(tripId) {
     deleteStop,
     updateStop,
     moveStop,
+    moveDay,
     addNote,
     addList,
     updateNoteContent,
