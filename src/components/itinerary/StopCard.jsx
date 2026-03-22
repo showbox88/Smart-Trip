@@ -189,13 +189,43 @@ export default memo(function StopCard({
         boxShadow: `0 0 10px ${dotColor}`
       }} />
 
-      {/* Hotel checkin/checkout card: amber/red line from dot to edge */}
+      {/* Hotel checkin/checkout card: amber line from dot to edge */}
       {isHotelType && (
         <HotelLine
-          top={stop.type === 'hotel_checkin' ? '50%' : '-1rem'}
-          bottom={stop.type === 'hotel_checkout' ? '50%' : '-1rem'}
+          top={stop.type === 'hotel_checkin' ? 'calc(50% + 8px)' : '-1rem'}
+          bottom={stop.type === 'hotel_checkout' ? 'calc(50% + 8px)' : '-1rem'}
           color='#f59e0b'
         />
+      )}
+
+      {/* Arc connector: curves from hotel line endpoint into the colored dot */}
+      {stop.type === 'hotel_checkin' && (
+        <div style={{
+          position: 'absolute',
+          left: 'var(--hotel-line-x)',
+          top: '50%',
+          width: 'calc(var(--timeline-line-x) - var(--hotel-line-x))',
+          height: '8px',
+          borderTop: 'var(--hotel-line-width) solid var(--hotel-line-color)',
+          borderLeft: 'var(--hotel-line-width) solid var(--hotel-line-color)',
+          borderTopLeftRadius: '8px',
+          zIndex: 1,
+          boxSizing: 'border-box',
+        }} />
+      )}
+      {stop.type === 'hotel_checkout' && (
+        <div style={{
+          position: 'absolute',
+          left: 'var(--hotel-line-x)',
+          top: 'calc(50% - 8px)',
+          width: 'calc(var(--timeline-line-x) - var(--hotel-line-x))',
+          height: '8px',
+          borderBottom: 'var(--hotel-line-width) solid var(--hotel-line-color)',
+          borderLeft: 'var(--hotel-line-width) solid var(--hotel-line-color)',
+          borderBottomLeftRadius: '8px',
+          zIndex: 1,
+          boxSizing: 'border-box',
+        }} />
       )}
 
       {/* All plain POI cards in hotel stay: continuous amber line bridging gaps above and below */}

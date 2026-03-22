@@ -3,6 +3,8 @@
   --timeline-line-x: 22px;
   --timeline-dot-x: 0.75rem;
   --hotel-line-x: 0.75rem;
+  --hotel-line-color: #f59e0b;
+  --hotel-line-width: 3px;
   --transit-line-x: 1.22rem;
   --card-margin-l: 2.2rem;
   --stop-card-p: 1.2rem;
