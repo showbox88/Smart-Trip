@@ -8,6 +8,7 @@ import NoteCard from './NoteCard';
 import ListCard from './ListCard';
 import AddStopRow from './AddStopRow';
 import TransitInfo from './TransitInfo';
+import HotelLine from './HotelLine';
 
 export default memo(function DaySection({
   day, dayIndex, trip,
@@ -78,20 +79,37 @@ export default memo(function DaySection({
       base.getDate() === now.getDate();
   }, [trip?.startDate, dayIndex]);
 
-  // First and last plain POI indices (location type, not hotel/note/list) for hotel context lines
-  const { plainPois, firstPlainPoiIdx, lastPlainPoiIdx, firstPlainStop, lastPlainStop } = useMemo(() => {
+  // First and last plain POI for hotel transit info
+  const { firstPlainStop, lastPlainStop } = useMemo(() => {
     const pois = stops
       .map((s, i) => ({ s, i }))
       .filter(({ s }) => s.type !== 'hotel_checkin' && s.type !== 'hotel_checkout' && s.type !== 'note' && s.type !== 'list');
-    const indices = pois.map(({ i }) => i);
     return {
-      plainPois: pois,
-      firstPlainPoiIdx: indices[0] ?? -1,
-      lastPlainPoiIdx: indices[indices.length - 1] ?? -1,
       firstPlainStop: pois[0]?.s ?? null,
       lastPlainStop: pois[pois.length - 1]?.s ?? null,
     };
   }, [stops]);
+
+  // Index of checkin/checkout stops for the current hotel stay (within this day's stops array)
+  const { cinIdx, coutIdx } = useMemo(() => ({
+    cinIdx: hotelContext.stay
+      ? stops.findIndex(s => s.type === 'hotel_checkin' && s.stayId === hotelContext.stay.id)
+      : -1,
+    coutIdx: hotelContext.stay
+      ? stops.findIndex(s => s.type === 'hotel_checkout' && s.stayId === hotelContext.stay.id)
+      : -1,
+  }), [stops, hotelContext.stay]);
+
+  // Returns true only if stop at given index is strictly between checkin dot and checkout dot
+  const getInHotelStay = (index, stopType) => {
+    if (!hotelContext.stay) return false;
+    if (stopType === 'hotel_checkin' || stopType === 'hotel_checkout') return false;
+    if (hotelContext.isBetween) return true;
+    if (hotelContext.isCinOnly) return cinIdx >= 0 && index > cinIdx;
+    if (hotelContext.isCoutOnly) return coutIdx >= 0 && index < coutIdx;
+    if (hotelContext.isSameDayStay) return cinIdx >= 0 && coutIdx >= 0 && index > cinIdx && index < coutIdx;
+    return false;
+  };
 
   const renderStop = (stop, index) => {
     const isPoi = stop.type === 'location' || !stop.type || stop.type === 'hotel_checkin' || stop.type === 'hotel_checkout';
@@ -106,6 +124,8 @@ export default memo(function DaySection({
       displayIndex = prevStopsInDay + 1;
     }
 
+    const inHotelStay = getInHotelStay(index, stop.type);
+
     let card;
     if (stop.type === 'note') {
       card = (
@@ -113,6 +133,7 @@ export default memo(function DaySection({
           stop={stop} dayId={day.id} dayColor={activeColor}
           onDelete={onDeleteNote} onContentChange={onUpdateNoteContent}
           pendingFocusId={pendingFocusId} setPendingFocusId={setPendingFocusId}
+          inHotelStay={inHotelStay}
         />
       );
     } else if (stop.type === 'list') {
@@ -123,12 +144,10 @@ export default memo(function DaySection({
           onItemToggle={onToggleListItem} onAddItem={onAddListItem}
           onDeleteItem={onDeleteListItem}
           pendingFocusId={pendingFocusId} setPendingFocusId={setPendingFocusId}
+          inHotelStay={inHotelStay}
         />
       );
     } else {
-      const isPlainPoi = stop.type !== 'hotel_checkin' && stop.type !== 'hotel_checkout' && stop.type !== 'note' && stop.type !== 'list';
-      const hasHotelAbove = (hotelContext.isBetween || hotelContext.isCoutOnly) && hotelContext.stay;
-      const hasHotelBelow = (hotelContext.isBetween || hotelContext.isCinOnly || hotelContext.isSameDayStay) && hotelContext.stay;
       card = (
         <StopCard
           stop={stop} dayId={day.id} dayColor={activeColor}
@@ -146,8 +165,7 @@ export default memo(function DaySection({
           onAddNote={onAddNote}
           onAddList={onAddList}
           onFocusStop={onFocusStop}
-          fromHotel={isPlainPoi && hasHotelAbove && index === firstPlainPoiIdx}
-          toHotel={isPlainPoi && hasHotelBelow && index === lastPlainPoiIdx}
+          inHotelStay={inHotelStay}
         />
       );
     }
@@ -180,6 +198,7 @@ export default memo(function DaySection({
               onAddList={onAddList}
               autoFocus
               onClose={() => setInsertingAfterStopId(null)}
+              inHotelStay={inHotelStay}
             />
           </div>
         )}
@@ -191,8 +210,19 @@ export default memo(function DaySection({
     <div
       className="day-section"
       id={day.id}
-      style={{ marginBottom: '3rem', scrollMarginTop: '120px' }}
+      style={{ marginBottom: '3rem', scrollMarginTop: '120px', position: 'relative' }}
     >
+      {/* Bridge amber hotel line for isBetween days: spans full day-section including both inter-day gaps */}
+      {hotelContext.stay && hotelContext.isBetween && (
+        <HotelLine top="-3rem" bottom="-3rem" />
+      )}
+
+      {/* For isCoutOnly: wrap DayHeader so bridge is confined to just the header area.
+          The hotel line continues inside the timeline via toolbar + individual stop inHotelStay props. */}
+      <div style={{ position: hotelContext.stay && hotelContext.isCoutOnly ? 'relative' : undefined }}>
+        {hotelContext.stay && hotelContext.isCoutOnly && (
+          <HotelLine top="-3rem" bottom="0" />
+        )}
       <DayHeader
         day={day} dayIndex={dayIndex} isCollapsed={isCollapsed}
         date={dateInfo.date} weekday={dateInfo.weekday}
@@ -200,8 +230,9 @@ export default memo(function DaySection({
         onColorChange={onColorChange} 
         onEditDay={onEditDay} 
         onDeleteDay={onDeleteDay}
-        onUpdateDay={onUpdateDay} 
+        onUpdateDay={onUpdateDay}
       />
+      </div>
 
       {!isCollapsed && (
         <div style={{ paddingLeft: 0 }}>
@@ -209,7 +240,8 @@ export default memo(function DaySection({
             {/* Dashed timeline line */}
             <div style={{ position: 'absolute', top: 0, bottom: 0, left: 'var(--timeline-line-x)', width: 0, borderLeft: `2px dashed ${activeColor}`, opacity: 0.5, zIndex: 0, transform: 'translateX(-50%)', transition: 'border-color 0.2s, left 0.3s' }} />
 
-            <div style={{ display: 'flex', gap: '15px', alignItems: 'center', marginBottom: '0.8rem', paddingLeft: 'var(--auto-fill-pl)', paddingRight: '1rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+            <div style={{ display: 'flex', gap: '15px', alignItems: 'center', marginBottom: '0.8rem', paddingLeft: 'var(--auto-fill-pl)', paddingRight: '1rem', fontSize: '0.85rem', color: 'var(--text-secondary)', position: 'relative' }}>
+              {(hotelContext.isBetween || hotelContext.isCoutOnly) && hotelContext.stay && <HotelLine />}
               <button style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '5px', padding: 0 }}>
                 <span style={{ fontSize: '1.1rem' }}>🪄</span> {t('itinerary.auto_fill')}
               </button>
@@ -232,7 +264,7 @@ export default memo(function DaySection({
               <>
                 <div style={{ paddingLeft: '2.25rem', marginBottom: '0.2rem', color: '#f59e0b', fontSize: '0.85rem', fontWeight: 600, display: 'flex', flexDirection: 'column', gap: '4px', position: 'relative', cursor: 'pointer' }}>
                   {/* amber line from top of day down through hint, connects to first card's fromHotel line */}
-                  <div style={{ position: 'absolute', left: '1.05rem', top: 0, bottom: '-0.2rem', width: '4px', background: 'rgba(245,158,11,0.7)', zIndex: 1 }} />
+                  <HotelLine top="0" bottom="-0.2rem" />
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <span>🏨</span>
                     <span>{t('itinerary.from_hotel') || 'From hotel:'} {hotelContext.stay.location}</span>
@@ -245,6 +277,7 @@ export default memo(function DaySection({
                   onAddStop={() => setInsertingAfterStopId('__before_first__')}
                   onAddNote={() => onAddNote?.(day.id, '__prepend__')}
                   onAddList={() => onAddList?.(day.id, '__prepend__')}
+                  inHotelStay
                 />
               </>
             )}
@@ -263,6 +296,7 @@ export default memo(function DaySection({
                   onAddList={(dayId) => { onAddList?.(dayId, '__prepend__'); setInsertingAfterStopId(null); }}
                   autoFocus
                   onClose={() => setInsertingAfterStopId(null)}
+                  inHotelStay={!!hotelContext.stay}
                 />
               </div>
             )}
@@ -292,10 +326,11 @@ export default memo(function DaySection({
                   onAddStop={() => setInsertingAfterStopId(lastPlainStop?.id)}
                   onAddNote={() => onAddNote?.(day.id, lastPlainStop?.id)}
                   onAddList={() => onAddList?.(day.id, lastPlainStop?.id)}
+                  inHotelStay
                 />
                 <div style={{ paddingLeft: '2.25rem', marginTop: '0.2rem', color: '#f59e0b', fontSize: '0.85rem', fontWeight: 600, display: 'flex', flexDirection: 'column', gap: '4px', position: 'relative', cursor: 'pointer' }}>
                   {/* amber line from last card's toHotel line, connects through hint */}
-                  <div style={{ position: 'absolute', left: '1.05rem', top: '-0.2rem', bottom: 0, width: '4px', background: 'rgba(245,158,11,0.7)', zIndex: 1 }} />
+                  <HotelLine top="-0.2rem" bottom="0" />
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <span>🏨</span>
                     <span>{t('itinerary.return_hotel') || 'Return to hotel:'} {hotelContext.stay.location}</span>
@@ -309,6 +344,7 @@ export default memo(function DaySection({
               onAddStop={onAddStop}
               onAddNote={onAddNote}
               onAddList={onAddList}
+              inHotelStay={!!(hotelContext.stay && (hotelContext.isCinOnly || hotelContext.isBetween))}
             />
           </div>
         </div>

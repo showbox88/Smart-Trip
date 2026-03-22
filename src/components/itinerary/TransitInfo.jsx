@@ -3,8 +3,9 @@ import { createPortal } from 'react-dom';
 import { useI18n } from '../../context/I18nContext';
 import { useApp } from '../../context/AppContext';
 import { formatDistance, formatDuration } from '../../utils/formatters';
+import HotelLine from './HotelLine';
 
-export default memo(function TransitInfo({ transit, transitMode, onToggleMode, onAddStop, onAddNote, onAddList, hideAdd }) {
+export default memo(function TransitInfo({ transit, transitMode, onToggleMode, onAddStop, onAddNote, onAddList, hideAdd, inHotelStay }) {
   const { t } = useI18n();
   const { state } = useApp();
   const [showAddMenu, setShowAddMenu] = useState(false);
@@ -42,6 +43,7 @@ export default memo(function TransitInfo({ transit, transitMode, onToggleMode, o
 
   return (
     <div className="transit-info-row" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0 0.4rem var(--transit-pl)', color: 'var(--text-muted)', fontSize: '0.8rem', position: 'relative' }}>
+      {inHotelStay && <HotelLine top="0" bottom="0" />}
       {!hideAdd && (
         <button
           ref={btnRef}

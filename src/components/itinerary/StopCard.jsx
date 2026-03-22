@@ -9,6 +9,7 @@ import {
   Hotel, LogIn, LogOut, Receipt, Coffee, Croissant
 } from 'lucide-react';
 import { formatCurrency } from '../../utils/formatters';
+import HotelLine from './HotelLine';
 import TransitInfo from './TransitInfo';
 import { uploadToSupabase } from '../../utils/uploadHelpers';
 
@@ -61,7 +62,7 @@ export default memo(function StopCard({
   stop, dayId, dayColor, index, showTransit, dayWeekdayIdx, isToday,
   onDelete, onToggleTransitMode, onOpenTimePicker, onOpenExpense, onOpenStayInfo,
   onChangePhoto, onAddStop, onAddNote, onAddList, onFocusStop,
-  fromHotel, toHotel,
+  inHotelStay,
 }) {
   const { state, dispatch } = useApp();
   const { t } = useI18n();
@@ -188,45 +189,17 @@ export default memo(function StopCard({
         boxShadow: `0 0 10px ${dotColor}`
       }} />
 
-      {/* Hotel stay vertical line — amber, extends full card height */}
+      {/* Hotel checkin/checkout card: amber/red line from dot to edge */}
       {isHotelType && (
-        <div style={{
-          position: 'absolute',
-          left: 'var(--hotel-line-x)',
-          top: stop.type === 'hotel_checkin' ? '2.2rem' : 0,
-          bottom: stop.type === 'hotel_checkout' ? '1rem' : 0,
-          width: '4px',
-          background: stop.type === 'hotel_checkout' ? 'rgba(239,68,68,0.7)' : 'rgba(245,158,11,0.7)',
-          borderRadius: stop.type === 'hotel_checkin' ? '2px 2px 0 0' : '0 0 2px 2px',
-          zIndex: 1,
-        }} />
+        <HotelLine
+          top={stop.type === 'hotel_checkin' ? '50%' : '-1rem'}
+          bottom={stop.type === 'hotel_checkout' ? '50%' : '-1rem'}
+          color='#f59e0b'
+        />
       )}
 
-      {/* fromHotel: amber line from above (covering gap) down to dot */}
-      {fromHotel && !isHotelType && (
-        <div style={{
-          position: 'absolute',
-          left: 'var(--hotel-line-x)',
-          top: '-1.2rem',
-          height: 'calc(1.7rem + 1.2rem)',
-          width: '4px',
-          background: 'rgba(245,158,11,0.7)',
-          zIndex: 1,
-        }} />
-      )}
-
-      {/* toHotel: amber line from dot down, extending below to cover gap to hint */}
-      {toHotel && !isHotelType && (
-        <div style={{
-          position: 'absolute',
-          left: 'var(--hotel-line-x)',
-          top: '1.7rem',
-          bottom: '-1.2rem',
-          width: '4px',
-          background: 'rgba(245,158,11,0.7)',
-          zIndex: 1,
-        }} />
-      )}
+      {/* All plain POI cards in hotel stay: continuous amber line bridging gaps above and below */}
+      {inHotelStay && !isHotelType && <HotelLine />}
 
       {/* Timeline line */}
       {showTransit && !isHotelType && (

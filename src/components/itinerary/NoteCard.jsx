@@ -2,8 +2,9 @@ import { useRef, useEffect, memo } from 'react';
 import { useI18n } from '../../context/I18nContext';
 import { useApp } from '../../context/AppContext';
 import DeleteConfirm from './DeleteConfirm';
+import HotelLine from './HotelLine';
 
-export default memo(function NoteCard({ stop, dayId, dayColor, onDelete, onContentChange, pendingFocusId, setPendingFocusId }) {
+export default memo(function NoteCard({ stop, dayId, dayColor, onDelete, onContentChange, pendingFocusId, setPendingFocusId, inHotelStay }) {
   const { state, dispatch } = useApp();
   const { t } = useI18n();
   const textareaRef = useRef(null);
@@ -24,6 +25,7 @@ export default memo(function NoteCard({ stop, dayId, dayColor, onDelete, onConte
     <div className={`timeline-item note-item id-${stop.id}`} style={{ position: 'relative', marginBottom: '0.75rem' }}>
       {/* Dot */}
       <div style={{ position: 'absolute', left: 'var(--timeline-line-x)', top: '50%', transform: 'translate(-50%, -50%)', width: '8px', height: '8px', borderRadius: '50%', background: dayColor || '#5b7a99', opacity: 0.6, zIndex: 2 }} />
+      {inHotelStay && <HotelLine />}
 
       <div
         onMouseEnter={() => dispatch({ type: 'SET_HOVERED_STOP', payload: stop.id })}

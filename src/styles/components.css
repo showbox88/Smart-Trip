@@ -2,7 +2,7 @@
 :root {
   --timeline-line-x: 22px;
   --timeline-dot-x: 0.75rem;
-  --hotel-line-x: 1.05rem;
+  --hotel-line-x: 0.75rem;
   --transit-line-x: 1.22rem;
   --card-margin-l: 2.2rem;
   --stop-card-p: 1.2rem;
@@ -15,7 +15,7 @@
   :root {
     --timeline-line-x: 10px;
     --timeline-dot-x: 0.05rem;
-    --hotel-line-x: 0.35rem;
+    --hotel-line-x: 0.15rem;
     --transit-line-x: 0.52rem;
     --card-margin-l: 1.2rem;
     --stop-card-p: 0.8rem;

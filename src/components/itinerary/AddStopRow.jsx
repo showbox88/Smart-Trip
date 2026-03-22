@@ -2,8 +2,9 @@ import { useRef, useEffect, useState, memo } from 'react';
 import { createPortal } from 'react-dom';
 import { useI18n } from '../../context/I18nContext';
 import { useStopSearch } from '../../hooks/useStopSearch';
+import HotelLine from './HotelLine';
 
-export default memo(function AddStopRow({ dayId, onAddStop, onAddNote, onAddList, autoFocus, onClose }) {
+export default memo(function AddStopRow({ dayId, onAddStop, onAddNote, onAddList, autoFocus, onClose, inHotelStay }) {
   const { t } = useI18n();
   const inputRef = useRef(null);
   const dropdownRef = useRef(null);
@@ -52,6 +53,7 @@ export default memo(function AddStopRow({ dayId, onAddStop, onAddNote, onAddList
       className="location-search-container"
       style={{ position: 'relative', marginTop: '1rem', paddingLeft: '2.25rem', display: 'flex', gap: '0.5rem' }}
     >
+      {inHotelStay && <HotelLine />}
       <div style={{ flex: 1, position: 'relative' }}>
         <span style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)', fontSize: '1rem', pointerEvents: 'none' }}>
           📍
