@@ -33,7 +33,7 @@ export default memo(function DaySection({
   const [insertingAfterStopId, setInsertingAfterStopId] = useState(null);
   const activeColor = day.color || '#5b7a99';
 
-  const hotelContext = useMemo(() => getHotelContext(day, trip), [day, trip]);
+  const hotelContext = getHotelContext(day, trip);
   const stops = day.stops || [];
 
   // Localized date parts for the header
@@ -221,7 +221,7 @@ export default memo(function DaySection({
           The hotel line continues inside the timeline via toolbar + individual stop inHotelStay props. */}
       <div style={{ position: hotelContext.stay && hotelContext.isCoutOnly ? 'relative' : undefined }}>
         {hotelContext.stay && hotelContext.isCoutOnly && (
-          <HotelLine top="-3rem" bottom="0" />
+          <HotelLine top="-3rem" bottom="-0.5rem" />
         )}
       <DayHeader
         day={day} dayIndex={dayIndex} isCollapsed={isCollapsed}
@@ -240,23 +240,28 @@ export default memo(function DaySection({
             {/* Dashed timeline line */}
             <div style={{ position: 'absolute', top: 0, bottom: 0, left: 'var(--timeline-line-x)', width: 0, borderLeft: `2px dashed ${activeColor}`, opacity: 0.5, zIndex: 0, transform: 'translateX(-50%)', transition: 'border-color 0.2s, left 0.3s' }} />
 
-            <div style={{ display: 'flex', gap: '15px', alignItems: 'center', marginBottom: '0.8rem', paddingLeft: 'var(--auto-fill-pl)', paddingRight: '1rem', fontSize: '0.85rem', color: 'var(--text-secondary)', position: 'relative' }}>
-              {(hotelContext.isBetween || hotelContext.isCoutOnly) && hotelContext.stay && <HotelLine />}
-              <button style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '5px', padding: 0 }}>
-                <span style={{ fontSize: '1.1rem' }}>🪄</span> {t('itinerary.auto_fill')}
-              </button>
-              <button style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '5px', padding: 0 }}>
-                <span style={{ fontSize: '1.1rem' }}>📍</span> {t('itinerary.optimize_route')}
-                <span style={{ background: 'var(--accent-primary)', color: '#FFF', fontSize: '0.65rem', padding: '1px 4px', borderRadius: '4px', marginLeft: '2px' }}>PRO</span>
-              </button>
-              {stops.some(s => s.time) && (
-                <button
-                  onClick={onSortByTime}
-                  style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '5px', padding: 0 }}
-                >
-                  <span style={{ fontSize: '1.1rem' }}>🕐</span> {t('itinerary.sort_by_time')}
-                </button>
+            {/* Toolbar wrapper — hotel line hangs on the wrapper, not inside the flex container */}
+            <div style={{ position: 'relative', marginBottom: '0.8rem' }}>
+              {(hotelContext.isBetween || hotelContext.isCoutOnly) && hotelContext.stay && (
+                <HotelLine top="0" bottom="-0.8rem" />
               )}
+              <div style={{ display: 'flex', gap: '15px', alignItems: 'center', paddingLeft: 'var(--auto-fill-pl)', paddingRight: '1rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                <button style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '5px', padding: 0 }}>
+                  <span style={{ fontSize: '1.1rem' }}>🪄</span> {t('itinerary.auto_fill')}
+                </button>
+                <button style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '5px', padding: 0 }}>
+                  <span style={{ fontSize: '1.1rem' }}>📍</span> {t('itinerary.optimize_route')}
+                  <span style={{ background: 'var(--accent-primary)', color: '#FFF', fontSize: '0.65rem', padding: '1px 4px', borderRadius: '4px', marginLeft: '2px' }}>PRO</span>
+                </button>
+                {stops.some(s => s.time) && (
+                  <button
+                    onClick={onSortByTime}
+                    style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '5px', padding: 0 }}
+                  >
+                    <span style={{ fontSize: '1.1rem' }}>🕐</span> {t('itinerary.sort_by_time')}
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* "From hotel" hint — between days */}

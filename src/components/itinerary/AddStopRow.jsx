@@ -49,11 +49,12 @@ export default memo(function AddStopRow({ dayId, onAddStop, onAddNote, onAddList
   }, [clearSearch]);
 
   return (
+    <div style={{ position: 'relative', marginTop: '1rem' }}>
+      {inHotelStay && <HotelLine />}
     <div
       className="location-search-container"
-      style={{ position: 'relative', marginTop: '1rem', paddingLeft: '2.25rem', display: 'flex', gap: '0.5rem' }}
+      style={{ paddingLeft: '2.25rem', display: 'flex', gap: '0.5rem' }}
     >
-      {inHotelStay && <HotelLine />}
       <div style={{ flex: 1, position: 'relative' }}>
         <span style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)', fontSize: '1rem', pointerEvents: 'none' }}>
           📍
@@ -145,6 +146,7 @@ export default memo(function AddStopRow({ dayId, onAddStop, onAddNote, onAddList
           </button>
         </>
       )}
+    </div>
     </div>
   );
 })

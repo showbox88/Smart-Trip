@@ -535,20 +535,20 @@ export default memo(function StopCard({
               className="stop-chip editable"
               onClick={(e) => { e.stopPropagation(); onOpenStayInfo?.(dayId, stop.id); }}
               style={{
-                background: 'rgba(255, 255, 255, 0.05)',
-                color: 'white',
-                padding: '0.5rem 1rem',
-                borderRadius: '10px',
-                fontSize: '0.85rem',
-                fontWeight: 700,
+                background: 'rgba(139, 92, 246, 0.08)',
+                color: '#8b5cf6',
+                padding: '4px 10px',
+                borderRadius: '8px',
+                fontSize: '0.78rem',
+                fontWeight: 800,
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
+                gap: '6px',
+                border: '1px solid rgba(139, 92, 246, 0.25)',
                 cursor: 'pointer'
               }}
             >
-              <Bed size={16} strokeWidth={2.5} />
+              <Bed size={14} strokeWidth={2.5} />
               {t('itinerary.stay_info') || 'Stay Info'}
             </div>
           )}
