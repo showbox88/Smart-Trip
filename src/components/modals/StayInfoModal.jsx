@@ -105,11 +105,14 @@ function TimePicker({ value, onChange }) {
 }
 
 function PeriodToggle({ value, onChange }) {
+  const [hovered, setHovered] = useState(false);
   return (
     <button
       onClick={() => onChange(value === 'AM' ? 'PM' : 'AM')}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       style={{
-        background: 'var(--bg-secondary)',
+        background: hovered ? 'rgba(255,255,255,0.08)' : 'var(--bg-secondary)',
         border: '1px solid var(--glass-border)',
         borderRadius: '8px',
         color: 'var(--text-primary)',
@@ -118,15 +121,35 @@ function PeriodToggle({ value, onChange }) {
         padding: '0 0.75rem',
         cursor: 'pointer',
         whiteSpace: 'nowrap',
-        transition: 'background 0.15s, border-color 0.15s',
+        transition: 'background 0.15s',
         height: '100%',
         minWidth: '52px',
       }}
-      onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; }}
-      onMouseLeave={e => { e.currentTarget.style.background = 'var(--bg-secondary)'; }}
     >
       {value}
     </button>
+  );
+}
+
+function StaySection({ legend, date, onDateChange, time, onTimeChange, period, onPeriodChange, dayOptions }) {
+  return (
+    <fieldset style={FIELDSET_STYLE}>
+      <legend style={LEGEND_STYLE}>{legend}</legend>
+      <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+        <div style={{ flex: 1 }}>
+          <select value={date} onChange={e => onDateChange(e.target.value)} style={SELECT_STYLE}>
+            <option value="">--</option>
+            {dayOptions.map(d => <option key={d.id} value={d.label}>{d.label}</option>)}
+          </select>
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ display: 'flex', gap: '6px', height: '48px' }}>
+            <TimePicker value={time} onChange={onTimeChange} />
+            <PeriodToggle value={period} onChange={onPeriodChange} />
+          </div>
+        </div>
+      </div>
+    </fieldset>
   );
 }
 
@@ -186,43 +209,20 @@ export default function StayInfoModal({ trip, stopId, onSave, onClose }) {
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.1rem', lineHeight: 1, padding: '4px' }}>✕</button>
         </div>
 
-        {/* Check-in section */}
-        <fieldset style={FIELDSET_STYLE}>
-          <legend style={LEGEND_STYLE}>CHECK-IN</legend>
-          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-            <div style={{ flex: 1 }}>
-              <select value={cinDate} onChange={e => setCinDate(e.target.value)} style={SELECT_STYLE}>
-                <option value="">--</option>
-                {dayOptions.map(d => <option key={d.id} value={d.label}>{d.label}</option>)}
-              </select>
-            </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ display: 'flex', gap: '6px', height: '48px' }}>
-                <TimePicker value={cinTime} onChange={setCinTime} />
-                <PeriodToggle value={cinPeriod} onChange={setCinPeriod} />
-              </div>
-            </div>
-          </div>
-        </fieldset>
-
-        {/* Check-out section */}
-        <fieldset style={FIELDSET_STYLE}>
-          <legend style={LEGEND_STYLE}>CHECK-OUT</legend>
-          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-            <div style={{ flex: 1 }}>
-              <select value={coutDate} onChange={e => setCoutDate(e.target.value)} style={SELECT_STYLE}>
-                <option value="">--</option>
-                {dayOptions.map(d => <option key={d.id} value={d.label}>{d.label}</option>)}
-              </select>
-            </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ display: 'flex', gap: '6px', height: '48px' }}>
-                <TimePicker value={coutTime} onChange={setCoutTime} />
-                <PeriodToggle value={coutPeriod} onChange={setCoutPeriod} />
-              </div>
-            </div>
-          </div>
-        </fieldset>
+        <StaySection
+          legend="CHECK-IN"
+          date={cinDate} onDateChange={setCinDate}
+          time={cinTime} onTimeChange={setCinTime}
+          period={cinPeriod} onPeriodChange={setCinPeriod}
+          dayOptions={dayOptions}
+        />
+        <StaySection
+          legend="CHECK-OUT"
+          date={coutDate} onDateChange={setCoutDate}
+          time={coutTime} onTimeChange={setCoutTime}
+          period={coutPeriod} onPeriodChange={setCoutPeriod}
+          dayOptions={dayOptions}
+        />
 
         {/* Buttons */}
         <div style={{ display: 'flex', gap: '10px' }}>
