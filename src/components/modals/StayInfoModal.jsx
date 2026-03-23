@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useI18n } from '../../context/I18nContext';
 
 const pad = n => String(n).padStart(2, '0');
@@ -37,21 +37,35 @@ const LEGEND_STYLE = {
 // Scroll-wheel time picker: hover + scroll to change hours or minutes
 function TimePicker({ value, onChange }) {
   const [hoverPart, setHoverPart] = useState(null);
+  const hRef = useRef(null);
+  const mRef = useRef(null);
 
   const parts = value.split(':');
   const hours = parseInt(parts[0], 10) || 0;
   const minutes = parseInt(parts[1], 10) || 0;
 
-  const handleWheel = useCallback((e, part) => {
-    e.preventDefault();
-    const dir = e.deltaY > 0 ? -1 : 1;
-    if (part === 'h') {
+  // Use imperative addEventListener with passive:false so preventDefault works
+  useEffect(() => {
+    const onWheelH = e => {
+      e.preventDefault();
+      const dir = e.deltaY > 0 ? -1 : 1;
       const next = (hours + dir + 12) % 12 || 12;
       onChange(`${pad(next)}:${pad(minutes)}`);
-    } else {
+    };
+    const onWheelM = e => {
+      e.preventDefault();
+      const dir = e.deltaY > 0 ? -1 : 1;
       const next = (minutes + dir * 5 + 60) % 60;
       onChange(`${pad(hours)}:${pad(next)}`);
-    }
+    };
+    const h = hRef.current;
+    const m = mRef.current;
+    h?.addEventListener('wheel', onWheelH, { passive: false });
+    m?.addEventListener('wheel', onWheelM, { passive: false });
+    return () => {
+      h?.removeEventListener('wheel', onWheelH);
+      m?.removeEventListener('wheel', onWheelM);
+    };
   }, [hours, minutes, onChange]);
 
   const segStyle = (part) => ({
@@ -82,20 +96,20 @@ function TimePicker({ value, onChange }) {
       flex: 1,
     }}>
       <div
+        ref={hRef}
         style={segStyle('h')}
         onMouseEnter={() => setHoverPart('h')}
         onMouseLeave={() => setHoverPart(null)}
-        onWheel={e => handleWheel(e, 'h')}
         title="Scroll to change hours"
       >
         {pad(hours)}
       </div>
       <div style={{ display: 'flex', alignItems: 'center', opacity: 0.5, padding: '0 2px' }}>:</div>
       <div
+        ref={mRef}
         style={segStyle('m')}
         onMouseEnter={() => setHoverPart('m')}
         onMouseLeave={() => setHoverPart(null)}
-        onWheel={e => handleWheel(e, 'm')}
         title="Scroll to change minutes"
       >
         {pad(minutes)}
