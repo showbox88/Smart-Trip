@@ -210,7 +210,7 @@ export default memo(function DaySection({
     <div
       className="day-section"
       id={day.id}
-      style={{ marginBottom: '3rem', scrollMarginTop: '120px', position: 'relative' }}
+      style={{ marginBottom: '3rem', position: 'relative' }}
     >
       {/* Bridge amber hotel line for isBetween days: spans full day-section including both inter-day gaps */}
       {hotelContext.stay && hotelContext.isBetween && (

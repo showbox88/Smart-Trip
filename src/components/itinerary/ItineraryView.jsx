@@ -257,12 +257,17 @@ export default function ItineraryView({ tripId }) {
   const handleSidebarDayClick = useCallback((dayId) => {
     isManualScroll.current = true;
     if (manualScrollTimer.current) clearTimeout(manualScrollTimer.current);
-    
+
     setActiveDayIdLocal(dayId);
 
-    // Scroll to day
+    // Scroll within the overflow container so scroll-margin-top is respected correctly
+    const container = document.getElementById('itinerary-scroll-container');
     const el = document.getElementById(dayId);
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (container && el) {
+      const SCROLL_MARGIN = 24;
+      const targetTop = el.getBoundingClientRect().top - container.getBoundingClientRect().top + container.scrollTop - SCROLL_MARGIN;
+      container.scrollTo({ top: targetTop, behavior: 'smooth' });
+    }
 
     // Auto-expand this day and collapse others
     const newCollapsed = {};
