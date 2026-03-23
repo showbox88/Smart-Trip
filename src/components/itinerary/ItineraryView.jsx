@@ -273,7 +273,7 @@ export default function ItineraryView({ tripId }) {
         const container = document.getElementById('itinerary-scroll-container');
         const el = document.getElementById(dayId);
         if (container && el) {
-          const SCROLL_MARGIN = 24;
+          const SCROLL_MARGIN = 75;
           const targetTop = el.getBoundingClientRect().top - container.getBoundingClientRect().top + container.scrollTop - SCROLL_MARGIN;
           container.scrollTo({ top: targetTop, behavior: 'smooth' });
         }
