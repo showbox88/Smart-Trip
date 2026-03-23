@@ -1,7 +1,5 @@
 // Ported from js/utils.js — state dependency removed, settings passed as parameter
 
-export const pad = n => String(n).padStart(2, '0');
-
 export function formatDistance(meters, settings, t) {
   if (meters === undefined || meters === null) return '';
 
@@ -105,38 +103,6 @@ export function calculateDays(start, end) {
 }
 
 export function getTripStays(trip) {
-  if (!trip || !trip.days) return [];
-  const staysMap = new Map();
-
-  trip.days.forEach(day => {
-    day.stops.forEach(stop => {
-      if (stop.stayId) {
-        if (!staysMap.has(stop.stayId)) {
-          staysMap.set(stop.stayId, {
-            id: stop.stayId,
-            location: stop.location,
-            checkinDayId: null,
-            checkinTime: null,
-            checkinPeriod: null,
-            checkoutDayId: null,
-            checkoutTime: null,
-            checkoutPeriod: null,
-            hotelStop: stop,
-          });
-        }
-        const stay = staysMap.get(stop.stayId);
-        if (stop.type === 'hotel_checkin') {
-          stay.checkinDayId = day.id;
-          stay.checkinTime = stop.time;
-          stay.checkinPeriod = stop.period;
-        } else if (stop.type === 'hotel_checkout') {
-          stay.checkoutDayId = day.id;
-          stay.checkoutTime = stop.time;
-          stay.checkoutPeriod = stop.period;
-        }
-      }
-    });
-  });
-
-  return Array.from(staysMap.values()).filter(s => s.checkinDayId && s.checkoutDayId);
+  return getTripStaysFromHelper(trip);
 }
+import { getTripStays as getTripStaysFromHelper } from './stayHelpers';

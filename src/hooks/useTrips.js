@@ -1,7 +1,6 @@
 import { useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
-import { generateId } from '../utils/formatters';
 import { deleteFilesFromSupabase } from '../utils/uploadHelpers';
 
 export function useTrips() {

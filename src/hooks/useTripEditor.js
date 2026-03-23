@@ -5,29 +5,49 @@ import { useI18n } from '../context/I18nContext';
 import { getCategoryFromTypes } from '../utils/tripHelpers';
 import { supabase } from '../lib/supabase';
 import { fetchRouteDuration } from '../utils/transitHelpers';
-
-const DEFAULT_COLORS = ['#5b7a99', '#ef4444', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899'];
+import {
+  DEFAULT_DAY_COLORS,
+  buildStayGroups,
+  cloneTrip,
+  findDayById,
+  findStopAcrossTrip,
+  findStopById,
+  formatTripDate,
+  insertStopIntoDay,
+  sortStopsByTime,
+  syncTripEndDate,
+} from '../utils/tripEditorHelpers';
 
 async function getStreetViewThumbUrl(lat, lng, width = 320, height = 240) {
   try {
-    if (typeof google === 'undefined') return null;
-    const svc = new google.maps.StreetViewService();
+    const mapsApi = globalThis.google;
+    if (!mapsApi) return null;
+    const svc = new mapsApi.maps.StreetViewService();
     const result = await svc.getPanorama({ location: { lat: Number(lat), lng: Number(lng) }, radius: 100 });
     const pano = result?.data?.location?.pano;
     if (!pano) return null;
     const yaw = result?.data?.tiles?.centerHeading ?? 0;
     return `https://streetviewpixels-pa.googleapis.com/v1/thumbnail?panoid=${pano}&cb_client=search.gws-prod.gps&w=${width}&h=${height}&yaw=${yaw}&pitch=0&thumbfov=100`;
-  } catch (e) {
+  } catch {
     return null;
   }
 }
 
-function formatDate(startDate, dayIndex) {
-  if (!startDate) return '';
-  const d = new Date(startDate.replace(/-/g, '/'));
-  d.setDate(d.getDate() + dayIndex);
-  if (isNaN(d)) return '';
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+function extractCityFromAddressComponents(addressComponents) {
+  if (!addressComponents) return '';
+
+  const getCompData = (comp) => ({
+    names: comp.long_name || comp.longName || comp.nh || '',
+    types: comp.types || comp.mh || [],
+  });
+
+  const targetTypes = ['locality', 'ward', 'sublocality_level_1', 'administrative_area_level_2'];
+  for (const type of targetTypes) {
+    const found = addressComponents.find((comp) => getCompData(comp).types.includes(type));
+    if (found) return getCompData(found).names;
+  }
+
+  return '';
 }
 
 export function useTripEditor(tripId) {
@@ -36,87 +56,98 @@ export function useTripEditor(tripId) {
   const { t } = useI18n();
   const saveTimerRef = useRef(null);
 
-  const trip = state.trips.find(tr => tr.id === tripId) || null;
+  const trip = state.trips.find((tr) => tr.id === tripId) || null;
 
-  // Debounced save to Supabase
   const scheduleCloudSave = useCallback((updatedTrip) => {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => {
-      saveTrip(updatedTrip).catch(err => console.error('[useTripEditor] save failed:', err));
+      saveTrip(updatedTrip).catch((err) => console.error('[useTripEditor] save failed:', err));
     }, 1500);
   }, [saveTrip]);
 
-  // Helper: dispatch UPDATE_TRIP and schedule save
   const applyUpdate = useCallback((updatedTrip) => {
     dispatch({ type: 'UPDATE_TRIP', payload: updatedTrip });
     scheduleCloudSave(updatedTrip);
   }, [dispatch, scheduleCloudSave]);
 
-  const computeTransitData = useCallback(async (dayId, tripSnapshot) => {
-    if (!trip || typeof google === 'undefined' || !window.googleMapsReady) return;
+  const withTripUpdate = useCallback((updater) => {
+    if (!trip) return null;
+    const updated = cloneTrip(trip);
+    const result = updater(updated);
+    if (result === false) return null;
+    applyUpdate(updated);
+    return { updated, result };
+  }, [trip, applyUpdate]);
 
-    // Use provided snapshot if available (avoids stale closure after applyUpdate)
-    // otherwise fall back to state.trips
-    const currentTrip = tripSnapshot || state.trips.find(tr => tr.id === tripId);
+  const computeTransitData = useCallback(async (dayId, tripSnapshot) => {
+    const mapsApi = globalThis.google;
+    if (!trip || !mapsApi || !window.googleMapsReady) return;
+
+    const currentTrip = tripSnapshot || state.trips.find((tr) => tr.id === tripId);
     if (!currentTrip) return;
 
-    const updated = JSON.parse(JSON.stringify(currentTrip));
-    const day = updated.days.find(d => d.id === dayId);
+    const updated = cloneTrip(currentTrip);
+    const day = findDayById(updated, dayId);
     if (!day) return;
 
-    const locationStops = day.stops.filter(s =>
-      ['location', 'hotel_checkin', 'hotel_checkout'].includes(s.type || 'location') &&
-      s.lat && s.lng
+    const locationStops = day.stops.filter((stop) =>
+      ['location', 'hotel_checkin', 'hotel_checkout'].includes(stop.type || 'location') &&
+      stop.lat && stop.lng
     );
 
     if (locationStops.length < 2) {
-      const hasTransit = locationStops.some(s => s.transitToNext);
+      const hasTransit = locationStops.some((stop) => stop.transitToNext);
       if (hasTransit) {
-        locationStops.forEach(s => s.transitToNext = null);
+        locationStops.forEach((stop) => {
+          stop.transitToNext = null;
+        });
         applyUpdate(updated);
       }
       return;
     }
 
     let changed = false;
-    for (let i = 0; i < locationStops.length - 1; i++) {
+    for (let i = 0; i < locationStops.length - 1; i += 1) {
       const stop = locationStops[i];
       const next = locationStops[i + 1];
-      
       const res = await fetchRouteDuration(
         { lat: Number(stop.lat), lng: Number(stop.lng) },
         { lat: Number(next.lat), lng: Number(next.lng) },
         stop.transitMode || 'DRIVE'
       );
-      
-      if (!res && !stop.transitToNext || (res && stop.transitToNext && res.duration === stop.transitToNext.duration && res.distance === stop.transitToNext.distance)) {
-        // no change
-      } else {
-        stop.transitToNext = res;
-        changed = true;
+
+      if (!res && !stop.transitToNext) {
+        continue;
       }
+
+      if (
+        res &&
+        stop.transitToNext &&
+        res.duration === stop.transitToNext.duration &&
+        res.distance === stop.transitToNext.distance
+      ) {
+        continue;
+      }
+
+      stop.transitToNext = res;
+      changed = true;
     }
-    
+
     if (locationStops[locationStops.length - 1].transitToNext !== null) {
       locationStops[locationStops.length - 1].transitToNext = null;
       changed = true;
     }
 
-    // Compute hotel ↔ day transit for "from/to hotel" hints
-    // Find any active stay for this day (checkin ≤ dayIdx ≤ checkout, cross-day)
-    const allStops = updated.days.flatMap(d => d.stops.map(s => ({ ...s, _dayId: d.id })));
-    const staysMap = new Map();
-    allStops.forEach(s => {
-      if (!s.stayId) return;
-      if (!staysMap.has(s.stayId)) staysMap.set(s.stayId, { checkinStop: null, checkoutStop: null });
-      const stay = staysMap.get(s.stayId);
-      if (s.type === 'hotel_checkin') stay.checkinStop = s;
-      if (s.type === 'hotel_checkout') stay.checkoutStop = s;
-    });
-    const dayIdxMap = new Map(updated.days.map((d, i) => [d.id, i]));
-    const dIdx = dayIdxMap.get(day.id);
-    const plainStops = day.stops.filter(s =>
-      s.type !== 'hotel_checkin' && s.type !== 'hotel_checkout' && s.type !== 'note' && s.type !== 'list' && s.lat && s.lng
+    const staysMap = buildStayGroups(updated);
+    const dayIdxMap = new Map(updated.days.map((item, index) => [item.id, index]));
+    const dayIndex = dayIdxMap.get(day.id);
+    const plainStops = day.stops.filter((stop) =>
+      stop.type !== 'hotel_checkin' &&
+      stop.type !== 'hotel_checkout' &&
+      stop.type !== 'note' &&
+      stop.type !== 'list' &&
+      stop.lat &&
+      stop.lng
     );
     const firstPlain = plainStops[0];
     const lastPlain = plainStops[plainStops.length - 1];
@@ -124,249 +155,228 @@ export function useTripEditor(tripId) {
     for (const [, stay] of staysMap) {
       const { checkinStop, checkoutStop } = stay;
       if (!checkinStop || !checkoutStop) continue;
+
       const cinIdx = dayIdxMap.get(checkinStop._dayId);
       const coutIdx = dayIdxMap.get(checkoutStop._dayId);
-      if (dIdx === undefined || cinIdx === undefined || coutIdx === undefined) continue;
-      if (dIdx < cinIdx || dIdx > coutIdx) continue;
+      if (dayIndex === undefined || cinIdx === undefined || coutIdx === undefined) continue;
+      if (dayIndex < cinIdx || dayIndex > coutIdx) continue;
 
-      // "from hotel": checkin stop → first plain stop of this day (if checkin is on a different day)
       if (firstPlain && checkinStop._dayId !== day.id && checkinStop.lat && checkinStop.lng) {
         const res = await fetchRouteDuration(
           { lat: Number(checkinStop.lat), lng: Number(checkinStop.lng) },
           { lat: Number(firstPlain.lat), lng: Number(firstPlain.lng) },
           'DRIVE'
         );
-        const target = day.stops.find(s => s.id === firstPlain.id);
+        const target = findStopById(day, firstPlain.id);
         if (target && JSON.stringify(target.transitFromHotel) !== JSON.stringify(res)) {
           target.transitFromHotel = res;
           changed = true;
         }
       } else if (firstPlain) {
-        // Checkin is on same day — clear transitFromHotel if set
-        const target = day.stops.find(s => s.id === firstPlain.id);
-        if (target && target.transitFromHotel) { target.transitFromHotel = null; changed = true; }
+        const target = findStopById(day, firstPlain.id);
+        if (target && target.transitFromHotel) {
+          target.transitFromHotel = null;
+          changed = true;
+        }
       }
 
-      // "to hotel": last plain stop of this day → checkout stop (if checkout is on a different day)
       if (lastPlain && checkoutStop._dayId !== day.id && checkoutStop.lat && checkoutStop.lng) {
         const res = await fetchRouteDuration(
           { lat: Number(lastPlain.lat), lng: Number(lastPlain.lng) },
           { lat: Number(checkoutStop.lat), lng: Number(checkoutStop.lng) },
           'DRIVE'
         );
-        const target = day.stops.find(s => s.id === lastPlain.id);
+        const target = findStopById(day, lastPlain.id);
         if (target && JSON.stringify(target.transitToHotel) !== JSON.stringify(res)) {
           target.transitToHotel = res;
           changed = true;
         }
       } else if (lastPlain) {
-        const target = day.stops.find(s => s.id === lastPlain.id);
-        if (target && target.transitToHotel) { target.transitToHotel = null; changed = true; }
+        const target = findStopById(day, lastPlain.id);
+        if (target && target.transitToHotel) {
+          target.transitToHotel = null;
+          changed = true;
+        }
       }
     }
 
-    if (changed) {
-      applyUpdate(updated);
-    }
-  }, [tripId, state.trips, applyUpdate, trip]);
+    if (changed) applyUpdate(updated);
+  }, [trip, state.trips, tripId, applyUpdate]);
 
   const toggleTransitMode = useCallback(async (dayId, stopId) => {
-    if (!trip) return;
-    const updated = JSON.parse(JSON.stringify(trip));
-    const day = updated.days.find(d => d.id === dayId);
-    if (!day) return;
+    const updateResult = withTripUpdate((updated) => {
+      const day = findDayById(updated, dayId);
+      const stop = findStopById(day, stopId);
+      if (!stop) return false;
+      stop.transitMode = stop.transitMode === 'WALK' ? 'DRIVE' : 'WALK';
+      return updated;
+    });
 
-    const stop = day.stops.find(s => s.id === stopId);
-    if (stop) {
-      stop.transitMode = (stop.transitMode === 'WALK' ? 'DRIVE' : 'WALK');
-      applyUpdate(updated);
-      await computeTransitData(dayId, updated);
+    if (updateResult?.updated) {
+      await computeTransitData(dayId, updateResult.updated);
     }
-  }, [trip, applyUpdate, computeTransitData]);
+  }, [withTripUpdate, computeTransitData]);
 
-  // Toggle transit mode for hotel → first stop ('from') or last stop → hotel ('to')
   const toggleHotelTransitMode = useCallback(async (dayId, stopId, direction) => {
-    if (!trip) return;
-    const updated = JSON.parse(JSON.stringify(trip));
-    const day = updated.days.find(d => d.id === dayId);
-    if (!day) return;
-    const stop = day.stops.find(s => s.id === stopId);
-    if (!stop) return;
-    if (direction === 'from') {
-      stop.transitModeFromHotel = (stop.transitModeFromHotel === 'WALK' ? 'DRIVE' : 'WALK');
-    } else {
-      stop.transitModeToHotel = (stop.transitModeToHotel === 'WALK' ? 'DRIVE' : 'WALK');
+    const updateResult = withTripUpdate((updated) => {
+      const day = findDayById(updated, dayId);
+      const stop = findStopById(day, stopId);
+      if (!stop) return false;
+      if (direction === 'from') {
+        stop.transitModeFromHotel = stop.transitModeFromHotel === 'WALK' ? 'DRIVE' : 'WALK';
+      } else {
+        stop.transitModeToHotel = stop.transitModeToHotel === 'WALK' ? 'DRIVE' : 'WALK';
+      }
+      return updated;
+    });
+
+    if (updateResult?.updated) {
+      await computeTransitData(dayId, updateResult.updated);
     }
-    applyUpdate(updated);
-    await computeTransitData(dayId, updated);
-  }, [trip, applyUpdate, computeTransitData]);
+  }, [withTripUpdate, computeTransitData]);
 
   const addDay = useCallback(() => {
-    if (!trip) return;
-    const updated = JSON.parse(JSON.stringify(trip)); // deep clone
+    const updateResult = withTripUpdate((updated) => {
+      const newDayNum = updated.days.length + 1;
+      const newDayId = `day-${Date.now()}`;
 
-    // Extend endDate
-    if (updated.startDate) {
-      const newEnd = new Date(updated.startDate.replace(/-/g, '/'));
-      newEnd.setDate(newEnd.getDate() + updated.days.length);
-      if (!isNaN(newEnd)) {
-        updated.endDate = `${newEnd.getFullYear()}-${String(newEnd.getMonth() + 1).padStart(2, '0')}-${String(newEnd.getDate()).padStart(2, '0')}`;
+      if (updated.startDate) {
+        const newEnd = new Date(updated.startDate.replace(/-/g, '/'));
+        newEnd.setDate(newEnd.getDate() + updated.days.length);
+        if (!isNaN(newEnd)) {
+          updated.endDate = `${newEnd.getFullYear()}-${String(newEnd.getMonth() + 1).padStart(2, '0')}-${String(newEnd.getDate()).padStart(2, '0')}`;
+        }
       }
-    }
 
-    const newDayNum = updated.days.length + 1;
-    const newDayId = `day-${Date.now()}`;
-    const newColor = DEFAULT_COLORS[(newDayNum - 1) % DEFAULT_COLORS.length];
-    const dateStr = updated.startDate ? formatDate(updated.startDate, updated.days.length) : t('itinerary.unknown_date');
-
-    updated.days.push({
-      id: newDayId,
-      title: `${t('itinerary.day_label')}${newDayNum}`,
-      date: dateStr,
-      stops: [],
-      color: newColor,
+      updated.days.push({
+        id: newDayId,
+        title: `${t('itinerary.day_label')}${newDayNum}`,
+        date: updated.startDate ? formatTripDate(updated.startDate, updated.days.length) : t('itinerary.unknown_date'),
+        stops: [],
+        color: DEFAULT_DAY_COLORS[(newDayNum - 1) % DEFAULT_DAY_COLORS.length],
+      });
+      updated.activeDayId = newDayId;
+      return newDayId;
     });
-    updated.activeDayId = newDayId;
 
-    applyUpdate(updated);
-    return newDayId;
-  }, [trip, t, applyUpdate]);
+    return updateResult?.result || null;
+  }, [withTripUpdate, t]);
 
   const deleteDay = useCallback((dayId) => {
-    if (!trip) return;
-    const updated = JSON.parse(JSON.stringify(trip));
-    const day = updated.days.find(d => d.id === dayId);
-    if (!day) return;
-    day.stops = [];
-    applyUpdate(updated);
-  }, [trip, applyUpdate]);
+    withTripUpdate((updated) => {
+      const day = findDayById(updated, dayId);
+      if (!day) return false;
+      day.stops = [];
+      return updated;
+    });
+  }, [withTripUpdate]);
 
   const removeDay = useCallback((dayId) => {
-    if (!trip) return;
-    const updated = JSON.parse(JSON.stringify(trip));
-    updated.days = updated.days.filter(d => d.id !== dayId);
-    if (updated.activeDayId === dayId) {
-      updated.activeDayId = updated.days[updated.days.length - 1]?.id || null;
-    }
-    // Sync endDate to match new days count
-    if (updated.startDate && updated.days.length > 0) {
-      const end = new Date(updated.startDate.replace(/-/g, '/'));
-      end.setDate(end.getDate() + updated.days.length - 1);
-      if (!isNaN(end)) {
-        updated.endDate = `${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2, '0')}-${String(end.getDate()).padStart(2, '0')}`;
+    withTripUpdate((updated) => {
+      updated.days = updated.days.filter((day) => day.id !== dayId);
+      if (updated.activeDayId === dayId) {
+        updated.activeDayId = updated.days[updated.days.length - 1]?.id || null;
       }
-    }
-    applyUpdate(updated);
-  }, [trip, applyUpdate]);
+      syncTripEndDate(updated);
+      return updated;
+    });
+  }, [withTripUpdate]);
 
   const setDayColor = useCallback((dayId, color) => {
-    if (!trip) return;
-    const updated = JSON.parse(JSON.stringify(trip));
-    const day = updated.days.find(d => d.id === dayId);
-    if (day) {
+    withTripUpdate((updated) => {
+      const day = findDayById(updated, dayId);
+      if (!day) return false;
       day.color = color;
-      applyUpdate(updated);
-    }
-  }, [trip, applyUpdate]);
+      return updated;
+    });
+  }, [withTripUpdate]);
 
   const updateDay = useCallback((dayId, patch) => {
-    if (!trip) return;
-    const updated = JSON.parse(JSON.stringify(trip));
-    const day = updated.days.find(d => d.id === dayId);
-    if (day) {
+    withTripUpdate((updated) => {
+      const day = findDayById(updated, dayId);
+      if (!day) return false;
       Object.assign(day, patch);
-      applyUpdate(updated);
-    }
-  }, [trip, applyUpdate]);
+      return updated;
+    });
+  }, [withTripUpdate]);
 
   const deleteStop = useCallback((dayId, stopId) => {
-    if (!trip) return;
-    const updated = JSON.parse(JSON.stringify(trip));
-    const day = updated.days.find(d => d.id === dayId);
-    if (!day) return;
+    const updateResult = withTripUpdate((updated) => {
+      const day = findDayById(updated, dayId);
+      if (!day) return false;
 
-    const stop = day.stops.find(s => s.id === stopId);
-    if (stop?.stayId) {
-      const stayId = stop.stayId;
-      updated.days.forEach(d => {
-        d.stops = d.stops.filter(s => s.stayId !== stayId);
-      });
-    } else {
-      day.stops = day.stops.filter(s => s.id !== stopId);
+      const stop = findStopById(day, stopId);
+      if (stop?.stayId) {
+        updated.days.forEach((tripDay) => {
+          tripDay.stops = tripDay.stops.filter((item) => item.stayId !== stop.stayId);
+        });
+      } else {
+        day.stops = day.stops.filter((item) => item.id !== stopId);
+      }
+
+      return updated;
+    });
+
+    if (updateResult?.updated) {
+      computeTransitData(dayId, updateResult.updated);
     }
-    applyUpdate(updated);
-    computeTransitData(dayId, updated);
-  }, [trip, applyUpdate, computeTransitData]);
+  }, [withTripUpdate, computeTransitData]);
 
   const updateStop = useCallback((dayId, stopId, patch) => {
-    if (!trip) return;
-    const updated = JSON.parse(JSON.stringify(trip));
-    const day = updated.days.find(d => d.id === dayId);
-    if (!day) return;
-    const stop = day.stops.find(s => s.id === stopId);
-    if (stop) {
+    withTripUpdate((updated) => {
+      const day = findDayById(updated, dayId);
+      const stop = findStopById(day, stopId);
+      if (!stop) return false;
       Object.assign(stop, patch);
-      applyUpdate(updated);
-    }
-  }, [trip, applyUpdate]);
+      return updated;
+    });
+  }, [withTripUpdate]);
 
-  const timeToMinutes = (time, period) => {
-    if (!time) return Infinity;
-    let [hh, mm] = time.split(':').map(Number);
-    if (period === 'PM' && hh !== 12) hh += 12;
-    if (period === 'AM' && hh === 12) hh = 0;
-    return hh * 60 + (mm || 0);
-  };
-
-  // Update stop time and re-sort the day by time in one atomic operation
   const updateStopAndSort = useCallback((dayId, stopId, patch) => {
-    if (!trip) return;
-    const updated = JSON.parse(JSON.stringify(trip));
-    const day = updated.days.find(d => d.id === dayId);
-    if (!day) return;
-    const stop = day.stops.find(s => s.id === stopId);
-    if (stop) Object.assign(stop, patch);
-    day.stops.sort((a, b) => timeToMinutes(a.time, a.period) - timeToMinutes(b.time, b.period));
-    applyUpdate(updated);
-    computeTransitData(dayId, updated);
-  }, [trip, applyUpdate, computeTransitData]);
+    const updateResult = withTripUpdate((updated) => {
+      const day = findDayById(updated, dayId);
+      const stop = findStopById(day, stopId);
+      if (!day || !stop) return false;
+      Object.assign(stop, patch);
+      sortStopsByTime(day.stops);
+      return updated;
+    });
 
-  // Manually sort all stops in a day by scheduled time
-  const sortDayByTime = useCallback((dayId) => {
-    if (!trip) return;
-    const updated = JSON.parse(JSON.stringify(trip));
-    const day = updated.days.find(d => d.id === dayId);
-    if (!day) return;
-    day.stops.sort((a, b) => timeToMinutes(a.time, a.period) - timeToMinutes(b.time, b.period));
-    applyUpdate(updated);
-    computeTransitData(dayId, updated);
-  }, [trip, applyUpdate, computeTransitData]);
-
-  // Shared helper: insert a new stop into a day at the right position
-  const insertStop = useCallback((dayId, newStop, afterStopId = null) => {
-    if (!trip) return;
-    const updated = JSON.parse(JSON.stringify(trip));
-    const day = updated.days.find(d => d.id === dayId);
-    if (!day) return;
-
-    if (afterStopId === '__prepend__') {
-      day.stops.unshift(newStop);
-    } else if (afterStopId) {
-      const idx = day.stops.findIndex(s => s.id === afterStopId);
-      day.stops.splice(idx >= 0 ? idx + 1 : day.stops.length, 0, newStop);
-    } else {
-      day.stops.push(newStop);
+    if (updateResult?.updated) {
+      computeTransitData(dayId, updateResult.updated);
     }
-    applyUpdate(updated);
-    return newStop.id;
-  }, [trip, applyUpdate]);
+  }, [withTripUpdate, computeTransitData]);
+
+  const sortDayByTime = useCallback((dayId) => {
+    const updateResult = withTripUpdate((updated) => {
+      const day = findDayById(updated, dayId);
+      if (!day) return false;
+      sortStopsByTime(day.stops);
+      return updated;
+    });
+
+    if (updateResult?.updated) {
+      computeTransitData(dayId, updateResult.updated);
+    }
+  }, [withTripUpdate, computeTransitData]);
+
+  const insertStop = useCallback((dayId, newStop, afterStopId = null) => {
+    const updateResult = withTripUpdate((updated) => {
+      const day = findDayById(updated, dayId);
+      if (!day) return false;
+      insertStopIntoDay(day, newStop, afterStopId);
+      return newStop.id;
+    });
+
+    return updateResult?.result || null;
+  }, [withTripUpdate]);
 
   const addNote = useCallback((dayId, afterStopId = null) => {
-    return insertStop(dayId, { id: 'n' + Date.now(), type: 'note', content: '', checked: false }, afterStopId);
+    return insertStop(dayId, { id: `n${Date.now()}`, type: 'note', content: '', checked: false }, afterStopId);
   }, [insertStop]);
 
   const addList = useCallback((dayId, afterStopId = null) => {
-    return insertStop(dayId, { id: 'l' + Date.now(), type: 'list', title: '', items: [{ text: '', checked: false }] }, afterStopId);
+    return insertStop(dayId, { id: `l${Date.now()}`, type: 'list', title: '', items: [{ text: '', checked: false }] }, afterStopId);
   }, [insertStop]);
 
   const updateNoteContent = useCallback((dayId, stopId, content) => {
@@ -378,120 +388,96 @@ export function useTripEditor(tripId) {
   }, [updateStop]);
 
   const updateListItem = useCallback((dayId, stopId, index, text) => {
-    if (!trip) return;
-    const updated = JSON.parse(JSON.stringify(trip));
-    const day = updated.days.find(d => d.id === dayId);
-    const stop = day?.stops.find(s => s.id === stopId);
-    if (stop?.items?.[index] !== undefined) {
+    withTripUpdate((updated) => {
+      const day = findDayById(updated, dayId);
+      const stop = findStopById(day, stopId);
+      if (stop?.items?.[index] === undefined) return false;
       stop.items[index].text = text;
-      applyUpdate(updated);
-    }
-  }, [trip, applyUpdate]);
+      return updated;
+    });
+  }, [withTripUpdate]);
 
   const toggleListItem = useCallback((dayId, stopId, index) => {
-    if (!trip) return;
-    const updated = JSON.parse(JSON.stringify(trip));
-    const day = updated.days.find(d => d.id === dayId);
-    const stop = day?.stops.find(s => s.id === stopId);
-    if (stop?.items?.[index] !== undefined) {
+    withTripUpdate((updated) => {
+      const day = findDayById(updated, dayId);
+      const stop = findStopById(day, stopId);
+      if (stop?.items?.[index] === undefined) return false;
       stop.items[index].checked = !stop.items[index].checked;
-      applyUpdate(updated);
-    }
-  }, [trip, applyUpdate]);
+      return updated;
+    });
+  }, [withTripUpdate]);
 
   const addListItem = useCallback((dayId, stopId, afterIndex) => {
-    if (!trip) return;
-    const updated = JSON.parse(JSON.stringify(trip));
-    const day = updated.days.find(d => d.id === dayId);
-    const stop = day?.stops.find(s => s.id === stopId);
-    if (stop) {
+    withTripUpdate((updated) => {
+      const day = findDayById(updated, dayId);
+      const stop = findStopById(day, stopId);
+      if (!stop) return false;
       stop.items = stop.items || [];
       const insertIdx = afterIndex !== undefined ? afterIndex + 1 : stop.items.length;
       stop.items.splice(insertIdx, 0, { text: '', checked: false });
-      applyUpdate(updated);
-    }
-  }, [trip, applyUpdate]);
+      return updated;
+    });
+  }, [withTripUpdate]);
 
   const deleteListItem = useCallback((dayId, stopId, index) => {
-    if (!trip) return;
-    const updated = JSON.parse(JSON.stringify(trip));
-    const day = updated.days.find(d => d.id === dayId);
-    const stop = day?.stops.find(s => s.id === stopId);
-    if (stop?.items?.[index] !== undefined) {
+    withTripUpdate((updated) => {
+      const day = findDayById(updated, dayId);
+      const stop = findStopById(day, stopId);
+      if (stop?.items?.[index] === undefined) return false;
       stop.items.splice(index, 1);
-      applyUpdate(updated);
-    }
-  }, [trip, applyUpdate]);
+      return updated;
+    });
+  }, [withTripUpdate]);
 
   const addStopFromPlace = useCallback(async (dayId, placeId, afterStopId = null) => {
-    if (!trip || typeof google === 'undefined' || !window.googleMapsReady) {
+    const mapsApi = globalThis.google;
+    if (!trip || !mapsApi || !window.googleMapsReady) {
       console.warn('[addStopFromPlace] Google Maps not ready');
-      return;
+      return null;
     }
+
     try {
-      const { Place } = await google.maps.importLibrary('places');
+      const { Place } = await mapsApi.maps.importLibrary('places');
       const place = new Place({ id: placeId });
       await place.fetchFields({
         fields: ['displayName', 'formattedAddress', 'addressComponents', 'nationalPhoneNumber', 'location', 'photos', 'rating', 'editorialSummary', 'types', 'regularOpeningHours'],
       });
 
-      const updated = JSON.parse(JSON.stringify(trip));
-      const day = updated.days.find(d => d.id === dayId);
-      if (!day) return;
-
-      if (day.stops.some(s => s.placeId === placeId)) return;
+      const updated = cloneTrip(trip);
+      const day = findDayById(updated, dayId);
+      if (!day) return null;
+      if (day.stops.some((stop) => stop.placeId === placeId)) return null;
 
       let timeStr = '09:00';
       let period = 'AM';
-      const locationStops = day.stops.filter(s => s.type === 'location' || !s.type);
+      const locationStops = day.stops.filter((stop) => stop.type === 'location' || !stop.type);
       if (locationStops.length > 0) {
         const last = locationStops[locationStops.length - 1];
         if (last.time) {
-          let [h, m] = last.time.split(':').map(Number);
+          let [h] = last.time.split(':').map(Number);
           if (last.period === 'PM' && h !== 12) h += 12;
           if (last.period === 'AM' && h === 12) h = 0;
           h = (h + 2) % 24;
           period = h >= 12 ? 'PM' : 'AM';
           const displayH = h % 12 || 12;
-          timeStr = `${String(displayH).padStart(2, '0')}:${(last.time.split(':')[1] || '00')}`;
+          timeStr = `${String(displayH).padStart(2, '0')}:${last.time.split(':')[1] || '00'}`;
         }
       }
 
       const lat = place.location?.lat() || 0;
       const lng = place.location?.lng() || 0;
       let photoUrl = place.photos?.length > 0 ? place.photos[0].getURI({ maxWidth: 400 }) : '';
-
       if (!photoUrl && lat && lng) {
         photoUrl = (await getStreetViewThumbUrl(lat, lng, 320, 240)) || '';
       }
 
       const categoryInfo = getCategoryFromTypes(place.types || []);
-
-      // 提取城市信息
-      let city = '';
-      if (place.addressComponents) {
-        const getCompData = (comp) => {
-          const names = comp.long_name || comp.longName || comp.nh || '';
-          const types = comp.types || comp.mh || [];
-          return { names, types };
-        };
-
-        const targetTypes = ['locality', 'ward', 'sublocality_level_1', 'administrative_area_level_2'];
-        for (const type of targetTypes) {
-           const found = place.addressComponents.find(c => getCompData(c).types.includes(type));
-           if (found) {
-             city = getCompData(found).names;
-             break;
-           }
-        }
-      }
-
       const newStop = {
-        id: 's' + Date.now(),
+        id: `s${Date.now()}`,
         location: place.displayName,
         desc: place.editorialSummary || '',
         address: place.formattedAddress || '',
-        city: city,
+        city: extractCityFromAddressComponents(place.addressComponents),
         phone: place.nationalPhoneNumber || '',
         time: timeStr,
         period,
@@ -509,24 +495,8 @@ export function useTripEditor(tripId) {
         openingHours: place.regularOpeningHours?.weekdayDescriptions || [],
       };
 
-      if (afterStopId === '__prepend__') {
-        day.stops.unshift(newStop);
-      } else if (afterStopId) {
-        const idx = day.stops.findIndex(s => s.id === afterStopId);
-        day.stops.splice(idx >= 0 ? idx + 1 : day.stops.length, 0, newStop);
-      } else {
-        day.stops.push(newStop);
-        day.stops.sort((a, b) => {
-          const toMin = (time, p) => {
-            if (!time) return 0;
-            let [hh, mm] = time.split(':').map(Number);
-            if (p === 'PM' && hh !== 12) hh += 12;
-            if (p === 'AM' && hh === 12) hh = 0;
-            return hh * 60 + mm;
-          };
-          return toMin(a.time, a.period) - toMin(b.time, b.period);
-        });
-      }
+      insertStopIntoDay(day, newStop, afterStopId);
+      if (!afterStopId) sortStopsByTime(day.stops);
 
       applyUpdate(updated);
       await computeTransitData(dayId, updated);
@@ -542,9 +512,9 @@ export function useTripEditor(tripId) {
             if (uploadData) {
               const { data: urlData } = supabase.storage.from('trip-media').getPublicUrl(filename);
               if (urlData?.publicUrl) {
-                const latestTrip = JSON.parse(JSON.stringify(state.trips.find(tr => tr.id === tripId)));
-                const latestDay = latestTrip?.days.find(d => d.id === dayId);
-                const latestStop = latestDay?.stops.find(s => s.id === newStop.id);
+                const latestTrip = cloneTrip(state.trips.find((tr) => tr.id === tripId));
+                const latestDay = findDayById(latestTrip, dayId);
+                const latestStop = findStopById(latestDay, newStop.id);
                 if (latestStop) {
                   latestStop.photo = urlData.publicUrl;
                   applyUpdate(latestTrip);
@@ -556,126 +526,111 @@ export function useTripEditor(tripId) {
           console.warn('[addStopFromPlace] photo cache failed:', e);
         }
       }
+
       return newStop.id;
     } catch (err) {
       console.error('[addStopFromPlace] failed:', err);
       throw err;
     }
-  }, [trip, tripId, state.trips, applyUpdate, computeTransitData]);
+  }, [trip, state.trips, tripId, applyUpdate, computeTransitData]);
 
   const moveStop = useCallback((sourceDayId, stopId, targetDayId, afterStopId) => {
-    if (!trip) return;
-    const updated = JSON.parse(JSON.stringify(trip));
-    const srcDay = updated.days.find(d => d.id === sourceDayId);
-    const tgtDay = updated.days.find(d => d.id === targetDayId);
-    if (!srcDay || !tgtDay) return;
+    const updateResult = withTripUpdate((updated) => {
+      const srcDay = findDayById(updated, sourceDayId);
+      const tgtDay = findDayById(updated, targetDayId);
+      if (!srcDay || !tgtDay) return false;
 
-    const stopIdx = srcDay.stops.findIndex(s => s.id === stopId);
-    if (stopIdx === -1) return;
-    const [stop] = srcDay.stops.splice(stopIdx, 1);
+      const stopIdx = srcDay.stops.findIndex((stop) => stop.id === stopId);
+      if (stopIdx === -1) return false;
 
-    if (afterStopId == null) {
-      tgtDay.stops.unshift(stop);
-    } else {
-      const afterIdx = tgtDay.stops.findIndex(s => s.id === afterStopId);
-      tgtDay.stops.splice(afterIdx + 1, 0, stop);
+      const [stop] = srcDay.stops.splice(stopIdx, 1);
+      if (afterStopId == null) {
+        tgtDay.stops.unshift(stop);
+      } else {
+        const afterIdx = tgtDay.stops.findIndex((item) => item.id === afterStopId);
+        tgtDay.stops.splice(afterIdx + 1, 0, stop);
+      }
+
+      return updated;
+    });
+
+    if (updateResult?.updated) {
+      computeTransitData(sourceDayId, updateResult.updated);
+      if (sourceDayId !== targetDayId) computeTransitData(targetDayId, updateResult.updated);
     }
-    applyUpdate(updated);
-
-    computeTransitData(sourceDayId, updated);
-    if (sourceDayId !== targetDayId) {
-      computeTransitData(targetDayId, updated);
-    }
-  }, [trip, applyUpdate, computeTransitData]);
+  }, [withTripUpdate, computeTransitData]);
 
   const moveDay = useCallback((dayId, afterDayId) => {
-    if (!trip) return;
-    const updated = JSON.parse(JSON.stringify(trip));
+    withTripUpdate((updated) => {
+      const dates = updated.days.map((day) => day.date);
+      const fromIdx = updated.days.findIndex((day) => day.id === dayId);
+      if (fromIdx === -1) return false;
 
-    // Keep calendar dates fixed — save them before reordering
-    const dates = updated.days.map(d => d.date);
+      const [day] = updated.days.splice(fromIdx, 1);
+      if (afterDayId == null) {
+        updated.days.unshift(day);
+      } else {
+        const afterIdx = updated.days.findIndex((item) => item.id === afterDayId);
+        updated.days.splice(afterIdx + 1, 0, day);
+      }
 
-    const fromIdx = updated.days.findIndex(d => d.id === dayId);
-    if (fromIdx === -1) return;
-    const [day] = updated.days.splice(fromIdx, 1);
-
-    if (afterDayId == null) {
-      updated.days.unshift(day);
-    } else {
-      const afterIdx = updated.days.findIndex(d => d.id === afterDayId);
-      updated.days.splice(afterIdx + 1, 0, day);
-    }
-
-    // Reassign dates so calendar positions stay stable
-    updated.days.forEach((d, i) => {
-      if (dates[i] !== undefined) d.date = dates[i];
+      updated.days.forEach((item, index) => {
+        if (dates[index] !== undefined) item.date = dates[index];
+      });
+      return updated;
     });
-
-    applyUpdate(updated);
-  }, [trip, applyUpdate]);
+  }, [withTripUpdate]);
 
   const updateTripMetadata = useCallback((patch) => {
-    if (!trip) return;
-    const updated = { ...trip, ...patch };
-    applyUpdate(updated);
-  }, [trip, applyUpdate]);
+    withTripUpdate((updated) => Object.assign(updated, patch));
+  }, [withTripUpdate]);
 
-  // Save hotel stay info: converts the accommodation stop into hotel_checkin,
-  // creates/updates hotel_checkout on the target day.
   const saveStayInfo = useCallback((dayId, stopId, { cinDate, cinTime, cinPeriod, coutDate, coutTime, coutPeriod }) => {
-    if (!trip) return;
-    const updated = JSON.parse(JSON.stringify(trip));
+    const updateResult = withTripUpdate((updated) => {
+      const { day: origDay, stop } = findStopAcrossTrip(updated, stopId);
+      if (!origDay || !stop) return false;
 
-    // Find original stop
-    let origDay = null, stop = null;
-    for (const d of updated.days) {
-      const s = d.stops.find(st => st.id === stopId);
-      if (s) { origDay = d; stop = s; break; }
-    }
-    if (!stop) return;
+      const stayId = stop.stayId || `stay-${Date.now()}`;
+      updated.days.forEach((day) => {
+        day.stops = day.stops.filter((item) => !(item.stayId === stayId && item.type === 'hotel_checkout'));
+      });
 
-    const stayId = stop.stayId || ('stay-' + Date.now());
+      const cinDay = updated.days.find((day) => day.date === cinDate);
+      const coutDay = updated.days.find((day) => day.date === coutDate);
+      if (!cinDay || !coutDay) {
+        alert('鎵€閫夋棩鏈熶笉鍦ㄨ绋嬭寖鍥村唴');
+        return false;
+      }
 
-    // Remove any existing checkout stop for this stayId (will recreate)
-    updated.days.forEach(d => {
-      d.stops = d.stops.filter(s => !(s.stayId === stayId && s.type === 'hotel_checkout'));
+      stop.stayId = stayId;
+      stop.type = 'hotel_checkin';
+      stop.time = cinTime;
+      stop.period = cinPeriod;
+
+      if (origDay.id !== cinDay.id) {
+        origDay.stops = origDay.stops.filter((item) => item.id !== stopId);
+        cinDay.stops.push(stop);
+      }
+
+      const coutStop = {
+        ...cloneTrip(stop),
+        id: `cout-${Date.now()}`,
+        type: 'hotel_checkout',
+        stayId,
+        time: coutTime,
+        period: coutPeriod,
+      };
+      coutDay.stops.push(coutStop);
+      return { cinDayId: cinDay.id, coutDayId: coutDay.id };
     });
 
-    // Find target days by matching date string
-    const cinDay = updated.days.find(d => d.date === cinDate);
-    const coutDay = updated.days.find(d => d.date === coutDate);
-    if (!cinDay || !coutDay) {
-      alert('所选日期不在行程范围内');
-      return;
+    if (updateResult?.updated) {
+      computeTransitData(updateResult.result.cinDayId, updateResult.updated);
+      if (updateResult.result.coutDayId !== updateResult.result.cinDayId) {
+        computeTransitData(updateResult.result.coutDayId, updateResult.updated);
+      }
     }
-
-    // Update the original stop → hotel_checkin
-    stop.stayId = stayId;
-    stop.type = 'hotel_checkin';
-    stop.time = cinTime;
-    stop.period = cinPeriod;
-
-    // Move to cin day if needed
-    if (origDay.id !== cinDay.id) {
-      origDay.stops = origDay.stops.filter(s => s.id !== stopId);
-      cinDay.stops.push(stop);
-    }
-
-    // Create checkout stop
-    const coutStop = {
-      ...JSON.parse(JSON.stringify(stop)),
-      id: 'cout-' + Date.now(),
-      type: 'hotel_checkout',
-      stayId,
-      time: coutTime,
-      period: coutPeriod,
-    };
-    coutDay.stops.push(coutStop);
-
-    applyUpdate(updated);
-    computeTransitData(cinDay.id, updated);
-    if (coutDay.id !== cinDay.id) computeTransitData(coutDay.id, updated);
-  }, [trip, applyUpdate, computeTransitData]);
+  }, [withTripUpdate, computeTransitData]);
 
   return {
     trip,

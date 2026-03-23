@@ -9,11 +9,12 @@ import ListCard from './ListCard';
 import AddStopRow from './AddStopRow';
 import TransitInfo from './TransitInfo';
 import HotelLine from './HotelLine';
+import { getHotelContextForDay } from '../../utils/stayHelpers';
 
 export default memo(function DaySection({
   day, dayIndex, trip,
   isCollapsed, onToggleCollapse,
-  onAddStop, onDeleteStop, onEditStop, onToggleTransitMode,
+  onAddStop, onDeleteStop, onToggleTransitMode,
   onAddNote, onAddList,
   onDeleteNote, onUpdateNoteContent,
   onDeleteList, onUpdateListTitle, onUpdateListItem, onToggleListItem, onAddListItem, onDeleteListItem,
@@ -33,8 +34,8 @@ export default memo(function DaySection({
   const [insertingAfterStopId, setInsertingAfterStopId] = useState(null);
   const activeColor = day.color || '#5b7a99';
 
-  const hotelContext = getHotelContext(day, trip);
-  const stops = day.stops || [];
+  const hotelContext = getHotelContextForDay(trip, day.id);
+  const stops = useMemo(() => day.stops || [], [day.stops]);
 
   // Localized date parts for the header
   const dateInfo = useMemo(() => {
@@ -56,7 +57,7 @@ export default memo(function DaySection({
       console.error('[DaySection] Error formatting date:', e);
       return { date: '', weekday: '' };
     }
-  }, [trip?.startDate, dayIndex, language]);
+  }, [trip, dayIndex, language]);
 
   // Compute the weekday index (Mon=0...Sun=6) for this day
   const dayWeekdayIdx = useMemo(() => {
@@ -65,7 +66,7 @@ export default memo(function DaySection({
     if (isNaN(d)) return -1;
     d.setDate(d.getDate() + dayIndex);
     return (d.getDay() + 6) % 7;
-  }, [trip?.startDate, dayIndex]);
+  }, [trip, dayIndex]);
 
   // Check if this day section represents today
   const isToday = useMemo(() => {
@@ -77,7 +78,7 @@ export default memo(function DaySection({
     return base.getFullYear() === now.getFullYear() &&
       base.getMonth() === now.getMonth() &&
       base.getDate() === now.getDate();
-  }, [trip?.startDate, dayIndex]);
+  }, [trip, dayIndex]);
 
   // First and last plain POI for hotel transit info
   const { firstPlainStop, lastPlainStop } = useMemo(() => {
@@ -357,32 +358,3 @@ export default memo(function DaySection({
     </div>
   );
 })
-
-function getHotelContext(day, trip) {
-  if (!trip?.days) return {};
-  const allStops = trip.days.flatMap(d => d.stops.map(s => ({ ...s, dayId: d.id })));
-  const staysMap = new Map();
-  allStops.forEach(s => {
-    if (!s.stayId) return;
-    if (!staysMap.has(s.stayId)) staysMap.set(s.stayId, { id: s.stayId, checkinDayId: null, checkoutDayId: null, location: s.location });
-    const stay = staysMap.get(s.stayId);
-    if (s.type === 'hotel_checkin') { stay.checkinDayId = s.dayId; stay.location = s.location; }
-    if (s.type === 'hotel_checkout') { stay.checkoutDayId = s.dayId; }
-  });
-  const stays = Array.from(staysMap.values()).filter(s => s.checkinDayId && s.checkoutDayId);
-  const dayIdxMap = new Map(trip.days.map((d, i) => [d.id, i]));
-  const dIdx = dayIdxMap.get(day.id);
-  const stay = stays.find(s => {
-    const cinIdx = dayIdxMap.get(s.checkinDayId);
-    const coutIdx = dayIdxMap.get(s.checkoutDayId);
-    return dIdx !== undefined && cinIdx !== undefined && coutIdx !== undefined && dIdx >= cinIdx && dIdx <= coutIdx;
-  });
-  if (!stay) return {};
-  return {
-    stay,
-    isCinOnly: stay.checkinDayId === day.id && stay.checkoutDayId !== day.id,
-    isCoutOnly: stay.checkoutDayId === day.id && stay.checkinDayId !== day.id,
-    isBetween: stay.checkinDayId !== day.id && stay.checkoutDayId !== day.id,
-    isSameDayStay: stay.checkinDayId === day.id && stay.checkoutDayId === day.id,
-  };
-}

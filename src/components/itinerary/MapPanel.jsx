@@ -3,6 +3,7 @@ import { useApp } from '../../context/AppContext';
 import { useI18n } from '../../context/I18nContext';
 import MapInfoPanel from './MapInfoPanel';
 import MapSearchBox from './MapSearchBox';
+import { getTripStayMap, isHotelStop } from '../../utils/stayHelpers';
 
 async function fetchAndDrawRoute(routePath, color, mapInstance) {
   try {
@@ -45,7 +46,6 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [] }, 
   const markerMapRef = useRef(new Map()); // stopId → marker for O(1) lookup
   const categoryMarkersRef = useRef([]);
   const polylinesRef = useRef([]);
-  const hasInitialFitRef = useRef(null); // stores tripId
   const prevHoveredRef = useRef(null); // track previous hovered stopId
   const prevFocusDayIdsRef = useRef([]); // track previous focusDayIds to avoid redundant fitBounds
   const [mapReady, setMapReady] = useState(!!window.googleMapsReady);
@@ -176,20 +176,7 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [] }, 
     const bounds = new google.maps.LatLngBounds();
     let hasCoords = false;
 
-    // Build stay map for connection logic
-    const staysMap = new Map();
-    activeTrip.days.forEach(day => {
-      day.stops.forEach(stop => {
-        if (stop.stayId) {
-          if (!staysMap.has(stop.stayId)) {
-            staysMap.set(stop.stayId, { id: stop.stayId, cin: null, cout: null });
-          }
-          const stay = staysMap.get(stop.stayId);
-          if (stop.type === 'hotel_checkin') stay.cin = { ...stop, dayId: day.id, _dayDate: day.date || '' };
-          if (stop.type === 'hotel_checkout') stay.cout = { ...stop, dayId: day.id, _dayDate: day.date || '' };
-        }
-      });
-    });
+    const staysMap = getTripStayMap(activeTrip);
 
     const dayIndexMap = new Map(activeTrip.days.map((d, i) => [d.id, i]));
     const routeJobs = [];
@@ -202,25 +189,29 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [] }, 
 
       // 1. Hotel Connection Logic (Prepend)
       const dIdx = dayIndexMap.get(day.id);
-      const dayStay = Array.from(staysMap.values()).find(s => {
-        if (!s.cin || !s.cout) return false;
-        const cinIdx = dayIndexMap.get(s.cin.dayId);
-        const coutIdx = dayIndexMap.get(s.cout.dayId);
+      const dayStay = Array.from(staysMap.values()).find((stay) => {
+        if (!stay.checkinStop || !stay.checkoutStop) return false;
+        const cinIdx = dayIndexMap.get(stay.checkinStop._dayId);
+        const coutIdx = dayIndexMap.get(stay.checkoutStop._dayId);
         return cinIdx !== undefined && coutIdx !== undefined && dIdx >= cinIdx && dIdx <= coutIdx;
       });
 
-      if (dayStay && dayStay.cin.lat && (dayStay.cin.dayId !== day.id || dayStay.cout.dayId === day.id)) {
+      if (
+        dayStay &&
+        dayStay.checkinStop?.lat &&
+        (dayStay.checkinStop._dayId !== day.id || dayStay.checkoutStop?._dayId === day.id)
+      ) {
         // Skip prepend if first stop IS the hotel
         const firstStop = day.stops[0];
-        if (!(firstStop && (firstStop.type === 'hotel_checkin' || firstStop.type === 'hotel_checkout'))) {
-          routePath.push({ lat: Number(dayStay.cin.lat), lng: Number(dayStay.cin.lng) });
+        if (!(firstStop && isHotelStop(firstStop))) {
+          routePath.push({ lat: Number(dayStay.checkinStop.lat), lng: Number(dayStay.checkinStop.lng) });
         }
       }
 
       let locationIdx = 0;
       day.stops.forEach(stop => {
         const isLoc = !stop.type || stop.type === 'location';
-        const isHotel = stop.type === 'hotel_checkin' || stop.type === 'hotel_checkout';
+        const isHotel = isHotelStop(stop);
 
         if ((isLoc || isHotel) && stop.lat && stop.lng) {
           const pos = { lat: Number(stop.lat), lng: Number(stop.lng) };
@@ -289,8 +280,8 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [] }, 
           if (isHotel && stop.stayId) {
             // Find stay info
             const stay = staysMap.get(stop.stayId);
-            const cin = stay?.cin;
-            const cout = stay?.cout;
+            const cin = stay?.checkinStop;
+            const cout = stay?.checkoutStop;
 
             // Compute nights
             let nights = '';
@@ -300,8 +291,8 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [] }, 
               if (!isNaN(d1) && !isNaN(d2)) nights = Math.round((d2 - d1) / 86400000);
             } else if (cin && cout) {
               // Estimate from day indices
-              const cinIdx = dayIndexMap.get(cin.dayId) ?? 0;
-              const coutIdx = dayIndexMap.get(cout.dayId) ?? 0;
+              const cinIdx = dayIndexMap.get(cin._dayId) ?? 0;
+              const coutIdx = dayIndexMap.get(cout._dayId) ?? 0;
               nights = coutIdx - cinIdx;
             }
 
@@ -438,10 +429,10 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [] }, 
       });
 
       // 2. Hotel Connection Logic (Append)
-      if (dayStay && day.showReturnRoute && dayStay.cin.lat) {
+      if (dayStay && day.showReturnRoute && dayStay.checkinStop?.lat) {
         const lastStop = day.stops[day.stops.length - 1];
-        if (!(lastStop && (lastStop.type === 'hotel_checkin' || lastStop.type === 'hotel_checkout'))) {
-          routePath.push({ lat: Number(dayStay.cin.lat), lng: Number(dayStay.cin.lng) });
+        if (!(lastStop && isHotelStop(lastStop))) {
+          routePath.push({ lat: Number(dayStay.checkinStop.lat), lng: Number(dayStay.checkinStop.lng) });
         }
       }
 
@@ -835,7 +826,7 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [] }, 
           return;
         }
       }
-    } catch (_) { /* browser doesn't support permissions API */ }
+    } catch { /* browser doesn't support permissions API */ }
 
     // Show custom prompt before triggering browser dialog
     setShowLocPrompt(true);

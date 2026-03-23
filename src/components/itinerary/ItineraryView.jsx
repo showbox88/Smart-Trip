@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTripEditor } from '../../hooks/useTripEditor';
 import { useTimelineDrag } from '../../hooks/useTimelineDrag';
 import { useTrips } from '../../hooks/useTrips';
+import { useItineraryUIState } from '../../hooks/useItineraryUIState';
 import TripHeader from './TripHeader';
 import TripSidebar from './TripSidebar';
 import DaySection from './DaySection';
@@ -38,6 +39,44 @@ export default function ItineraryView({ tripId }) {
     addStopFromPlace, updateTripMetadata, toggleTransitMode, toggleHotelTransitMode,
     computeTransitData, saveStayInfo,
   } = useTripEditor(tripId);
+  const {
+    mapPanelRef,
+    isManualScroll,
+    confirmModal,
+    stopEditModal,
+    dayEditModal,
+    tripEditModal,
+    timePickerModal,
+    expenseModal,
+    stayInfoModal,
+    collapsedDays,
+    pendingInsertion,
+    activeDayId,
+    pendingFocusId,
+    viewMode,
+    expandedDayIds,
+    openConfirm,
+    setStopEditModal,
+    setDayEditModal,
+    setTripEditModal,
+    setTimePickerModal,
+    setExpenseModal,
+    setStayInfoModal,
+    setCollapsedDays,
+    setPendingInsertion,
+    setActiveDayIdLocal,
+    setPendingFocusId,
+    setViewMode,
+    closeConfirm,
+    closeStopEditModal,
+    closeDayEditModal,
+    closeTripEditModal,
+    closeTimePickerModal,
+    closeExpenseModal,
+    closeStayInfoModal,
+    handleToggleDayCollapse,
+    handleSidebarDayClick,
+  } = useItineraryUIState(trip);
 
   const {
     timelineRef,
@@ -47,110 +86,79 @@ export default function ItineraryView({ tripId }) {
     handlePointerUp: onDragPointerUp,
   } = useTimelineDrag(trip, moveStop);
 
-  // Track active day by scroll position
   useEffect(() => {
     if (!trip?.days?.length) return;
     const observer = new IntersectionObserver(
       (entries) => {
         if (isManualScroll.current) return;
-        const visible = entries.find(e => e.isIntersecting);
-        if (visible) setActiveDayIdLocal(visible.target.id);
+        const visible = entries.find((entry) => entry.isIntersecting);
+        if (visible) {
+          const dayId = visible.target.id;
+          if (dayId) setActiveDayIdLocal(dayId);
+        }
       },
       { threshold: 0.2, rootMargin: '-10% 0px -70% 0px' }
     );
-    trip.days.forEach(day => {
+
+    trip.days.forEach((day) => {
       const el = document.getElementById(day.id);
       if (el) observer.observe(el);
     });
+
     return () => observer.disconnect();
-  }, [trip?.days?.map(d => d.id).join(',')]);
+  }, [trip?.days, isManualScroll, setActiveDayIdLocal]);
 
-  // Auto-compute transit data if missing on load
   useEffect(() => {
-    if (trip?.days) {
-      trip.days.forEach(day => {
-        const needsCompute = day.stops.some(s => 
-          (s.type === 'location' || !s.type) && s.lat && !s.transitToNext
-        );
-        if (needsCompute) {
-          computeTransitData(day.id);
-        }
-      });
-    }
-  }, [tripId, !!trip]);
+    if (!trip?.days) return;
+    trip.days.forEach((day) => {
+      const needsCompute = day.stops.some((stop) =>
+        (stop.type === 'location' || !stop.type) && stop.lat && !stop.transitToNext
+      );
+      if (needsCompute) computeTransitData(day.id);
+    });
+  }, [tripId, trip, computeTransitData]);
 
-  const mapPanelRef = useRef(null);
-
-  // Modal state
-  const [confirmModal, setConfirmModal] = useState(null); // { message, onConfirm }
-  const [stopEditModal, setStopEditModal] = useState(null); // { dayId, stop }
-  const [dayEditModal, setDayEditModal] = useState(null); // { day, dayIndex }
-  const [tripEditModal, setTripEditModal] = useState(false);
-  const [timePickerModal, setTimePickerModal] = useState(null); // { dayId, stop, dayDate }
-  const [expenseModal, setExpenseModal] = useState(null); // { dayId, stop }
-  const [stayInfoModal, setStayInfoModal] = useState(null); // { dayId, stopId }
-  const [collapsedDays, setCollapsedDays] = useState({}); // { [dayId]: boolean }
-  const [pendingInsertion, setPendingInsertion] = useState(null); // { dayId, afterStopId }
-  const [activeDayIdLocal, setActiveDayIdLocal] = useState(null);
-  const [pendingFocusId, setPendingFocusId] = useState(null);
-  const [viewMode, setViewMode] = useState('plan'); // 'plan' or 'map'
-  const isManualScroll = useRef(false);
-  const manualScrollTimer = useRef(null);
-
-  // Toggle body classes for mobile view mode
-  useEffect(() => {
-    document.body.classList.remove('mobile-mode-plan', 'mobile-mode-map');
-    document.body.classList.add(`mobile-mode-${viewMode}`);
-    return () => document.body.classList.remove('mobile-mode-plan', 'mobile-mode-map');
-  }, [viewMode]);
-
-  const openConfirm = useCallback((message, onConfirm) => setConfirmModal({ message, onConfirm }), []);
-
-  // --- Stop actions ---
   const handleDeleteStop = useCallback((dayId, stopId) => {
     deleteStop(dayId, stopId);
   }, [deleteStop]);
 
   const handleEditStop = useCallback((dayId, stopId) => {
-    const day = trip?.days.find(d => d.id === dayId);
-    const stop = day?.stops.find(s => s.id === stopId);
+    const day = trip?.days.find((item) => item.id === dayId);
+    const stop = day?.stops.find((item) => item.id === stopId);
     if (stop) setStopEditModal({ dayId, stop });
-  }, [trip?.days]);
+  }, [trip?.days, setStopEditModal]);
 
   const handleSaveStop = useCallback((dayId, stopId, patch) => {
     updateStop(dayId, stopId, patch);
   }, [updateStop]);
 
   const handleOpenTimePicker = useCallback((dayId, stopId) => {
-    const day = trip?.days.find(d => d.id === dayId);
-    const stop = day?.stops.find(s => s.id === stopId);
+    const day = trip?.days.find((item) => item.id === dayId);
+    const stop = day?.stops.find((item) => item.id === stopId);
     if (stop && day) {
       let displayDate = day.date;
       if (trip.startDate) {
-        const dayIdx = trip.days.findIndex(d => d.id === dayId);
-        const d = new Date(trip.startDate.replace(/-/g, '/'));
-        d.setDate(d.getDate() + dayIdx);
-        if (!isNaN(d)) {
-          displayDate = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        const dayIdx = trip.days.findIndex((item) => item.id === dayId);
+        const date = new Date(trip.startDate.replace(/-/g, '/'));
+        date.setDate(date.getDate() + dayIdx);
+        if (!isNaN(date)) {
+          displayDate = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
         }
       }
       setTimePickerModal({ dayId, stop, dayDate: displayDate });
     }
-  }, [trip?.days, trip?.startDate]);
+  }, [trip, setTimePickerModal]);
 
   const handleOpenExpense = useCallback((dayId, stopId) => {
-    const day = trip?.days.find(d => d.id === dayId);
-    const stop = day?.stops.find(s => s.id === stopId);
-    if (stop) {
-      setExpenseModal({ dayId, stop });
-    }
-  }, [trip?.days]);
+    const day = trip?.days.find((item) => item.id === dayId);
+    const stop = day?.stops.find((item) => item.id === stopId);
+    if (stop) setExpenseModal({ dayId, stop });
+  }, [trip?.days, setExpenseModal]);
 
   const handleOpenStayInfo = useCallback((dayId, stopId) => {
     setStayInfoModal({ dayId, stopId });
-  }, []);
+  }, [setStayInfoModal]);
 
-  // --- Note/List delete (confirmation is handled inside the card) ---
   const handleDeleteNote = useCallback((dayId, stopId) => {
     deleteStop(dayId, stopId);
   }, [deleteStop]);
@@ -159,7 +167,6 @@ export default function ItineraryView({ tripId }) {
     deleteStop(dayId, stopId);
   }, [deleteStop]);
 
-  // --- Day actions ---
   const handleDeleteDay = useCallback((dayId) => {
     deleteDay(dayId);
   }, [deleteDay]);
@@ -176,15 +183,14 @@ export default function ItineraryView({ tripId }) {
     } else {
       removeDay(lastDay.id);
     }
-  }, [trip?.days, removeDay, openConfirm, t]);
+  }, [trip, removeDay, openConfirm, t]);
 
   const handleEditDay = useCallback((dayId) => {
-    const dayIndex = trip?.days.findIndex(d => d.id === dayId);
+    const dayIndex = trip?.days.findIndex((day) => day.id === dayId);
     const day = trip?.days[dayIndex];
     if (day) setDayEditModal({ day, dayIndex });
-  }, [trip?.days]);
+  }, [trip?.days, setDayEditModal]);
 
-  // --- Trip delete ---
   const handleDeleteTrip = useCallback((tripIdArg) => {
     openConfirm(
       t('itinerary.delete_trip') || 'Delete this trip?',
@@ -193,42 +199,22 @@ export default function ItineraryView({ tripId }) {
         navigate('/');
       }
     );
-  }, [t, deleteTrip, navigate]);
+  }, [t, deleteTrip, navigate, openConfirm]);
 
   const handleMapAddToDay = useCallback(async (dayId, placeId) => {
-    const afterId = (pendingInsertion?.dayId === dayId) ? pendingInsertion.afterStopId : null;
-    // Expand the target day so the new card renders
-    setCollapsedDays(prev => ({ ...prev, [dayId]: false }));
+    const afterId = pendingInsertion?.dayId === dayId ? pendingInsertion.afterStopId : null;
+    setCollapsedDays((prev) => ({ ...prev, [dayId]: false }));
     const newId = await addStopFromPlace(dayId, placeId, afterId);
     setPendingInsertion(null);
     if (newId) scrollToNewStop(newId);
-  }, [pendingInsertion, addStopFromPlace]);
-
-  // ─── 计算派生值（必须在 if (!trip) return 之前，遵守 Hooks 规则）───
-  const activeDayId = activeDayIdLocal || trip?.activeDayId || trip?.days[0]?.id;
-
-  // 计算所有当前展开的天 ID 数组 (加 useMemo 避免 hover 导致频繁 fitBounds)
-  const expandedDayIds = useMemo(() => {
-    return trip?.days?.filter(d => !collapsedDays[d.id]).map(d => d.id) || [];
-  }, [trip?.days, collapsedDays]);
-  
-  // 原有的逻辑保留做向下兼容或显示逻辑，但地图使用 expandedDayIds
-  const expandedDayId = expandedDayIds.length > 0 ? expandedDayIds[0] : null;
-
-  const handleToggleDayCollapse = useCallback((dayId, forceValue) => {
-    setCollapsedDays(prev => ({
-      ...prev,
-      [dayId]: forceValue !== undefined ? forceValue : !prev[dayId]
-    }));
-  }, []);
+  }, [pendingInsertion, addStopFromPlace, setCollapsedDays, setPendingInsertion]);
 
   const handleAddStop = useCallback(async (dayId, placeId, afterStopId) => {
-    if (placeId) {
-      setCollapsedDays(prev => ({ ...prev, [dayId]: false }));
-      const newId = await addStopFromPlace(dayId, placeId, afterStopId || null);
-      if (newId) scrollToNewStop(newId);
-    }
-  }, [addStopFromPlace]);
+    if (!placeId) return;
+    setCollapsedDays((prev) => ({ ...prev, [dayId]: false }));
+    const newId = await addStopFromPlace(dayId, placeId, afterStopId || null);
+    if (newId) scrollToNewStop(newId);
+  }, [addStopFromPlace, setCollapsedDays]);
 
   const handleAddNote = useCallback(async (dayId, afterId) => {
     const newId = await addNote(dayId, afterId);
@@ -236,7 +222,7 @@ export default function ItineraryView({ tripId }) {
       setPendingFocusId(newId);
       scrollToNewStop(newId);
     }
-  }, [addNote]);
+  }, [addNote, setPendingFocusId]);
 
   const handleAddList = useCallback(async (dayId, afterId) => {
     const newId = await addList(dayId, afterId);
@@ -244,7 +230,7 @@ export default function ItineraryView({ tripId }) {
       setPendingFocusId(newId);
       scrollToNewStop(newId);
     }
-  }, [addList]);
+  }, [addList, setPendingFocusId]);
 
   const handleChangePhoto = useCallback((dayId, stopId, photoUrl) => {
     updateStop(dayId, stopId, { photo: photoUrl });
@@ -252,40 +238,8 @@ export default function ItineraryView({ tripId }) {
 
   const handleFocusStop = useCallback((stopId) => {
     mapPanelRef.current?.focusAndOpen(stopId);
-  }, []);
+  }, [mapPanelRef]);
 
-  const handleSidebarDayClick = useCallback((dayId) => {
-    isManualScroll.current = true;
-    if (manualScrollTimer.current) clearTimeout(manualScrollTimer.current);
-
-    setActiveDayIdLocal(dayId);
-
-    // Collapse others first, then scroll after DOM has updated
-    const newCollapsed = {};
-    trip?.days?.forEach(d => {
-      newCollapsed[d.id] = d.id !== dayId;
-    });
-    setCollapsedDays(newCollapsed);
-
-    // Double rAF: first frame React commits, second frame browser finishes layout
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        const container = document.getElementById('itinerary-scroll-container');
-        const el = document.getElementById(dayId);
-        if (container && el) {
-          const SCROLL_MARGIN = 75;
-          const targetTop = el.getBoundingClientRect().top - container.getBoundingClientRect().top + container.scrollTop - SCROLL_MARGIN;
-          container.scrollTo({ top: targetTop, behavior: 'smooth' });
-        }
-      });
-    });
-
-    manualScrollTimer.current = setTimeout(() => {
-      isManualScroll.current = false;
-    }, 1000);
-  }, [trip?.days]);
-
-  // ─── 早期返回：trip 未加载时显示 Loading ───
   if (!trip) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: 'var(--text-secondary)' }}>
@@ -297,108 +251,107 @@ export default function ItineraryView({ tripId }) {
     );
   }
 
-      return (
-        <div className="dashboard-view fade-in">
-          <TripSidebar
-            trip={trip}
-            activeDayId={activeDayId}
-            onAddDay={addDay}
-            onRemoveLastDay={handleRemoveLastDay}
-            onDayClick={handleSidebarDayClick}
-            moveDay={moveDay}
-          />
+  return (
+    <div className="dashboard-view fade-in">
+      <TripSidebar
+        trip={trip}
+        activeDayId={activeDayId}
+        onAddDay={addDay}
+        onRemoveLastDay={handleRemoveLastDay}
+        onDayClick={handleSidebarDayClick}
+        moveDay={moveDay}
+      />
 
-          <section className="main-itinerary" id="itinerary-scroll-container">
-            <TripHeader trip={trip} onDeleteTrip={handleDeleteTrip} onEditTrip={() => setTripEditModal(true)} />
+      <section className="main-itinerary" id="itinerary-scroll-container">
+        <TripHeader trip={trip} onDeleteTrip={handleDeleteTrip} onEditTrip={() => setTripEditModal(true)} />
 
-            {pendingInsertion && (
-              <div style={{ 
-                background: 'var(--accent-primary)', 
-                color: 'white', 
-                padding: '8px 16px', 
-                borderRadius: '12px', 
-                margin: '0 2rem 1rem', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'space-between',
-                fontSize: '0.9rem',
-                fontWeight: 700,
-                boxShadow: '0 4px 15px rgba(59, 130, 246, 0.4)',
-                animation: 'slideIn 0.3s ease'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>info</span>
-                  <span>Select a place on the map to insert after this position</span>
-                </div>
-                <button 
-                  onClick={() => setPendingInsertion(null)}
-                  style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', borderRadius: '6px', padding: '2px 8px', cursor: 'pointer', fontSize: '0.8rem' }}
-                >
-                  Cancel
-                </button>
-              </div>
-            )}
-
-            <div className="itinerary-timeline" ref={timelineRef} style={{ padding: 0 }}>
-              {trip.days.map((day, dayIndex) => (
-                <DaySection
-                  key={day.id}
-                  day={day}
-                  dayIndex={dayIndex}
-                  trip={trip}
-                  isCollapsed={!!collapsedDays[day.id]}
-                  onToggleCollapse={() => handleToggleDayCollapse(day.id)}
-                  onAddStop={handleAddStop}
-                  onDeleteStop={handleDeleteStop}
-                  onEditStop={handleEditStop}
-                  onToggleTransitMode={toggleTransitMode}
-                  onToggleHotelTransitMode={toggleHotelTransitMode}
-                  onAddNote={handleAddNote}
-                  onAddList={handleAddList}
-                  onDeleteNote={handleDeleteNote}
-                  onUpdateNoteContent={updateNoteContent}
-                  onUpdateListTitle={updateListTitle}
-                  onDeleteList={handleDeleteList}
-                  onUpdateListItem={updateListItem}
-                  onToggleListItem={toggleListItem}
-                  onAddListItem={addListItem}
-                  onDeleteListItem={deleteListItem}
-                  onMoveStop={moveStop}
-                  draggingStopId={draggingStopId}
-                  onDragPointerDown={onDragPointerDown}
-                  onDragPointerMove={onDragPointerMove}
-                  onDragPointerUp={onDragPointerUp}
-                  onColorChange={setDayColor}
-                  onEditDay={handleEditDay}
-                  onDeleteDay={handleDeleteDay}
-                  onUpdateDay={updateDay}
-                  onSortByTime={() => sortDayByTime(day.id)}
-                  onOpenTimePicker={handleOpenTimePicker}
-                  onOpenExpense={handleOpenExpense}
-                  onOpenStayInfo={handleOpenStayInfo}
-                  onChangePhoto={handleChangePhoto}
-                  onFocusStop={handleFocusStop}
-                  pendingFocusId={pendingFocusId}
-                  setPendingFocusId={setPendingFocusId}
-                />
-              ))}
+        {pendingInsertion && (
+          <div style={{
+            background: 'var(--accent-primary)',
+            color: 'white',
+            padding: '8px 16px',
+            borderRadius: '12px',
+            margin: '0 2rem 1rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            fontSize: '0.9rem',
+            fontWeight: 700,
+            boxShadow: '0 4px 15px rgba(59, 130, 246, 0.4)',
+            animation: 'slideIn 0.3s ease',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>info</span>
+              <span>Select a place on the map to insert after this position</span>
             </div>
-          </section>
+            <button
+              onClick={() => setPendingInsertion(null)}
+              style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', borderRadius: '6px', padding: '2px 8px', cursor: 'pointer', fontSize: '0.8rem' }}
+            >
+              Cancel
+            </button>
+          </div>
+        )}
 
-          <MapPanel ref={mapPanelRef} onAddToDay={handleMapAddToDay} focusDayIds={expandedDayIds} />
+        <div className="itinerary-timeline" ref={timelineRef} style={{ padding: 0 }}>
+          {trip.days.map((day, dayIndex) => (
+            <DaySection
+              key={day.id}
+              day={day}
+              dayIndex={dayIndex}
+              trip={trip}
+              isCollapsed={!!collapsedDays[day.id]}
+              onToggleCollapse={() => handleToggleDayCollapse(day.id)}
+              onAddStop={handleAddStop}
+              onDeleteStop={handleDeleteStop}
+              onEditStop={handleEditStop}
+              onToggleTransitMode={toggleTransitMode}
+              onToggleHotelTransitMode={toggleHotelTransitMode}
+              onAddNote={handleAddNote}
+              onAddList={handleAddList}
+              onDeleteNote={handleDeleteNote}
+              onUpdateNoteContent={updateNoteContent}
+              onUpdateListTitle={updateListTitle}
+              onDeleteList={handleDeleteList}
+              onUpdateListItem={updateListItem}
+              onToggleListItem={toggleListItem}
+              onAddListItem={addListItem}
+              onDeleteListItem={deleteListItem}
+              onMoveStop={moveStop}
+              draggingStopId={draggingStopId}
+              onDragPointerDown={onDragPointerDown}
+              onDragPointerMove={onDragPointerMove}
+              onDragPointerUp={onDragPointerUp}
+              onColorChange={setDayColor}
+              onEditDay={handleEditDay}
+              onDeleteDay={handleDeleteDay}
+              onUpdateDay={updateDay}
+              onSortByTime={() => sortDayByTime(day.id)}
+              onOpenTimePicker={handleOpenTimePicker}
+              onOpenExpense={handleOpenExpense}
+              onOpenStayInfo={handleOpenStayInfo}
+              onChangePhoto={handleChangePhoto}
+              onFocusStop={handleFocusStop}
+              pendingFocusId={pendingFocusId}
+              setPendingFocusId={setPendingFocusId}
+            />
+          ))}
+        </div>
+      </section>
 
-      {/* Mobile view switcher */}
+      <MapPanel ref={mapPanelRef} onAddToDay={handleMapAddToDay} focusDayIds={expandedDayIds} />
+
       <div className="mobile-view-switcher">
-        <button 
-          className={`mobile-nav-btn ${viewMode === 'plan' ? 'active' : ''}`} 
+        <button
+          className={`mobile-nav-btn ${viewMode === 'plan' ? 'active' : ''}`}
           onClick={() => setViewMode('plan')}
           data-mode="plan"
         >
           <span className="material-symbols-outlined">event_note</span>
           {t('common.itinerary') || 'Itinerary'}
         </button>
-        <button 
-          className={`mobile-nav-btn ${viewMode === 'map' ? 'active' : ''}`} 
+        <button
+          className={`mobile-nav-btn ${viewMode === 'map' ? 'active' : ''}`}
           onClick={() => setViewMode('map')}
           data-mode="map"
         >
@@ -407,12 +360,14 @@ export default function ItineraryView({ tripId }) {
         </button>
       </div>
 
-      {/* Modals */}
       {confirmModal && (
         <ConfirmModal
           message={confirmModal.message}
-          onConfirm={() => { confirmModal.onConfirm(); setConfirmModal(null); }}
-          onCancel={() => setConfirmModal(null)}
+          onConfirm={() => {
+            confirmModal.onConfirm();
+            closeConfirm();
+          }}
+          onCancel={closeConfirm}
         />
       )}
 
@@ -421,7 +376,7 @@ export default function ItineraryView({ tripId }) {
           stop={stopEditModal.stop}
           onSave={(patch) => handleSaveStop(stopEditModal.dayId, stopEditModal.stop.id, patch)}
           onDelete={() => deleteStop(stopEditModal.dayId, stopEditModal.stop.id)}
-          onClose={() => setStopEditModal(null)}
+          onClose={closeStopEditModal}
         />
       )}
 
@@ -430,7 +385,7 @@ export default function ItineraryView({ tripId }) {
           day={dayEditModal.day}
           dayIndex={dayEditModal.dayIndex}
           onSave={(patch) => updateDay(dayEditModal.day.id, patch)}
-          onClose={() => setDayEditModal(null)}
+          onClose={closeDayEditModal}
         />
       )}
 
@@ -438,7 +393,7 @@ export default function ItineraryView({ tripId }) {
         <TripEditModal
           trip={trip}
           onSave={updateTripMetadata}
-          onClose={() => setTripEditModal(false)}
+          onClose={closeTripEditModal}
         />
       )}
 
@@ -447,7 +402,7 @@ export default function ItineraryView({ tripId }) {
           stop={timePickerModal.stop}
           dayDate={timePickerModal.dayDate}
           onSave={(patch) => updateStopAndSort(timePickerModal.dayId, timePickerModal.stop.id, patch)}
-          onClose={() => setTimePickerModal(null)}
+          onClose={closeTimePickerModal}
         />
       )}
 
@@ -457,9 +412,9 @@ export default function ItineraryView({ tripId }) {
           onSave={(patch) => updateStop(expenseModal.dayId, expenseModal.stop.id, patch)}
           onDelete={() => {
             updateStop(expenseModal.dayId, expenseModal.stop.id, { price: '0', expenseCategory: null });
-            setExpenseModal(null);
+            closeExpenseModal();
           }}
-          onClose={() => setExpenseModal(null)}
+          onClose={closeExpenseModal}
         />
       )}
 
@@ -469,7 +424,7 @@ export default function ItineraryView({ tripId }) {
           dayId={stayInfoModal.dayId}
           stopId={stayInfoModal.stopId}
           onSave={(stayData) => saveStayInfo(stayInfoModal.dayId, stayInfoModal.stopId, stayData)}
-          onClose={() => setStayInfoModal(null)}
+          onClose={closeStayInfoModal}
         />
       )}
     </div>
