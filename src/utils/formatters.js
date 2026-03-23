@@ -1,5 +1,7 @@
 // Ported from js/utils.js — state dependency removed, settings passed as parameter
 
+export const pad = n => String(n).padStart(2, '0');
+
 export function formatDistance(meters, settings, t) {
   if (meters === undefined || meters === null) return '';
 

@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useI18n } from '../../context/I18nContext';
-
-const pad = n => String(n).padStart(2, '0');
+import { pad } from '../../utils/formatters';
 
 const SELECT_STYLE = {
   width: '100%',

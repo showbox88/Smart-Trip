@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
 import { useTrips } from '../hooks/useTrips';
-import { formatDate } from '../utils/formatters';
+import { formatDate, pad } from '../utils/formatters';
 import DashboardFilters from '../components/dashboard/DashboardFilters';
 import TripGrid from '../components/dashboard/TripGrid';
 import BudgetSummary from '../components/dashboard/BudgetSummary';
@@ -41,7 +41,6 @@ export default function DashboardPage() {
       const endDay = new Date(today);
       endDay.setDate(today.getDate() + 5);
 
-      const pad = n => String(n).padStart(2, '0');
       const startStr = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
       const endStr = `${endDay.getFullYear()}-${pad(endDay.getMonth() + 1)}-${pad(endDay.getDate())}`;
 
