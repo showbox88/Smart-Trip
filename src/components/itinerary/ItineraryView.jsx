@@ -260,23 +260,26 @@ export default function ItineraryView({ tripId }) {
 
     setActiveDayIdLocal(dayId);
 
-    // Scroll within the overflow container so scroll-margin-top is respected correctly
-    const container = document.getElementById('itinerary-scroll-container');
-    const el = document.getElementById(dayId);
-    if (container && el) {
-      const SCROLL_MARGIN = 24;
-      const targetTop = el.getBoundingClientRect().top - container.getBoundingClientRect().top + container.scrollTop - SCROLL_MARGIN;
-      container.scrollTo({ top: targetTop, behavior: 'smooth' });
-    }
-
-    // Auto-expand this day and collapse others
+    // Collapse others first, then scroll after DOM has updated
     const newCollapsed = {};
     trip?.days?.forEach(d => {
       newCollapsed[d.id] = d.id !== dayId;
     });
     setCollapsedDays(newCollapsed);
 
-    // Release the manual scroll lock after animation
+    // Double rAF: first frame React commits, second frame browser finishes layout
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const container = document.getElementById('itinerary-scroll-container');
+        const el = document.getElementById(dayId);
+        if (container && el) {
+          const SCROLL_MARGIN = 24;
+          const targetTop = el.getBoundingClientRect().top - container.getBoundingClientRect().top + container.scrollTop - SCROLL_MARGIN;
+          container.scrollTo({ top: targetTop, behavior: 'smooth' });
+        }
+      });
+    });
+
     manualScrollTimer.current = setTimeout(() => {
       isManualScroll.current = false;
     }, 1000);
