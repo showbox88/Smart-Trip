@@ -1,9 +1,10 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { useTrips } from './useTrips';
 import { useI18n } from '../context/I18nContext';
 import { getCategoryFromTypes } from '../utils/tripHelpers';
 import { supabase } from '../lib/supabase';
+import { isAdmin } from '../utils/admin'; // Add this
 import { fetchRouteDuration } from '../utils/transitHelpers';
 import {
   DEFAULT_DAY_COLORS,
@@ -57,6 +58,33 @@ export function useTripEditor(tripId) {
   const saveTimerRef = useRef(null);
 
   const trip = state.trips.find((tr) => tr.id === tripId) || null;
+
+  useEffect(() => {
+    if (!trip && tripId && isAdmin(state.user)) {
+      const fetchGlobalTrip = async () => {
+        try {
+          const { data, error } = await supabase
+            .from('trips')
+            .select('*')
+            .eq('id', tripId)
+            .single();
+          
+          if (data && !error) {
+            const formattedTrip = {
+              ...data.trip_data,
+              id: data.id,
+              title: data.title,
+              thumb: data.thumb,
+            };
+            dispatch({ type: 'UPDATE_TRIP', payload: formattedTrip });
+          }
+        } catch (e) {
+          console.warn('[useTripEditor] Global fetch failed:', e);
+        }
+      };
+      fetchGlobalTrip();
+    }
+  }, [trip, tripId, state.user, dispatch]);
 
   const scheduleCloudSave = useCallback((updatedTrip) => {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);

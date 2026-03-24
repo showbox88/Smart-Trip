@@ -38,8 +38,13 @@ function appReducer(state, action) {
       return { ...state, activeTripId: action.payload };
     case 'SET_HOVERED_STOP':
       return { ...state, hoveredStopId: action.payload };
-    case 'UPDATE_TRIP':
-      return { ...state, trips: state.trips.map(t => t.id === action.payload.id ? action.payload : t) };
+    case 'UPDATE_TRIP': {
+      const exists = state.trips.find(t => t.id === action.payload.id);
+      if (exists) {
+        return { ...state, trips: state.trips.map(t => t.id === action.payload.id ? action.payload : t) };
+      }
+      return { ...state, trips: [action.payload, ...state.trips] };
+    }
     case 'SET_EDIT_STATE':
       return { ...state, editState: { ...state.editState, ...action.payload } };
     case 'CLOSE_MODAL':

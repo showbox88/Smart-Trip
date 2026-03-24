@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../hooks/useAuth';
 import { useI18n } from '../../context/I18nContext';
+import { isAdmin } from '../../utils/admin';
 
 export default function Navbar() {
   const { state } = useApp();
@@ -104,6 +105,15 @@ export default function Navbar() {
                       </div>
                     )}
                   </div>
+                  {isAdmin(state.user) && (
+                    <button
+                      onClick={() => { setDropdownOpen(false); navigate('/admin'); }}
+                      style={{ width: '100%', textAlign: 'left', padding: '8px 12px', background: 'none', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', borderRadius: '8px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px' }}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#64748b' }}>admin_panel_settings</span>
+                      Admin Dashboard
+                    </button>
+                  )}
                   <button
                     onClick={handleLogout}
                     style={{ width: '100%', textAlign: 'left', padding: '8px 12px', background: 'none', border: 'none', color: '#ff4d4f', cursor: 'pointer', borderRadius: '8px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px' }}

@@ -7,6 +7,8 @@ import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import TripPage from './pages/TripPage';
 import ArchivePage from './pages/ArchivePage';
+import AdminPage from './pages/AdminPage';
+import { isAdmin } from './utils/admin';
 
 export default function App() {
   const { state } = useApp();
@@ -37,6 +39,7 @@ export default function App() {
           <Route path="/" element={<DashboardPage />} />
           <Route path="/trip/:id" element={<TripPage />} />
           <Route path="/archive/*" element={<ArchivePage />} />
+          {isAdmin(state.user) && <Route path="/admin" element={<AdminPage />} />}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
