@@ -1,23 +1,20 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useI18n } from '../../context/I18nContext';
 import { useArchiveSync } from '../../hooks/useArchiveSync';
-import { useApp } from '../../context/AppContext';
 
-function AlbumCard({ trip, archiveDb, getThumbnail, rootHandle }) {
+function AlbumCard({ trip, archiveTrip, archiveDb, getThumbnail, rootHandle }) {
   const navigate = useNavigate();
   const { t } = useI18n();
   const [imgUrl, setImgUrl] = useState(null);
 
   // Attempt to find cover photo from Archive DB
   useEffect(() => {
-    if (!archiveDb) return;
-    const aTrip = archiveDb.trips.find(t => t.title === trip.title || t.folder_name === trip.title);
-    if (!aTrip) return;
+    if (!archiveDb || !archiveTrip) return;
 
-    let coverId = aTrip.cover_photo_id;
+    let coverId = archiveTrip.cover_photo_id;
     if (!coverId && archiveDb.photos) {
-       const tripPhotos = archiveDb.photos.filter(p => p.trip_id === aTrip.trip_id);
+       const tripPhotos = archiveDb.photos.filter(p => p.trip_id === archiveTrip.trip_id);
        if (tripPhotos.length > 0) coverId = tripPhotos[0].file_name;
     }
 
@@ -57,17 +54,18 @@ function AlbumCard({ trip, archiveDb, getThumbnail, rootHandle }) {
         setTimeout(() => URL.revokeObjectURL(urlToRevoke), 3000);
       }
     };
-  }, [archiveDb, trip, getThumbnail, rootHandle]);
+  }, [archiveDb, archiveTrip, getThumbnail, rootHandle]);
 
-  const stopsCount = trip.days ? trip.days.reduce((acc, day) => acc + (day.stops?.length || 0), 0) : 0;
-  
+  const eventCount = archiveDb?.events?.filter(e => String(e.trip_id) === String(archiveTrip.trip_id)).length || 0;
+  const photoCount = archiveDb?.photos?.filter(p => String(p.trip_id) === String(archiveTrip.trip_id)).length || 0;
+
   const hasLocalImg = !!imgUrl;
   const src = imgUrl || trip.thumb;
 
   return (
     <div
       className="trip-card"
-      onClick={() => navigate(`/archive?tripTitle=${encodeURIComponent(trip.title)}`)}
+      onClick={() => navigate(`/archive?tripId=${encodeURIComponent(trip.id)}`)}
       style={{
         position: 'relative',
         cursor: 'pointer',
@@ -119,43 +117,115 @@ function AlbumCard({ trip, archiveDb, getThumbnail, rootHandle }) {
         </h3>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: 'rgba(255,255,255,0.7)', fontSize: '0.85rem', fontWeight: 600 }}>
           <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>location_on</span>
-            {stopsCount} {t('itinerary.stops_count')}
+            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>event</span>
+            {eventCount} {t('itinerary.stops_count')}
           </span>
+          {photoCount > 0 && (
+            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>photo_library</span>
+              {photoCount}
+            </span>
+          )}
         </div>
       </div>
     </div>
   );
 }
 
-export default function TripAlbumGrid({ trips, onAddTrip }) {
-  const { archiveDb, isLinked, getThumbnail, syncToArchive, rootHandle } = useArchiveSync();
+export default function TripAlbumGrid({ trips }) {
+  const { archiveDb, isLinked, getThumbnail, syncToArchive, initAndSync, rootHandle } = useArchiveSync();
   const { t } = useI18n();
+  const navigate = useNavigate();
+  const [initing, setIniting] = useState(false);
+
+  // Only show trips that have a matching album in archive DB
+  const albumTrips = trips.filter(trip =>
+    archiveDb?.trips?.some(at => String(at.trip_id) === String(trip.id))
+  );
+
+  const handleManageClick = async () => {
+    if (isLinked) {
+      // Linked but no albums synced yet — run sync before navigating
+      if (albumTrips.length === 0 && trips.length > 0) {
+        setIniting(true);
+        try {
+          await syncToArchive(trips, { silent: true });
+        } catch (e) {
+          console.warn('Quick sync failed, navigating anyway', e);
+        } finally {
+          setIniting(false);
+        }
+      }
+      navigate('/archive');
+      return;
+    }
+    // Not linked yet: pick folder, sync data, then navigate
+    setIniting(true);
+    try {
+      const ok = await initAndSync(trips);
+      if (ok) navigate('/archive');
+    } finally {
+      setIniting(false);
+    }
+  };
 
   return (
     <div className="fade-in">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', padding: '16px 20px', borderRadius: '16px' }}>
         <div>
           <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'white', marginBottom: '4px' }}>
-            {t('app.albums.title') || 'Trip Archive Albums'}
+            {t('app.albums.title') || 'Local Memories'}
           </h3>
           <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
             {isLinked ? t('app.albums.linked') : t('app.albums.not_linked')}
           </p>
         </div>
+        <button
+          onClick={handleManageClick}
+          disabled={initing}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '8px 16px',
+            background: 'var(--accent-primary)',
+            color: 'white',
+            border: 'none',
+            borderRadius: '10px',
+            fontSize: '0.85rem',
+            fontWeight: 700,
+            cursor: initing ? 'wait' : 'pointer',
+            transition: 'opacity 0.2s',
+            opacity: initing ? 0.6 : 1,
+          }}
+          onMouseEnter={e => { if (!initing) e.currentTarget.style.opacity = '0.85'; }}
+          onMouseLeave={e => { if (!initing) e.currentTarget.style.opacity = '1'; }}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>{initing ? 'sync' : 'photo_library'}</span>
+          {initing ? (t('common.loading') || 'Loading...') : (t('app.albums.manage') || 'Manage Photos')}
+        </button>
       </div>
 
-      <div className="trip-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
-        {trips.map(trip => (
-          <AlbumCard key={trip.id} trip={trip} archiveDb={archiveDb} getThumbnail={getThumbnail} rootHandle={rootHandle} />
-        ))}
-        <div className="trip-card-placeholder" onClick={onAddTrip} style={{ cursor: 'pointer', height: '320px' }}>
-          <div className="placeholder-icon">
-            <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>add_photo_alternate</span>
-          </div>
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'white' }}>{t('dashboard.placeholder_title') || 'New Album'}</h3>
+      {albumTrips.length > 0 ? (
+        <div className="trip-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
+          {albumTrips.map(trip => {
+            const archiveTrip = archiveDb.trips.find(at => String(at.trip_id) === String(trip.id));
+            return (
+              <AlbumCard key={trip.id} trip={trip} archiveTrip={archiveTrip} archiveDb={archiveDb} getThumbnail={getThumbnail} rootHandle={rootHandle} />
+            );
+          })}
         </div>
-      </div>
+      ) : (
+        <div style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-muted)' }}>
+          <span className="material-symbols-outlined" style={{ fontSize: '48px', marginBottom: '12px', display: 'block', opacity: 0.4 }}>photo_library</span>
+          <p style={{ fontSize: '0.95rem', fontWeight: 600, marginBottom: '4px' }}>
+            {t('app.albums.empty') || 'No albums yet'}
+          </p>
+          <p style={{ fontSize: '0.8rem' }}>
+            {t('app.albums.empty_hint') || 'Go to photo management to sync your trips'}
+          </p>
+        </div>
+      )}
     </div>
   );
 }

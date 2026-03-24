@@ -107,6 +107,7 @@ export function ContextMenu({ menu, onClose, onAction, trips = [], events = [], 
 
   return (
     <motion.div
+      data-context-menu
       initial={{ opacity: 0, scale: 0.95, y: -10 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
@@ -393,7 +394,11 @@ export function ContextMenu({ menu, onClose, onAction, trips = [], events = [], 
                       {t('sidebar.noEvents')}
                     </p>
                   ) : (
-                    <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
+                    <div
+                      className="max-h-[300px] overflow-y-auto custom-scrollbar"
+                      style={{ overscrollBehavior: 'contain' }}
+                      onWheel={e => e.stopPropagation()}
+                    >
                       {events.map(event => {
                         const isCurrentEvent = event.event_id === menu.data?.event_id;
                         return (
@@ -465,7 +470,11 @@ export function ContextMenu({ menu, onClose, onAction, trips = [], events = [], 
                       {t('sidebar.noTrips')}
                     </p>
                   ) : (
-                    <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
+                    <div
+                      className="max-h-[300px] overflow-y-auto custom-scrollbar"
+                      style={{ overscrollBehavior: 'contain' }}
+                      onWheel={e => e.stopPropagation()}
+                    >
                       {trips.map(trip => (
                         <button
                           key={trip.trip_id}

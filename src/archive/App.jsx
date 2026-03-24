@@ -249,10 +249,16 @@ function App({ smartTrips = [], currentUser }) {
     if (appMode !== 'gallery' && !hasPersistedHandle) return;
     
     const params = new URLSearchParams(window.location.search);
+    const tripId = params.get('tripId');
     const tripTitle = params.get('tripTitle');
-    
-    if (tripTitle && dbContent?.trips?.length > 0) {
-      const targetTrip = dbContent.trips.find(t => t.title === tripTitle || t.folder_name === tripTitle);
+
+    if (dbContent?.trips?.length > 0) {
+      let targetTrip;
+      if (tripId) {
+        targetTrip = dbContent.trips.find(t => String(t.trip_id) === String(tripId));
+      } else if (tripTitle) {
+        targetTrip = dbContent.trips.find(t => t.title === tripTitle || t.folder_name === tripTitle);
+      }
       if (targetTrip) {
         setSelectedTripId(targetTrip.trip_id);
         setActiveFilter({ type: 'all' });
@@ -271,12 +277,15 @@ function App({ smartTrips = [], currentUser }) {
       return;
     }
 
-    const newDb = { ...dbContent };
-    if (!newDb.cities) newDb.cities = [];
-    if (!newDb.trips) newDb.trips = [];
-    if (!newDb.events) newDb.events = [];
-    if (!newDb.photos) newDb.photos = [];
-    
+    // Deep copy arrays to avoid mutating React state
+    const newDb = {
+      ...dbContent,
+      cities: [...(dbContent.cities || [])],
+      trips: [...(dbContent.trips || [])],
+      events: [...(dbContent.events || [])],
+      photos: [...(dbContent.photos || [])],
+    };
+
     let changed = false;
 
     // Keep track of existing cities to avoid duplicates
@@ -295,8 +304,8 @@ function App({ smartTrips = [], currentUser }) {
          }
        }
 
-       // Find matching trip in archive by title
-       let aTrip = newDb.trips.find(t => t.title === stTrip.title || t.folder_name === stTrip.title);
+       // Match by ID only — title matching causes collisions when trips share default names
+       let aTrip = newDb.trips.find(t => String(t.trip_id) === String(stTrip.id));
        if (!aTrip) {
           aTrip = {
             trip_id: stTrip.id,
@@ -328,7 +337,6 @@ function App({ smartTrips = [], currentUser }) {
                 }
 
                 // 2. Sync Event
-                // Derive title and notes based on stop type
                 let stopTitle, stopNotes;
                 if (stop.type === 'note') {
                   stopTitle = `📝 ${stop.content ? stop.content.split('\n')[0].slice(0, 20) || '备注' : '备注'}`;
@@ -341,7 +349,9 @@ function App({ smartTrips = [], currentUser }) {
                   stopNotes = '';
                 }
 
-                let aEvent = newDb.events.find(e => e.title === stopTitle && String(e.trip_id) === String(aTrip.trip_id));
+                // Match event by stop ID first, then by title+trip_id
+                let aEvent = (stop.id && newDb.events.find(e => String(e.event_id) === String(stop.id)))
+                          || newDb.events.find(e => e.title === stopTitle && String(e.trip_id) === String(aTrip.trip_id));
                 if (!aEvent) { // create
                    newDb.events.push({
                      event_id: stop.id || (window.crypto?.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)),
@@ -358,9 +368,12 @@ function App({ smartTrips = [], currentUser }) {
                    });
                    changed = true;
                 } else {
-                   // 更新已有事件的城市
-                   if (aEvent.city !== stop.city) {
+                   // Update existing event's core info
+                   if (aEvent.city !== stop.city || aEvent.date !== day.date || aEvent.latitude !== stop.lat) {
                       aEvent.city = stop.city || '';
+                      aEvent.date = day.date;
+                      aEvent.latitude = stop.lat;
+                      aEvent.longitude = stop.lng;
                       changed = true;
                    }
                 }
@@ -467,7 +480,8 @@ function App({ smartTrips = [], currentUser }) {
   };
 
   const handleItemContextMenu = (event, item) => {
-    const itemKey = item.type === 'photo' ? item.path : `${item.type}:${item.id}`;
+    const itemId = item.type === 'trip' ? item.trip_id : item.type === 'event' ? item.event_id : item.id;
+    const itemKey = item.type === 'photo' ? item.path : `${item.type}:${itemId}`;
     if (!selectedIds.has(itemKey)) {
       setSelectedIds(new Set([itemKey]));
     }

@@ -45,22 +45,34 @@ export function useArchiveSync() {
     return null;
   }, [thumbnails]);
 
-  const syncToArchive = async (smartTrips) => {
-    console.log('[SYNC ENTRY] Tripping started with trips count:', smartTrips?.length);
+  const syncToArchive = async (smartTrips, { silent = false } = {}) => {
     if (!isLinked) {
-      alert("请先进入相册 (Archive) 页面初始化工作区并授予文件夹权限！");
-      return;
+      if (!silent) alert("请先进入相册 (Archive) 页面初始化工作区并授予文件夹权限！");
+      return false;
     }
     try {
       const handle = await idb.get('last_handle');
-      const dbFileHandle = await handle.getFileHandle('trip_database.json', { create: false });
-      
-      const newDb = { ...archiveDb };
+      // create: true so sync works even if the file was deleted
+      const dbFileHandle = await handle.getFileHandle('trip_database.json', { create: true });
+
+      // Read fresh data from disk to avoid stale state
+      const file = await dbFileHandle.getFile();
+      const text = await file.text();
+      const freshDb = text ? JSON.parse(text) : { trips: [], events: [], photos: [], cities: [] };
+
+      // Deep copy arrays to avoid mutating state
+      const newDb = {
+        ...freshDb,
+        trips: [...(freshDb.trips || [])],
+        events: [...(freshDb.events || [])],
+        cities: [...(freshDb.cities || [])],
+        photos: [...(freshDb.photos || [])],
+      };
       let changed = false;
 
       smartTrips.forEach(stTrip => {
-         // Find matching trip in archive by title
-         let aTrip = newDb.trips.find(t => t.title === stTrip.title || t.folder_name === stTrip.title);
+         // Match by ID only — title matching causes collisions when trips share default names
+         let aTrip = newDb.trips.find(t => String(t.trip_id) === String(stTrip.id));
          if (!aTrip) {
             aTrip = {
               trip_id: stTrip.id,
@@ -92,11 +104,11 @@ export function useArchiveSync() {
                     stopNotes = '';
                   }
 
-                  let aEvent = newDb.events.find(e => e.title === stopTitle && e.trip_id === aTrip.trip_id);
-                  console.log(`[SYNC DEBUG] Title: "${stopTitle}", City: "${stop.city}", Found Match:`, !!aEvent);
-                  
+                  // Match event by stop ID first, then by title+trip_id
+                  let aEvent = (stop.id && newDb.events.find(e => String(e.event_id) === String(stop.id)))
+                            || newDb.events.find(e => e.title === stopTitle && String(e.trip_id) === String(aTrip.trip_id));
+
                   if (!aEvent) { // create
-                     console.log(`[SYNC DEBUG] Creating New Event for: ${stopTitle}`);
                      newDb.events.push({
                        event_id: stop.id || crypto.randomUUID(),
                        trip_id: aTrip.trip_id,
@@ -112,9 +124,8 @@ export function useArchiveSync() {
                      });
                      changed = true;
                   } else {
-                     // 即使事件存在，也强制同步最新的城市、日期和其他核心信息
+                     // Update existing event's core info
                      if (aEvent.city !== stop.city || aEvent.date !== day.date || aEvent.latitude !== stop.lat) {
-                        console.log(`[SYNC DEBUG] Updating Existing Event: ${stopTitle}, New City: ${stop.city}`);
                         aEvent.city = stop.city || '';
                         aEvent.date = day.date;
                         aEvent.latitude = stop.lat;
@@ -133,15 +144,117 @@ export function useArchiveSync() {
          await writable.write(JSON.stringify(newDb, null, 2));
          await writable.close();
          setArchiveDb(newDb);
-         alert("同步成功！Smart Trip 的行程和地点已同步到本地相册数据库。");
-      } else {
-         alert("暂无需要同步的新数据。");
       }
+      return true;
     } catch (e) {
       console.error('Sync failed', e);
-      alert('同步失败: ' + e.message);
+      if (!silent) alert('同步失败: ' + e.message);
+      return false;
     }
   };
 
-  return { archiveDb, isLinked, thumbnails, getThumbnail, syncToArchive, loadArchiveDb, rootHandle };
+  // Pick folder, create/load trip_database.json, sync smart trip data, all in one step
+  const initAndSync = async (smartTrips) => {
+    try {
+      const directoryHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+      await idb.set('last_handle', directoryHandle);
+
+      // Load or create trip_database.json
+      let dbFileHandle;
+      let currentDb = { trips: [], events: [], photos: [], cities: [], categories: [] };
+      try {
+        dbFileHandle = await directoryHandle.getFileHandle('trip_database.json', { create: false });
+        const file = await dbFileHandle.getFile();
+        currentDb = JSON.parse(await file.text());
+      } catch {
+        dbFileHandle = await directoryHandle.getFileHandle('trip_database.json', { create: true });
+      }
+
+      // Deep copy arrays
+      const newDb = {
+        ...currentDb,
+        trips: [...(currentDb.trips || [])],
+        events: [...(currentDb.events || [])],
+        cities: [...(currentDb.cities || [])],
+        photos: [...(currentDb.photos || [])],
+      };
+      let changed = false;
+
+      (smartTrips || []).forEach(stTrip => {
+        let aTrip = newDb.trips.find(t => String(t.trip_id) === String(stTrip.id));
+        if (!aTrip) {
+          aTrip = {
+            trip_id: stTrip.id,
+            title: stTrip.title,
+            folder_name: stTrip.title,
+            date: stTrip.startDate,
+            startDate: stTrip.startDate,
+            endDate: stTrip.endDate,
+            cover_photo_id: null
+          };
+          newDb.trips.push(aTrip);
+          changed = true;
+        }
+
+        if (stTrip.days) {
+          stTrip.days.forEach(day => {
+            if (day.stops) {
+              day.stops.forEach(stop => {
+                let stopTitle, stopNotes;
+                if (stop.type === 'note') {
+                  stopTitle = `📝 ${stop.content ? stop.content.split('\n')[0].slice(0, 20) || '备注' : '备注'}`;
+                  stopNotes = stop.content || '';
+                } else if (stop.type === 'list') {
+                  stopTitle = `📋 ${stop.title || '清单'}`;
+                  stopNotes = stop.items ? stop.items.map(item => `- [${item.checked ? 'x' : ' '}] ${item.text}`).join('\n') : '';
+                } else {
+                  stopTitle = stop.location || stop.name;
+                  stopNotes = '';
+                }
+
+                let aEvent = (stop.id && newDb.events.find(e => String(e.event_id) === String(stop.id)))
+                          || newDb.events.find(e => e.title === stopTitle && String(e.trip_id) === String(aTrip.trip_id));
+
+                if (!aEvent) {
+                  newDb.events.push({
+                    event_id: stop.id || crypto.randomUUID(),
+                    trip_id: aTrip.trip_id,
+                    title: stopTitle,
+                    notes: stopNotes,
+                    date: day.date,
+                    city: stop.city || '',
+                    latitude: stop.lat,
+                    longitude: stop.lng,
+                    spending: parseFloat(stop.price) || 0,
+                    currency: stop.currency || 'CNY',
+                    category: stop.category || '未分类'
+                  });
+                  changed = true;
+                }
+              });
+            }
+          });
+        }
+      });
+
+      if (changed || !currentDb.trips) {
+        const writable = await dbFileHandle.createWritable();
+        await writable.write(JSON.stringify(newDb, null, 2));
+        await writable.close();
+      }
+
+      setArchiveDb(newDb);
+      setRootHandle(directoryHandle);
+      setIsLinked(true);
+      return true;
+    } catch (e) {
+      if (e.name !== 'AbortError') {
+        console.error('Init & sync failed', e);
+        alert('初始化失败: ' + e.message);
+      }
+      return false;
+    }
+  };
+
+  return { archiveDb, isLinked, thumbnails, getThumbnail, syncToArchive, initAndSync, loadArchiveDb, rootHandle };
 }

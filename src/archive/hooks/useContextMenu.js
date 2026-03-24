@@ -18,13 +18,19 @@ export function useContextMenu() {
 
   useEffect(() => {
     if (contextMenu) {
+      const handleScroll = (e) => {
+        // Don't close if scrolling inside the context menu itself
+        const menuEl = document.querySelector('[data-context-menu]');
+        if (menuEl && menuEl.contains(e.target)) return;
+        closeMenu();
+      };
       window.addEventListener('click', closeMenu);
-      window.addEventListener('scroll', closeMenu, true);
+      window.addEventListener('scroll', handleScroll, true);
+      return () => {
+        window.removeEventListener('click', closeMenu);
+        window.removeEventListener('scroll', handleScroll, true);
+      };
     }
-    return () => {
-      window.removeEventListener('click', closeMenu);
-      window.removeEventListener('scroll', closeMenu, true);
-    };
   }, [contextMenu, closeMenu]);
 
   return { contextMenu, handleContextMenu, closeMenu };
