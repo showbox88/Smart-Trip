@@ -26,6 +26,7 @@
   - [ ] Supabase: trips 表加 share_token 字段 + 匿名读取 RLS 策略 ← **需在 Supabase 控制台手动执行**
   - [x] 前端: `/shared/:token` 公开路由 + SharedTripPage 只读视图
   - [x] UI: TripHeader 菜单加"Share trip"按钮 + ShareModal（生成/复制/撤销链接）
+  - [x] Dashboard 卡片菜单同步加"Share trip"，已分享封面显示 badge
 - [x] 导入分享 Trip — 通过分享链接将别人的 trip 复制到自己账户
   - [x] 只读页面加"Import to My Trips"按钮（登录后显示）
   - [x] 深拷贝 trip 数据，所有 id 重新生成，绑定当前 user_id
@@ -66,6 +67,8 @@
 - [x] 地图地点面板"已添加"状态误显 — 切换地点时重置 mutableAddedDays
 - [x] 地图标记路线初始闪烁 — render effect 加 100ms 防抖，合并快速连续更新
 - [x] 酒店地标仅首天显示 — 在每个从酒店出发的天补充 H marker
+- [x] 分享 token 刷新/新标签后丢失 — useAuth loadUserData 补全 share_token 映射
+- [x] 封面图搜索后刷新变图 — 保存前将 loremflickr URL 上传到 Supabase Storage
 
 ---
 
@@ -82,4 +85,4 @@
 
 ---
 
-*Last updated: 2026-03-25*
+*Last updated: 2026-03-25 (session 2)*
