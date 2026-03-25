@@ -304,6 +304,22 @@
         "select_date": "选择日期",
         "no_transit_data": "无法获取交通信息"
     },
+    "share": {
+        "no_link": "尚未生成分享链接。生成后任何人都可查看此行程。",
+        "generate_link": "生成分享链接",
+        "anyone_with_link": "持有此链接的任何人均可查看（只读）：",
+        "copy_link": "复制链接",
+        "copied": "已复制！",
+        "revoke_link": "撤销链接",
+        "confirm_revoke": "确认撤销？",
+        "revoke_warning": "当前链接将立即失效，此操作无法撤回。",
+        "import_trip": "导入到我的行程",
+        "importing": "导入中...",
+        "import_success": "行程导入成功！",
+        "not_found": "此行程已不可访问，或分享链接已被撤销。",
+        "view_only": "只读 · 通过 Smart Trip 分享",
+        "shared": "已分享"
+    },
     "app": {
         "albums": {
             "title": "我的本地相册",

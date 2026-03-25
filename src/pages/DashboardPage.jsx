@@ -9,6 +9,7 @@ import DashboardFilters from '../components/dashboard/DashboardFilters';
 import TripGrid from '../components/dashboard/TripGrid';
 import BudgetSummary from '../components/dashboard/BudgetSummary';
 import TripEditModal from '../components/modals/TripEditModal';
+import ShareModal from '../components/modals/ShareModal';
 
 export default function DashboardPage() {
   const { state } = useApp();
@@ -17,6 +18,7 @@ export default function DashboardPage() {
   const { saveTrip } = useTrips();
   const [isCreating, setIsCreating] = useState(false);
   const [editingTrip, setEditingTrip] = useState(null);
+  const [sharingTrip, setSharingTrip] = useState(null);
 
   const filteredTrips = state.trips.filter((trip) => {
     if (state.dashboardFilter === 'all' || !state.dashboardFilter) return true;
@@ -89,7 +91,7 @@ export default function DashboardPage() {
       <DashboardFilters />
 
       <div id="trip-grid-container">
-        <TripGrid trips={filteredTrips} onAddTrip={handleAddNewTrip} onEdit={setEditingTrip} />
+        <TripGrid trips={filteredTrips} onAddTrip={handleAddNewTrip} onEdit={setEditingTrip} onShare={setSharingTrip} />
       </div>
 
       <BudgetSummary />
@@ -99,6 +101,13 @@ export default function DashboardPage() {
           trip={editingTrip}
           onSave={handleSaveEditedTrip}
           onClose={() => setEditingTrip(null)}
+        />
+      )}
+
+      {sharingTrip && (
+        <ShareModal
+          trip={sharingTrip}
+          onClose={() => setSharingTrip(null)}
         />
       )}
     </div>

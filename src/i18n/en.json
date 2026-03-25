@@ -305,6 +305,22 @@
         "select_date": "Select Date",
         "no_transit_data": "Transit info unavailable"
     },
+    "share": {
+        "no_link": "No share link yet. Generate one to let anyone view this trip.",
+        "generate_link": "Generate share link",
+        "anyone_with_link": "Anyone with this link can view this trip (read-only):",
+        "copy_link": "Copy link",
+        "copied": "Copied!",
+        "revoke_link": "Revoke link",
+        "confirm_revoke": "Confirm revoke?",
+        "revoke_warning": "The current link will stop working. This cannot be undone.",
+        "import_trip": "Import to My Trips",
+        "importing": "Importing...",
+        "import_success": "Trip imported successfully!",
+        "not_found": "This trip is no longer available or the link has been revoked.",
+        "view_only": "View only · Shared via Smart Trip",
+        "shared": "Shared"
+    },
     "app": {
         "albums": {
             "title": "Local Memories",

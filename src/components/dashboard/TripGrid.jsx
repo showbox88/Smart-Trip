@@ -4,21 +4,21 @@ import { useI18n } from '../../context/I18nContext';
 import TripCard from './TripCard';
 import TripAlbumGrid from './TripAlbumGrid';
 
-export default function TripGrid({ trips, onAddTrip, onEdit }) {
+export default function TripGrid({ trips, onAddTrip, onEdit, onShare }) {
   const { state } = useApp();
   const { t } = useI18n();
   const isList = state.dashboardView === 'list';
   const isAlbum = state.dashboardView === 'album';
 
   if (isAlbum) {
-    return <TripAlbumGrid trips={trips} onAddTrip={onAddTrip} onEdit={onEdit} />;
+    return <TripAlbumGrid trips={trips} onAddTrip={onAddTrip} onEdit={onEdit} onShare={onShare} />;
   }
 
 
   return (
     <div className="trip-grid" style={isList ? { display: 'block' } : {}}>
       {trips.map(trip => (
-        <TripCard key={trip.id} trip={trip} isList={isList} onEdit={onEdit} />
+        <TripCard key={trip.id} trip={trip} isList={isList} onEdit={onEdit} onShare={onShare} />
       ))}
       <div className="trip-card-placeholder" onClick={onAddTrip} style={{ cursor: 'pointer' }}>
         <div className="placeholder-icon">

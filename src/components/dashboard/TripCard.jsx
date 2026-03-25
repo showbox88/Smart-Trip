@@ -17,7 +17,7 @@ function getStatus(trip, t) {
   return { label: t('common.completed'), cls: 'status-completed' };
 }
 
-export default function TripCard({ trip, isList = false, onEdit }) {
+export default function TripCard({ trip, isList = false, onEdit, onShare }) {
   const { t } = useI18n();
   const { state } = useApp();
   const { deleteTrip } = useTrips();
@@ -82,6 +82,10 @@ export default function TripCard({ trip, isList = false, onEdit }) {
           {menuOpen && (
             <div className="menu-dropdown" style={{ right: 0, top: '2.5rem', transform: 'none', zIndex: 100, display: 'block' }}>
               <button onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onEdit?.(trip); }}>{t('itinerary.edit_trip')}</button>
+              <button onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onShare?.(trip); }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>share</span>
+                {t('itinerary.share_trip') || 'Share trip'}
+              </button>
               <button className="danger" onClick={handleDelete}>{t('itinerary.delete_trip')}</button>
             </div>
           )}
@@ -96,6 +100,12 @@ export default function TripCard({ trip, isList = false, onEdit }) {
         <div className="thumb-blur-bg" style={{ backgroundImage: `url('${trip.thumb}')` }} />
         <img className="thumb-main-img" src={trip.thumb} loading="lazy" alt={trip.title} />
         <button className="menu-dots" onClick={handleMenuToggle} style={{ position: 'absolute', top: '1rem', right: '1rem', transform: 'none', background: 'rgba(0,0,0,0.2)', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', backdropFilter: 'blur(4px)', zIndex: 10 }}>⋮</button>
+        {trip.share_token && (
+          <div style={{ position: 'absolute', top: '1rem', left: '1rem', background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(6px)', borderRadius: '20px', padding: '3px 10px', display: 'flex', alignItems: 'center', gap: '4px', color: '#a5f3fc', fontSize: '0.75rem', fontWeight: 600, zIndex: 10 }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>link</span>
+            {t('share.shared') || 'Shared'}
+          </div>
+        )}
       </div>
       <div className="trip-content">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
@@ -126,6 +136,10 @@ export default function TripCard({ trip, isList = false, onEdit }) {
       {menuOpen && (
         <div className="menu-dropdown" style={{ right: '1rem', top: '3.5rem', transform: 'none', display: 'block', zIndex: 20 }}>
           <button onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onEdit?.(trip); }}>{t('itinerary.edit_trip')}</button>
+          <button onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onShare?.(trip); }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>share</span>
+            {t('itinerary.share_trip') || 'Share trip'}
+          </button>
           <button className="danger" onClick={handleDelete}>{t('itinerary.delete_trip')}</button>
         </div>
       )}
