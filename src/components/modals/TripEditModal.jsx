@@ -14,12 +14,32 @@ export default function TripEditModal({ trip, onSave, onClose }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const set = (key) => (e) => setForm(f => ({ ...f, [key]: e.target.value }));
 
-  const handleSave = () => {
-    onSave?.({ ...form });
-    onClose?.();
+  // If thumb is an external search URL (not yet in Supabase), upload it first
+  const resolveThumb = async (url) => {
+    if (!url || !url.includes('loremflickr.com')) return url;
+    const resp = await fetch(url);
+    const blob = await resp.blob();
+    const ext = blob.type.split('/')[1] || 'jpg';
+    const file = new File([blob], `thumb.${ext}`, { type: blob.type });
+    return uploadToSupabase(file);
+  };
+
+  const handleSave = async (thumbOverride) => {
+    setIsSaving(true);
+    try {
+      const thumb = await resolveThumb(thumbOverride ?? form.thumb);
+      onSave?.({ ...form, thumb });
+      onClose?.();
+    } catch (e) {
+      console.error('[TripEditModal] save error:', e);
+      alert(t('common.fetch_error') || 'Failed to save image');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleSearch = () => {
@@ -173,7 +193,7 @@ export default function TripEditModal({ trip, onSave, onClose }) {
                 key={i}
                 className={`image-thumb-option ${form.thumb === url ? 'selected' : ''}`}
                 onClick={() => setForm(f => ({ ...f, thumb: url }))}
-                onDoubleClick={() => { onSave?.({ ...form, thumb: url }); onClose?.(); }}
+                onDoubleClick={() => handleSave(url)}
                 style={{
                   backgroundImage: `url('${url}')`,
                   height: '70px',
@@ -191,15 +211,17 @@ export default function TripEditModal({ trip, onSave, onClose }) {
         <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
           <button
             onClick={onClose}
-            style={{ padding: '0.6rem 1.2rem', borderRadius: '8px', background: 'var(--bg-secondary)', border: '1px solid var(--glass-border)', color: 'var(--text-primary)', cursor: 'pointer' }}
+            disabled={isSaving}
+            style={{ padding: '0.6rem 1.2rem', borderRadius: '8px', background: 'var(--bg-secondary)', border: '1px solid var(--glass-border)', color: 'var(--text-primary)', cursor: isSaving ? 'not-allowed' : 'pointer', opacity: isSaving ? 0.5 : 1 }}
           >
             {t('common.cancel') || 'Cancel'}
           </button>
           <button
-            onClick={handleSave}
-            style={{ padding: '0.6rem 1.2rem', borderRadius: '8px', background: 'var(--accent-primary)', border: 'none', color: '#fff', cursor: 'pointer', fontWeight: 600 }}
+            onClick={() => handleSave()}
+            disabled={isSaving}
+            style={{ padding: '0.6rem 1.2rem', borderRadius: '8px', background: 'var(--accent-primary)', border: 'none', color: '#fff', cursor: isSaving ? 'not-allowed' : 'pointer', fontWeight: 600, opacity: isSaving ? 0.7 : 1 }}
           >
-            {t('common.save') || 'Save'}
+            {isSaving ? (t('common.loading') || 'Saving...') : (t('common.save') || 'Save')}
           </button>
         </div>
       </div>
