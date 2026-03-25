@@ -314,107 +314,91 @@ export default function SharedTripPage() {
               const navUrl = stop.address
                 ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(stop.address)}${stop.placeId ? `&destination_place_id=${stop.placeId}` : ''}`
                 : null;
+              const chip = (bg, color, border, icon, label) => (
+                <span style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '3px',
+                  background: bg, color, border: `1px solid ${border}`,
+                  borderRadius: '6px', padding: '2px 7px',
+                  fontSize: '0.7rem', fontWeight: 700, whiteSpace: 'nowrap',
+                }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '11px' }}>{icon}</span>
+                  {label}
+                </span>
+              );
               return (
                 <div key={stop.id || stopIndex} style={{
                   background: 'var(--bg-secondary)',
                   border: '1px solid var(--glass-border)',
                   borderRadius: '12px',
-                  padding: '0.9rem 1rem',
-                  marginBottom: '0.5rem',
+                  padding: '0.75rem 0.85rem',
+                  marginBottom: '0.45rem',
                   display: 'flex',
                   alignItems: 'flex-start',
-                  gap: '0.85rem',
+                  gap: '0.65rem',
                 }}>
-                  {/* Category icon */}
-                  <div style={{
-                    width: '38px',
-                    height: '38px',
-                    borderRadius: '10px',
-                    background: 'rgba(255,255,255,0.06)',
-                    border: '1px solid var(--glass-border)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                    marginTop: '2px',
-                  }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'var(--accent-primary)', fontVariationSettings: "'FILL' 1" }}>
-                      {getCategoryIcon(stop)}
-                    </span>
-                  </div>
-
-                  {/* Main content */}
+                  {/* Left: all text content */}
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    {/* Name row + hotel badge + rating */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.2rem', flexWrap: 'wrap' }}>
-                      <span style={{ fontWeight: 700, fontSize: '0.97rem' }}>
+
+                    {/* Row 1: icon + name + hotel badge + rating */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', marginBottom: '0.2rem', flexWrap: 'wrap' }}>
+                      <span className="material-symbols-outlined" style={{
+                        fontSize: '14px', color: 'var(--accent-primary)',
+                        fontVariationSettings: "'FILL' 1", flexShrink: 0, lineHeight: 1,
+                      }}>
+                        {getCategoryIcon(stop)}
+                      </span>
+                      <span style={{ fontWeight: 700, fontSize: '0.88rem', lineHeight: 1.3 }}>
                         {stop.name || stop.location || 'Unnamed stop'}
                       </span>
                       {hotelBadge && (
-                        <span style={{ fontSize: '0.7rem', fontWeight: 700, color: hotelBadge.color, background: `${hotelBadge.color}22`, border: `1px solid ${hotelBadge.color}44`, borderRadius: '4px', padding: '1px 6px', flexShrink: 0 }}>
+                        <span style={{ fontSize: '0.62rem', fontWeight: 700, color: hotelBadge.color, background: `${hotelBadge.color}22`, border: `1px solid ${hotelBadge.color}44`, borderRadius: '4px', padding: '1px 5px', flexShrink: 0 }}>
                           {hotelBadge.label}
                         </span>
                       )}
                       {stop.rating && (
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '2px', flexShrink: 0 }}>
-                          <span style={{ color: '#f59e0b', fontSize: '13px', lineHeight: 1 }}>★</span>
-                          <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', fontWeight: 700 }}>{stop.rating}</span>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', flexShrink: 0 }}>
+                          <span style={{ color: '#f59e0b', fontSize: '11px', lineHeight: 1 }}>★</span>
+                          <span style={{ color: 'var(--text-secondary)', fontSize: '0.7rem', fontWeight: 700 }}>{stop.rating}</span>
                         </span>
                       )}
                     </div>
 
-                    {/* Address */}
+                    {/* Row 2: address */}
                     {stop.address && (
-                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '4px', marginBottom: '0.5rem' }}>
-                        <span className="material-symbols-outlined" style={{ fontSize: '13px', color: '#f97316', flexShrink: 0, marginTop: '2px' }}>location_on</span>
-                        <span style={{ color: 'var(--text-muted)', fontSize: '0.78rem', lineHeight: 1.4 }}>{stop.address}</span>
+                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '3px', marginBottom: '0.35rem' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '11px', color: '#f97316', flexShrink: 0, marginTop: '2px' }}>location_on</span>
+                        <span style={{
+                          color: 'var(--text-muted)', fontSize: '0.71rem', lineHeight: 1.45,
+                          display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                        }}>{stop.address}</span>
                       </div>
                     )}
 
-                    {/* Chips row */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                      {/* Time chip — orange */}
-                      {stop.time && (
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(249,115,22,0.1)', color: '#f97316', border: '1px solid rgba(249,115,22,0.25)', borderRadius: '7px', padding: '3px 9px', fontSize: '0.78rem', fontWeight: 700 }}>
-                          <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>schedule</span>
-                          {stop.time}{stop.period ? ` ${stop.period}` : ''}
-                        </span>
-                      )}
-
-                      {/* Reservation time chip — neutral white */}
-                      {stop.reservationTime && (
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(255,255,255,0.06)', color: 'var(--text-primary)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '7px', padding: '3px 9px', fontSize: '0.78rem', fontWeight: 700 }}>
-                          <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>event_available</span>
-                          {stop.reservationTime}
-                        </span>
-                      )}
-
-                      {/* Price chip — green */}
-                      {!isNaN(price) && price > 0 && (
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(16,185,129,0.1)', color: '#10b981', border: '1px solid rgba(16,185,129,0.25)', borderRadius: '7px', padding: '3px 9px', fontSize: '0.78rem', fontWeight: 700 }}>
-                          <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>payments</span>
-                          {stop.price}
-                        </span>
-                      )}
-
-                      {/* Navigate button — blue */}
-                      {navUrl && (
-                        <a
-                          href={navUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(59,130,246,0.1)', color: '#3b82f6', border: '1px solid rgba(59,130,246,0.25)', borderRadius: '7px', padding: '3px 9px', fontSize: '0.78rem', fontWeight: 700, textDecoration: 'none' }}
-                        >
-                          <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>near_me</span>
-                          Navigate
-                        </a>
-                      )}
-                    </div>
+                    {/* Row 3: time + reservationTime + price + navigate */}
+                    {(stop.time || stop.reservationTime || (!isNaN(price) && price > 0) || navUrl) && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', flexWrap: 'wrap' }}>
+                        {stop.time && chip('rgba(249,115,22,0.1)', '#f97316', 'rgba(249,115,22,0.25)', 'schedule', `${stop.time}${stop.period ? ` ${stop.period}` : ''}`)}
+                        {stop.reservationTime && chip('rgba(255,255,255,0.06)', 'var(--text-primary)', 'rgba(255,255,255,0.12)', 'event_available', stop.reservationTime)}
+                        {!isNaN(price) && price > 0 && chip('rgba(16,185,129,0.1)', '#10b981', 'rgba(16,185,129,0.25)', 'payments', stop.price)}
+                        {navUrl && (
+                          <a href={navUrl} target="_blank" rel="noreferrer" style={{
+                            display: 'inline-flex', alignItems: 'center', gap: '3px',
+                            background: 'rgba(59,130,246,0.1)', color: '#3b82f6',
+                            border: '1px solid rgba(59,130,246,0.25)',
+                            borderRadius: '6px', padding: '2px 7px',
+                            fontSize: '0.7rem', fontWeight: 700, textDecoration: 'none', whiteSpace: 'nowrap',
+                          }}>
+                            <span className="material-symbols-outlined" style={{ fontSize: '11px' }}>near_me</span>
+                            Navigate
+                          </a>
+                        )}
+                      </div>
+                    )}
                   </div>
 
-                  {/* Thumbnail */}
+                  {/* Right: thumbnail */}
                   {stop.photo && (
-                    <div style={{ width: '72px', height: '56px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0, border: '1px solid var(--glass-border)' }}>
+                    <div style={{ width: '64px', height: '64px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0, border: '1px solid var(--glass-border)' }}>
                       <img src={stop.photo} alt={stop.name || stop.location} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     </div>
                   )}
