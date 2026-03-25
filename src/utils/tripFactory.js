@@ -1,5 +1,5 @@
-import { formatDate, generateId } from './formatters';
-import { DEFAULT_DAY_COLORS } from './tripEditorHelpers';
+import { generateId } from './formatters';
+import { DEFAULT_DAY_COLORS, formatTripDate } from './tripEditorHelpers';
 
 const DEFAULT_TRIP_DAYS = 6;
 const DEFAULT_TRIP_THUMB = 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80';
@@ -31,7 +31,7 @@ export function createDraftTrip(settings, t) {
   const days = Array.from({ length: DEFAULT_TRIP_DAYS }, (_, index) => ({
     id: generateId(`day-${index}`),
     title: `${t('itinerary.day_label') || '第'}${index + 1}${t('itinerary.day_suffix') || '天'}`,
-    date: formatDate(startDate, index, settings) || t('itinerary.unknown_date'),
+    date: formatTripDate(startDate, index) || t('itinerary.unknown_date'),
     stops: [],
     color: DEFAULT_DAY_COLORS[index % DEFAULT_DAY_COLORS.length],
   }));

@@ -610,7 +610,17 @@ export function useTripEditor(tripId) {
   }, [withTripUpdate]);
 
   const updateTripMetadata = useCallback((patch) => {
-    withTripUpdate((updated) => Object.assign(updated, patch));
+    withTripUpdate((updated) => {
+      const oldStartDate = updated.startDate;
+      Object.assign(updated, patch);
+      // If startDate changed, recalculate each day's date
+      if (patch.startDate && patch.startDate !== oldStartDate && updated.days) {
+        updated.days.forEach((day, index) => {
+          day.date = formatTripDate(patch.startDate, index);
+        });
+      }
+      return updated;
+    });
   }, [withTripUpdate]);
 
   const saveStayInfo = useCallback((dayId, stopId, { cinDate, cinTime, cinPeriod, coutDate, coutTime, coutPeriod }) => {

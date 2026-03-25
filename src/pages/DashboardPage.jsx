@@ -4,6 +4,7 @@ import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
 import { useTrips } from '../hooks/useTrips';
 import { createDraftTrip, getDashboardTripStatus } from '../utils/tripFactory';
+import { formatTripDate } from '../utils/tripEditorHelpers';
 import DashboardFilters from '../components/dashboard/DashboardFilters';
 import TripGrid from '../components/dashboard/TripGrid';
 import BudgetSummary from '../components/dashboard/BudgetSummary';
@@ -46,6 +47,15 @@ export default function DashboardPage() {
     if (!editingTrip) return;
     try {
       const updated = { ...editingTrip, ...patch };
+
+      // If startDate changed, recalculate each day's date
+      if (patch.startDate && patch.startDate !== editingTrip.startDate && updated.days) {
+        updated.days = updated.days.map((day, index) => ({
+          ...day,
+          date: formatTripDate(patch.startDate, index),
+        }));
+      }
+
       await saveTrip(updated);
       setEditingTrip(null);
     } catch (err) {

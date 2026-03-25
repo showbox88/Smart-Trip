@@ -199,7 +199,7 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay }) {
                   >
                     <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: day.color || '#f97316', marginRight: '12px' }} />
                     <span style={{ fontSize: '0.85rem', fontWeight: 700, color: isAdded ? '#10b981' : 'white', flex: 1 }}>{t('itinerary.day_label')}{idx + 1}{t('itinerary.day_suffix')}</span>
-                    <span style={{ fontSize: '0.75rem', color: isAdded ? '#10b981' : '#64748b', marginRight: isAdded ? '6px' : 0 }}>{day.date}</span>
+                    <span style={{ fontSize: '0.75rem', color: isAdded ? '#10b981' : '#64748b', marginRight: isAdded ? '6px' : 0 }}>{day.date ? new Date(day.date.replace(/-/g, '/')).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''}</span>
                     {isAdded && <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#10b981' }}>check_circle</span>}
                   </div>
                 );

@@ -2,6 +2,7 @@ import { useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
+import { formatTripDate } from '../utils/tripEditorHelpers';
 
 export function useAuth() {
   const { state, dispatch } = useApp();
@@ -77,12 +78,25 @@ export function useAuth() {
         if (error) throw error;
 
         if (tripsData) {
-          const trips = tripsData.map(row => ({
-            ...row.trip_data,
-            id: row.id,
-            title: row.title,
-            thumb: row.thumb,
-          }));
+          const trips = tripsData.map(row => {
+            const trip = {
+              ...row.trip_data,
+              id: row.id,
+              title: row.title,
+              thumb: row.thumb,
+            };
+            // Auto-fix days whose dates don't match startDate
+            if (trip.startDate && trip.days?.length) {
+              const expectedFirst = formatTripDate(trip.startDate, 0);
+              if (trip.days[0].date !== expectedFirst) {
+                trip.days = trip.days.map((day, i) => ({
+                  ...day,
+                  date: formatTripDate(trip.startDate, i),
+                }));
+              }
+            }
+            return trip;
+          });
           dispatch({ type: 'SET_TRIPS', payload: trips });
         }
       } catch (e) {

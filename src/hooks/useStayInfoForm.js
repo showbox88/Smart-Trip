@@ -4,6 +4,13 @@ import { getTripStopsWithDayContext, getTripStayMap } from '../utils/stayHelpers
 const DEFAULT_CHECKIN = { date: '', time: '14:00', period: 'PM' };
 const DEFAULT_CHECKOUT = { date: '', time: '12:00', period: 'PM' };
 
+function formatDayLabel(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr.replace(/-/g, '/'));
+  if (isNaN(d)) return dateStr;
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
 function getInitialStayState(allStops, stayMap, stopId) {
   const currentStop = allStops.find((stop) => stop.id === stopId);
   const stayId = currentStop?.stayId;
@@ -43,7 +50,7 @@ export function useStayInfoForm(trip, stopId) {
   const allStops = useMemo(() => getTripStopsWithDayContext(trip), [trip]);
   const stayMap = useMemo(() => getTripStayMap(trip), [trip]);
   const dayOptions = useMemo(
-    () => trip.days.map((day) => ({ id: day.id, label: day.date || day.id })),
+    () => trip.days.map((day) => ({ id: day.id, value: day.date || day.id, label: formatDayLabel(day.date) || day.date || day.id })),
     [trip.days]
   );
 

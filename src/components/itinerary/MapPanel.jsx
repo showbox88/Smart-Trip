@@ -296,9 +296,11 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [] }, 
               nights = coutIdx - cinIdx;
             }
 
-            const cinDateStr = cin?._dayDate || cin?.date || '';
+            const rawCinDate = cin?._dayDate || cin?.date || '';
+            const cinDateStr = rawCinDate ? (() => { const d = new Date(rawCinDate.replace(/-/g, '/')); return isNaN(d) ? rawCinDate : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); })() : '';
             const cinTimeStr = cin?.time ? `${cin.time}${cin.period ? ' ' + cin.period : ''}` : '';
-            const coutDateStr = cout?._dayDate || cout?.date || '';
+            const rawCoutDate = cout?._dayDate || cout?.date || '';
+            const coutDateStr = rawCoutDate ? (() => { const d = new Date(rawCoutDate.replace(/-/g, '/')); return isNaN(d) ? rawCoutDate : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); })() : '';
             const coutTimeStr = cout?.time ? `${cout.time}${cout.period ? ' ' + cout.period : ''}` : '';
             const rating = stop.rating || '';
             const phone = stop.phone || '';

@@ -180,7 +180,7 @@ export default function StayInfoModal({ trip, stopId, onSave, onClose }) {
             <div style={{ flex: 1 }}>
               <select value={cinDate} onChange={(e) => setCinDate(e.target.value)} style={selectStyle}>
                 <option value="">--</option>
-                {dayOptions.map((day) => <option key={day.id} value={day.label}>{day.label}</option>)}
+                {dayOptions.map((day) => <option key={day.id} value={day.value}>{day.label}</option>)}
               </select>
             </div>
             <div style={{ flex: 1 }}>
@@ -198,7 +198,7 @@ export default function StayInfoModal({ trip, stopId, onSave, onClose }) {
             <div style={{ flex: 1 }}>
               <select value={coutDate} onChange={(e) => setCoutDate(e.target.value)} style={selectStyle}>
                 <option value="">--</option>
-                {dayOptions.map((day) => <option key={day.id} value={day.label}>{day.label}</option>)}
+                {dayOptions.map((day) => <option key={day.id} value={day.value}>{day.label}</option>)}
               </select>
             </div>
             <div style={{ flex: 1 }}>
