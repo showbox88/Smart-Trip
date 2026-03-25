@@ -6,7 +6,7 @@ import {
   Utensils, Landmark, MapPin,
   Bed, Plane, Leaf, ShoppingBag,
   Clock, CheckCircle2, Phone,
-  Hotel, LogIn, LogOut, Receipt, Coffee, Croissant
+  Hotel, Receipt, Coffee, Croissant
 } from 'lucide-react';
 import { formatCurrency } from '../../utils/formatters';
 import HotelLine from './HotelLine';
@@ -34,7 +34,7 @@ const CATEGORY_MAP = {
   'point_of_interest': MapPin,
 };
 
-function getCategoryIcon(cat, iconName) {
+function getCategoryIcon(cat) {
   if (!cat) return MapPin;
   const lowerCat = String(cat).toLowerCase();
   for (const [key, icon] of Object.entries(CATEGORY_MAP)) {
@@ -382,7 +382,7 @@ export default memo(function StopCard({
               </h4>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginLeft: '4px', flexShrink: 0 }} title={stop.category ? (t(stop.category) !== stop.category ? t(stop.category) : stop.category) : t('map.place_default')}>
                 {(() => {
-                  const Icon = getCategoryIcon(stop.category, stop.categoryIcon);
+                  const Icon = getCategoryIcon(stop.category);
                   return <Icon size={16} strokeWidth={2.5} className="text-white opacity-90" />;
                 })()}
               </div>
@@ -483,27 +483,18 @@ export default memo(function StopCard({
         </div>
 
         {/* Note / Placeholder */}
-        {stop.type === 'hotel_checkin' || stop.type === 'hotel_checkout' ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1.2rem', padding: '4px 0' }}>
-            {stop.type === 'hotel_checkin' ? <LogIn size={14} strokeWidth={2.5} className="text-white" /> : <LogOut size={14} strokeWidth={2.5} className="text-white" />}
-            <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'white' }}>
-              {typeLabel}
-            </span>
-          </div>
-        ) : (
-          <div
-            style={{
-              fontSize: '0.95rem',
-              color: stop.note ? 'var(--text-secondary)' : 'var(--text-muted)',
-              marginBottom: '1.2rem',
-              lineHeight: 1.5,
-              padding: '4px 0',
-              fontStyle: stop.note ? 'normal' : 'italic'
-            }}
-          >
-            {stop.note || t('itinerary.add_note') || '点击添加备注...'}
-          </div>
-        )}
+        <div
+          style={{
+            fontSize: '0.95rem',
+            color: stop.note ? 'var(--text-secondary)' : 'var(--text-muted)',
+            marginBottom: '1.2rem',
+            lineHeight: 1.5,
+            padding: '4px 0',
+            fontStyle: stop.note ? 'normal' : 'italic'
+          }}
+        >
+          {stop.note || t('itinerary.add_note') || '点击添加备注...'}
+        </div>
 
         {/* Bottom Actions: Time & Expense Chips */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginTop: 'auto', flexWrap: 'wrap' }}>
@@ -571,10 +562,25 @@ export default memo(function StopCard({
             }}
           >
             <Receipt size={14} strokeWidth={2.5} />
-            {stop.price && parseFloat(stop.price) > 0 
-              ? formatCurrency(stop.price, state.settings) 
+            {stop.price && parseFloat(stop.price) > 0
+              ? formatCurrency(stop.price, state.settings)
               : (t('itinerary.add_expense') || '添加消费')}
           </div>
+
+          {stop.address && (
+            <a
+              href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(stop.address)}${stop.placeId ? `&destination_place_id=${stop.placeId}` : ''}`}
+              target="_blank"
+              rel="noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              title={t('itinerary.navigate') || 'Navigate'}
+              className="stop-chip"
+              style={{ background: 'rgba(59,130,246,0.08)', color: '#3b82f6', padding: '4px 10px', borderRadius: '8px', fontSize: '0.78rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '6px', border: '1px solid rgba(59,130,246,0.25)', textDecoration: 'none', cursor: 'pointer' }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>near_me</span>
+              {t('itinerary.navigate') || 'Navigate'}
+            </a>
+          )}
 
           {stop.reservationTime && (
             <div

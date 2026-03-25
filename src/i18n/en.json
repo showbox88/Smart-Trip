@@ -150,6 +150,7 @@
         "stay_info": "Stay Info",
         "add_expense": "Add Expense",
         "edit_expense": "Edit Expense",
+        "navigate": "Navigate",
         "select_appointment_time": "Select Appointment Time",
         "select_appointment_approx": "Select Approximate Appointment Time",
         "scheduled_time": "Scheduled Time",

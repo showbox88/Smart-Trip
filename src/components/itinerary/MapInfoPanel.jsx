@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo, useCallback } from 'react';
+import { useState, useRef, useMemo, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useI18n } from '../../context/I18nContext';
 import { useApp } from '../../context/AppContext';
@@ -54,6 +54,7 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay }) {
   const [activeTab, setActiveTab] = useState('about');
   const [showDayPicker, setShowDayPicker] = useState(false);
   const [mutableAddedDays, setMutableAddedDays] = useState(new Set());
+  useEffect(() => { setMutableAddedDays(new Set()); }, [placeId]);
   const [dayPickerPos, setDayPickerPos] = useState({ top: 0, left: 0 });
   const [hoverHours, setHoverHours] = useState(false);
   const [hoursPos, setHoursPos] = useState({ bottom: 0, left: 0 });

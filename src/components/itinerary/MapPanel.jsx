@@ -58,6 +58,7 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [] }, 
   const locationAccuracyRef = useRef(null);
   const locationDotRef = useRef(null);
   const [locating, setLocating] = useState(false);
+  const renderDebounceRef = useRef(null);
   const [gpsToast, setGpsToast] = useState(null);
   const [showLocPrompt, setShowLocPrompt] = useState(false);
 
@@ -155,7 +156,10 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [] }, 
 
   // Render Markers and Routes
   useEffect(() => {
+    if (renderDebounceRef.current) clearTimeout(renderDebounceRef.current);
     if (!mapInstanceRef.current || !activeTrip) return;
+
+    renderDebounceRef.current = setTimeout(() => {
 
     // Snapshot old elements — will be cleared AFTER new ones are drawn to avoid flash
     const oldMarkers = markersRef.current.slice();
@@ -204,7 +208,84 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [] }, 
         // Skip prepend if first stop IS the hotel
         const firstStop = day.stops[0];
         if (!(firstStop && isHotelStop(firstStop))) {
-          routePath.push({ lat: Number(dayStay.checkinStop.lat), lng: Number(dayStay.checkinStop.lng) });
+          const cin = dayStay.checkinStop;
+          const cout = dayStay.checkoutStop;
+          const hotelPos = { lat: Number(cin.lat), lng: Number(cin.lng) };
+          routePath.push(hotelPos);
+          bounds.extend(hotelPos);
+          hasCoords = true;
+
+          // Build ambient hotel marker for days departing from this hotel
+          const hContent = document.createElement('div');
+          hContent.className = 'custom-marker';
+          hContent.style.cssText = 'width:36px;height:44px;cursor:pointer;transition:transform 0.2s cubic-bezier(0.34,1.56,0.64,1);transform-origin:bottom center;position:relative;opacity:0.82;';
+          hContent.innerHTML = `<svg width="36" height="44" viewBox="0 0 36 44" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 3px 6px rgba(0,0,0,0.6));"><path d="M18 0 C8.06 0 0 8.06 0 18 C0 31.5 18 44 18 44 C18 44 36 31.5 36 18 C36 8.06 27.94 0 18 0Z" fill="#f97316" stroke="white" stroke-width="2"/><text x="18" y="24" text-anchor="middle" fill="white" font-size="18" font-weight="900" font-family="Arial,sans-serif">H</text></svg>`;
+
+          const hTooltip = document.createElement('div');
+          hTooltip.style.cssText = [
+            'position:absolute;bottom:calc(100% + 12px);left:50%;transform:translateX(-50%);',
+            'background:rgba(20,24,38,0.97);border-radius:14px;overflow:hidden;',
+            'padding:0;pointer-events:none;white-space:nowrap;',
+            'box-shadow:0 10px 40px rgba(0,0,0,0.5);opacity:0;transition:opacity 0.2s,box-shadow 0.2s;',
+            'font-family:inherit;min-width:340px;border:1px solid rgba(255,255,255,0.1);display:flex;z-index:3000;',
+            darkMode ? 'filter:invert(100%) hue-rotate(180deg);' : '',
+          ].join('');
+
+          let hNights = '';
+          if (cin._dayDate && cout?._dayDate) {
+            const d1 = new Date(cin._dayDate.replace(/-/g, '/'));
+            const d2 = new Date(cout._dayDate.replace(/-/g, '/'));
+            if (!isNaN(d1) && !isNaN(d2)) hNights = Math.round((d2 - d1) / 86400000);
+          } else if (cin && cout) {
+            hNights = (dayIndexMap.get(cout._dayId) ?? 0) - (dayIndexMap.get(cin._dayId) ?? 0);
+          }
+          const fmtDate = (raw) => { if (!raw) return ''; const d = new Date(raw.replace(/-/g, '/')); return isNaN(d) ? raw : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); };
+          const cinDateStr = fmtDate(cin._dayDate || cin.date || '');
+          const cinTimeStr = cin.time ? `${cin.time}${cin.period ? ' ' + cin.period : ''}` : '';
+          const coutDateStr = fmtDate(cout?._dayDate || cout?.date || '');
+          const coutTimeStr = cout?.time ? `${cout.time}${cout.period ? ' ' + cout.period : ''}` : '';
+          const hRating = cin.rating || '';
+          const hPrice = cin.price && parseFloat(cin.price) > 0 ? `$${parseFloat(cin.price).toFixed(2)}` : '$0.00';
+          const hName = (cin.location || '').length > 36 ? cin.location.slice(0, 36) + '…' : (cin.location || '');
+
+          hTooltip.innerHTML = `
+            <div style="flex:1;padding:16px 16px 14px;display:flex;flex-direction:column;gap:10px;min-width:200px;">
+              <div>
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                  <span style="font-size:15px;font-weight:800;color:white;flex:1;overflow:hidden;text-overflow:ellipsis;">${hName}</span>
+                  <div style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.08);border-radius:6px;padding:2px 8px;flex-shrink:0;">
+                    <span class="material-symbols-outlined" style="font-size:13px;color:rgba(255,255,255,0.6);">bed</span>
+                    <span style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.7);letter-spacing:0.04em;">Stay</span>
+                    ${hRating ? `<span style="color:#f59e0b;font-size:12px;margin-left:4px;">★</span><span style="color:white;font-weight:700;font-size:12px;">${hRating}</span>` : ''}
+                  </div>
+                </div>
+                ${cinDateStr ? `<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;font-size:12.5px;"><span class="material-symbols-outlined" style="font-size:14px;color:#22c55e;">login</span><span style="color:rgba(255,255,255,0.5);width:72px;font-weight:600;">Check-in:</span><span style="color:rgba(255,255,255,0.85);font-weight:600;">${cinDateStr}</span>${cinTimeStr ? `<span style="color:#22c55e;font-weight:700;margin-left:auto;">${cinTimeStr}</span>` : ''}</div>` : ''}
+                ${coutDateStr ? `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:12.5px;"><span class="material-symbols-outlined" style="font-size:14px;color:#ef4444;">logout</span><span style="color:rgba(255,255,255,0.5);width:72px;font-weight:600;">Check-out:</span><span style="color:rgba(255,255,255,0.85);font-weight:600;">${coutDateStr}</span>${coutTimeStr ? `<span style="color:#ef4444;font-weight:700;margin-left:auto;">${coutTimeStr}</span>` : ''}</div>` : ''}
+                ${cin.address ? `<div style="display:flex;gap:6px;color:rgba(255,255,255,0.55);font-size:12px;line-height:1.3;margin-bottom:4px;"><span class="material-symbols-outlined" style="font-size:14px;color:#f97316;margin-top:1px;flex-shrink:0;">location_on</span><div style="white-space:normal;overflow:hidden;">${formatAddressHTML(cin.address)}</div></div>` : ''}
+              </div>
+              <div style="display:flex;gap:8px;margin-top:2px;">
+                ${hNights !== '' ? `<div style="background:#f59e0b;color:#1a1200;padding:4px 12px;border-radius:8px;font-size:12px;font-weight:700;">${hNights} Night${hNights !== 1 ? 's' : ''}</div>` : ''}
+                <div style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);color:#22c55e;padding:4px 12px;border-radius:8px;font-size:12px;font-weight:700;">${hPrice}</div>
+              </div>
+            </div>
+            ${cin.photo ? `<div style="width:130px;align-self:stretch;flex-shrink:0;overflow:hidden;"><img src="${cin.photo}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.style.display='none'"/></div>` : ''}
+          `;
+
+          hContent.appendChild(hTooltip);
+          hContent.addEventListener('mouseenter', () => { hTooltip.style.opacity = '1'; hContent.style.transform = 'scale(1.25) translateY(-4px)'; hContent.style.opacity = '1'; hMarker.zIndex = 9999; });
+          hContent.addEventListener('mouseleave', () => { hTooltip.style.opacity = '0'; hContent.style.transform = 'scale(1) translateY(0)'; hContent.style.opacity = '0.82'; hMarker.zIndex = null; });
+
+          const hMarker = new google.maps.marker.AdvancedMarkerElement({
+            map: mapInstanceRef.current,
+            position: hotelPos,
+            title: cin.location,
+            content: hContent,
+          });
+          if (cin.placeId) {
+            hMarker.addEventListener('gmp-click', () => setSelectedPlaceId(cin.placeId));
+            hContent.onclick = (e) => { e.stopPropagation(); setSelectedPlaceId(cin.placeId); };
+          }
+          markersRef.current.push(hMarker);
         }
       }
 
@@ -491,6 +572,8 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [] }, 
       }
       prevFocusDayIdsRef.current = currentIds;
     }
+    }, 100); // debounce — batch rapid successive updates into one render
+    return () => clearTimeout(renderDebounceRef.current);
   }, [activeTrip, focusDayIds, mapReady, t, darkMode]);
 
   // Handle Hover Synchronization — O(1) via markerMapRef

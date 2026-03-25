@@ -35,6 +35,8 @@
 
 ## Stop 卡功能
 
+- [x] 导航按钮 — Stop 卡底部 chip，一键跳转 Google Maps 导航（优先用 placeId）
+- [x] 酒店卡重复 Check-in 标识修复 — 移除底部冗余文字，保留顶部 badge
 - [ ] 附件卡 — Stop 卡下挂载凭证、文件和链接（详见 [docs/attachment-card-spec.md](docs/attachment-card-spec.md)）
   - [ ] P0: 图片 / 截图上传，缩略图展示 + 全屏预览
   - [ ] P0: URL 链接添加 + 跳转
@@ -59,6 +61,14 @@
 
 ---
 
+## Bug 修复
+
+- [x] 地图地点面板"已添加"状态误显 — 切换地点时重置 mutableAddedDays
+- [x] 地图标记路线初始闪烁 — render effect 加 100ms 防抖，合并快速连续更新
+- [x] 酒店地标仅首天显示 — 在每个从酒店出发的天补充 H marker
+
+---
+
 ## UI / UX
 
 - [ ] _(预留区域)_
@@ -72,4 +82,4 @@
 
 ---
 
-*Last updated: 2026-03-24*
+*Last updated: 2026-03-25*
