@@ -22,14 +22,14 @@
 
 ## 分享功能
 
-- [ ] Trip 分享链接 — 生成 share_token，公开只读链接
-  - [ ] Supabase: trips 表加 share_token 字段 + 匿名读取 RLS 策略
-  - [ ] 前端: `/shared/:token` 公开路由，复用行程视图（去掉编辑功能）
-  - [ ] UI: Dashboard/Admin 加"生成/取消分享链接"按钮
-- [ ] 导入分享 Trip — 通过分享链接将别人的 trip 复制到自己账户，可自由编辑修改
-  - [ ] 只读页面加"导入到我的行程"按钮
-  - [ ] 后端: 深拷贝 trip 数据，生成新 ID，绑定当前 user_id
-  - [ ] 图片处理: 复制 Supabase Storage 中的图片到新路径，避免原作者删除后失效
+- [x] Trip 分享链接 — 生成 share_token，公开只读链接
+  - [ ] Supabase: trips 表加 share_token 字段 + 匿名读取 RLS 策略 ← **需在 Supabase 控制台手动执行**
+  - [x] 前端: `/shared/:token` 公开路由 + SharedTripPage 只读视图
+  - [x] UI: TripHeader 菜单加"Share trip"按钮 + ShareModal（生成/复制/撤销链接）
+- [x] 导入分享 Trip — 通过分享链接将别人的 trip 复制到自己账户
+  - [x] 只读页面加"Import to My Trips"按钮（登录后显示）
+  - [x] 深拷贝 trip 数据，所有 id 重新生成，绑定当前 user_id
+  - [ ] 图片处理: 复制 Supabase Storage 图片到新路径（暂缓，先用原 URL）
 
 ---
 

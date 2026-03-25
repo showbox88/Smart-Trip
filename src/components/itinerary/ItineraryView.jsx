@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTripEditor } from '../../hooks/useTripEditor';
 import { useTimelineDrag } from '../../hooks/useTimelineDrag';
@@ -9,6 +9,7 @@ import TripSidebar from './TripSidebar';
 import DaySection from './DaySection';
 import MapPanel from './MapPanel';
 import ConfirmModal from '../modals/ConfirmModal';
+import ShareModal from '../modals/ShareModal';
 import StopEditModal from '../modals/StopEditModal';
 import DayEditModal from '../modals/DayEditModal';
 import TripEditModal from '../modals/TripEditModal';
@@ -30,6 +31,7 @@ export default function ItineraryView({ tripId }) {
   const { t } = useI18n();
   const navigate = useNavigate();
   const { deleteTrip } = useTrips();
+  const [showShareModal, setShowShareModal] = useState(false);
   const {
     trip,
     addDay, deleteDay, removeDay, setDayColor, updateDay,
@@ -263,7 +265,7 @@ export default function ItineraryView({ tripId }) {
       />
 
       <section className="main-itinerary" id="itinerary-scroll-container">
-        <TripHeader trip={trip} onDeleteTrip={handleDeleteTrip} onEditTrip={() => setTripEditModal(true)} />
+        <TripHeader trip={trip} onDeleteTrip={handleDeleteTrip} onEditTrip={() => setTripEditModal(true)} onShareTrip={() => setShowShareModal(true)} />
 
         {pendingInsertion && (
           <div style={{
@@ -426,6 +428,10 @@ export default function ItineraryView({ tripId }) {
           onSave={(stayData) => saveStayInfo(stayInfoModal.dayId, stayInfoModal.stopId, stayData)}
           onClose={closeStayInfoModal}
         />
+      )}
+
+      {showShareModal && (
+        <ShareModal trip={trip} onClose={() => setShowShareModal(false)} />
       )}
     </div>
   );

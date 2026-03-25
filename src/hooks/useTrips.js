@@ -28,6 +28,7 @@ export function useTrips() {
         id: row.id,
         title: row.title,
         thumb: row.thumb,
+        share_token: row.share_token || null,
       };
       // Auto-fix days whose dates don't match startDate
       if (trip.startDate && trip.days?.length) {
@@ -118,10 +119,63 @@ export function useTrips() {
     dispatch({ type: 'SET_TRIPS', payload: isNew ? [trip, ...state.trips] : updated });
   }, [state.user, state.trips, dispatch]);
 
+  const setShareToken = useCallback(async (tripId) => {
+    if (!state.user) return null;
+    const token = crypto.randomUUID();
+    const { error } = await supabase
+      .from('trips')
+      .update({ share_token: token })
+      .eq('id', tripId)
+      .eq('user_id', state.user.id);
+    if (error) throw error;
+    dispatch({
+      type: 'SET_TRIPS',
+      payload: state.trips.map(t => t.id === tripId ? { ...t, share_token: token } : t),
+    });
+    return token;
+  }, [state.user, state.trips, dispatch]);
+
+  const clearShareToken = useCallback(async (tripId) => {
+    if (!state.user) return;
+    const { error } = await supabase
+      .from('trips')
+      .update({ share_token: null })
+      .eq('id', tripId)
+      .eq('user_id', state.user.id);
+    if (error) throw error;
+    dispatch({
+      type: 'SET_TRIPS',
+      payload: state.trips.map(t => t.id === tripId ? { ...t, share_token: null } : t),
+    });
+  }, [state.user, state.trips, dispatch]);
+
+  const importSharedTrip = useCallback(async (sharedTrip) => {
+    if (!state.user) return null;
+    const newTrip = {
+      ...sharedTrip,
+      id: crypto.randomUUID(),
+      share_token: undefined,
+      days: (sharedTrip.days || []).map(day => ({
+        ...day,
+        id: crypto.randomUUID(),
+        stops: (day.stops || []).map(stop => ({
+          ...stop,
+          id: crypto.randomUUID(),
+        })),
+      })),
+    };
+    delete newTrip.share_token;
+    await saveTrip(newTrip);
+    return newTrip;
+  }, [saveTrip, state.user]);
+
   return {
     trips: state.trips,
     refreshTrips,
     deleteTrip,
     saveTrip,
+    setShareToken,
+    clearShareToken,
+    importSharedTrip,
   };
 }

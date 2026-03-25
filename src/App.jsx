@@ -8,6 +8,7 @@ import DashboardPage from './pages/DashboardPage';
 import TripPage from './pages/TripPage';
 import ArchivePage from './pages/ArchivePage';
 import AdminPage from './pages/AdminPage';
+import SharedTripPage from './pages/SharedTripPage';
 import { isAdmin } from './utils/admin';
 
 export default function App() {
@@ -19,6 +20,15 @@ export default function App() {
 
   if (state.isLoading) {
     return <LoadingSpinner message="Smart Trip 加载中..." />;
+  }
+
+  // Public route — no auth needed
+  if (location.pathname.startsWith('/shared/')) {
+    return (
+      <Routes>
+        <Route path="/shared/:token" element={<SharedTripPage />} />
+      </Routes>
+    );
   }
 
   if (!state.user) {

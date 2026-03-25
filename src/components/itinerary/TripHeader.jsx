@@ -10,7 +10,7 @@ function formatDateShort(dateStr) {
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-export default function TripHeader({ trip, onDeleteTrip, onEditTrip }) {
+export default function TripHeader({ trip, onDeleteTrip, onEditTrip, onShareTrip }) {
   const { t } = useI18n();
   const { state } = useApp();
   const [showMenu, setShowMenu] = useState(false);
@@ -88,6 +88,10 @@ export default function TripHeader({ trip, onDeleteTrip, onEditTrip }) {
             <div className="menu-dropdown active" style={{ top: '2rem', right: 0 }}>
               <button onClick={() => { onEditTrip?.(); setShowMenu(false); }}>
                 {t('itinerary.edit_trip') || 'Edit trip'}
+              </button>
+              <button onClick={() => { onShareTrip?.(); setShowMenu(false); }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>share</span>
+                {t('itinerary.share_trip') || 'Share trip'}
               </button>
               <button className="danger" onClick={() => { onDeleteTrip?.(trip.id); setShowMenu(false); }}>
                 {t('itinerary.delete_trip') || 'Delete trip'}
