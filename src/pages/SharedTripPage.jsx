@@ -32,10 +32,17 @@ const CATEGORY_ICONS = {
   default: 'place',
 };
 
-function getCategoryIcon(category) {
-  if (!category) return CATEGORY_ICONS.default;
-  const key = category.toLowerCase();
+function getCategoryIcon(stop) {
+  if (stop.type === 'hotel_checkin' || stop.type === 'hotel_checkout') return 'hotel';
+  if (!stop.category) return CATEGORY_ICONS.default;
+  const key = stop.category.toLowerCase();
   return CATEGORY_ICONS[key] || CATEGORY_ICONS.default;
+}
+
+function getHotelBadge(type) {
+  if (type === 'hotel_checkin') return { label: 'Check-in', color: '#22c55e' };
+  if (type === 'hotel_checkout') return { label: 'Check-out', color: '#f59e0b' };
+  return null;
 }
 
 export default function SharedTripPage() {
@@ -242,52 +249,71 @@ export default function SharedTripPage() {
             </div>
 
             {/* Stops */}
-            {(day.stops || []).filter(s => s.type === 'location' || !s.type).map((stop, stopIndex) => (
-              <div key={stop.id || stopIndex} style={{
-                background: 'var(--bg-secondary)',
-                border: '1px solid var(--glass-border)',
-                borderRadius: '10px',
-                padding: '0.85rem 1rem',
-                marginBottom: '0.5rem',
-                display: 'flex',
-                alignItems: 'flex-start',
-                gap: '0.85rem',
-              }}>
-                <div style={{
-                  width: '36px',
-                  height: '36px',
-                  borderRadius: '8px',
-                  background: 'rgba(255,255,255,0.06)',
+            {(day.stops || []).map((stop, stopIndex) => {
+              const hotelBadge = getHotelBadge(stop.type);
+              const price = parseFloat(stop.price);
+              return (
+                <div key={stop.id || stopIndex} style={{
+                  background: 'var(--bg-secondary)',
                   border: '1px solid var(--glass-border)',
+                  borderRadius: '10px',
+                  padding: '0.85rem 1rem',
+                  marginBottom: '0.5rem',
                   display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
+                  alignItems: 'flex-start',
+                  gap: '0.85rem',
                 }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'var(--accent-primary)' }}>
-                    {getCategoryIcon(stop.category)}
-                  </span>
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 600, fontSize: '0.95rem', marginBottom: '0.15rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {stop.name || stop.location || 'Unnamed stop'}
+                  <div style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '8px',
+                    background: 'rgba(255,255,255,0.06)',
+                    border: '1px solid var(--glass-border)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'var(--accent-primary)' }}>
+                      {getCategoryIcon(stop)}
+                    </span>
                   </div>
-                  {stop.address && (
-                    <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '0.15rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {stop.address}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.15rem', flexWrap: 'wrap' }}>
+                      <span style={{ fontWeight: 600, fontSize: '0.95rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {stop.name || stop.location || 'Unnamed stop'}
+                      </span>
+                      {hotelBadge && (
+                        <span style={{ fontSize: '0.7rem', fontWeight: 700, color: hotelBadge.color, background: `${hotelBadge.color}22`, border: `1px solid ${hotelBadge.color}44`, borderRadius: '4px', padding: '1px 6px', flexShrink: 0 }}>
+                          {hotelBadge.label}
+                        </span>
+                      )}
                     </div>
-                  )}
-                  {stop.time && (
-                    <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-                      <span className="material-symbols-outlined" style={{ fontSize: '13px', verticalAlign: 'middle', marginRight: '3px' }}>schedule</span>
-                      {stop.time}
+                    {stop.address && (
+                      <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '0.15rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {stop.address}
+                      </div>
+                    )}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.2rem', flexWrap: 'wrap' }}>
+                      {stop.time && (
+                        <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>schedule</span>
+                          {stop.time}
+                        </span>
+                      )}
+                      {!isNaN(price) && price > 0 && (
+                        <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>payments</span>
+                          {stop.price}
+                        </span>
+                      )}
                     </div>
-                  )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
 
-            {(day.stops || []).filter(s => s.type === 'location' || !s.type).length === 0 && (
+            {(day.stops || []).length === 0 && (
               <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', padding: '0.5rem 1rem', fontStyle: 'italic' }}>
                 No stops for this day.
               </div>
