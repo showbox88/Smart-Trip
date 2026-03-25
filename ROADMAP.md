@@ -27,10 +27,62 @@
   - [x] 前端: `/shared/:token` 公开路由 + SharedTripPage 只读视图
   - [x] UI: TripHeader 菜单加"Share trip"按钮 + ShareModal（生成/复制/撤销链接）
   - [x] Dashboard 卡片菜单同步加"Share trip"，已分享封面显示 badge
+  - [x] SharedTripPage 视图优化 — 彩色 chips、导航按钮、评分、封面图、Note/List 独立渲染
 - [x] 导入分享 Trip — 通过分享链接将别人的 trip 复制到自己账户
   - [x] 只读页面加"Import to My Trips"按钮（登录后显示）
   - [x] 深拷贝 trip 数据，所有 id 重新生成，绑定当前 user_id
   - [ ] 图片处理: 复制 Supabase Storage 图片到新路径（暂缓，先用原 URL）
+- [ ] 选择性分享 — 生成链接前让用户配置要分享的内容
+
+  **整体流程**
+  1. TripHeader 点击"Share trip"→ 弹出 **ShareConfigModal**（替代原来直接弹 ShareModal）
+  2. 用户在 Modal 内完成粗筛配置，可选进入细调模式
+  3. 点击"生成链接"→ 按配置过滤 trip_data 快照 → 写入 DB → 弹出原 ShareModal（复制 / 撤销）
+
+  **ShareConfigModal — 三层过滤**
+
+  - **第一层：天数**
+    - 每一天一个 checkbox（Day 1 / Day 2 / …），默认全选
+    - 取消某天 = 整天从分享内容中移除
+
+  - **第二层：卡片类型**（批量开关，影响所有天）
+    - `地址卡`（stop / location 类型）
+    - `酒店卡`（hotel_checkin / hotel_checkout 类型）
+    - `Note`（note 类型）
+    - `List`（list 类型）
+    - 默认全选；取消某类型 = 该类型所有卡片不出现在分享链接
+
+  - **第三层：字段可见性**（字段级过滤，应用于所有被选中的卡片）
+    - `消费金额`（price 字段）— 默认显示，可隐藏
+    - `预定时间`（booking_time / 备注中的预约信息）— 默认显示，可隐藏
+    - `入住 / 退房时间`（hotel stop 的 time 字段）— 默认显示，可隐藏
+    - *(后续可扩展：地址、电话、notes 等)*
+
+  - **自定义按钮**（可选，进入细调模式）
+    - 点击后 Modal 关闭，TripPage 进入「分享选择模式」
+    - 每张卡片左侧出现 checkbox；按粗筛结果初始化选中状态（粗筛排除的卡片 = 未选中）
+    - 用户可逐张添加或取消，完成后点"确认选择"返回 ShareConfigModal（带回选择结果）
+    - 取消按钮退出选择模式，不影响现有 share_token
+
+  **数据方案**（DB 双字段，推荐）
+  - 在 `trips` 表新增 `shared_trip_data` JSONB 字段，与 `trip_data` 独立
+  - 生成链接时将过滤后的内容写入 `shared_trip_data`，原始 `trip_data` 不受影响
+  - SharedTripPage 改为读取 `shared_trip_data`（不存在则回退到 `trip_data`，兼容旧链接）
+  - 优点：原始行程可自由编辑，不污染分享内容；重新分享时可提示"原行程已更新，需重新生成"
+  - 备选（简化版）：直接覆盖 `trip_data`（实现更简单，但会导致原始数据被过滤版替换，不推荐）
+
+  **导入逻辑（无需修改）**
+  - 导入时读取 `shared_trip_data`，与现有 `importSharedTrip` 逻辑兼容
+  - 导入内容 = 分享内容（用户选择分享什么，接收方就导入什么）
+
+  **实现任务**
+  - [ ] P0: Supabase `trips` 表加 `shared_trip_data` JSONB 字段（Supabase 控制台手动执行）
+  - [ ] P0: ShareConfigModal — 天数 / 类型 / 字段三层 checkbox UI
+  - [ ] P0: 过滤逻辑 `buildSharedTripData(trip, config)` — 按配置深拷贝并裁剪 trip_data
+  - [ ] P0: 生成链接时写入 `shared_trip_data`，SharedTripPage 优先读取该字段
+  - [ ] P1: TripPage 细调模式 — 卡片级 checkbox 覆盖层 + 与 ShareConfigModal 状态联动
+  - [ ] P1: 重新分享时检测原行程是否有更新，提示"需重新生成链接"
+  - [ ] P2: 选择配置本地持久化（下次分享记住上次的 config）
 
 ---
 
@@ -85,4 +137,4 @@
 
 ---
 
-*Last updated: 2026-03-25 (session 2)*
+*Last updated: 2026-03-25 (session 5)*

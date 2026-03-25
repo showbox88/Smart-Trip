@@ -19,24 +19,29 @@ function calculateDays(startDate, endDate) {
   return Math.max(0, Math.round((e - s) / 86400000) + 1);
 }
 
-const CATEGORY_ICONS = {
-  food: 'restaurant',
-  restaurant: 'restaurant',
-  hotel: 'hotel',
-  accommodation: 'hotel',
-  attraction: 'attractions',
-  activity: 'directions_run',
-  shopping: 'shopping_bag',
-  transport: 'directions_transit',
-  nature: 'park',
-  default: 'place',
-};
+const CATEGORY_ICON_MAP = [
+  [['lodging', 'hotel', 'accommodation', '酒店', '住宿'], 'hotel'],
+  [['restaurant', 'food', '餐厅', '餐饮'], 'restaurant'],
+  [['cafe', 'coffee', '咖啡'], 'local_cafe'],
+  [['bakery', 'bread'], 'bakery_dining'],
+  [['bar', 'night'], 'local_bar'],
+  [['attraction', 'museum', 'landmark', '景点', '博物馆'], 'museum'],
+  [['park', 'nature', '公园'], 'park'],
+  [['shopping', 'store', 'mall', '购物'], 'shopping_bag'],
+  [['transit', 'subway', 'train', 'bus', '交通'], 'directions_transit'],
+  [['airport', 'flight', '机场'], 'flight'],
+  [['activity', 'sport', 'run'], 'directions_run'],
+  [['spa', 'health'], 'spa'],
+];
 
 function getCategoryIcon(stop) {
   if (stop.type === 'hotel_checkin' || stop.type === 'hotel_checkout') return 'hotel';
-  if (!stop.category) return CATEGORY_ICONS.default;
+  if (!stop.category) return 'place';
   const key = stop.category.toLowerCase();
-  return CATEGORY_ICONS[key] || CATEGORY_ICONS.default;
+  for (const [keywords, icon] of CATEGORY_ICON_MAP) {
+    if (keywords.some(k => key.includes(k))) return icon;
+  }
+  return 'place';
 }
 
 function getHotelBadge(type) {
@@ -250,37 +255,99 @@ export default function SharedTripPage() {
 
             {/* Stops */}
             {(day.stops || []).map((stop, stopIndex) => {
+              // Note card
+              if (stop.type === 'note') {
+                return (
+                  <div key={stop.id || stopIndex} style={{
+                    background: 'var(--bg-secondary)',
+                    border: '1px dashed var(--glass-border)',
+                    borderRadius: '12px',
+                    padding: '0.85rem 1rem',
+                    marginBottom: '0.5rem',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '0.6rem',
+                  }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--text-muted)', flexShrink: 0, marginTop: '2px' }}>sticky_note_2</span>
+                    <p style={{ margin: 0, fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+                      {stop.content || ''}
+                    </p>
+                  </div>
+                );
+              }
+
+              // List card
+              if (stop.type === 'list') {
+                return (
+                  <div key={stop.id || stopIndex} style={{
+                    background: 'var(--bg-secondary)',
+                    border: '1px dashed var(--glass-border)',
+                    borderRadius: '12px',
+                    padding: '0.85rem 1rem',
+                    marginBottom: '0.5rem',
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--text-muted)' }}>checklist</span>
+                      {stop.title && <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-secondary)' }}>{stop.title}</span>}
+                    </div>
+                    {(stop.items || []).map((item, idx) => (
+                      <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.3rem' }}>
+                        <div style={{
+                          width: '15px', height: '15px', borderRadius: '4px', flexShrink: 0,
+                          border: '2px solid var(--text-muted)',
+                          background: item.checked ? 'var(--text-muted)' : 'transparent',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        }}>
+                          {item.checked && <span style={{ color: 'var(--bg-primary)', fontSize: '9px', fontWeight: 700 }}>✓</span>}
+                        </div>
+                        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', textDecoration: item.checked ? 'line-through' : 'none', opacity: item.checked ? 0.5 : 1 }}>
+                          {item.text}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                );
+              }
+
               const hotelBadge = getHotelBadge(stop.type);
               const price = parseFloat(stop.price);
+              const navUrl = stop.address
+                ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(stop.address)}${stop.placeId ? `&destination_place_id=${stop.placeId}` : ''}`
+                : null;
               return (
                 <div key={stop.id || stopIndex} style={{
                   background: 'var(--bg-secondary)',
                   border: '1px solid var(--glass-border)',
-                  borderRadius: '10px',
-                  padding: '0.85rem 1rem',
+                  borderRadius: '12px',
+                  padding: '0.9rem 1rem',
                   marginBottom: '0.5rem',
                   display: 'flex',
                   alignItems: 'flex-start',
                   gap: '0.85rem',
                 }}>
+                  {/* Category icon */}
                   <div style={{
-                    width: '36px',
-                    height: '36px',
-                    borderRadius: '8px',
+                    width: '38px',
+                    height: '38px',
+                    borderRadius: '10px',
                     background: 'rgba(255,255,255,0.06)',
                     border: '1px solid var(--glass-border)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     flexShrink: 0,
+                    marginTop: '2px',
                   }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'var(--accent-primary)' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'var(--accent-primary)', fontVariationSettings: "'FILL' 1" }}>
                       {getCategoryIcon(stop)}
                     </span>
                   </div>
+
+                  {/* Main content */}
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.15rem', flexWrap: 'wrap' }}>
-                      <span style={{ fontWeight: 600, fontSize: '0.95rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {/* Name row + hotel badge + rating */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.2rem', flexWrap: 'wrap' }}>
+                      <span style={{ fontWeight: 700, fontSize: '0.97rem' }}>
                         {stop.name || stop.location || 'Unnamed stop'}
                       </span>
                       {hotelBadge && (
@@ -288,27 +355,69 @@ export default function SharedTripPage() {
                           {hotelBadge.label}
                         </span>
                       )}
-                    </div>
-                    {stop.address && (
-                      <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '0.15rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {stop.address}
-                      </div>
-                    )}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.2rem', flexWrap: 'wrap' }}>
-                      {stop.time && (
-                        <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                          <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>schedule</span>
-                          {stop.time}
+                      {stop.rating && (
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '2px', flexShrink: 0 }}>
+                          <span style={{ color: '#f59e0b', fontSize: '13px', lineHeight: 1 }}>★</span>
+                          <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', fontWeight: 700 }}>{stop.rating}</span>
                         </span>
                       )}
+                    </div>
+
+                    {/* Address */}
+                    {stop.address && (
+                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '4px', marginBottom: '0.5rem' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '13px', color: '#f97316', flexShrink: 0, marginTop: '2px' }}>location_on</span>
+                        <span style={{ color: 'var(--text-muted)', fontSize: '0.78rem', lineHeight: 1.4 }}>{stop.address}</span>
+                      </div>
+                    )}
+
+                    {/* Chips row */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      {/* Time chip — orange */}
+                      {stop.time && (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(249,115,22,0.1)', color: '#f97316', border: '1px solid rgba(249,115,22,0.25)', borderRadius: '7px', padding: '3px 9px', fontSize: '0.78rem', fontWeight: 700 }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>schedule</span>
+                          {stop.time}{stop.period ? ` ${stop.period}` : ''}
+                        </span>
+                      )}
+
+                      {/* Reservation time chip — neutral white */}
+                      {stop.reservationTime && (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(255,255,255,0.06)', color: 'var(--text-primary)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '7px', padding: '3px 9px', fontSize: '0.78rem', fontWeight: 700 }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>event_available</span>
+                          {stop.reservationTime}
+                        </span>
+                      )}
+
+                      {/* Price chip — green */}
                       {!isNaN(price) && price > 0 && (
-                        <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(16,185,129,0.1)', color: '#10b981', border: '1px solid rgba(16,185,129,0.25)', borderRadius: '7px', padding: '3px 9px', fontSize: '0.78rem', fontWeight: 700 }}>
                           <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>payments</span>
                           {stop.price}
                         </span>
                       )}
+
+                      {/* Navigate button — blue */}
+                      {navUrl && (
+                        <a
+                          href={navUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(59,130,246,0.1)', color: '#3b82f6', border: '1px solid rgba(59,130,246,0.25)', borderRadius: '7px', padding: '3px 9px', fontSize: '0.78rem', fontWeight: 700, textDecoration: 'none' }}
+                        >
+                          <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>near_me</span>
+                          Navigate
+                        </a>
+                      )}
                     </div>
                   </div>
+
+                  {/* Thumbnail */}
+                  {stop.photo && (
+                    <div style={{ width: '72px', height: '56px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0, border: '1px solid var(--glass-border)' }}>
+                      <img src={stop.photo} alt={stop.name || stop.location} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    </div>
+                  )}
                 </div>
               );
             })}
