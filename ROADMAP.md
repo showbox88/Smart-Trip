@@ -33,14 +33,29 @@
 
 ---
 
+## Stop 卡功能
+
+- [ ] 附件卡 — Stop 卡下挂载凭证、文件和链接（详见 [docs/attachment-card-spec.md](docs/attachment-card-spec.md)）
+  - [ ] P0: 图片 / 截图上传，缩略图展示 + 全屏预览
+  - [ ] P0: URL 链接添加 + 跳转
+  - [ ] P1: PDF 上传 + 预览
+  - [ ] P1: 附件删除 / 重命名
+  - [ ] P2: URL 自动抓取链接预览（OG 元数据，Edge Function 代理）
+  - [ ] P2: 剪贴板粘贴图片（Ctrl+V）
+  - [ ] P3: 二维码从图片自动识别
+
+---
+
 ## 行程规划
 
-- [ ] 悠闲模式 — 先玩后整理，照片驱动生成行程
-  - [ ] 导入照片，读取 EXIF GPS + 日期
-  - [ ] 点击照片 → 根据 GPS 调用 Google Places Nearby Search → 列出附近店铺供选择
-  - [ ] 选择后自动生成 event（日期取照片 EXIF 日期）
-  - [ ] 用户创建 trip 并设定日期范围 → 日期范围内的 event 自动归属该 trip
-  - [ ] 按时间排序生成完整路线
+- [ ] 悠闲模式 — 先玩后整理，照片驱动生成行程（详见 [docs/wandering-mode-spec.md](docs/wandering-mode-spec.md)）
+  - [ ] P0: 导入照片，读取 EXIF GPS + 日期，地图缩略图展示（视口动态加载）
+  - [ ] P0: 单/多选照片 → 附近商家推荐 / 点击地图 / 搜索 三种归类方式 → 生成 Stop 卡
+  - [ ] P1: 归类后照片状态切换（隐藏 / 点标记 / 暗灰），支持重新编辑
+  - [ ] P1: 归类操作实时同步到 Smart Trip 行程视图
+  - [ ] P2: 无 GPS 照片单独列出，支持手动归类
+  - [ ] P2: 撤销（Ctrl+Z）最后一次归类操作
+  - [ ] P3: 大量照片聚合（marker cluster）优化
 
 ---
 
@@ -57,4 +72,4 @@
 
 ---
 
-*Last updated: 2026-03-23*
+*Last updated: 2026-03-24*
