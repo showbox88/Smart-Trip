@@ -84,6 +84,7 @@ export function useAuth() {
               id: row.id,
               title: row.title,
               thumb: row.thumb,
+              share_token: row.share_token || null,
             };
             // Auto-fix days whose dates don't match startDate
             if (trip.startDate && trip.days?.length) {
