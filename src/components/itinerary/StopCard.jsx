@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, forwardRef, memo } from 'react';
+import React, { useState, useRef, useEffect, forwardRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useApp } from '../../context/AppContext';
 import { useI18n } from '../../context/I18nContext';
@@ -59,7 +59,7 @@ function getStopTimeStatus(stop, isToday, t) {
   return { label: t('itinerary.stop_status_upcoming'), color: '#10b981', bg: 'rgba(16,185,129,0.08)', border: 'rgba(16,185,129,0.2)' };
 }
 
-export default memo(function StopCard({
+export default React.memo(function StopCard({
   stop, dayId, dayColor, index, showTransit, dayWeekdayIdx, isToday,
   onDelete, onToggleTransitMode, onOpenTimePicker, onOpenExpense, onOpenStayInfo,
   onChangePhoto, onAddStop, onAddNote, onAddList, onFocusStop,

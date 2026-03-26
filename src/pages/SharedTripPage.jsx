@@ -122,6 +122,15 @@ export default function SharedTripPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
+      <style>{`
+        .shared-import-top-btn { display: flex; }
+        .shared-import-bottom-bar { display: none; }
+        @media (max-width: 640px) {
+          .shared-import-top-btn { display: none; }
+          .shared-import-bottom-bar { display: flex; }
+          .shared-page-content { padding-bottom: 80px; }
+        }
+      `}</style>
       {/* Top bar */}
       <div style={{
         position: 'sticky',
@@ -141,6 +150,7 @@ export default function SharedTripPage() {
 
         {state.user && (
           <button
+            className="shared-import-top-btn"
             onClick={handleImport}
             disabled={importing}
             style={{
@@ -152,7 +162,6 @@ export default function SharedTripPage() {
               cursor: importing ? 'not-allowed' : 'pointer',
               fontWeight: 600,
               fontSize: '0.9rem',
-              display: 'flex',
               alignItems: 'center',
               gap: '0.4rem',
               opacity: importing ? 0.7 : 1,
@@ -165,7 +174,7 @@ export default function SharedTripPage() {
       </div>
 
       {/* Trip header card */}
-      <div style={{
+      <div className="shared-page-content" style={{
         maxWidth: '720px',
         margin: '2rem auto 0',
         padding: '0 1.5rem',
@@ -427,6 +436,46 @@ export default function SharedTripPage() {
           Shared via Smart Trip
         </div>
       </div>
+
+      {/* Mobile-only sticky bottom import bar */}
+      {state.user && (
+        <div className="shared-import-bottom-bar" style={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          padding: '0.75rem 1rem',
+          background: 'var(--bg-primary)',
+          borderTop: '1px solid var(--glass-border)',
+          zIndex: 200,
+          justifyContent: 'center',
+        }}>
+          <button
+            onClick={handleImport}
+            disabled={importing}
+            style={{
+              background: 'var(--accent-primary)',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '10px',
+              padding: '0.75rem 1.5rem',
+              cursor: importing ? 'not-allowed' : 'pointer',
+              fontWeight: 700,
+              fontSize: '1rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              opacity: importing ? 0.7 : 1,
+              width: '100%',
+              maxWidth: '400px',
+              justifyContent: 'center',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>download</span>
+            {importing ? 'Importing...' : '导入行程'}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
