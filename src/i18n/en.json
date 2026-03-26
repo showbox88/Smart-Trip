@@ -38,7 +38,10 @@
         "start_date": "Start Date",
         "end_date": "End Date",
         "itinerary": "Itinerary",
-        "map": "Map"
+        "map": "Map",
+        "uploading": "Uploading...",
+        "upload_failed": "Upload failed, please try again",
+        "discard_changes": "Discard unsaved changes?"
     },
     "dashboard": {
         "title": "'s Trips",
@@ -198,7 +201,20 @@
         "day_name": "Day Name",
         "day_subtitle": "Subtitle",
         "day_subtitle_placeholder": "e.g. Arrival day",
-        "day_date": "Date"
+        "day_date": "Date",
+        "additional_docs": "Documents & Info",
+        "back_photos": "Photos",
+        "back_private_note": "Private Note",
+        "back_web_link": "Web Link",
+        "back_qr_code": "QR Code",
+        "swipe_back": "Swipe back",
+        "private_note_title_label": "Title",
+        "private_note_title_placeholder": "e.g. Hotel confirmation no., ticket info...",
+        "private_note_content_label": "Content",
+        "private_note_content_placeholder": "Record private info: confirmation codes, passwords, reminders...",
+        "take_photo": "Take Photo",
+        "choose_photo": "Choose from Library",
+        "no_attachments": "No attachments yet. Tap above to add."
     },
     "auth": {
         "tagline": "Start your smart travel planning journey globally",

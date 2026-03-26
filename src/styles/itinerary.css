@@ -165,3 +165,130 @@
         height: auto; max-height: 180px;
     }
 }
+
+/* --- 3D Flip Card Effect --- */
+.stop-card-container {
+    perspective: 1000px;
+    position: relative;
+    min-height: 140px;
+}
+
+.stop-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-style: preserve-3d;
+}
+
+.stop-card-inner.is-flipped {
+    transform: rotateY(-180deg);
+}
+
+.rich-stop-card-front, .rich-stop-card-back {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    width: 100%;
+    height: 100%;
+}
+
+.rich-stop-card-back {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform: rotateY(180deg);
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 1.2rem;
+    padding: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+    z-index: 2;
+}
+
+.back-content-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.8rem;
+    height: 100%;
+    align-items: center;
+}
+
+.back-action-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.back-action-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-2px);
+    border-color: var(--accent-primary);
+}
+
+.back-action-item span {
+    font-size: 28px;
+    color: var(--accent-primary);
+}
+
+.back-action-item label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.back-content-container {
+    scrollbar-width: none;
+}
+.back-content-container::-webkit-scrollbar {
+    display: none;
+}
+
+.back-section {
+    margin-bottom: 0.5rem;
+}
+
+.back-section textarea:focus, .back-section input:focus {
+    border-color: var(--accent-primary) !important;
+    background: rgba(0,0,0,0.3) !important;
+    box-shadow: 0 0 10px rgba(60, 131, 246, 0.2);
+}
+
+.back-section label:hover {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.3);
+}
+
+.flip-back-hint {
+    position: absolute;
+    bottom: 0.8rem;
+    right: 1.2rem;
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.4);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+@keyframes slideUp {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}

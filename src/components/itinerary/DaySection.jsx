@@ -18,7 +18,7 @@ export default memo(function DaySection({
   onAddNote, onAddList,
   onDeleteNote, onUpdateNoteContent,
   onDeleteList, onUpdateListTitle, onUpdateListItem, onToggleListItem, onAddListItem, onDeleteListItem,
-  onColorChange, onEditDay, onDeleteDay, onUpdateDay,
+  onColorChange, onEditDay, onDeleteDay, onUpdateDay, onUpdateStop,
   onSortByTime,
   onOpenTimePicker,
   onOpenExpense,
@@ -162,6 +162,7 @@ export default memo(function DaySection({
           onOpenTimePicker={onOpenTimePicker}
           onOpenExpense={onOpenExpense}
           onOpenStayInfo={onOpenStayInfo}
+          onUpdateStop={onUpdateStop}
           onAddStop={(dId, afterId) => setInsertingAfterStopId(afterId)}
           onAddNote={onAddNote}
           onAddList={onAddList}

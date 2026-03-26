@@ -348,6 +348,7 @@ export default function ItineraryView({ tripId }) {
               onEditDay={handleEditDay}
               onDeleteDay={handleDeleteDay}
               onUpdateDay={updateDay}
+              onUpdateStop={updateStop}
               onSortByTime={() => sortDayByTime(day.id)}
               onOpenTimePicker={handleOpenTimePicker}
               onOpenExpense={handleOpenExpense}
