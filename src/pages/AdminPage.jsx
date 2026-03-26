@@ -114,6 +114,7 @@ export default function AdminPage() {
   };
 
   // --- Helper: recursively list every file path in a bucket ---
+  // Returns objects { path, created_at } so we can filter by age
   const listAllFiles = async (bucket, prefix = '') => {
     const allPaths = [];
     const { data, error } = await supabase.storage.from(bucket).list(prefix, { limit: 1000 });
@@ -128,7 +129,7 @@ export default function AdminPage() {
       } else {
         // real file
         const fullPath = prefix ? `${prefix}/${item.name}` : item.name;
-        allPaths.push(fullPath);
+        allPaths.push({ path: fullPath, created_at: item.created_at });
       }
     }
     return allPaths;
@@ -141,8 +142,13 @@ export default function AdminPage() {
       const bucketName = 'trip-media';
 
       // 1. Recursively get ALL file paths in the bucket
-      const allFilePaths = await listAllFiles(bucketName);
-      setCleanupStatus(`已找到 ${allFilePaths.length} 个文件，正在对比数据库...`);
+      const allFileEntries = await listAllFiles(bucketName);
+      // Ignore files uploaded within the last 10 minutes — they may not yet be written to DB
+      const tenMinutesAgo = Date.now() - 10 * 60 * 1000;
+      const allFilePaths = allFileEntries
+        .filter(f => !f.created_at || new Date(f.created_at).getTime() < tenMinutesAgo)
+        .map(f => f.path);
+      setCleanupStatus(`已找到 ${allFileEntries.length} 个文件（过滤掉 ${allFileEntries.length - allFilePaths.length} 个10分钟内新上传），正在对比数据库...`);
 
       // 2. Get all image URLs / paths from database
       const { data: allTrips } = await supabase.from('trips').select('thumb, trip_data');

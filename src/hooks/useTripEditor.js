@@ -333,6 +333,15 @@ export function useTripEditor(tripId) {
   }, [withTripUpdate]);
 
   const deleteStop = useCallback((dayId, stopId) => {
+    // Collect Storage paths to clean up before mutating the trip
+    const photoPathsToDelete = [];
+    const collectPhotos = (stop) => {
+      if (stop?.photo && stop.photo.includes('trip-media')) {
+        const fileName = stop.photo.split('/').pop().split('?')[0];
+        if (fileName) photoPathsToDelete.push(fileName);
+      }
+    };
+
     const updateResult = withTripUpdate((updated) => {
       const day = findDayById(updated, dayId);
       if (!day) return false;
@@ -340,9 +349,11 @@ export function useTripEditor(tripId) {
       const stop = findStopById(day, stopId);
       if (stop?.stayId) {
         updated.days.forEach((tripDay) => {
+          tripDay.stops.forEach((s) => { if (s.stayId === stop.stayId) collectPhotos(s); });
           tripDay.stops = tripDay.stops.filter((item) => item.stayId !== stop.stayId);
         });
       } else {
+        collectPhotos(stop);
         day.stops = day.stops.filter((item) => item.id !== stopId);
       }
 
@@ -351,6 +362,12 @@ export function useTripEditor(tripId) {
 
     if (updateResult?.updated) {
       computeTransitData(dayId, updateResult.updated);
+    }
+
+    // Best-effort cleanup of Storage photos
+    if (photoPathsToDelete.length > 0) {
+      supabase.storage.from('trip-media').remove(photoPathsToDelete)
+        .catch((err) => console.warn('[deleteStop] storage cleanup failed:', err));
     }
   }, [withTripUpdate, computeTransitData]);
 
