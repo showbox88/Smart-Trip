@@ -204,7 +204,7 @@ export function useTripEditor(tripId) {
           const res = await fetchRouteDuration(
             { lat: Number(checkinStop.lat), lng: Number(checkinStop.lng) },
             { lat: Number(firstPlain.lat), lng: Number(firstPlain.lng) },
-            'DRIVE'
+            firstPlain.transitModeFromHotel || 'DRIVE'
           );
           await new Promise(r => setTimeout(r, 150));
           const target = findStopById(day, firstPlain.id);
@@ -218,7 +218,7 @@ export function useTripEditor(tripId) {
           const res = await fetchRouteDuration(
             { lat: Number(lastPlain.lat), lng: Number(lastPlain.lng) },
             { lat: Number(checkoutStop.lat), lng: Number(checkoutStop.lng) },
-            'DRIVE'
+            lastPlain.transitModeToHotel || 'DRIVE'
           );
           await new Promise(r => setTimeout(r, 150));
           const target = findStopById(day, lastPlain.id);

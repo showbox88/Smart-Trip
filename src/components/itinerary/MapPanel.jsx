@@ -227,7 +227,9 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [] }, 
         if (!(firstStop && isHotelStop(firstStop))) {
           const cin = dayStay.checkinStop;
           const cout = dayStay.checkoutStop;
-          const hotelPos = { lat: Number(cin.lat), lng: Number(cin.lng), transitMode: 'DRIVE' };
+          const firstPlainStop = day.stops.find(s => !isHotelStop(s) && s.type !== 'note' && s.type !== 'list' && s.lat && s.lng);
+          const hotelToFirstMode = firstPlainStop?.transitModeFromHotel || 'DRIVE';
+          const hotelPos = { lat: Number(cin.lat), lng: Number(cin.lng), transitMode: hotelToFirstMode };
           routePath.push(hotelPos);
           bounds.extend(hotelPos);
           hasCoords = true;
