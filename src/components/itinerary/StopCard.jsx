@@ -309,38 +309,40 @@ export default memo(function StopCard({
           )}
         </div>
 
-        {/* Closed-day warning */}
-        {isClosed && (
-          <div style={{
-            background: 'rgba(239,68,68,0.1)',
-            border: '1px solid rgba(239,68,68,0.35)',
-            borderRadius: '10px',
-            padding: '6px 12px',
-            marginBottom: '0.6rem',
-            display: 'inline-flex',
-            alignSelf: 'flex-start',
-            alignItems: 'center',
-            gap: '6px',
-            animation: 'pulse-border 2s ease-in-out infinite'
-          }}>
-            <span className="material-symbols-outlined" style={{ color: '#ef4444', fontSize: '16px', flexShrink: 0 }}>error</span>
-            <span style={{ color: '#ef4444', fontSize: '0.78rem', fontWeight: 700 }}>
-              {t('itinerary.closed_today') || 'Closed today!'}
-            </span>
-          </div>
-        )}
+        {/* Badges & Warnings (Above Name) */}
+        <div style={{ paddingBottom: '0.4rem' }}>
+          {/* Hotel badge */}
+          {isHotel && (
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '2px 8px', fontSize: '0.75rem', color: 'white', marginBottom: '0.5rem' }}>
+              <Hotel size={13} strokeWidth={2.5} />
+              {typeLabel}
+            </div>
+          )}
 
-        {/* Layout: Main Info + Thumbnail */}
-        <div className="stop-card-main-info" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
-          <div className="stop-card-info-content" style={{ flex: 1 }}>
-             {/* Hotel badge */}
-            {isHotel && (
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '2px 8px', fontSize: '0.75rem', color: 'white', marginBottom: '0.5rem' }}>
-                <Hotel size={13} strokeWidth={2.5} />
-                {typeLabel}
-              </div>
-            )}
+          {/* Closed-day warning */}
+          {isClosed && (
+            <div style={{
+              background: 'rgba(239,68,68,0.1)',
+              border: '1px solid rgba(239,68,68,0.35)',
+              borderRadius: '10px',
+              padding: '6px 12px',
+              display: 'inline-flex',
+              alignSelf: 'flex-start',
+              alignItems: 'center',
+              gap: '6px',
+              animation: 'pulse-border 2s ease-in-out infinite'
+            }}>
+              <span className="material-symbols-outlined" style={{ color: '#ef4444', fontSize: '16px', flexShrink: 0 }}>error</span>
+              <span style={{ color: '#ef4444', fontSize: '0.78rem', fontWeight: 700 }}>
+                {t('itinerary.closed_today') || 'Closed today!'}
+              </span>
+            </div>
+          )}
+        </div>
 
+        {/* Layout Row: Info/Note/Actions (Left) + Thumbnail (Right) */}
+        <div className="stop-card-layout-row" style={{ display: 'flex', gap: '1.2rem', alignItems: 'stretch' }}>
+          <div className="stop-card-left-column" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
             {/* Title Row: pin + name + category badge + rating */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.4rem', flexWrap: 'wrap' }}>
               <div style={{
@@ -448,6 +450,163 @@ export default memo(function StopCard({
                 </div>
               )}
             </div>
+
+            {/* Note / Placeholder */}
+            {(() => {
+              const isNoteRedundant = stop.note && stop.location && 
+                (stop.note.trim().toLowerCase() === stop.location.trim().toLowerCase());
+              
+              if (isNoteRedundant) return null;
+
+              return (
+                <div
+                  style={{
+                    fontSize: '0.95rem',
+                    color: stop.note ? 'var(--text-secondary)' : 'var(--text-muted)',
+                    marginBottom: '1.2rem',
+                    lineHeight: 1.5,
+                    padding: '4px 0',
+                    fontStyle: stop.note ? 'normal' : 'italic'
+                  }}
+                >
+                  {stop.note || t('itinerary.add_note') || '点击添加备注...'}
+                </div>
+              );
+            })()}
+
+            {/* Bottom Actions: Time & Expense Chips */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginTop: 'auto' }}>
+              {/* Hotel Specific Row (Check-in info) */}
+              {isHotel && (
+                <div style={{ display: 'flex', gap: '0.8rem' }}>
+                  <div
+                    className="stop-chip editable"
+                    onClick={(e) => { e.stopPropagation(); onOpenStayInfo?.(dayId, stop.id); }}
+                    style={{
+                      background: 'rgba(139, 92, 246, 0.08)',
+                      color: '#8b5cf6',
+                      padding: '4px 10px',
+                      borderRadius: '8px',
+                      fontSize: '0.78rem',
+                      fontWeight: 800,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      border: '1px solid rgba(139, 92, 246, 0.25)',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <Bed size={14} strokeWidth={2.5} />
+                    {t('itinerary.stay_info') || 'Stay Info'}
+                  </div>
+                </div>
+              )}
+
+              {/* Main Action Chips */}
+              <div className="stop-card-actions-row" style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', flexWrap: 'wrap' }}>
+                {stop.time && (
+                  <div
+                    className="stop-chip editable"
+                    onClick={handleTimeClick}
+                    style={{
+                      background: 'rgba(249, 115, 22, 0.08)',
+                      color: '#f97316',
+                      padding: '4px 10px',
+                      borderRadius: '8px',
+                      fontSize: '0.78rem',
+                      fontWeight: 800,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      border: '1px solid rgba(249, 115, 22, 0.25)',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <Clock size={14} strokeWidth={2.5} />
+                    {stop.time} {stop.period}
+                  </div>
+                )}
+
+                <div 
+                  className="stop-chip editable"
+                  onClick={handleExpenseClick}
+                  style={{ 
+                    background: 'rgba(16, 185, 129, 0.08)', 
+                    color: '#10b981', 
+                    padding: '4px 10px', 
+                    borderRadius: '8px', 
+                    fontSize: '0.78rem', 
+                    fontWeight: 800,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    border: '1px solid rgba(16, 185, 129, 0.25)',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <Receipt size={14} strokeWidth={2.5} />
+                  {stop.price && parseFloat(stop.price) > 0
+                    ? formatCurrency(stop.price, state.settings)
+                    : (t('itinerary.add_expense') || '添加消费')}
+                </div>
+
+                {stop.address && (
+                  <a
+                    href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(stop.address)}${stop.placeId ? `&destination_place_id=${stop.placeId}` : ''}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    title={t('itinerary.navigate') || 'Navigate'}
+                    className="stop-chip nav-chip"
+                    style={{ background: 'rgba(59,130,246,0.08)', color: '#3b82f6', padding: '4px 10px', borderRadius: '8px', fontSize: '0.78rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '6px', border: '1px solid rgba(59,130,246,0.25)', textDecoration: 'none', cursor: 'pointer' }}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>near_me</span>
+                    {t('itinerary.navigate') || 'Navigate'}
+                  </a>
+                )}
+
+                {stop.reservationTime && (
+                  <div
+                    className="stop-chip"
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      color: 'var(--text-bright)',
+                      padding: '4px 10px',
+                      borderRadius: '8px',
+                      fontSize: '0.78rem',
+                      fontWeight: 700,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      border: '1px solid rgba(255, 255, 255, 0.1)'
+                    }}
+                  >
+                    <CheckCircle2 size={14} strokeWidth={2.5} />
+                    {stop.reservationTime}
+                  </div>
+                )}
+
+                {(() => {
+                  const s = getStopTimeStatus(stop, isToday, t);
+                  if (!s) return null;
+                  return (
+                    <div style={{
+                      padding: '4px 10px',
+                      borderRadius: '8px',
+                      fontSize: '0.72rem',
+                      fontWeight: 800,
+                      color: s.color,
+                      background: s.bg,
+                      border: `1px solid ${s.border}`,
+                      letterSpacing: '0.03em',
+                      whiteSpace: 'nowrap',
+                    }}>
+                      {s.label}
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
           </div>
 
           {/* Thumbnail (Right) - click to change photo */}
@@ -455,7 +614,7 @@ export default memo(function StopCard({
             className="rich-stop-card-media"
             ref={thumbRef}
             onClick={handlePhotoClick}
-            style={{ width: '100px', height: '65px', borderRadius: '10px', overflow: 'hidden', flexShrink: 0, border: '1px solid var(--glass-border)', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', cursor: 'pointer', background: 'rgba(255,255,255,0.03)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            style={{ borderRadius: '10px', overflow: 'hidden', flexShrink: 0, border: '1px solid var(--glass-border)', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', cursor: 'pointer', background: 'rgba(255,255,255,0.03)', display: 'flex', alignItems: 'center', justifyContent: 'center', alignSelf: 'stretch' }}
             title={t('itinerary.change_photo') || 'Change photo'}
           >
             {stop.photo ? (
@@ -480,149 +639,6 @@ export default memo(function StopCard({
             />,
             document.body
           )}
-        </div>
-
-        {/* Note / Placeholder */}
-        <div
-          style={{
-            fontSize: '0.95rem',
-            color: stop.note ? 'var(--text-secondary)' : 'var(--text-muted)',
-            marginBottom: '1.2rem',
-            lineHeight: 1.5,
-            padding: '4px 0',
-            fontStyle: stop.note ? 'normal' : 'italic'
-          }}
-        >
-          {stop.note || t('itinerary.add_note') || '点击添加备注...'}
-        </div>
-
-        {/* Bottom Actions: Time & Expense Chips */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginTop: 'auto', flexWrap: 'wrap' }}>
-          {stop.time && (
-            <div
-              className="stop-chip editable"
-              onClick={handleTimeClick}
-              style={{
-                background: 'rgba(249, 115, 22, 0.08)',
-                color: '#f97316',
-                padding: '4px 10px',
-                borderRadius: '8px',
-                fontSize: '0.78rem',
-                fontWeight: 800,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                border: '1px solid rgba(249, 115, 22, 0.25)',
-                cursor: 'pointer'
-              }}
-            >
-              <Clock size={14} strokeWidth={2.5} />
-              {stop.time} {stop.period}
-            </div>
-          )}
-
-          {isHotel && (
-            <div
-              className="stop-chip editable"
-              onClick={(e) => { e.stopPropagation(); onOpenStayInfo?.(dayId, stop.id); }}
-              style={{
-                background: 'rgba(139, 92, 246, 0.08)',
-                color: '#8b5cf6',
-                padding: '4px 10px',
-                borderRadius: '8px',
-                fontSize: '0.78rem',
-                fontWeight: 800,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                border: '1px solid rgba(139, 92, 246, 0.25)',
-                cursor: 'pointer'
-              }}
-            >
-              <Bed size={14} strokeWidth={2.5} />
-              {t('itinerary.stay_info') || 'Stay Info'}
-            </div>
-          )}
-
-          <div 
-            className="stop-chip editable"
-            onClick={handleExpenseClick}
-            style={{ 
-              background: 'rgba(16, 185, 129, 0.08)', 
-              color: '#10b981', 
-              padding: '4px 10px', 
-              borderRadius: '8px', 
-              fontSize: '0.78rem', 
-              fontWeight: 800,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              border: '1px solid rgba(16, 185, 129, 0.25)',
-              cursor: 'pointer'
-            }}
-          >
-            <Receipt size={14} strokeWidth={2.5} />
-            {stop.price && parseFloat(stop.price) > 0
-              ? formatCurrency(stop.price, state.settings)
-              : (t('itinerary.add_expense') || '添加消费')}
-          </div>
-
-          {stop.address && (
-            <a
-              href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(stop.address)}${stop.placeId ? `&destination_place_id=${stop.placeId}` : ''}`}
-              target="_blank"
-              rel="noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              title={t('itinerary.navigate') || 'Navigate'}
-              className="stop-chip"
-              style={{ background: 'rgba(59,130,246,0.08)', color: '#3b82f6', padding: '4px 10px', borderRadius: '8px', fontSize: '0.78rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '6px', border: '1px solid rgba(59,130,246,0.25)', textDecoration: 'none', cursor: 'pointer' }}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>near_me</span>
-              {t('itinerary.navigate') || 'Navigate'}
-            </a>
-          )}
-
-          {stop.reservationTime && (
-            <div
-              className="stop-chip"
-              style={{
-                background: 'rgba(255, 255, 255, 0.05)',
-                color: 'var(--text-bright)',
-                padding: '4px 10px',
-                borderRadius: '8px',
-                fontSize: '0.78rem',
-                fontWeight: 700,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                border: '1px solid rgba(255, 255, 255, 0.1)'
-              }}
-            >
-              <CheckCircle2 size={14} strokeWidth={2.5} />
-              {stop.reservationTime}
-            </div>
-          )}
-
-          {(() => {
-            const s = getStopTimeStatus(stop, isToday, t);
-            if (!s) return null;
-            return (
-              <div style={{
-                marginLeft: 'auto',
-                padding: '4px 10px',
-                borderRadius: '8px',
-                fontSize: '0.72rem',
-                fontWeight: 800,
-                color: s.color,
-                background: s.bg,
-                border: `1px solid ${s.border}`,
-                letterSpacing: '0.03em',
-                whiteSpace: 'nowrap',
-              }}>
-                {s.label}
-              </div>
-            );
-          })()}
         </div>
       </div>
 
