@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
 import { useTrips } from '../hooks/useTrips';
+import { useI18n } from '../context/I18nContext';
 
 function formatDateShort(dateStr) {
   if (!dateStr) return '';
@@ -55,6 +56,7 @@ export default function SharedTripPage() {
   const navigate = useNavigate();
   const { state } = useApp();
   const { importSharedTrip } = useTrips();
+  const { t } = useI18n();
 
   const [tripData, setTripData] = useState(null);
   const [loadingPage, setLoadingPage] = useState(true);
@@ -168,7 +170,7 @@ export default function SharedTripPage() {
             }}
           >
             <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>download</span>
-            {importing ? 'Importing...' : 'Import to My Trips'}
+            {importing ? t('share.importing') : t('share.import_trip')}
           </button>
         )}
       </div>
@@ -472,7 +474,7 @@ export default function SharedTripPage() {
             }}
           >
             <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>download</span>
-            {importing ? 'Importing...' : '导入行程'}
+            {importing ? t('share.importing') : t('share.import_trip')}
           </button>
         </div>
       )}
