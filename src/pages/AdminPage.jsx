@@ -10,9 +10,11 @@ export default function AdminPage() {
   const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(false);
   const [unusedImages, setUnusedImages] = useState([]);
+  const [selectedPaths, setSelectedPaths] = useState(new Set());
   const [scanning, setScanning] = useState(false);
   const [cleanupStatus, setCleanupStatus] = useState('');
   const [showSql, setShowSql] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState(null);
 
   // Security check
   if (!isAdmin(state.user)) {
@@ -68,19 +70,41 @@ export default function AdminPage() {
   };
 
   const handleDeleteTrip = async (tripId) => {
-    if (!window.confirm('确定要删除这个行程吗？此操作不可撤销，且会同时尝试清理相关图片。')) return;
-    
+    if (!window.confirm('确定要删除这个行程吗？此操作不可撤销，且会同时清理该行程所有附件图片。')) return;
+
     setLoading(true);
     try {
-      const { error } = await supabase
+      // 1. Fetch trip data to collect attachment paths before deleting
+      const { data: tripRow } = await supabase
         .from('trips')
-        .delete()
-        .eq('id', tripId);
-      
+        .select('trip_data')
+        .eq('id', tripId)
+        .single();
+
+      // 2. Collect all attachment storage paths
+      const attachmentPaths = [];
+      tripRow?.trip_data?.days?.forEach(day => {
+        day.stops?.forEach(stop => {
+          stop.attachments?.forEach(att => {
+            if (att.path) attachmentPaths.push(att.path);
+          });
+        });
+      });
+
+      // 3. Delete attachment files from Supabase Storage (best-effort)
+      if (attachmentPaths.length > 0) {
+        const { error: storageErr } = await supabase.storage
+          .from('trip-media')
+          .remove(attachmentPaths);
+        if (storageErr) console.warn('[Admin] Storage cleanup partial error:', storageErr);
+      }
+
+      // 4. Delete the trip record
+      const { error } = await supabase.from('trips').delete().eq('id', tripId);
       if (error) throw error;
-      
-      alert('行程已删除');
-      loadAllTrips(); // Refresh list
+
+      alert(`行程已删除${attachmentPaths.length > 0 ? `，同时清理了 ${attachmentPaths.length} 个附件文件` : ''}`);
+      loadAllTrips();
     } catch (err) {
       console.error('Delete error:', err);
       alert('删除失败: ' + err.message);
@@ -89,60 +113,91 @@ export default function AdminPage() {
     }
   };
 
+  // --- Helper: recursively list every file path in a bucket ---
+  const listAllFiles = async (bucket, prefix = '') => {
+    const allPaths = [];
+    const { data, error } = await supabase.storage.from(bucket).list(prefix, { limit: 1000 });
+    if (error || !data) return allPaths;
+
+    for (const item of data) {
+      if (!item.id) {
+        // item has no id → it's a virtual folder, recurse into it
+        const subPrefix = prefix ? `${prefix}/${item.name}` : item.name;
+        const subFiles = await listAllFiles(bucket, subPrefix);
+        allPaths.push(...subFiles);
+      } else {
+        // real file
+        const fullPath = prefix ? `${prefix}/${item.name}` : item.name;
+        allPaths.push(fullPath);
+      }
+    }
+    return allPaths;
+  };
+
   const scanForUnusedImages = async () => {
     setScanning(true);
-    setCleanupStatus('正在扫描存储桶和数据库...');
+    setCleanupStatus('正在递归扫描存储桶（包含子文件夹）...');
     try {
-      // 1. Get all files in bucket
       const bucketName = 'trip-media';
-      const { data: storageFiles, error: storageError } = await supabase
-        .storage
-        .from(bucketName)
-        .list('', { limit: 1000 });
 
-      if (storageError) throw storageError;
+      // 1. Recursively get ALL file paths in the bucket
+      const allFilePaths = await listAllFiles(bucketName);
+      setCleanupStatus(`已找到 ${allFilePaths.length} 个文件，正在对比数据库...`);
 
-      const storageFileNames = storageFiles.map(f => f.name);
-
-      // 2. Get all image URLs from database
+      // 2. Get all image URLs / paths from database
       const { data: allTrips } = await supabase.from('trips').select('thumb, trip_data');
-      
-      const usedImages = new Set();
-      
-      allTrips?.forEach(t => {
-          // Check thumb
-          if (t.thumb && t.thumb.includes(bucketName)) {
-              const fileName = t.thumb.split('/').pop().split('?')[0];
-              usedImages.add(fileName);
-          }
 
-          // Check trip_data for stop photos
-          const tripData = t.trip_data;
-          tripData?.days?.forEach(day => {
-              day.stops?.forEach(stop => {
-                  if (stop.photo && stop.photo.includes(bucketName)) {
-                      const fileName = stop.photo.split('/').pop().split('?')[0];
-                      usedImages.add(fileName);
-                  }
-              });
+      const usedPaths = new Set();
+
+      allTrips?.forEach(t => {
+        // Trip thumbnail (root-level file, only filename)
+        if (t.thumb && t.thumb.includes(bucketName)) {
+          const fileName = t.thumb.split('/').pop().split('?')[0];
+          usedPaths.add(fileName);
+        }
+
+        const tripData = t.trip_data;
+        tripData?.days?.forEach(day => {
+          day.stops?.forEach(stop => {
+            // Stop cover photo (root-level file, only filename)
+            if (stop.photo && stop.photo.includes(bucketName)) {
+              const fileName = stop.photo.split('/').pop().split('?')[0];
+              usedPaths.add(fileName);
+            }
+
+            // Stop attachments (nested paths like userId/tripId/stopId/attachments/file)
+            stop.attachments?.forEach(att => {
+              if (att.path) {
+                // We stored the full path at upload time
+                usedPaths.add(att.path);
+              } else if (att.url && att.url.includes(bucketName)) {
+                // Fallback: extract filename from URL
+                const fileName = att.url.split('/').pop().split('?')[0];
+                usedPaths.add(fileName);
+              }
+            });
           });
+        });
       });
 
       // 3. Find unused
-      const unused = storageFileNames.filter(name => 
-          name !== '.emptyFolderPlaceholder' && 
-          !usedImages.has(name)
+      const unused = allFilePaths.filter(path =>
+        path !== '.emptyFolderPlaceholder' &&
+        !usedPaths.has(path)
       );
-      
+
       setUnusedImages(unused);
-      
-      // Safety check: If we found NO used images in the database but plenty in storage, 
-      // it's almost certain that RLS is blocking the DB query.
-      if (usedImages.size === 0 && storageFileNames.length > 0) {
-          setCleanupStatus('⚠️ 危险警告：扫描发现 0 个已使用图片，但存储桶中有文件。这说明权限不足，无法读取各用户的行程数据。请【不要】执行删除，否则会误删其他用户的图片！');
-          setUnusedImages([]); // Clear to prevent accidental deletion
+
+      // Safety guard
+      if (usedPaths.size === 0 && allFilePaths.length > 0) {
+        setCleanupStatus('⚠️ 危险警告：扫描发现 0 个已使用图片，但存储桶中有文件。这说明权限不足，无法读取行程数据。请【不要】执行删除！');
+        setUnusedImages([]);
       } else {
-          setCleanupStatus(`扫描完成。对比了 ${allTrips?.length || 0} 个行程，找到 ${unused.length} 个未引用的文件。`);
+        setCleanupStatus(
+          `扫描完成。对比了 ${allTrips?.length || 0} 个行程，` +
+          `存储桶共 ${allFilePaths.length} 个文件（含附件子目录），` +
+          `找到 ${unused.length} 个未引用的孤立文件。`
+        );
       }
     } catch (err) {
       console.error('Scan error:', err);
@@ -152,22 +207,43 @@ export default function AdminPage() {
     }
   };
 
-  const deleteUnusedImages = async () => {
-    if (!unusedImages.length) return;
-    if (!confirm(`确定要删除 ${unusedImages.length} 个未引用的图片吗？此操作不可撤销。`)) return;
+  // After scan, auto-select all found orphans
+  const handleScanClick = async () => {
+    setSelectedPaths(new Set());
+    await scanForUnusedImages();
+  };
 
+  const getPublicUrl = (path) => {
+    const { data } = supabase.storage.from('trip-media').getPublicUrl(path);
+    return data?.publicUrl || '';
+  };
+
+  const toggleSelect = (path) => {
+    setSelectedPaths(prev => {
+      const next = new Set(prev);
+      next.has(path) ? next.delete(path) : next.add(path);
+      return next;
+    });
+  };
+
+  const selectAll = () => setSelectedPaths(new Set(unusedImages));
+  const deselectAll = () => setSelectedPaths(new Set());
+
+  const deleteUnusedImages = async () => {
+    if (!selectedPaths.size) return;
+    if (!confirm(`确定要删除选中的 ${selectedPaths.size} 个文件吗？此操作不可撤销。`)) return;
+
+    const toDelete = Array.from(selectedPaths);
     setScanning(true);
     setCleanupStatus('正在删除...');
     try {
-      const { error } = await supabase
-        .storage
-        .from('trip-media')
-        .remove(unusedImages);
-
+      const { error } = await supabase.storage.from('trip-media').remove(toDelete);
       if (error) throw error;
-      
-      setUnusedImages([]);
-      setCleanupStatus(`成功删除 ${unusedImages.length} 个文件。`);
+
+      const remaining = unusedImages.filter(p => !selectedPaths.has(p));
+      setUnusedImages(remaining);
+      setSelectedPaths(new Set());
+      setCleanupStatus(`成功删除 ${toDelete.length} 个文件，剩余 ${remaining.length} 个待处理。`);
     } catch (err) {
       setCleanupStatus('删除失败: ' + err.message);
     } finally {
@@ -259,43 +335,126 @@ export default function AdminPage() {
 
       {activeTab === 'cleanup' && (
         <section style={{ padding: '1.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '12px' }}>
-          <h2 style={{ fontSize: '1.2rem', marginBottom: '1rem' }}>Supabase Storage Optimizer</h2>
-          <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
-            This tool scans for photos in your Supabase storage bucket that are no longer referenced by any itinerary in the database.
+          <h2 style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>Storage Optimizer</h2>
+          <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.85rem' }}>
+            扫描 Supabase 存储桶中不再被任何行程引用的孤立文件（含附件子目录）。勾选要删除的文件后点击删除。
           </p>
-          
-          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '1.5rem' }}>
-            <button 
-              onClick={scanForUnusedImages}
+
+          {/* Action bar */}
+          <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap' }}>
+            <button
+              onClick={handleScanClick}
               disabled={scanning}
-              style={{ padding: '0.6rem 1.2rem', borderRadius: '8px', background: 'var(--accent)', border: 'none', color: '#fff', cursor: scanning ? 'not-allowed' : 'pointer', opacity: scanning ? 0.6 : 1 }}
+              style={{ padding: '0.6rem 1.2rem', borderRadius: '8px', background: 'var(--accent)', border: 'none', color: '#fff', cursor: scanning ? 'not-allowed' : 'pointer', opacity: scanning ? 0.6 : 1, display: 'flex', alignItems: 'center', gap: '6px' }}
             >
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>{scanning ? 'sync' : 'search'}</span>
               {scanning ? 'Scanning...' : 'Scan Storage'}
             </button>
-            
+
             {unusedImages.length > 0 && !scanning && (
-              <button 
-                onClick={deleteUnusedImages}
-                style={{ padding: '0.6rem 1.2rem', borderRadius: '8px', background: '#e11d48', border: 'none', color: '#fff', cursor: 'pointer' }}
-              >
-                Delete {unusedImages.length} Unused Images
-              </button>
+              <>
+                <button onClick={selectAll} style={{ padding: '0.5rem 0.9rem', borderRadius: '8px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', cursor: 'pointer', fontSize: '0.85rem' }}>
+                  全选 ({unusedImages.length})
+                </button>
+                <button onClick={deselectAll} style={{ padding: '0.5rem 0.9rem', borderRadius: '8px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', cursor: 'pointer', fontSize: '0.85rem' }}>
+                  取消全选
+                </button>
+                {selectedPaths.size > 0 && (
+                  <button
+                    onClick={deleteUnusedImages}
+                    style={{ padding: '0.6rem 1.2rem', borderRadius: '8px', background: '#e11d48', border: 'none', color: '#fff', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>delete</span>
+                    删除选中 ({selectedPaths.size})
+                  </button>
+                )}
+              </>
             )}
           </div>
 
-          <div style={{ padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '8px', minHeight: '60px' }}>
-            <p style={{ fontSize: '0.9rem' }}>{cleanupStatus || 'Ready to scan.'}</p>
+          {/* Status bar */}
+          <div style={{ padding: '0.8rem 1rem', background: 'rgba(0,0,0,0.25)', borderRadius: '8px', marginBottom: '1rem', fontSize: '0.85rem', minHeight: '38px' }}>
+            {cleanupStatus || '准备扫描...'}
           </div>
 
+          {/* Thumbnail grid */}
           {unusedImages.length > 0 && (
-            <div style={{ marginTop: '1.5rem' }}>
-              <h3 style={{ fontSize: '1rem', marginBottom: '0.5rem' }}>Files marked for deletion:</h3>
-              <ul style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', maxHeight: '300px', overflowY: 'auto' }}>
-                {unusedImages.map(img => <li key={img}>{img}</li>)}
-              </ul>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '10px' }}>
+              {unusedImages.map(path => {
+                const url = getPublicUrl(path);
+                const isSelected = selectedPaths.has(path);
+                const fileName = path.split('/').pop();
+                const isImage = /\.(jpg|jpeg|png|webp|gif)$/i.test(fileName);
+
+                return (
+                  <div
+                    key={path}
+                    onClick={() => toggleSelect(path)}
+                    style={{
+                      position: 'relative',
+                      borderRadius: '10px',
+                      overflow: 'hidden',
+                      border: isSelected ? '2px solid #e11d48' : '2px solid rgba(255,255,255,0.08)',
+                      cursor: 'pointer',
+                      background: 'rgba(255,255,255,0.03)',
+                      transition: 'border-color 0.15s',
+                    }}
+                  >
+                    {/* Thumbnail */}
+                    <div style={{ aspectRatio: '1', overflow: 'hidden', background: '#0a0c10' }}>
+                      {isImage ? (
+                        <img
+                          src={url}
+                          alt={fileName}
+                          loading="lazy"
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          onError={(e) => { e.target.style.display = 'none'; }}
+                        />
+                      ) : (
+                        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: '36px', color: 'var(--text-muted)' }}>insert_drive_file</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Zoom button */}
+                    {isImage && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setPreviewUrl(url); }}
+                        style={{ position: 'absolute', top: '4px', left: '4px', background: 'rgba(0,0,0,0.65)', border: 'none', borderRadius: '6px', padding: '3px 5px', cursor: 'pointer', color: '#fff', display: 'flex', alignItems: 'center' }}
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>zoom_in</span>
+                      </button>
+                    )}
+
+                    {/* Checkbox indicator */}
+                    <div style={{ position: 'absolute', top: '4px', right: '4px', width: '20px', height: '20px', borderRadius: '50%', background: isSelected ? '#e11d48' : 'rgba(0,0,0,0.6)', border: '2px solid rgba(255,255,255,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {isSelected && <span className="material-symbols-outlined" style={{ fontSize: '12px', color: '#fff' }}>check</span>}
+                    </div>
+
+                    {/* Filename */}
+                    <div style={{ padding: '4px 6px', fontSize: '0.65rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', background: 'rgba(0,0,0,0.4)' }}>
+                      {fileName}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </section>
+      )}
+
+      {/* Lightbox */}
+      {previewUrl && (
+        <div
+          onClick={() => setPreviewUrl(null)}
+          style={{ position: 'fixed', inset: 0, zIndex: 99999, background: 'rgba(0,0,0,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'zoom-out', backdropFilter: 'blur(8px)' }}
+        >
+          <img src={previewUrl} alt="preview" style={{ maxWidth: '90vw', maxHeight: '88vh', objectFit: 'contain', borderRadius: '12px', boxShadow: '0 30px 80px rgba(0,0,0,0.8)' }} />
+          <button onClick={() => setPreviewUrl(null)} style={{ position: 'fixed', top: '1.5rem', right: '1.5rem', background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#fff' }}>
+            <span className="material-symbols-outlined">close</span>
+          </button>
+        </div>
       )}
 
       {(showSql || trips.length === 0) && (
