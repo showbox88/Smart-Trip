@@ -111,14 +111,34 @@ export default function ItineraryView({ tripId }) {
   }, [trip?.days, isManualScroll, setActiveDayIdLocal]);
 
   useEffect(() => {
-    if (!trip?.days) return;
-    trip.days.forEach((day) => {
-      const needsCompute = day.stops.some((stop) =>
-        (stop.type === 'location' || !stop.type) && stop.lat && !stop.transitToNext
+    if (!trip?.days || !window.googleMapsReady) return;
+    
+    // Find the active day first if it needs compute, otherwise find any day
+    const findNeedsCompute = (day) => {
+      // Find stops that are locations and have no transit info yet
+      const locationStops = day.stops.filter(s => 
+        (s.type === 'location' || s.type === 'hotel_checkin' || s.type === 'hotel_checkout') && s.lat
       );
-      if (needsCompute) computeTransitData(day.id);
-    });
-  }, [tripId, trip, computeTransitData]);
+      if (locationStops.length < 2) return false;
+      
+      // Check if any segment is missing transit data
+      for (let i = 0; i < locationStops.length - 1; i++) {
+        if (!locationStops[i].transitToNext) return true;
+      }
+      return false;
+    };
+
+    const activeDay = trip.days.find(d => d.id === activeDayId);
+    if (activeDay && findNeedsCompute(activeDay)) {
+      computeTransitData(activeDay.id);
+      return;
+    }
+
+    const anyDay = trip.days.find(findNeedsCompute);
+    if (anyDay) {
+      computeTransitData(anyDay.id);
+    }
+  }, [tripId, trip, computeTransitData, activeDayId]);
 
   const handleDeleteStop = useCallback((dayId, stopId) => {
     deleteStop(dayId, stopId);

@@ -102,7 +102,3 @@ export function calculateDays(start, end) {
   return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
 }
 
-export function getTripStays(trip) {
-  return getTripStaysFromHelper(trip);
-}
-import { getTripStays as getTripStaysFromHelper } from './stayHelpers';

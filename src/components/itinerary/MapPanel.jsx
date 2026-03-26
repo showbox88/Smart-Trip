@@ -5,7 +5,9 @@ import MapInfoPanel from './MapInfoPanel';
 import MapSearchBox from './MapSearchBox';
 import { getTripStayMap, isHotelStop } from '../../utils/stayHelpers';
 
-async function fetchAndDrawRoute(routePath, color, mapInstance) {
+const TRAVEL_MODE_MAP = { 'DRIVE': 'DRIVING', 'WALK': 'WALKING' };
+
+async function fetchAndDrawRoute(routePath, color, mapInstance, travelMode = 'DRIVE') {
   try {
     if (typeof google === 'undefined') return [];
     const { Route } = await google.maps.importLibrary('routes');
@@ -15,19 +17,33 @@ async function fetchAndDrawRoute(routePath, color, mapInstance) {
       location: new google.maps.LatLng(Number(p.lat), Number(p.lng))
     }));
 
+    const googleMode = TRAVEL_MODE_MAP[travelMode] || 'DRIVING';
+
     const { routes } = await Route.computeRoutes({
       origin: new google.maps.LatLng(Number(origin.lat), Number(origin.lng)),
       destination: new google.maps.LatLng(Number(dest.lat), Number(dest.lng)),
-      travelMode: 'DRIVING',
+      travelMode: googleMode,
       intermediates,
       fields: ['path'],
     });
 
     if (!routes?.[0]) return [];
 
+    const isWalk = travelMode === 'WALK';
     const polylines = routes[0].createPolylines();
     polylines.forEach(p => {
-      p.setOptions({ strokeColor: color, strokeOpacity: 0.8, strokeWeight: 4 });
+      p.setOptions({
+        strokeColor: color,
+        strokeOpacity: isWalk ? 0 : 0.8,
+        strokeWeight: isWalk ? 3 : 4,
+        ...(isWalk ? {
+          icons: [{
+            icon: { path: 'M 0,-1 0,1', strokeOpacity: 0.8, scale: 3 },
+            offset: '0',
+            repeat: '12px',
+          }],
+        } : {}),
+      });
       p.setMap(mapInstance);
     });
     return polylines;
@@ -189,6 +205,7 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [] }, 
     const daysToRender = activeTrip.days.filter(day => (focusDayIds || []).includes(day.id));
     daysToRender.forEach(day => {
       const dayColor = day.color || '#5b7a99';
+      // routePath entries: { lat, lng, transitMode } — transitMode = mode FROM this point TO the next
       const routePath = [];
 
       // 1. Hotel Connection Logic (Prepend)
@@ -210,7 +227,7 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [] }, 
         if (!(firstStop && isHotelStop(firstStop))) {
           const cin = dayStay.checkinStop;
           const cout = dayStay.checkoutStop;
-          const hotelPos = { lat: Number(cin.lat), lng: Number(cin.lng) };
+          const hotelPos = { lat: Number(cin.lat), lng: Number(cin.lng), transitMode: 'DRIVE' };
           routePath.push(hotelPos);
           bounds.extend(hotelPos);
           hasCoords = true;
@@ -295,7 +312,7 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [] }, 
         const isHotel = isHotelStop(stop);
 
         if ((isLoc || isHotel) && stop.lat && stop.lng) {
-          const pos = { lat: Number(stop.lat), lng: Number(stop.lng) };
+          const pos = { lat: Number(stop.lat), lng: Number(stop.lng), transitMode: stop.transitMode || 'DRIVE' };
           if (isNaN(pos.lat) || isNaN(pos.lng)) return;
 
           routePath.push(pos);
@@ -519,26 +536,46 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [] }, 
         }
       }
 
-      // Draw route: fetch real route from Routes API, fall back to straight line
+      // Draw route: split routePath into segments by transitMode, draw each separately
       if (routePath.length >= 2) {
         const color = dayColor;
         const mapInst = mapInstanceRef.current;
 
+        // Split routePath into segments where each segment has a uniform transitMode.
+        // Edge i→i+1 uses routePath[i].transitMode (the departure point's mode).
+        // Segments share boundary points so polylines connect without gaps.
+        const segments = [];
+        let segStart = 0;
+        for (let i = 0; i < routePath.length - 1; i++) {
+          const curMode = routePath[i].transitMode || 'DRIVE';
+          const nextMode = i + 1 < routePath.length - 1 ? (routePath[i + 1].transitMode || 'DRIVE') : null;
+          // Close segment when the next edge has a different mode, or we've reached the last edge
+          if (nextMode !== curMode || i === routePath.length - 2) {
+            segments.push({ path: routePath.slice(segStart, i + 2), mode: curMode });
+            segStart = i + 1;
+          }
+        }
+
         // Collect async jobs — old polylines cleared after ALL days resolve
         routeJobs.push((async () => {
           try {
-            const realPolylines = await fetchAndDrawRoute(routePath, color, mapInst);
-            if (realPolylines.length > 0 && mapInstanceRef.current) {
-              polylinesRef.current.push(...realPolylines);
-            } else {
-              const fallbackPoly = new google.maps.Polyline({
-                path: routePath,
-                strokeColor: color,
-                strokeOpacity: 0.35,
-                strokeWeight: 3,
-                map: mapInst,
-              });
-              polylinesRef.current.push(fallbackPoly);
+            for (const seg of segments) {
+              if (seg.path.length < 2) continue;
+              const realPolylines = await fetchAndDrawRoute(seg.path, color, mapInst, seg.mode);
+              if (realPolylines.length > 0 && mapInstanceRef.current) {
+                polylinesRef.current.push(...realPolylines);
+              } else {
+                const isWalk = seg.mode === 'WALK';
+                const fallbackPoly = new google.maps.Polyline({
+                  path: seg.path,
+                  strokeColor: color,
+                  strokeOpacity: isWalk ? 0.6 : 0.35,
+                  strokeWeight: isWalk ? 2 : 3,
+                  map: mapInst,
+                  ...(isWalk ? { icons: [{ icon: { path: 'M 0,-1 0,1', strokeOpacity: 0.8, scale: 3 }, offset: '0', repeat: '12px' }] } : {}),
+                });
+                polylinesRef.current.push(fallbackPoly);
+              }
             }
           } catch (err) {
             console.warn('[MapPanel] route fetch failed:', err);

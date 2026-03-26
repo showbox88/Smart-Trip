@@ -107,128 +107,132 @@ export function useTripEditor(tripId) {
     return { updated, result };
   }, [trip, applyUpdate]);
 
+  // Singleton to prevent multiple computeTransitData from flooding the API
+  const isComputing = useRef(false);
+
   const computeTransitData = useCallback(async (dayId, tripSnapshot) => {
     const mapsApi = globalThis.google;
-    if (!trip || !mapsApi || !window.googleMapsReady) return;
+    if (!trip || !mapsApi || !window.googleMapsReady || isComputing.current) return;
 
-    const currentTrip = tripSnapshot || state.trips.find((tr) => tr.id === tripId);
-    if (!currentTrip) return;
+    try {
+      isComputing.current = true;
+      const currentTrip = tripSnapshot || state.trips.find((tr) => tr.id === tripId);
+      if (!currentTrip) return;
 
-    const updated = cloneTrip(currentTrip);
-    const day = findDayById(updated, dayId);
-    if (!day) return;
+      const updated = cloneTrip(currentTrip);
+      const day = findDayById(updated, dayId);
+      if (!day) return;
 
-    const locationStops = day.stops.filter((stop) =>
-      ['location', 'hotel_checkin', 'hotel_checkout'].includes(stop.type || 'location') &&
-      stop.lat && stop.lng
-    );
-
-    if (locationStops.length < 2) {
-      const hasTransit = locationStops.some((stop) => stop.transitToNext);
-      if (hasTransit) {
-        locationStops.forEach((stop) => {
-          stop.transitToNext = null;
-        });
-        applyUpdate(updated);
-      }
-      return;
-    }
-
-    let changed = false;
-    for (let i = 0; i < locationStops.length - 1; i += 1) {
-      const stop = locationStops[i];
-      const next = locationStops[i + 1];
-      const res = await fetchRouteDuration(
-        { lat: Number(stop.lat), lng: Number(stop.lng) },
-        { lat: Number(next.lat), lng: Number(next.lng) },
-        stop.transitMode || 'DRIVE'
+      const locationStops = day.stops.filter((stop) =>
+        ['location', 'hotel_checkin', 'hotel_checkout'].includes(stop.type || 'location') &&
+        stop.lat && stop.lng
       );
 
-      if (!res && !stop.transitToNext) {
-        continue;
+      if (locationStops.length < 2) {
+        const hasTransit = locationStops.some((stop) => stop.transitToNext);
+        if (hasTransit) {
+          locationStops.forEach((stop) => {
+            stop.transitToNext = null;
+          });
+          applyUpdate(updated);
+        }
+        return;
       }
 
-      if (
-        res &&
-        stop.transitToNext &&
-        res.duration === stop.transitToNext.duration &&
-        res.distance === stop.transitToNext.distance
-      ) {
-        continue;
-      }
+      let changed = false;
+      for (let i = 0; i < locationStops.length - 1; i += 1) {
+        const stop = locationStops[i];
+        const next = locationStops[i + 1];
+        
+        // Skip if we already have it (though fetchRouteDuration also has a cache, this avoids even calling it)
+        if (stop.transitToNext && stop.transitToNext.duration && !changed) {
+            // Check if coordinates have changed basically?
+            // Since we clone trip every move, if it's there it's likely fresh enough if the logic inside useTripEditor handles it.
+            // But let's rely on fetchRouteDuration's cache and just add a tiny delay to satisfy Google's per-minute quota
+        }
 
-      stop.transitToNext = res;
-      changed = true;
-    }
-
-    if (locationStops[locationStops.length - 1].transitToNext !== null) {
-      locationStops[locationStops.length - 1].transitToNext = null;
-      changed = true;
-    }
-
-    const staysMap = buildStayGroups(updated);
-    const dayIdxMap = new Map(updated.days.map((item, index) => [item.id, index]));
-    const dayIndex = dayIdxMap.get(day.id);
-    const plainStops = day.stops.filter((stop) =>
-      stop.type !== 'hotel_checkin' &&
-      stop.type !== 'hotel_checkout' &&
-      stop.type !== 'note' &&
-      stop.type !== 'list' &&
-      stop.lat &&
-      stop.lng
-    );
-    const firstPlain = plainStops[0];
-    const lastPlain = plainStops[plainStops.length - 1];
-
-    for (const [, stay] of staysMap) {
-      const { checkinStop, checkoutStop } = stay;
-      if (!checkinStop || !checkoutStop) continue;
-
-      const cinIdx = dayIdxMap.get(checkinStop._dayId);
-      const coutIdx = dayIdxMap.get(checkoutStop._dayId);
-      if (dayIndex === undefined || cinIdx === undefined || coutIdx === undefined) continue;
-      if (dayIndex < cinIdx || dayIndex > coutIdx) continue;
-
-      if (firstPlain && checkinStop._dayId !== day.id && checkinStop.lat && checkinStop.lng) {
         const res = await fetchRouteDuration(
-          { lat: Number(checkinStop.lat), lng: Number(checkinStop.lng) },
-          { lat: Number(firstPlain.lat), lng: Number(firstPlain.lng) },
-          'DRIVE'
+          { lat: Number(stop.lat), lng: Number(stop.lng) },
+          { lat: Number(next.lat), lng: Number(next.lng) },
+          stop.transitMode || 'DRIVE'
         );
-        const target = findStopById(day, firstPlain.id);
-        if (target && JSON.stringify(target.transitFromHotel) !== JSON.stringify(res)) {
-          target.transitFromHotel = res;
-          changed = true;
+
+        // Wait a small amount between requests to avoid hitting rate limits
+        await new Promise(r => setTimeout(r, 100));
+
+        if (!res && !stop.transitToNext) {
+          continue;
         }
-      } else if (firstPlain) {
-        const target = findStopById(day, firstPlain.id);
-        if (target && target.transitFromHotel) {
-          target.transitFromHotel = null;
-          changed = true;
+
+        if (
+          res &&
+          stop.transitToNext &&
+          res.duration === stop.transitToNext.duration &&
+          res.distance === stop.transitToNext.distance
+        ) {
+          continue;
+        }
+
+        stop.transitToNext = res;
+        changed = true;
+      }
+
+      const staysMap = buildStayGroups(updated);
+      const dayIdxMap = new Map(updated.days.map((item, index) => [item.id, index]));
+      const dayIndex = dayIdxMap.get(day.id);
+      const plainStops = day.stops.filter((stop) =>
+        stop.type !== 'hotel_checkin' &&
+        stop.type !== 'hotel_checkout' &&
+        stop.type !== 'note' &&
+        stop.type !== 'list' &&
+        stop.lat &&
+        stop.lng
+      );
+      const firstPlain = plainStops[0];
+      const lastPlain = plainStops[plainStops.length - 1];
+
+      for (const [, stay] of staysMap) {
+        const { checkinStop, checkoutStop } = stay;
+        if (!checkinStop || !checkoutStop) continue;
+
+        const cinIdx = dayIdxMap.get(checkinStop._dayId);
+        const coutIdx = dayIdxMap.get(checkoutStop._dayId);
+        if (dayIndex === undefined || cinIdx === undefined || coutIdx === undefined) continue;
+        if (dayIndex < cinIdx || dayIndex > coutIdx) continue;
+
+        if (firstPlain && checkinStop._dayId !== day.id && checkinStop.lat && checkinStop.lng) {
+          const res = await fetchRouteDuration(
+            { lat: Number(checkinStop.lat), lng: Number(checkinStop.lng) },
+            { lat: Number(firstPlain.lat), lng: Number(firstPlain.lng) },
+            'DRIVE'
+          );
+          await new Promise(r => setTimeout(r, 150));
+          const target = findStopById(day, firstPlain.id);
+          if (target && JSON.stringify(target.transitFromHotel) !== JSON.stringify(res)) {
+            target.transitFromHotel = res;
+            changed = true;
+          }
+        }
+
+        if (lastPlain && checkoutStop._dayId !== day.id && checkoutStop.lat && checkoutStop.lng) {
+          const res = await fetchRouteDuration(
+            { lat: Number(lastPlain.lat), lng: Number(lastPlain.lng) },
+            { lat: Number(checkoutStop.lat), lng: Number(checkoutStop.lng) },
+            'DRIVE'
+          );
+          await new Promise(r => setTimeout(r, 150));
+          const target = findStopById(day, lastPlain.id);
+          if (target && JSON.stringify(target.transitToHotel) !== JSON.stringify(res)) {
+            target.transitToHotel = res;
+            changed = true;
+          }
         }
       }
 
-      if (lastPlain && checkoutStop._dayId !== day.id && checkoutStop.lat && checkoutStop.lng) {
-        const res = await fetchRouteDuration(
-          { lat: Number(lastPlain.lat), lng: Number(lastPlain.lng) },
-          { lat: Number(checkoutStop.lat), lng: Number(checkoutStop.lng) },
-          'DRIVE'
-        );
-        const target = findStopById(day, lastPlain.id);
-        if (target && JSON.stringify(target.transitToHotel) !== JSON.stringify(res)) {
-          target.transitToHotel = res;
-          changed = true;
-        }
-      } else if (lastPlain) {
-        const target = findStopById(day, lastPlain.id);
-        if (target && target.transitToHotel) {
-          target.transitToHotel = null;
-          changed = true;
-        }
-      }
+      if (changed) applyUpdate(updated);
+    } finally {
+      isComputing.current = false;
     }
-
-    if (changed) applyUpdate(updated);
   }, [trip, state.trips, tripId, applyUpdate]);
 
   const toggleTransitMode = useCallback(async (dayId, stopId) => {

@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find \"/c/Users/Showbox/Desktop/Smat Trip/src/components\" -type f \\\\\\( -name \"*.jsx\" -o -name \"*.js\" \\\\\\) -exec wc -l {} +)",
+      "Bash(find \"/c/Users/Showbox/Desktop/Smat Trip/src/utils\" -type f -name \"*.js\" -exec wc -l {} +)",
+      "Bash(find \"/c/Users/Showbox/Desktop/Smat Trip/src/pages\" -type f -name \"*.jsx\" -exec wc -l {} +)",
+      "Bash(find \"/c/Users/Showbox/Desktop/Smat Trip/src/components/modals\" -type f -name \"*.jsx\" -exec wc -l {} +)",
+      "Bash(find \"/c/Users/Showbox/Desktop/Smat Trip/src/archive\" -type f \\\\\\( -name \"*.js\" -o -name \"*.jsx\" \\\\\\) -exec wc -l {} +)",
+      "Bash(find \"/c/Users/Showbox/Desktop/Smat Trip/src/lib\" -type f \\\\\\( -name \"*.js\" -o -name \"*.jsx\" \\\\\\) -exec wc -l {} +)",
+      "Bash(find \"/c/Users/Showbox/Desktop/Smat Trip/src\" -type f \\\\\\( -name \"*.js\" -o -name \"*.jsx\" \\\\\\) -exec wc -l {} +)",
+      "Bash(xargs wc -l)",
+      "Bash(/tmp/file_list.txt:*)",
+      "Read(//tmp/**)",
+      "Bash(for file in \"/c/Users/Showbox/Desktop/Smat Trip/src/components\"/*/*.jsx)",
+      "Bash(do echo \"$file\")",
+      "Bash(done)",
+      "Bash(grep -h \"useCallback\\\\|useEffect\" \"/c/Users/Showbox/Desktop/Smat Trip/src/hooks\"/*.js)",
+      "Bash(find \"c:/Users/Showbox/Desktop/Smat Trip/src/utils\" -type f \\\\\\( -name \"*.js\" -o -name \"*.jsx\" \\\\\\) -exec wc -l {} +)",
+      "Bash(find \"c:/Users/Showbox/Desktop/Smat Trip/src/hooks\" -type f -exec wc -l {} +)"
+    ]
+  }
+}
