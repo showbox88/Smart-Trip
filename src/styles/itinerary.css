@@ -170,15 +170,19 @@
 .stop-card-container {
     perspective: 1000px;
     position: relative;
-    min-height: 140px;
+    /* 始终保证背面的 2x2 图标网格有足够空间 */
+    min-height: 280px;
 }
 
 .stop-card-inner {
     position: relative;
     width: 100%;
-    height: 100%;
+    min-height: 280px;
     transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
     transform-style: preserve-3d;
+    /* 高度由内容决定（取正面/背面较高的那个） */
+    display: flex;
+    flex-direction: column;
 }
 
 .stop-card-inner.is-flipped {
@@ -189,13 +193,22 @@
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
     width: 100%;
-    height: 100%;
 }
 
+/* 正面：占据 inner 全高 */
+.rich-stop-card-front {
+    flex: 1;
+}
+
+/* 背面：absolute 覆盖，高度取 inner 全高 */
 .rich-stop-card-back {
     position: absolute;
     top: 0;
     left: 0;
+    width: 100%;
+    /* 用 min-height 而非 height:100%，保证比正面小时也不裁剪 */
+    min-height: 280px;
+    height: 100%;
     transform: rotateY(180deg);
     background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -205,13 +218,15 @@
     flex-direction: column;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
     z-index: 2;
+    box-sizing: border-box;
 }
 
 .back-content-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 0.8rem;
-    height: 100%;
+    /* 不再用 height:100%，改为 flex:1 自然填满背面剩余空间 */
+    flex: 1;
     align-items: center;
 }
 
