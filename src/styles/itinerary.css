@@ -260,6 +260,54 @@
     color: var(--text-secondary);
 }
 
+/* --- Stop Card Page Indicator Dots --- */
+.stop-card-dots {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 0 2px;
+    position: relative;
+    z-index: 10;
+}
+
+/* 透明大点击区域，视觉点用 ::before */
+.stop-card-dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.stop-card-dot::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transition: background 0.3s, transform 0.3s;
+}
+
+.stop-card-dot.active::before {
+    background: var(--accent-primary, #3c83f6);
+    transform: scale(1.3);
+}
+
+.stop-card-dot:hover:not(.active)::before {
+    background: rgba(255, 255, 255, 0.55);
+}
+
+@media (max-width: 768px) {
+    .stop-card-dots {
+        display: none;
+    }
+}
+
 .back-content-container {
     scrollbar-width: none;
 }

@@ -708,6 +708,18 @@ export default memo(function StopCard({
           </div>
 
         </div>
+
+        {/* Page Indicator Dots */}
+        <div className="stop-card-dots">
+          <div
+            className={`stop-card-dot ${!isFlipped ? 'active' : ''}`}
+            onClick={(e) => { e.stopPropagation(); setIsFlipped(false); }}
+          />
+          <div
+            className={`stop-card-dot ${isFlipped ? 'active' : ''}`}
+            onClick={(e) => { e.stopPropagation(); setIsFlipped(true); }}
+          />
+        </div>
       </div>
 
       {/* Photo Bottom Sheet */}
