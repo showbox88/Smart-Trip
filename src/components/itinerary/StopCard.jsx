@@ -815,12 +815,13 @@ function PhotoSheet({ stop, userId, tripId, onUpdateStop, onClose, t }) {
 
   return (
     <div
+      className="sheet-backdrop"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
       style={{ position: 'fixed', inset: 0, zIndex: 99999, background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'flex-end', animation: 'fadeIn 0.2s ease' }}
     >
-      <div style={{ width: '100%', maxHeight: '88vh', background: 'var(--bg-secondary)', borderRadius: '1.4rem 1.4rem 0 0', display: 'flex', flexDirection: 'column', animation: 'slideUp 0.28s cubic-bezier(0.32, 0.72, 0, 1)', boxShadow: '0 -20px 60px rgba(0,0,0,0.5)' }}>
+      <div className="sheet-panel" style={{ width: '100%', maxHeight: '88vh', background: 'var(--bg-secondary)', borderRadius: '1.4rem 1.4rem 0 0', display: 'flex', flexDirection: 'column', animation: 'slideUp 0.28s cubic-bezier(0.32, 0.72, 0, 1)', boxShadow: '0 -20px 60px rgba(0,0,0,0.5)' }}>
         {/* Drag handle */}
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '0.7rem 0 0' }}>
+        <div className="sheet-drag-handle" style={{ display: 'flex', justifyContent: 'center', padding: '0.7rem 0 0' }}>
           <div style={{ width: '36px', height: '4px', borderRadius: '99px', background: 'rgba(255,255,255,0.15)' }} />
         </div>
 
@@ -929,6 +930,7 @@ function PrivateNoteSheet({ stop, dayId, onSave, onClose, t }) {
 
   return (
     <div
+      className="sheet-backdrop"
       onClick={handleBackdrop}
       style={{
         position: 'fixed', inset: 0, zIndex: 99999,
@@ -938,7 +940,7 @@ function PrivateNoteSheet({ stop, dayId, onSave, onClose, t }) {
         animation: 'fadeIn 0.2s ease'
       }}
     >
-      <div style={{
+      <div className="sheet-panel" style={{
         width: '100%',
         maxHeight: '85vh',
         background: 'var(--bg-secondary)',
@@ -949,7 +951,7 @@ function PrivateNoteSheet({ stop, dayId, onSave, onClose, t }) {
         boxShadow: '0 -20px 60px rgba(0,0,0,0.5)'
       }}>
         {/* Drag handle bar */}
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '0.7rem 0 0' }}>
+        <div className="sheet-drag-handle" style={{ display: 'flex', justifyContent: 'center', padding: '0.7rem 0 0' }}>
           <div style={{ width: '36px', height: '4px', borderRadius: '99px', background: 'rgba(255,255,255,0.15)' }} />
         </div>
 
