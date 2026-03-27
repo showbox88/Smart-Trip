@@ -847,7 +847,7 @@ function PhotoSheet({ stop, userId, tripId, onUpdateStop, onClose, t }) {
           <label style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px', padding: '0.7rem', background: 'rgba(59,130,246,0.08)', border: '1px dashed rgba(59,130,246,0.4)', borderRadius: '12px', cursor: uploading ? 'not-allowed' : 'pointer', transition: 'all 0.2s' }}>
             <span className="material-symbols-outlined" style={{ fontSize: '22px', color: '#3b82f6' }}>photo_camera</span>
             <span style={{ fontSize: '0.72rem', color: '#3b82f6', fontWeight: 600 }}>{t('itinerary.take_photo') || '拍照'}</span>
-            <input ref={cameraRef} type="file" accept="image/*" capture="environment" multiple={false} onChange={(e) => handleFiles(e.target.files)} style={{ display: 'none' }} disabled={uploading} />
+            <input ref={cameraRef} type="file" accept="image/*" capture="environment" onChange={(e) => handleFiles(e.target.files)} style={{ display: 'none' }} disabled={uploading} />
           </label>
 
           {/* Gallery */}

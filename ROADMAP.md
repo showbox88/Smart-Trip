@@ -90,9 +90,9 @@
 
 - [x] 导航按钮 — Stop 卡底部 chip，一键跳转 Google Maps 导航（优先用 placeId）
 - [x] 酒店卡重复 Check-in 标识修复 — 移除底部冗余文字，保留顶部 badge
-- [ ] 附件卡 — Stop 卡下挂载凭证、文件和链接（详见 [docs/attachment-card-spec.md](docs/attachment-card-spec.md)）
-  - [ ] P0: 图片 / 截图上传，缩略图展示 + 全屏预览
-  - [ ] P0: URL 链接添加 + 跳转
+- [x] 附件卡 — Stop 卡下挂载凭证、文件和链接（详见 [docs/attachment-card-spec.md](docs/attachment-card-spec.md)）
+  - [x] P0: 图片 / 截图上传，缩略图展示 + 全屏预览
+  - [] P0: URL 链接添加 + 跳转
   - [ ] P1: PDF 上传 + 预览
   - [ ] P1: 附件删除 / 重命名
   - [ ] P2: URL 自动抓取链接预览（OG 元数据，Edge Function 代理）

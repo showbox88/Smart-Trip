@@ -133,6 +133,7 @@ export default memo(function DaySection({
         <NoteCard
           stop={stop} dayId={day.id} dayColor={activeColor}
           onDelete={onDeleteNote} onContentChange={onUpdateNoteContent}
+          onUpdateStop={onUpdateStop}
           pendingFocusId={pendingFocusId} setPendingFocusId={setPendingFocusId}
           inHotelStay={inHotelStay}
         />
@@ -144,6 +145,7 @@ export default memo(function DaySection({
           onDelete={onDeleteList} onTitleChange={onUpdateListTitle} onItemChange={onUpdateListItem}
           onItemToggle={onToggleListItem} onAddItem={onAddListItem}
           onDeleteItem={onDeleteListItem}
+          onUpdateStop={onUpdateStop}
           pendingFocusId={pendingFocusId} setPendingFocusId={setPendingFocusId}
           inHotelStay={inHotelStay}
         />
