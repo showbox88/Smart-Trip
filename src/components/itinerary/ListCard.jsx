@@ -216,22 +216,14 @@ export default memo(function ListCard(props) {
 
           {/* Back face - photo gallery */}
           <div className="note-list-card-back">
-            {/* Header */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '0.6rem' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--accent-primary)' }}>photo_library</span>
-              <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-bright)' }}>{t('itinerary.back_photos') || '照片'}</span>
-            </div>
-
-            {/* Upload buttons */}
-            <div style={{ display: 'flex', gap: '0.6rem', marginBottom: '0.75rem' }}>
-              <label style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', padding: '0.6rem', background: 'rgba(59,130,246,0.08)', border: '1px dashed rgba(59,130,246,0.4)', borderRadius: '10px', cursor: uploading ? 'not-allowed' : 'pointer' }}>
+            {/* Minimalist Upload buttons */}
+            <div style={{ display: 'flex', gap: '0.4rem', marginBottom: '0.6rem', justifyContent: 'flex-start' }}>
+              <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', background: 'rgba(59,130,246,0.08)', border: '1px dashed rgba(59,130,246,0.4)', borderRadius: '8px', cursor: uploading ? 'not-allowed' : 'pointer', flexShrink: 0 }} title={t('itinerary.take_photo') || '拍照'}>
                 <span className="material-symbols-outlined" style={{ fontSize: '20px', color: '#3b82f6' }}>photo_camera</span>
-                <span style={{ fontSize: '0.7rem', color: '#3b82f6', fontWeight: 600 }}>{t('itinerary.take_photo') || '拍照'}</span>
                 <input ref={cameraRef} type="file" accept="image/*" capture="environment" onChange={(e) => handleFiles(e.target.files)} style={{ display: 'none' }} disabled={uploading} />
               </label>
-              <label style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', padding: '0.6rem', background: 'rgba(16,185,129,0.08)', border: '1px dashed rgba(16,185,129,0.4)', borderRadius: '10px', cursor: uploading ? 'not-allowed' : 'pointer' }}>
+              <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', background: 'rgba(16,185,129,0.08)', border: '1px dashed rgba(16,185,129,0.4)', borderRadius: '8px', cursor: uploading ? 'not-allowed' : 'pointer', flexShrink: 0 }} title={t('itinerary.choose_photo') || '从相册选择'}>
                 <span className="material-symbols-outlined" style={{ fontSize: '20px', color: '#10b981' }}>add_photo_alternate</span>
-                <span style={{ fontSize: '0.7rem', color: '#10b981', fontWeight: 600 }}>{t('itinerary.choose_photo') || '从相册选择'}</span>
                 <input ref={galleryRef} type="file" accept="image/*" multiple onChange={(e) => handleFiles(e.target.files)} style={{ display: 'none' }} disabled={uploading} />
               </label>
             </div>
