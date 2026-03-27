@@ -68,11 +68,12 @@ export function useAuth() {
           }
         }
 
-        // Load trips
+        // Load trips (旧架构：只加载有 trip_data 的记录，v2 trips 由 tripsV2Data 单独加载)
         const { data: tripsData, error } = await supabase
           .from('trips')
           .select('*')
           .eq('user_id', state.user.id)
+          .not('trip_data', 'is', null)
           .order('created_at', { ascending: false });
 
         if (error) throw error;

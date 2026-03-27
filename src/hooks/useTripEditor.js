@@ -60,7 +60,7 @@ export function useTripEditor(tripId) {
   const trip = state.trips.find((tr) => tr.id === tripId) || null;
 
   useEffect(() => {
-    if (!trip && tripId && !tripId.startsWith('day-trip-') && isAdmin(state.user)) {
+    if (!trip && tripId && !tripId.startsWith('day-trip-') && !tripId.startsWith('v2-trip-') && isAdmin(state.user)) {
       const fetchGlobalTrip = async () => {
         try {
           const { data, error } = await supabase

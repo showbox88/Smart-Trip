@@ -167,6 +167,7 @@ function buildVirtualTrip(virtualTripId, tripMeta, days) {
   return {
     id: virtualTripId,
     _isV2: true,
+    _isVirtualTrip: true,  // Exclude from dashboard listing
     _realTripId: tripMeta.id,
     title: tripMeta.title || '',
     thumb: tripMeta.thumb || null,

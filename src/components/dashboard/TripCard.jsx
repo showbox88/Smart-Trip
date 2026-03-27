@@ -12,6 +12,7 @@ function getStatus(trip, t) {
     const classes = { ongoing: 'status-ongoing', planned: 'status-planned', completed: 'status-completed' };
     return { label: labels[trip.status] || t('common.planned'), cls: classes[trip.status] || 'status-planned' };
   }
+  if (!trip.startDate || !trip.endDate) return { label: t('common.planned'), cls: 'status-planned' };
   if (today >= trip.startDate && today <= trip.endDate) return { label: t('common.ongoing'), cls: 'status-ongoing' };
   if (today < trip.startDate) return { label: t('common.planned'), cls: 'status-planned' };
   return { label: t('common.completed'), cls: 'status-completed' };
@@ -24,7 +25,7 @@ export default function TripCard({ trip, isList = false, onEdit, onShare }) {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const duration = calculateDays(trip.startDate, trip.endDate);
+  const duration = (trip.startDate && trip.endDate) ? calculateDays(trip.startDate, trip.endDate) : 0;
   const status = getStatus(trip, t);
   const stopsCount = trip.days ? trip.days.reduce((acc, day) => acc + (day.stops?.length || 0), 0) : 0;
   const totalCost = trip.days ? trip.days.reduce((acc, day) => {

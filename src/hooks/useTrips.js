@@ -16,6 +16,7 @@ export function useTrips() {
       .from('trips')
       .select('*')
       .eq('user_id', state.user.id)
+      .not('trip_data', 'is', null)
       .order('created_at', { ascending: false });
 
     if (error) {

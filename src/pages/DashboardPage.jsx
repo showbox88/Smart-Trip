@@ -24,7 +24,7 @@ export default function DashboardPage() {
   const [showNewTripModal, setShowNewTripModal] = useState(false);
 
   const allTrips = [
-    ...state.trips.filter(t => !t._isVirtualDay),
+    ...state.trips.filter(t => !t._isVirtualDay && !t._isVirtualTrip),
     ...(state.tripsV2 || []).map(t => ({ ...t, _isV2: true })),
   ].sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
 

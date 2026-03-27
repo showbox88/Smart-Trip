@@ -42,12 +42,24 @@ export function useTripsV2() {
   const loadTrip = useCallback(async (tripId) => {
     if (!state.user) return null;
 
-    const trip = state.tripsV2.find(t => t.id === tripId);
-    if (!trip) return null;
+    // 先查内存，没有则直接从 DB 拉（刚创建时 state.tripsV2 可能还未刷新）
+    let trip = state.tripsV2.find(t => t.id === tripId);
+    if (!trip) {
+      const { data, error } = await supabase
+        .from('trips')
+        .select('id, title, thumb, start_date, end_date, settings, share_token, created_at')
+        .eq('id', tripId)
+        .eq('user_id', state.user.id)
+        .maybeSingle();
+
+      if (error || !data) return null;
+      trip = normalizeTripRow(data);
+      dispatch({ type: 'UPDATE_TRIP_V2', payload: trip });
+    }
 
     const days = await loadDaysForTrip(tripId);
     return { trip, days };
-  }, [state.user, state.tripsV2, loadDaysForTrip]);
+  }, [state.user, state.tripsV2, loadDaysForTrip, dispatch]);
 
   /**
    * 创建新 Trip（不自动创建 days，懒创建）
