@@ -10,7 +10,7 @@ function formatDateShort(dateStr) {
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-export default function TripHeader({ trip, onDeleteTrip, onEditTrip, onShareTrip }) {
+export default function TripHeader({ trip, onDeleteTrip, onEditTrip, onShareTrip, isDayMode = false }) {
   const { t } = useI18n();
   const { state } = useApp();
   const [showMenu, setShowMenu] = useState(false);
@@ -78,27 +78,29 @@ export default function TripHeader({ trip, onDeleteTrip, onEditTrip, onShareTrip
           </div>
         </div>
 
-        {/* Menu */}
-        <div ref={menuRef} style={{ position: 'relative' }}>
-          <button
-            className="menu-dots"
-            onClick={() => setShowMenu(v => !v)}
-          >⋮</button>
-          {showMenu && (
-            <div className="menu-dropdown active" style={{ top: '2rem', right: 0 }}>
-              <button onClick={() => { onEditTrip?.(); setShowMenu(false); }}>
-                {t('itinerary.edit_trip') || 'Edit trip'}
-              </button>
-              <button onClick={() => { onShareTrip?.(); setShowMenu(false); }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>share</span>
-                {t('itinerary.share_trip') || 'Share trip'}
-              </button>
-              <button className="danger" onClick={() => { onDeleteTrip?.(trip.id); setShowMenu(false); }}>
-                {t('itinerary.delete_trip') || 'Delete trip'}
-              </button>
-            </div>
-          )}
-        </div>
+        {/* Menu — 单天打卡模式下隐藏行程编辑/分享/删除 */}
+        {!isDayMode && (
+          <div ref={menuRef} style={{ position: 'relative' }}>
+            <button
+              className="menu-dots"
+              onClick={() => setShowMenu(v => !v)}
+            >⋮</button>
+            {showMenu && (
+              <div className="menu-dropdown active" style={{ top: '2rem', right: 0 }}>
+                <button onClick={() => { onEditTrip?.(); setShowMenu(false); }}>
+                  {t('itinerary.edit_trip') || 'Edit trip'}
+                </button>
+                <button onClick={() => { onShareTrip?.(); setShowMenu(false); }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>share</span>
+                  {t('itinerary.share_trip') || 'Share trip'}
+                </button>
+                <button className="danger" onClick={() => { onDeleteTrip?.(trip.id); setShowMenu(false); }}>
+                  {t('itinerary.delete_trip') || 'Delete trip'}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

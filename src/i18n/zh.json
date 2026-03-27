@@ -1,5 +1,7 @@
 {
-    "_meta": { "label": "中文" },
+    "_meta": {
+        "label": "中文"
+    },
     "common": {
         "cancel": "取消",
         "confirm": "确定",
@@ -46,6 +48,7 @@
     "dashboard": {
         "title": " 的旅行仪表盘",
         "subtitle": "规划您的下一次精彩冒险",
+        "today_checkin": "今日打卡",
         "new_trip": "新建旅行",
         "new_trip_default_title": "我的新旅行",
         "filter_all": "全部",
@@ -265,6 +268,13 @@
         "category_gas": "加油站",
         "category_charging": "电动车充电",
         "category_lodging": "酒店",
+        "nearby_checkin": "附近打卡",
+        "checkin_cat_all": "全部",
+        "checkin_cat_cafe": "咖啡",
+        "checkin_cat_shopping": "购物",
+        "checkin_add": "打卡",
+        "checkin_added": "已打卡",
+        "no_nearby": "附近暂无结果",
         "place_restaurant": "餐厅",
         "place_cafe": "咖啡馆",
         "place_bar": "酒吧",

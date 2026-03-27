@@ -25,6 +25,11 @@ export default function DashboardPage() {
     return getDashboardTripStatus(trip) === state.dashboardFilter;
   });
 
+  const handleTodayCheckin = useCallback(() => {
+    const today = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
+    navigate(`/day/${today}`);
+  }, [navigate]);
+
   const handleAddNewTrip = useCallback(async (e) => {
     if (e) e.stopPropagation();
     if (isCreating) return;
@@ -77,6 +82,14 @@ export default function DashboardPage() {
           </p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+          <button
+            className="btn-secondary"
+            onClick={handleTodayCheckin}
+            title={t('dashboard.today_checkin') || '今日打卡'}
+          >
+            <span className="material-symbols-outlined">my_location</span>
+            <span>{t('dashboard.today_checkin') || '今日打卡'}</span>
+          </button>
           <button
             className="btn-main"
             onClick={handleAddNewTrip}

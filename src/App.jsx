@@ -6,6 +6,7 @@ import LoadingSpinner from './components/common/LoadingSpinner';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import TripPage from './pages/TripPage';
+import DayPage from './pages/DayPage';
 import ArchivePage from './pages/ArchivePage';
 import AdminPage from './pages/AdminPage';
 import SharedTripPage from './pages/SharedTripPage';
@@ -48,6 +49,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<DashboardPage />} />
           <Route path="/trip/:id" element={<TripPage />} />
+          <Route path="/day/:date" element={<DayPage />} />
           <Route path="/archive/*" element={<ArchivePage />} />
           {isAdmin(state.user) && <Route path="/admin" element={<AdminPage />} />}
           <Route path="*" element={<Navigate to="/" replace />} />

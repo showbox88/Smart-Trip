@@ -3,6 +3,7 @@ import { useApp } from '../../context/AppContext';
 import { useI18n } from '../../context/I18nContext';
 import MapInfoPanel from './MapInfoPanel';
 import MapSearchBox from './MapSearchBox';
+import NearbyCheckinPanel from './NearbyCheckinPanel';
 import { getTripStayMap, isHotelStop } from '../../utils/stayHelpers';
 
 const TRAVEL_MODE_MAP = { 'DRIVE': 'DRIVING', 'WALK': 'WALKING' };
@@ -53,7 +54,7 @@ async function fetchAndDrawRoute(routePath, color, mapInstance, travelMode = 'DR
   }
 }
 
-const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [] }, ref) {
+const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [], isDayMode = false, dayId = null, existingPlaceIds = [] }, ref) {
   const { state } = useApp();
   const { t } = useI18n();
   const mapRef = useRef(null);
@@ -77,6 +78,9 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [] }, 
   const renderDebounceRef = useRef(null);
   const [gpsToast, setGpsToast] = useState(null);
   const [showLocPrompt, setShowLocPrompt] = useState(false);
+  // v2 day mode
+  const [userLocation, setUserLocation] = useState(null);       // { lat, lng }
+  const [showCheckinPanel, setShowCheckinPanel] = useState(false);
 
   useEffect(() => {
     selectedPlaceIdRef.current = selectedPlaceId;
@@ -916,6 +920,56 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [] }, 
     );
   }, [placeLocationMarker, showGpsToast]);
 
+  // isDayMode: 地图 ready 后自动定位，并记录 userLocation 用于打卡面板
+  useEffect(() => {
+    if (!isDayMode || !mapReady || !mapInstanceRef.current) return;
+
+    const autoLocate = async () => {
+      if (!navigator.geolocation) return;
+      if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') return;
+
+      try {
+        const perm = navigator.permissions ? await navigator.permissions.query({ name: 'geolocation' }) : null;
+        const state = perm?.state;
+
+        const doLocate = () => {
+          setLocating(true);
+          navigator.geolocation.getCurrentPosition(
+            async (pos) => {
+              try {
+                const { latitude: lat, longitude: lng, accuracy } = pos.coords;
+                await placeLocationMarker(lat, lng, accuracy);
+                setUserLocation({ lat, lng });
+                setShowCheckinPanel(true);
+              } catch (e) {
+                console.warn('[MapPanel] autoLocate marker error:', e);
+              } finally {
+                setLocating(false);
+              }
+            },
+            (err) => {
+              setLocating(false);
+              console.warn('[MapPanel] autoLocate error:', err.code);
+            },
+            { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+          );
+        };
+
+        if (state === 'granted') {
+          doLocate();
+        } else if (state !== 'denied') {
+          // 显示自定义提示，用户允许后定位并展示打卡面板
+          setShowLocPrompt(true);
+        }
+      } catch {
+        // permissions API 不支持，直接尝试
+        setShowLocPrompt(true);
+      }
+    };
+
+    autoLocate();
+  }, [isDayMode, mapReady]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleLocate = useCallback(async () => {
     if (!mapInstanceRef.current) return;
 
@@ -1070,7 +1124,26 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [] }, 
                 <button
                   onClick={() => {
                     setShowLocPrompt(false);
-                    doGeolocate();
+                    if (isDayMode) {
+                      // 定位后同时记录坐标用于打卡面板
+                      setLocating(true);
+                      navigator.geolocation.getCurrentPosition(
+                        async (pos) => {
+                          try {
+                            const { latitude: lat, longitude: lng, accuracy } = pos.coords;
+                            await placeLocationMarker(lat, lng, accuracy);
+                            setUserLocation({ lat, lng });
+                            setShowCheckinPanel(true);
+                          } finally {
+                            setLocating(false);
+                          }
+                        },
+                        () => setLocating(false),
+                        { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+                      );
+                    } else {
+                      doGeolocate();
+                    }
                   }}
                   style={{
                     width: '100%', padding: '11px', borderRadius: '12px',
@@ -1103,6 +1176,19 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [] }, 
               lastCloseTimeRef.current = Date.now();
             }}
             onAddToDay={onAddToDay}
+          />
+        )}
+
+        {/* 打卡面板：isDayMode 且已定位时显示 */}
+        {isDayMode && showCheckinPanel && userLocation && mapInstanceRef.current && (
+          <NearbyCheckinPanel
+            mapInstance={mapInstanceRef.current}
+            userLocation={userLocation}
+            existingPlaceIds={existingPlaceIds}
+            onAddPlace={async (placeId) => {
+              if (dayId) await onAddToDay?.(dayId, placeId, true); // true = useNow，记录实时打卡时间
+            }}
+            onClose={() => setShowCheckinPanel(false)}
           />
         )}
       </div>

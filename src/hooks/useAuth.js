@@ -100,6 +100,30 @@ export function useAuth() {
           });
           dispatch({ type: 'SET_TRIPS', payload: trips });
         }
+
+        // v2: Load trip metadata from new schema (no trip_data, no days)
+        const { data: tripsV2Data, error: tripsV2Error } = await supabase
+          .from('trips')
+          .select('id, title, thumb, start_date, end_date, settings, share_token, created_at')
+          .eq('user_id', state.user.id)
+          .is('trip_data', null)  // Only v2 trips (no legacy trip_data)
+          .order('created_at', { ascending: false });
+
+        if (!tripsV2Error && tripsV2Data?.length) {
+          dispatch({
+            type: 'SET_TRIPS_V2',
+            payload: tripsV2Data.map(row => ({
+              id: row.id,
+              title: row.title || '',
+              thumb: row.thumb || null,
+              startDate: row.start_date || null,
+              endDate: row.end_date || null,
+              settings: row.settings || {},
+              share_token: row.share_token || null,
+              created_at: row.created_at,
+            })),
+          });
+        }
       } catch (e) {
         console.error('[useAuth] loadUserData error:', e.message);
       }

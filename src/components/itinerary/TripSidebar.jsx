@@ -11,7 +11,7 @@ function formatDayDate(dateStr) {
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
-export default function TripSidebar({ trip, activeDayId, onAddDay, onRemoveLastDay, onDayClick, moveDay }) {
+export default function TripSidebar({ trip, activeDayId, onAddDay, onRemoveLastDay, onDayClick, moveDay, isDayMode = false }) {
   const { state, dispatch } = useApp();
   const { t } = useI18n();
   const isCollapsed = state.sidebarCollapsed;
@@ -134,17 +134,22 @@ export default function TripSidebar({ trip, activeDayId, onAddDay, onRemoveLastD
           );
         })}
 
-        <li className="add-day-btn" onClick={onAddDay} title={t('itinerary.add_day') || 'Add day'}
-          onMouseEnter={(e) => handleMouseEnter(e, '#22c55e')}>
-          <span className="material-symbols-outlined">add</span>
-          <span className="add-day-text">{t('itinerary.add_day') || 'Add day'}</span>
-        </li>
-        {(trip?.days?.length || 0) > 1 && (
-          <li className="add-day-btn" onClick={onRemoveLastDay} title={t('itinerary.remove_day') || 'Remove last day'} style={{ opacity: 0.7 }}
-            onMouseEnter={(e) => handleMouseEnter(e, '#ef4444')}>
-            <span className="material-symbols-outlined">remove</span>
-            <span className="add-day-text">{t('itinerary.remove_day') || 'Remove last day'}</span>
-          </li>
+        {/* 单天打卡模式下隐藏添加/删除天按钮 */}
+        {!isDayMode && (
+          <>
+            <li className="add-day-btn" onClick={onAddDay} title={t('itinerary.add_day') || 'Add day'}
+              onMouseEnter={(e) => handleMouseEnter(e, '#22c55e')}>
+              <span className="material-symbols-outlined">add</span>
+              <span className="add-day-text">{t('itinerary.add_day') || 'Add day'}</span>
+            </li>
+            {(trip?.days?.length || 0) > 1 && (
+              <li className="add-day-btn" onClick={onRemoveLastDay} title={t('itinerary.remove_day') || 'Remove last day'} style={{ opacity: 0.7 }}
+                onMouseEnter={(e) => handleMouseEnter(e, '#ef4444')}>
+                <span className="material-symbols-outlined">remove</span>
+                <span className="add-day-text">{t('itinerary.remove_day') || 'Remove last day'}</span>
+              </li>
+            )}
+          </>
         )}
       </ul>
 

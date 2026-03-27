@@ -60,7 +60,7 @@ export function useTripEditor(tripId) {
   const trip = state.trips.find((tr) => tr.id === tripId) || null;
 
   useEffect(() => {
-    if (!trip && tripId && isAdmin(state.user)) {
+    if (!trip && tripId && !tripId.startsWith('day-trip-') && isAdmin(state.user)) {
       const fetchGlobalTrip = async () => {
         try {
           const { data, error } = await supabase
@@ -478,7 +478,7 @@ export function useTripEditor(tripId) {
     });
   }, [withTripUpdate]);
 
-  const addStopFromPlace = useCallback(async (dayId, placeId, afterStopId = null) => {
+  const addStopFromPlace = useCallback(async (dayId, placeId, afterStopId = null, useNow = false) => {
     const mapsApi = globalThis.google;
     if (!trip || !mapsApi || !window.googleMapsReady) {
       console.warn('[addStopFromPlace] Google Maps not ready');
@@ -499,17 +499,28 @@ export function useTripEditor(tripId) {
 
       let timeStr = '09:00';
       let period = 'AM';
-      const locationStops = day.stops.filter((stop) => stop.type === 'location' || !stop.type);
-      if (locationStops.length > 0) {
-        const last = locationStops[locationStops.length - 1];
-        if (last.time) {
-          let [h] = last.time.split(':').map(Number);
-          if (last.period === 'PM' && h !== 12) h += 12;
-          if (last.period === 'AM' && h === 12) h = 0;
-          h = (h + 2) % 24;
-          period = h >= 12 ? 'PM' : 'AM';
-          const displayH = h % 12 || 12;
-          timeStr = `${String(displayH).padStart(2, '0')}:${last.time.split(':')[1] || '00'}`;
+
+      if (useNow) {
+        // 实时打卡：用当前时间
+        const now = new Date();
+        const h = now.getHours();
+        const m = now.getMinutes();
+        period = h >= 12 ? 'PM' : 'AM';
+        const displayH = h % 12 || 12;
+        timeStr = `${String(displayH).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+      } else {
+        const locationStops = day.stops.filter((stop) => stop.type === 'location' || !stop.type);
+        if (locationStops.length > 0) {
+          const last = locationStops[locationStops.length - 1];
+          if (last.time) {
+            let [h] = last.time.split(':').map(Number);
+            if (last.period === 'PM' && h !== 12) h += 12;
+            if (last.period === 'AM' && h === 12) h = 0;
+            h = (h + 2) % 24;
+            period = h >= 12 ? 'PM' : 'AM';
+            const displayH = h % 12 || 12;
+            timeStr = `${String(displayH).padStart(2, '0')}:${last.time.split(':')[1] || '00'}`;
+          }
         }
       }
 

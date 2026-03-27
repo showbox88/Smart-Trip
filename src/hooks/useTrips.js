@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
 import { deleteFilesFromSupabase } from '../utils/uploadHelpers';
 import { formatTripDate } from '../utils/tripEditorHelpers';
+import { saveDayToDB } from '../utils/dayHelpers';
 
 export function useTrips() {
   const { state, dispatch } = useApp();
@@ -102,6 +103,20 @@ export function useTrips() {
 
   const saveTrip = useCallback(async (trip) => {
     if (!state.user) return;
+
+    // v2: 虚拟 day trip 拦截 — 存到 days_v2 而不是 trips 表
+    if (trip._isVirtualDay) {
+      const day = trip.days?.[0];
+      if (day) {
+        await saveDayToDB(state.user.id, day);
+      }
+      // 只更新内存，不写 trips 表
+      const updated = state.trips.map(t => t.id === trip.id ? trip : t);
+      const isNew = !state.trips.find(t => t.id === trip.id);
+      dispatch({ type: 'SET_TRIPS', payload: isNew ? [trip, ...state.trips] : updated });
+      return;
+    }
+
     const { error } = await supabase
       .from('trips')
       .upsert({

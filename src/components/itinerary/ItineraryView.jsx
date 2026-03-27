@@ -27,7 +27,7 @@ function scrollToNewStop(id, attempts = 0) {
   }
 }
 
-export default function ItineraryView({ tripId }) {
+export default function ItineraryView({ tripId, isDayMode = false, date = null }) {
   const { t } = useI18n();
   const navigate = useNavigate();
   const { deleteTrip } = useTrips();
@@ -223,10 +223,10 @@ export default function ItineraryView({ tripId }) {
     );
   }, [t, deleteTrip, navigate, openConfirm]);
 
-  const handleMapAddToDay = useCallback(async (dayId, placeId) => {
+  const handleMapAddToDay = useCallback(async (dayId, placeId, useNow = false) => {
     const afterId = pendingInsertion?.dayId === dayId ? pendingInsertion.afterStopId : null;
     setCollapsedDays((prev) => ({ ...prev, [dayId]: false }));
-    const newId = await addStopFromPlace(dayId, placeId, afterId);
+    const newId = await addStopFromPlace(dayId, placeId, afterId, useNow);
     setPendingInsertion(null);
     if (newId) scrollToNewStop(newId);
   }, [pendingInsertion, addStopFromPlace, setCollapsedDays, setPendingInsertion]);
@@ -282,10 +282,11 @@ export default function ItineraryView({ tripId }) {
         onRemoveLastDay={handleRemoveLastDay}
         onDayClick={handleSidebarDayClick}
         moveDay={moveDay}
+        isDayMode={isDayMode}
       />
 
       <section className="main-itinerary" id="itinerary-scroll-container">
-        <TripHeader trip={trip} onDeleteTrip={handleDeleteTrip} onEditTrip={() => setTripEditModal(true)} onShareTrip={() => setShowShareModal(true)} />
+        <TripHeader trip={trip} onDeleteTrip={handleDeleteTrip} onEditTrip={() => setTripEditModal(true)} onShareTrip={() => setShowShareModal(true)} isDayMode={isDayMode} />
 
         {pendingInsertion && (
           <div style={{
@@ -362,7 +363,17 @@ export default function ItineraryView({ tripId }) {
         </div>
       </section>
 
-      <MapPanel ref={mapPanelRef} onAddToDay={handleMapAddToDay} focusDayIds={expandedDayIds} />
+      <MapPanel
+        ref={mapPanelRef}
+        onAddToDay={handleMapAddToDay}
+        focusDayIds={expandedDayIds}
+        isDayMode={isDayMode}
+        dayId={isDayMode ? trip?.days?.[0]?.id : null}
+        existingPlaceIds={isDayMode
+          ? (trip?.days?.[0]?.stops || []).map(s => s.placeId).filter(Boolean)
+          : []
+        }
+      />
 
       <div className="mobile-view-switcher">
         <button
