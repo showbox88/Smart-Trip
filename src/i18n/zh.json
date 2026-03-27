@@ -207,6 +207,7 @@
         "back_web_link": "确认链接",
         "back_qr_code": "二维码凭证",
         "swipe_back": "右滑返回",
+        "flip_card": "翻转卡片",
         "private_note_title_label": "标题",
         "private_note_title_placeholder": "如：酒店确认号、取票信息...",
         "private_note_content_label": "内容",

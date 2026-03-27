@@ -72,7 +72,8 @@ export default React.memo(function StopCard({
   const [placePhotos, setPlacePhotos] = useState([]);
   const [loadingPhotos, setLoadingPhotos] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
-  const [isFlipped, setIsFlipped] = useState(false);
+  const [rotation, setRotation] = useState(0);
+  const isFlipped = (rotation / 180) % 2 !== 0;
   const [showPrivateNoteSheet, setShowPrivateNoteSheet] = useState(false);
   const [showPhotoSheet, setShowPhotoSheet] = useState(false);
   const touchStart = useRef(null);
@@ -188,13 +189,10 @@ export default React.memo(function StopCard({
     const touchEnd = e.changedTouches[0].clientX;
     const diff = touchStart.current - touchEnd;
 
-    // Swipe left (diff > 50) -> Flip to back
-    if (diff > 50 && !isFlipped) {
-      setIsFlipped(true);
-    } 
-    // Swipe right (diff < -50) -> Flip back to front
-    else if (diff < -50 && isFlipped) {
-      setIsFlipped(false);
+    if (diff > 50) {
+      setRotation(prev => prev - 180);
+    } else if (diff < -50) {
+      setRotation(prev => prev + 180);
     }
     touchStart.current = null;
   };
@@ -268,7 +266,7 @@ export default React.memo(function StopCard({
         onTouchEnd={handleTouchEnd}
         style={{ marginLeft: 'var(--card-margin-l)' }}
       >
-        <div className={`stop-card-inner ${isFlipped ? 'is-flipped' : ''}`}>
+        <div className="stop-card-inner" style={{ transform: `rotateY(${rotation}deg)` }}>
           
           {/* Front Face */}
           <div
@@ -281,7 +279,7 @@ export default React.memo(function StopCard({
               border: isClosed ? '1px solid rgba(239,68,68,0.35)' : '1px solid var(--glass-border)',
               borderColor: isClosed ? 'rgba(239,68,68,0.35)' : state.hoveredStopId === stop.id ? 'var(--accent-primary)' : 'rgba(255,255,255,0.05)',
               borderRadius: '1.2rem',
-              padding: 'var(--stop-card-p)',
+              padding: 'var(--stop-card-p) var(--stop-card-p) 2.8rem',
               transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
               transform: state.hoveredStopId === stop.id ? 'translateX(4px)' : 'none',
               boxShadow: state.hoveredStopId === stop.id ? '0 20px 40px rgba(0,0,0,0.6)' : 'none',
@@ -484,28 +482,6 @@ export default React.memo(function StopCard({
                   )}
                 </div>
 
-                {/* Note / Placeholder */}
-                {(() => {
-                  const isNoteRedundant = stop.note && stop.location && 
-                    (stop.note.trim().toLowerCase() === stop.location.trim().toLowerCase());
-                  
-                  if (isNoteRedundant) return null;
-
-                  return (
-                    <div
-                      style={{
-                        fontSize: '0.95rem',
-                        color: stop.note ? 'var(--text-secondary)' : 'var(--text-muted)',
-                        marginBottom: '1.2rem',
-                        lineHeight: 1.5,
-                        padding: '4px 0',
-                        fontStyle: stop.note ? 'normal' : 'italic'
-                      }}
-                    >
-                      {stop.note || t('itinerary.add_note') || '点击添加备注...'}
-                    </div>
-                  );
-                })()}
 
                 {/* Bottom Actions: Time & Expense Chips */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginTop: 'auto' }}>
@@ -701,23 +677,18 @@ export default React.memo(function StopCard({
               </div>
             </div>
 
-            <div className="flip-back-hint">
-              <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>swipe_right</span>
-              {t('itinerary.swipe_back')}
-            </div>
+            {/* Empty space for flip button */}
+            <div style={{ height: '2.5rem' }} />
           </div>
 
         </div>
 
-        {/* Page Indicator Dots */}
-        <div className="stop-card-dots">
-          <div
-            className={`stop-card-dot ${!isFlipped ? 'active' : ''}`}
-            onClick={(e) => { e.stopPropagation(); setIsFlipped(false); }}
-          />
-          <div
-            className={`stop-card-dot ${isFlipped ? 'active' : ''}`}
-            onClick={(e) => { e.stopPropagation(); setIsFlipped(true); }}
+        {/* Flip Icon */}
+        <div className="stop-card-flip-container">
+          <button
+            className="stop-card-flip-btn"
+            onClick={(e) => { e.stopPropagation(); setRotation(prev => prev + 180); }}
+            title={t('itinerary.flip_card') || 'Explore Back'}
           />
         </div>
       </div>

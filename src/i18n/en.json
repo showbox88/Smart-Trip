@@ -208,6 +208,7 @@
         "back_web_link": "Web Link",
         "back_qr_code": "QR Code",
         "swipe_back": "Swipe back",
+        "flip_card": "Flip card",
         "private_note_title_label": "Title",
         "private_note_title_placeholder": "e.g. Hotel confirmation no., ticket info...",
         "private_note_content_label": "Content",
