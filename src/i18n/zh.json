@@ -214,7 +214,8 @@
         "private_note_content_placeholder": "记录任何私密信息：确认码、密码、提醒事项...",
         "take_photo": "拍照",
         "choose_photo": "从相册选择",
-        "no_attachments": "还没有附件，点上方按钮添加"
+        "no_attachments": "还没有附件，点上方按钮添加",
+        "punch_in": "打卡此时"
     },
     "auth": {
         "tagline": "开启您的全球智能旅行规划之旅",

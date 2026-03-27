@@ -215,7 +215,8 @@
         "private_note_content_placeholder": "Record private info: confirmation codes, passwords, reminders...",
         "take_photo": "Take Photo",
         "choose_photo": "Choose from Library",
-        "no_attachments": "No attachments yet. Tap above to add."
+        "no_attachments": "No attachments yet. Tap above to add.",
+        "punch_in": "Punch In"
     },
     "auth": {
         "tagline": "Start your smart travel planning journey globally",
