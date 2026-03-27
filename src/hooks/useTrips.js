@@ -104,7 +104,7 @@ export function useTrips() {
   const saveTrip = useCallback(async (trip) => {
     if (!state.user) return;
 
-    // v2: 虚拟 day trip 拦截 — 存到 days_v2 而不是 trips 表
+    // v2: 虚拟 day trip（今日打卡）拦截 — 存到 days_v2 而不是 trips 表
     if (trip._isVirtualDay) {
       const day = trip.days?.[0];
       if (day) {
@@ -114,6 +114,43 @@ export function useTrips() {
       const updated = state.trips.map(t => t.id === trip.id ? trip : t);
       const isNew = !state.trips.find(t => t.id === trip.id);
       dispatch({ type: 'SET_TRIPS', payload: isNew ? [trip, ...state.trips] : updated });
+      return;
+    }
+
+    // v2: 新架构行程拦截 — days 存到 days_v2，trip 元数据已在 useTripsV2 管理
+    if (trip._isV2) {
+      const realTripId = trip._realTripId;
+      let tripChanged = false;
+      const updatedDays = await Promise.all(
+        (trip.days || []).map(async (day) => {
+          // 占位天：有内容时才懒创建 days_v2 记录 + trip_days 关联
+          if (day._isPlaceholder) {
+            if (!day.stops?.length) return day;
+            const newDayId = `day-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+            const { error: insertErr } = await supabase.from('days_v2').insert({
+              id: newDayId,
+              user_id: state.user.id,
+              date: day.date,
+              title: day.title || null,
+              color: day.color || '#5b7a99',
+              stops_data: day.stops,
+            });
+            if (insertErr) { console.error('[useTrips] v2 lazy create day failed:', insertErr.message); return day; }
+            if (realTripId) {
+              await supabase.from('trip_days').upsert({ trip_id: realTripId, day_id: newDayId });
+            }
+            tripChanged = true;
+            return { ...day, id: newDayId, _dayId: newDayId, _isPlaceholder: false };
+          }
+          // 真实天：直接写 days_v2
+          const dayId = day._dayId || day.id;
+          await saveDayToDB(state.user.id, { id: dayId, date: day.date, title: day.title, color: day.color, stops: day.stops || [] });
+          return day;
+        })
+      );
+      const finalTrip = tripChanged ? { ...trip, days: updatedDays } : trip;
+      const isNew = !state.trips.find(t => t.id === trip.id);
+      dispatch({ type: 'SET_TRIPS', payload: isNew ? [finalTrip, ...state.trips] : state.trips.map(t => t.id === trip.id ? finalTrip : t) });
       return;
     }
 

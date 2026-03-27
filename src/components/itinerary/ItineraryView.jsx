@@ -275,15 +275,16 @@ export default function ItineraryView({ tripId, isDayMode = false, date = null }
 
   return (
     <div className="dashboard-view fade-in">
-      <TripSidebar
-        trip={trip}
-        activeDayId={activeDayId}
-        onAddDay={addDay}
-        onRemoveLastDay={handleRemoveLastDay}
-        onDayClick={handleSidebarDayClick}
-        moveDay={moveDay}
-        isDayMode={isDayMode}
-      />
+      {!isDayMode && (
+        <TripSidebar
+          trip={trip}
+          activeDayId={activeDayId}
+          onAddDay={addDay}
+          onRemoveLastDay={handleRemoveLastDay}
+          onDayClick={handleSidebarDayClick}
+          moveDay={moveDay}
+        />
+      )}
 
       <section className="main-itinerary" id="itinerary-scroll-container">
         <TripHeader trip={trip} onDeleteTrip={handleDeleteTrip} onEditTrip={() => setTripEditModal(true)} onShareTrip={() => setShowShareModal(true)} isDayMode={isDayMode} />

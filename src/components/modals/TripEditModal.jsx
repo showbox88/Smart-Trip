@@ -1,9 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useI18n } from '../../context/I18nContext';
+import { useApp } from '../../context/AppContext';
+import { supabase } from '../../lib/supabase';
 import { uploadToSupabase } from '../../utils/uploadHelpers';
 
-export default function TripEditModal({ trip, onSave, onClose }) {
+export default function TripEditModal({ trip, onSave, onClose, isCreating: isNewTrip = false }) {
   const { t } = useI18n();
+  const { state } = useApp();
   const [form, setForm] = useState({
     title: trip.title || '',
     startDate: trip.startDate || '',
@@ -15,6 +18,40 @@ export default function TripEditModal({ trip, onSave, onClose }) {
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [existingDays, setExistingDays] = useState([]); // days_v2 records in date range
+  const [linkDays, setLinkDays] = useState(true); // whether to link them
+  const debounceRef = useRef(null);
+
+  // Detect existing days_v2 records whenever date range changes
+  useEffect(() => {
+    if (!form.startDate || !form.endDate || !state.user) {
+      setExistingDays([]);
+      return;
+    }
+    if (form.startDate > form.endDate) {
+      setExistingDays([]);
+      return;
+    }
+
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(async () => {
+      const { data, error } = await supabase
+        .from('days_v2')
+        .select('id, date, title')
+        .eq('user_id', state.user.id)
+        .gte('date', form.startDate)
+        .lte('date', form.endDate)
+        .order('date', { ascending: true });
+
+      if (!error && data?.length) {
+        setExistingDays(data);
+      } else {
+        setExistingDays([]);
+      }
+    }, 400);
+
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [form.startDate, form.endDate, state.user]);
 
   const set = (key) => (e) => setForm(f => ({ ...f, [key]: e.target.value }));
 
@@ -32,7 +69,8 @@ export default function TripEditModal({ trip, onSave, onClose }) {
     setIsSaving(true);
     try {
       const thumb = await resolveThumb(thumbOverride ?? form.thumb);
-      onSave?.({ ...form, thumb });
+      const dayIdsToLink = (linkDays && existingDays.length) ? existingDays.map(d => d.id) : [];
+      onSave?.({ ...form, thumb, _dayIdsToLink: dayIdsToLink });
       onClose?.();
     } catch (e) {
       console.error('[TripEditModal] save error:', e);
@@ -74,7 +112,7 @@ export default function TripEditModal({ trip, onSave, onClose }) {
       <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '420px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
           <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800 }}>
-            {t('itinerary.edit_trip') || 'Edit Trip Information'}
+            {isNewTrip ? (t('dashboard.new_trip') || 'New Trip') : (t('itinerary.edit_trip') || 'Edit Trip')}
           </h3>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
             <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>close</span>
@@ -143,6 +181,38 @@ export default function TripEditModal({ trip, onSave, onClose }) {
             />
           </div>
         </div>
+
+        {/* Existing days_v2 detection */}
+        {existingDays.length > 0 && (
+          <div style={{
+            marginBottom: '1.2rem',
+            padding: '0.9rem 1rem',
+            borderRadius: '10px',
+            background: 'rgba(251, 191, 36, 0.08)',
+            border: '1px solid rgba(251, 191, 36, 0.3)',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#fbbf24', flexShrink: 0, marginTop: '1px' }}>info</span>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fbbf24', marginBottom: '0.3rem' }}>
+                  检测到 {existingDays.length} 天已有打卡记录
+                </div>
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginBottom: '0.6rem' }}>
+                  {existingDays.map(d => d.date).join('、')}
+                </div>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.83rem', color: 'var(--text-primary)' }}>
+                  <input
+                    type="checkbox"
+                    checked={linkDays}
+                    onChange={e => setLinkDays(e.target.checked)}
+                    style={{ accentColor: '#fbbf24', width: '15px', height: '15px' }}
+                  />
+                  将这 {existingDays.length} 天归入此行程
+                </label>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Thumbnail Search */}
         <div className="form-group" style={{ marginBottom: '1.5rem' }}>
