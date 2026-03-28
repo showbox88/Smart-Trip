@@ -27,10 +27,14 @@ export default function TripCard({ trip, isList = false, onEdit, onShare }) {
 
   const duration = (trip.startDate && trip.endDate) ? calculateDays(trip.startDate, trip.endDate) : 0;
   const status = getStatus(trip, t);
-  const stopsCount = trip.days ? trip.days.reduce((acc, day) => acc + (day.stops?.length || 0), 0) : 0;
-  const totalCost = trip.days ? trip.days.reduce((acc, day) => {
-    return acc + (day.stops?.reduce((s, stop) => s + (parseFloat(stop.price) || 0), 0) || 0);
-  }, 0) : 0;
+  const stopsCount = trip.stopsCount !== undefined
+    ? trip.stopsCount
+    : (trip.days ? trip.days.reduce((acc, day) => acc + (day.stops?.length || 0), 0) : 0);
+  const totalCost = trip.totalCost !== undefined
+    ? trip.totalCost
+    : (trip.days ? trip.days.reduce((acc, day) => {
+        return acc + (day.stops?.reduce((s, stop) => s + (parseFloat(stop.price) || 0), 0) || 0);
+      }, 0) : 0);
 
   const handleOpen = () => navigate(trip._isV2 ? `/trip-v2/${trip.id}` : `/trip/${trip.id}`);
 

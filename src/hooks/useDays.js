@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
+import { isAdmin } from '../utils/admin';
 
 /**
  * useDays — v2 Day-Centric Architecture
@@ -18,10 +19,11 @@ export function useDays() {
    */
   const loadDaysInRange = useCallback(async (startDate, endDate) => {
     if (!state.user) return [];
-    const { data, error } = await supabase
-      .from('days_v2')
-      .select('*')
-      .eq('user_id', state.user.id)
+
+    let query = supabase.from('days_v2').select('*');
+    if (!isAdmin(state.user)) query = query.eq('user_id', state.user.id);
+
+    const { data, error } = await query
       .gte('date', startDate)
       .lte('date', endDate)
       .order('date', { ascending: true });
@@ -78,12 +80,10 @@ export function useDays() {
     if (state.days[date]) return state.days[date];
 
     // 查数据库
-    const { data, error } = await supabase
-      .from('days_v2')
-      .select('*')
-      .eq('user_id', state.user.id)
-      .eq('date', date)
-      .maybeSingle();
+    let query = supabase.from('days_v2').select('*').eq('date', date);
+    if (!isAdmin(state.user)) query = query.eq('user_id', state.user.id);
+    
+    const { data, error } = await query.maybeSingle();
 
     if (error) {
       console.error('[useDays] getOrCreateDay select error:', error.message);
@@ -133,7 +133,7 @@ export function useDays() {
       .from('days_v2')
       .upsert({
         id: day.id,
-        user_id: state.user.id,
+        user_id: day.user_id || state.user.id,
         date: day.date,
         title: day.title,
         color: day.color,
@@ -165,11 +165,13 @@ export function useDays() {
     const updated = { ...day, stops };
     dispatch({ type: 'UPSERT_DAY', payload: updated });
 
-    const { error } = await supabase
+    let query = supabase
       .from('days_v2')
       .update({ stops_data: stops })
-      .eq('id', day.id)
-      .eq('user_id', state.user.id);
+      .eq('id', day.id);
+    
+    if (!isAdmin(state.user)) query = query.eq('user_id', state.user.id);
+    const { error } = await query;
 
     if (error) {
       console.error('[useDays] updateDayStops error:', error.message);
@@ -193,11 +195,13 @@ export function useDays() {
     const updated = { ...day, ...updates };
     dispatch({ type: 'UPSERT_DAY', payload: updated });
 
-    const { error } = await supabase
+    let query = supabase
       .from('days_v2')
       .update(updates)
-      .eq('id', day.id)
-      .eq('user_id', state.user.id);
+      .eq('id', day.id);
+    
+    if (!isAdmin(state.user)) query = query.eq('user_id', state.user.id);
+    const { error } = await query;
 
     if (error) {
       console.error('[useDays] updateDayMeta error:', error.message);
@@ -216,11 +220,13 @@ export function useDays() {
     const day = state.days[date];
     if (!day) return;
 
-    const { error } = await supabase
+    let query = supabase
       .from('days_v2')
       .delete()
-      .eq('id', day.id)
-      .eq('user_id', state.user.id);
+      .eq('id', day.id);
+    
+    if (!isAdmin(state.user)) query = query.eq('user_id', state.user.id);
+    const { error } = await query;
 
     if (error) {
       console.error('[useDays] deleteDay error:', error.message);

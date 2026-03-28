@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
@@ -17,7 +17,12 @@ export default function DashboardPage() {
   const { t } = useI18n();
   const navigate = useNavigate();
   const { saveTrip } = useTrips();
-  const { createTrip, linkDaysToTrip } = useTripsV2();
+  const { createTrip, linkDaysToTrip, refreshTrips } = useTripsV2();
+
+  // Refresh v2 trips with stop counts whenever dashboard mounts
+  useEffect(() => {
+    refreshTrips();
+  }, [refreshTrips]);
   const [isCreating, setIsCreating] = useState(false);
   const [editingTrip, setEditingTrip] = useState(null);
   const [sharingTrip, setSharingTrip] = useState(null);

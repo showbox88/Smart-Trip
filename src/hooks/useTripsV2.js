@@ -3,6 +3,8 @@ import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
 import { useDays } from './useDays';
 import { deleteFilesFromSupabase } from '../utils/uploadHelpers';
+import { DEFAULT_TRIP_THUMB } from '../utils/tripFactory';
+import { isAdmin } from '../utils/admin';
 
 /**
  * useTripsV2 — v2 Trip 元数据 + trip_days 关联管理
@@ -22,8 +24,12 @@ export function useTripsV2() {
 
     const { data, error } = await supabase
       .from('trips')
-      .select('id, title, thumb, start_date, end_date, settings, share_token, created_at')
+      .select(`
+        id, title, thumb, start_date, end_date, settings, share_token, created_at,
+        trip_days ( days_v2 ( stops_data ) )
+      `)
       .eq('user_id', state.user.id)
+      .is('trip_data', null)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -45,12 +51,12 @@ export function useTripsV2() {
     // 先查内存，没有则直接从 DB 拉（刚创建时 state.tripsV2 可能还未刷新）
     let trip = state.tripsV2.find(t => t.id === tripId);
     if (!trip) {
-      const { data, error } = await supabase
+      let query = supabase
         .from('trips')
         .select('id, title, thumb, start_date, end_date, settings, share_token, created_at')
-        .eq('id', tripId)
-        .eq('user_id', state.user.id)
-        .maybeSingle();
+        .eq('id', tripId);
+      if (!isAdmin(state.user)) query = query.eq('user_id', state.user.id);
+      const { data, error } = await query.maybeSingle();
 
       if (error || !data) return null;
       trip = normalizeTripRow(data);
@@ -73,7 +79,7 @@ export function useTripsV2() {
       id: `trip-${Date.now()}`,
       user_id: state.user.id,
       title: meta.title || '',
-      thumb: meta.thumb || null,
+      thumb: meta.thumb || DEFAULT_TRIP_THUMB,
       start_date: meta.startDate || null,
       end_date: meta.endDate || null,
       settings: meta.settings || {},
@@ -110,11 +116,13 @@ export function useTripsV2() {
     if (updates.endDate !== undefined)   dbUpdates.end_date = updates.endDate;
     if (updates.settings !== undefined)  dbUpdates.settings = updates.settings;
 
-    const { error } = await supabase
+    let query = supabase
       .from('trips')
       .update(dbUpdates)
-      .eq('id', tripId)
-      .eq('user_id', state.user.id);
+      .eq('id', tripId);
+    
+    if (!isAdmin(state.user)) query = query.eq('user_id', state.user.id);
+    const { error } = await query;
 
     if (error) {
       console.error('[useTripsV2] updateTrip error:', error.message);
@@ -151,11 +159,13 @@ export function useTripsV2() {
       }
     }
 
-    const { error } = await supabase
+    let query = supabase
       .from('trips')
       .delete()
-      .eq('id', tripId)
-      .eq('user_id', state.user.id);
+      .eq('id', tripId);
+    
+    if (!isAdmin(state.user)) query = query.eq('user_id', state.user.id);
+    const { error } = await query;
 
     if (error) {
       console.error('[useTripsV2] deleteTrip error:', error.message);
@@ -226,11 +236,13 @@ export function useTripsV2() {
   const setShareToken = useCallback(async (tripId) => {
     if (!state.user) return null;
     const token = crypto.randomUUID();
-    const { error } = await supabase
+    let query = supabase
       .from('trips')
       .update({ share_token: token })
-      .eq('id', tripId)
-      .eq('user_id', state.user.id);
+      .eq('id', tripId);
+    
+    if (!isAdmin(state.user)) query = query.eq('user_id', state.user.id);
+    const { error } = await query;
     if (error) throw error;
 
     const existing = state.tripsV2.find(t => t.id === tripId);
@@ -242,11 +254,13 @@ export function useTripsV2() {
 
   const clearShareToken = useCallback(async (tripId) => {
     if (!state.user) return;
-    const { error } = await supabase
+    let query = supabase
       .from('trips')
       .update({ share_token: null })
-      .eq('id', tripId)
-      .eq('user_id', state.user.id);
+      .eq('id', tripId);
+    
+    if (!isAdmin(state.user)) query = query.eq('user_id', state.user.id);
+    const { error } = await query;
     if (error) throw error;
 
     const existing = state.tripsV2.find(t => t.id === tripId);
@@ -273,15 +287,31 @@ export function useTripsV2() {
 // ── 内部工具 ────────────────────────────────────────────
 
 function normalizeTripRow(row) {
+  const tripDays = row.trip_days || [];
+  let stopsCount = 0;
+  let totalCost = 0;
+
+  for (const td of tripDays) {
+    const stops = td.days_v2?.stops_data;
+    if (!Array.isArray(stops)) continue;
+    stopsCount += stops.length;
+    for (const stop of stops) {
+      const price = parseFloat(stop.price);
+      if (!isNaN(price)) totalCost += price;
+    }
+  }
+
   return {
     id: row.id,
     title: row.title || '',
-    thumb: row.thumb || null,
+    thumb: row.thumb || DEFAULT_TRIP_THUMB,
     startDate: row.start_date || null,
     endDate: row.end_date || null,
     settings: row.settings || {},
     share_token: row.share_token || null,
     created_at: row.created_at,
+    stopsCount,
+    totalCost,
   };
 }
 

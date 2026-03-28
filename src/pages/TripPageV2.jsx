@@ -75,7 +75,7 @@ export default function TripPageV2() {
     virtualTrip.days?.forEach(async (day) => {
       if (!day._dayId) return; // 没有 _dayId 说明是空白占位天，还未真实创建
       try {
-        await saveDayToDB(state.user.id, {
+        await saveDayToDB(day.user_id || state.user.id, {
           id: day._dayId,
           date: day.date,
           title: day.title,
@@ -153,6 +153,7 @@ function normalizeDayForTrip(day, index) {
   return {
     id: day.id,        // useTripEditor 用这个做 key
     _dayId: day.id,    // 写回 days_v2 时用
+    user_id: day.user_id,
     date: day.date,
     title: day.title || null,
     color: day.color || DEFAULT_DAY_COLORS[index % DEFAULT_DAY_COLORS.length],

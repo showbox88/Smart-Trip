@@ -95,6 +95,7 @@ export function formatDate(dateStr, dayIndex = 0, settings) {
 }
 
 export function calculateDays(start, end) {
+  if (!start || !end) return 0;
   const d1 = new Date(start.replace(/-/g, '/'));
   const d2 = new Date(end.replace(/-/g, '/'));
   if (isNaN(d1) || isNaN(d2)) return 0;

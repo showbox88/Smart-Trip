@@ -43,10 +43,21 @@ export default function TripEditModal({ trip, onSave, onClose, isCreating: isNew
         .lte('date', form.endDate)
         .order('date', { ascending: true });
 
-      if (!error && data?.length) {
-        setExistingDays(data);
-      } else {
+      if (error || !data?.length) {
         setExistingDays([]);
+        return;
+      }
+
+      // When editing an existing trip, exclude days already linked to it
+      if (!isNewTrip && trip?.id) {
+        const { data: linked } = await supabase
+          .from('trip_days')
+          .select('day_id')
+          .eq('trip_id', trip.id);
+        const linkedIds = new Set((linked || []).map(r => r.day_id));
+        setExistingDays(data.filter(d => !linkedIds.has(d.id)));
+      } else {
+        setExistingDays(data);
       }
     }, 400);
 

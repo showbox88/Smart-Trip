@@ -73,6 +73,7 @@ export function useTripEditor(tripId) {
             const formattedTrip = {
               ...data.trip_data,
               id: data.id,
+              user_id: data.user_id,
               title: data.title,
               thumb: data.thumb,
             };

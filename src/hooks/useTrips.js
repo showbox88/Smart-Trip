@@ -28,6 +28,7 @@ export function useTrips() {
       const trip = {
         ...row.trip_data,
         id: row.id,
+        user_id: row.user_id,
         title: row.title,
         thumb: row.thumb,
         share_token: row.share_token || null,
@@ -96,10 +97,8 @@ export function useTrips() {
 
     if (error) throw error;
 
-    dispatch({
-      type: 'SET_TRIPS',
-      payload: state.trips.filter(t => t.id !== tripId),
-    });
+    dispatch({ type: 'SET_TRIPS', payload: state.trips.filter(t => t.id !== tripId) });
+    dispatch({ type: 'DELETE_TRIP_V2', payload: tripId });
   }, [state.user, state.trips, dispatch]);
 
   const saveTrip = useCallback(async (trip) => {
@@ -159,7 +158,7 @@ export function useTrips() {
       .from('trips')
       .upsert({
         id: trip.id,
-        user_id: state.user.id,
+        user_id: trip.user_id || state.user.id,
         title: trip.title,
         thumb: trip.thumb,
         trip_data: trip,
@@ -185,8 +184,12 @@ export function useTrips() {
       type: 'SET_TRIPS',
       payload: state.trips.map(t => t.id === tripId ? { ...t, share_token: token } : t),
     });
+    dispatch({
+      type: 'UPDATE_TRIP_V2',
+      payload: { id: tripId, share_token: token, ...(state.tripsV2.find(t => t.id === tripId) || {}) },
+    });
     return token;
-  }, [state.user, state.trips, dispatch]);
+  }, [state.user, state.trips, state.tripsV2, dispatch]);
 
   const clearShareToken = useCallback(async (tripId) => {
     if (!state.user) return;
@@ -200,7 +203,11 @@ export function useTrips() {
       type: 'SET_TRIPS',
       payload: state.trips.map(t => t.id === tripId ? { ...t, share_token: null } : t),
     });
-  }, [state.user, state.trips, dispatch]);
+    dispatch({
+      type: 'UPDATE_TRIP_V2',
+      payload: { ...(state.tripsV2.find(t => t.id === tripId) || { id: tripId }), share_token: null },
+    });
+  }, [state.user, state.trips, state.tripsV2, dispatch]);
 
   const importSharedTrip = useCallback(async (sharedTrip) => {
     if (!state.user) return null;

@@ -16,6 +16,12 @@ export default function AdminPage() {
   const [showSql, setShowSql] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
 
+  // Migration state
+  const [migrationV1Trips, setMigrationV1Trips] = useState([]);
+  const [migrationScanning, setMigrationScanning] = useState(false);
+  const [migrationRunning, setMigrationRunning] = useState(false);
+  const [migrationLog, setMigrationLog] = useState([]);
+
   // Security check
   if (!isAdmin(state.user)) {
     return <Navigate to="/" replace />;
@@ -257,6 +263,170 @@ export default function AdminPage() {
     }
   };
 
+  // ── Migration helpers ──────────────────────────────────────
+
+  const scanV1Trips = async () => {
+    setMigrationScanning(true);
+    setMigrationLog([]);
+    try {
+      const { data, error } = await supabase
+        .from('trips')
+        .select('id, title, user_id, created_at, trip_data')
+        .not('trip_data', 'is', null)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+
+      // Fetch profiles for display
+      const { data: profiles } = await supabase.from('profiles').select('id, email');
+      const profileMap = {};
+      profiles?.forEach(p => { profileMap[p.id] = p.email; });
+
+      setMigrationV1Trips((data || []).map(t => ({
+        ...t,
+        email: profileMap[t.user_id] || t.user_id?.substring(0, 8) + '...',
+        dayCount: t.trip_data?.days?.length || 0,
+      })));
+    } catch (err) {
+      setMigrationLog([`扫描失败: ${err.message}`]);
+    } finally {
+      setMigrationScanning(false);
+    }
+  };
+
+  const migrateSingleTrip = async (trip) => {
+    const tripData = trip.trip_data;
+    if (!tripData?.days?.length) return [`  [${trip.title}] 无 days 数据，跳过`];
+
+    const lines = [`▶ 开始迁移: ${trip.title} (${trip.id})`];
+    let migratedDays = 0;
+    let linkedDays = 0;
+
+    for (const day of tripData.days) {
+      if (!day.date) { lines.push(`  跳过无日期的 day`); continue; }
+
+      // Check if days_v2 already exists for this user+date
+      const { data: existing } = await supabase
+        .from('days_v2')
+        .select('id')
+        .eq('user_id', trip.user_id)
+        .eq('date', day.date)
+        .maybeSingle();
+
+      let dayId;
+      if (existing) {
+        dayId = existing.id;
+        linkedDays++;
+        lines.push(`  ${day.date}: 已存在 days_v2，仅建立关联`);
+      } else {
+        const newId = day.id?.startsWith('day-') ? day.id : `day-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+        const { data: inserted, error: insertErr } = await supabase
+          .from('days_v2')
+          .insert({
+            id: newId,
+            user_id: trip.user_id,
+            date: day.date,
+            title: day.title || null,
+            color: day.color || '#5b7a99',
+            stops_data: day.stops || [],
+          })
+          .select('id')
+          .single();
+        if (insertErr) { lines.push(`  ${day.date}: 插入失败 — ${insertErr.message}`); continue; }
+        dayId = inserted.id;
+        migratedDays++;
+        lines.push(`  ${day.date}: 创建 days_v2 (${dayId})，stops=${day.stops?.length || 0}`);
+      }
+
+      // Link trip_days
+      const { error: linkErr } = await supabase
+        .from('trip_days')
+        .upsert({ trip_id: trip.id, day_id: dayId });
+      if (linkErr) lines.push(`  ${day.date}: 关联失败 — ${linkErr.message}`);
+    }
+
+    // Mark trip as migrated — also persist dates from trip_data to column fields
+    const { error: clearErr } = await supabase
+      .from('trips')
+      .update({
+        trip_data: null,
+        start_date: tripData.startDate || null,
+        end_date: tripData.endDate || null,
+      })
+      .eq('id', trip.id);
+    if (clearErr) lines.push(`  清除 trip_data 失败: ${clearErr.message}`);
+    else lines.push(`✅ 完成: 新建 ${migratedDays} 天，关联已有 ${linkedDays} 天`);
+
+    return lines;
+  };
+
+  const fixMissingDates = async () => {
+    setMigrationRunning(true);
+    setMigrationLog(['🔍 查找缺少日期的 v2 trips...']);
+
+    // Find v2 trips with no start_date
+    const { data: tripsToFix, error } = await supabase
+      .from('trips')
+      .select('id, title, start_date')
+      .is('trip_data', null)
+      .is('start_date', null);
+
+    if (error) { setMigrationLog([`查询失败: ${error.message}`]); setMigrationRunning(false); return; }
+    if (!tripsToFix?.length) { setMigrationLog(['✅ 所有 v2 trip 都已有日期']); setMigrationRunning(false); return; }
+
+    const lines = [`找到 ${tripsToFix.length} 个缺少日期的 trip，正在从关联 days 推算...`];
+
+    for (const trip of tripsToFix) {
+      const { data: linked } = await supabase
+        .from('trip_days')
+        .select('days_v2 ( date )')
+        .eq('trip_id', trip.id);
+
+      const dates = (linked || [])
+        .map(r => r.days_v2?.date)
+        .filter(Boolean)
+        .sort();
+
+      if (!dates.length) { lines.push(`  [${trip.title}] 无关联 days，跳过`); continue; }
+
+      const start = dates[0];
+      const end = dates[dates.length - 1];
+      await supabase.from('trips').update({ start_date: start, end_date: end }).eq('id', trip.id);
+      lines.push(`  ✅ ${trip.title}: ${start} → ${end}`);
+    }
+
+    lines.push('完成');
+    setMigrationLog(lines);
+    setMigrationRunning(false);
+  };
+
+  const runMigration = async (onlyMine) => {
+    const targets = onlyMine
+      ? migrationV1Trips.filter(t => t.user_id === state.user?.id)
+      : migrationV1Trips;
+
+    if (!targets.length) {
+      setMigrationLog(['没有找到需要迁移的数据']);
+      return;
+    }
+    if (!onlyMine && !confirm(`确定要迁移全部 ${targets.length} 个 v1 行程吗？此操作不可撤销。`)) return;
+
+    setMigrationRunning(true);
+    setMigrationLog([`开始迁移 ${targets.length} 个行程...`]);
+
+    const allLines = [];
+    for (const trip of targets) {
+      const lines = await migrateSingleTrip(trip);
+      allLines.push(...lines, '');
+      setMigrationLog([...allLines]);
+    }
+
+    allLines.push(`🎉 全部完成，共迁移 ${targets.length} 个行程`);
+    setMigrationLog([...allLines]);
+    setMigrationRunning(false);
+    // Refresh the scan
+    await scanV1Trips();
+  };
+
   return (
     <div className="admin-page" style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
       <header style={{ marginBottom: '2rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '1rem' }}>
@@ -276,19 +446,19 @@ export default function AdminPage() {
           >
             All Itineraries
           </button>
-          <button 
+          <button
             onClick={() => setActiveTab('cleanup')}
             className={`tab-btn ${activeTab === 'cleanup' ? 'active' : ''}`}
-            style={{ 
-                padding: '0.5rem 1rem', 
-                borderRadius: '8px', 
-                background: activeTab === 'cleanup' ? 'var(--accent)' : 'rgba(255,255,255,0.05)',
-                border: 'none',
-                color: '#fff',
-                cursor: 'pointer'
-            }}
+            style={{ padding: '0.5rem 1rem', borderRadius: '8px', background: activeTab === 'cleanup' ? 'var(--accent)' : 'rgba(255,255,255,0.05)', border: 'none', color: '#fff', cursor: 'pointer' }}
           >
             Image Cleanup
+          </button>
+          <button
+            onClick={() => { setActiveTab('migration'); scanV1Trips(); }}
+            className={`tab-btn ${activeTab === 'migration' ? 'active' : ''}`}
+            style={{ padding: '0.5rem 1rem', borderRadius: '8px', background: activeTab === 'migration' ? 'var(--accent)' : 'rgba(255,255,255,0.05)', border: 'none', color: '#fff', cursor: 'pointer' }}
+          >
+            V1 → V2 迁移
           </button>
         </div>
       </header>
@@ -304,26 +474,39 @@ export default function AdminPage() {
                   <tr>
                     <th style={{ padding: '1rem' }}>Title</th>
                     <th style={{ padding: '1rem' }}>Email</th>
+                    <th style={{ padding: '1rem' }}>架构</th>
                     <th style={{ padding: '1rem' }}>Created At</th>
                     <th style={{ padding: '1rem' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {trips.map(trip => (
+                  {trips.map(trip => {
+                    const isV2 = trip.trip_data == null;
+                    return (
                     <tr key={trip.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                       <td style={{ padding: '1rem' }}>{trip.title}</td>
                       <td style={{ padding: '1rem', fontSize: '0.85rem' }}>
                         {trip.profiles?.email || <span style={{ opacity: 0.5 }}>{trip.user_id?.substring(0, 8) || 'unknown'}...</span>}
                       </td>
+                      <td style={{ padding: '1rem' }}>
+                        <span style={{
+                          fontSize: '0.72rem', fontWeight: 700, padding: '2px 8px', borderRadius: '6px',
+                          background: isV2 ? 'rgba(34,197,94,0.15)' : 'rgba(251,191,36,0.15)',
+                          color: isV2 ? '#22c55e' : '#fbbf24',
+                          border: `1px solid ${isV2 ? 'rgba(34,197,94,0.3)' : 'rgba(251,191,36,0.3)'}`,
+                        }}>
+                          {isV2 ? 'V2 新' : 'V1 旧'}
+                        </span>
+                      </td>
                       <td style={{ padding: '1rem' }}>{new Date(trip.created_at).toLocaleDateString()}</td>
                       <td style={{ padding: '1rem', display: 'flex', gap: '1rem' }}>
-                        <button 
-                          onClick={() => window.open(`/trip/${trip.id}`, '_blank')}
+                        <button
+                          onClick={() => window.open(isV2 ? `/trip-v2/${trip.id}` : `/trip/${trip.id}`, '_blank')}
                           style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', fontSize: '0.9rem' }}
                         >
                           View
                         </button>
-                        <button 
+                        <button
                           onClick={() => handleDeleteTrip(trip.id)}
                           style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '0.9rem' }}
                         >
@@ -331,7 +514,8 @@ export default function AdminPage() {
                         </button>
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -450,6 +634,97 @@ export default function AdminPage() {
         </section>
       )}
 
+      {activeTab === 'migration' && (
+        <section style={{ padding: '1.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '12px' }}>
+          <h2 style={{ fontSize: '1.2rem', marginBottom: '0.4rem' }}>V1 → V2 数据迁移</h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
+            将旧架构（<code>trip_data</code> JSONB）的行程迁移到新架构（<code>days_v2</code> + <code>trip_days</code>）。迁移后 <code>trip_data</code> 会被置为 null。
+          </p>
+
+          {/* Actions */}
+          <div style={{ display: 'flex', gap: '0.8rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+            <button
+              onClick={scanV1Trips}
+              disabled={migrationScanning || migrationRunning}
+              style={{ padding: '0.6rem 1.2rem', borderRadius: '8px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>refresh</span>
+              重新扫描
+            </button>
+            <button
+              onClick={() => runMigration(true)}
+              disabled={migrationRunning || migrationScanning || !migrationV1Trips.some(t => t.user_id === state.user?.id)}
+              style={{ padding: '0.6rem 1.2rem', borderRadius: '8px', background: '#2563eb', border: 'none', color: '#fff', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px', opacity: migrationRunning ? 0.6 : 1 }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>person</span>
+              迁移我的数据（测试）
+            </button>
+            <button
+              onClick={() => runMigration(false)}
+              disabled={migrationRunning || migrationScanning || migrationV1Trips.length === 0}
+              style={{ padding: '0.6rem 1.2rem', borderRadius: '8px', background: '#dc2626', border: 'none', color: '#fff', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px', opacity: migrationRunning ? 0.6 : 1 }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>group</span>
+              迁移全部用户
+            </button>
+            <button
+              onClick={fixMissingDates}
+              disabled={migrationRunning || migrationScanning}
+              style={{ padding: '0.6rem 1.2rem', borderRadius: '8px', background: '#7c3aed', border: 'none', color: '#fff', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px', opacity: migrationRunning ? 0.6 : 1 }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>calendar_month</span>
+              修复缺失日期
+            </button>
+          </div>
+
+          {/* Pending trips table */}
+          {migrationScanning ? (
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>扫描中...</p>
+          ) : migrationV1Trips.length === 0 ? (
+            <p style={{ color: '#22c55e', fontSize: '0.9rem' }}>✅ 没有待迁移的 v1 行程</p>
+          ) : (
+            <div style={{ background: 'rgba(0,0,0,0.2)', borderRadius: '10px', overflow: 'hidden', marginBottom: '1.5rem' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                <thead style={{ background: 'rgba(255,255,255,0.05)' }}>
+                  <tr>
+                    <th style={{ padding: '0.7rem 1rem', textAlign: 'left' }}>行程名</th>
+                    <th style={{ padding: '0.7rem 1rem', textAlign: 'left' }}>用户</th>
+                    <th style={{ padding: '0.7rem 1rem', textAlign: 'left' }}>天数</th>
+                    <th style={{ padding: '0.7rem 1rem', textAlign: 'left' }}>创建时间</th>
+                    <th style={{ padding: '0.7rem 1rem', textAlign: 'left' }}>归属</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {migrationV1Trips.map(trip => (
+                    <tr key={trip.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                      <td style={{ padding: '0.7rem 1rem' }}>{trip.title}</td>
+                      <td style={{ padding: '0.7rem 1rem', color: 'var(--text-muted)' }}>{trip.email}</td>
+                      <td style={{ padding: '0.7rem 1rem' }}>{trip.dayCount} 天</td>
+                      <td style={{ padding: '0.7rem 1rem', color: 'var(--text-muted)' }}>{new Date(trip.created_at).toLocaleDateString()}</td>
+                      <td style={{ padding: '0.7rem 1rem' }}>
+                        {trip.user_id === state.user?.id
+                          ? <span style={{ color: '#60a5fa', fontSize: '0.75rem', fontWeight: 700 }}>我的</span>
+                          : <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>其他用户</span>}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* Migration log */}
+          {migrationLog.length > 0 && (
+            <div>
+              <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>迁移日志</div>
+              <pre style={{ background: 'rgba(0,0,0,0.4)', borderRadius: '8px', padding: '1rem', fontSize: '0.78rem', color: '#94a3b8', maxHeight: '360px', overflowY: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+                {migrationLog.join('\n')}
+              </pre>
+            </div>
+          )}
+        </section>
+      )}
+
       {/* Lightbox */}
       {previewUrl && (
         <div
@@ -477,15 +752,22 @@ export default function AdminPage() {
 CREATE POLICY "Admins can view all trips" ON trips 
 FOR SELECT USING (auth.jwt() ->> 'email' = 'showbox88@gmail.com');
 
-/* 2. 允许管理员删除任何行程 */
+/* 2. 允许管理员删除/更新任何行程 */
 CREATE POLICY "Admins can delete trips" ON trips 
 FOR DELETE USING (auth.jwt() ->> 'email' = 'showbox88@gmail.com');
 
-/* 3. 允许管理员保存/修改所有行程 */
 CREATE POLICY "Admins can update trips" ON trips 
 FOR UPDATE USING (auth.jwt() ->> 'email' = 'showbox88@gmail.com');
 
-/* 4. 创建 profiles 表以便显示 Email */
+/* 3. V2 架构：允许管理员读取/修改所有 days_v2 */
+CREATE POLICY "Admins can manage days_v2" ON days_v2
+FOR ALL USING (auth.jwt() ->> 'email' = 'showbox88@gmail.com' OR auth.uid() = user_id);
+
+/* 4. V2 架构：允许管理员读取/修改所有 trip_days 关联 */
+CREATE POLICY "Admins can manage trip_days" ON trip_days
+FOR ALL USING (auth.jwt() ->> 'email' = 'showbox88@gmail.com');
+
+/* 5. 创建 profiles 表以便显示 Email */
 CREATE TABLE IF NOT EXISTS profiles (
   id uuid REFERENCES auth.users PRIMARY KEY,
   email text
@@ -508,9 +790,9 @@ CREATE OR REPLACE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
 
-/* 5. 允许管理员删除存储桶中的文件 */
--- 在 Storage -> Policies 中，为 'trip-media' bucket 添加删除权限：
--- USING: (auth.jwt() ->> 'email' = 'showbox88@gmail.com')`}
+/* 6. 允许管理员管理存储桶中的所有文件 */
+-- 在 Storage -> Policies 中，为 'trip-media' bucket 添加策略：
+-- SELECT/INSERT/UPDATE/DELETE USING: (auth.jwt() ->> 'email' = 'showbox88@gmail.com')`}
           </pre>
         </div>
       )}
