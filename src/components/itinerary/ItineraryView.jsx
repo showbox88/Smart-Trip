@@ -35,7 +35,7 @@ export default function ItineraryView({ tripId, isDayMode = false, date = null }
   const {
     trip,
     addDay, deleteDay, removeDay, setDayColor, updateDay,
-    deleteStop, updateStop, updateStopAndSort, sortDayByTime, moveStop, moveDay,
+    deleteStop, updateStop, updateStopAndSort, moveStop, moveDay,
     addNote, addList,
     updateNoteContent, updateListTitle, updateListItem, toggleListItem, addListItem, deleteListItem,
     addStopFromPlace, updateTripMetadata, toggleTransitMode, toggleHotelTransitMode,
@@ -351,7 +351,6 @@ export default function ItineraryView({ tripId, isDayMode = false, date = null }
               onDeleteDay={handleDeleteDay}
               onUpdateDay={updateDay}
               onUpdateStop={updateStop}
-              onSortByTime={() => sortDayByTime(day.id)}
               onOpenTimePicker={handleOpenTimePicker}
               onOpenExpense={handleOpenExpense}
               onOpenStayInfo={handleOpenStayInfo}

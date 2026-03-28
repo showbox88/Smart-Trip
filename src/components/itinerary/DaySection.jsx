@@ -19,7 +19,6 @@ export default memo(function DaySection({
   onDeleteNote, onUpdateNoteContent,
   onDeleteList, onUpdateListTitle, onUpdateListItem, onToggleListItem, onAddListItem, onDeleteListItem,
   onColorChange, onEditDay, onDeleteDay, onUpdateDay, onUpdateStop,
-  onSortByTime,
   onOpenTimePicker,
   onOpenExpense,
   onOpenStayInfo,
@@ -245,29 +244,12 @@ export default memo(function DaySection({
             {/* Dashed timeline line */}
             <div style={{ position: 'absolute', top: 0, bottom: 0, left: 'var(--timeline-line-x)', width: 0, borderLeft: `2px dashed ${activeColor}`, opacity: 0.5, zIndex: 0, transform: 'translateX(-50%)', transition: 'border-color 0.2s, left 0.3s' }} />
 
-            {/* Toolbar wrapper — hotel line hangs on the wrapper, not inside the flex container */}
-            <div style={{ position: 'relative', marginBottom: '0.8rem' }}>
-              {(hotelContext.isBetween || hotelContext.isCoutOnly) && hotelContext.stay && (
-                <HotelLine top="0" bottom="-0.8rem" />
-              )}
-              <div style={{ display: 'flex', gap: '15px', alignItems: 'center', paddingLeft: 'var(--auto-fill-pl)', paddingRight: '1rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                <button style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '5px', padding: 0 }}>
-                  <span style={{ fontSize: '1.1rem' }}>🪄</span> {t('itinerary.auto_fill')}
-                </button>
-                <button style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '5px', padding: 0 }}>
-                  <span style={{ fontSize: '1.1rem' }}>📍</span> {t('itinerary.optimize_route')}
-                  <span style={{ background: 'var(--accent-primary)', color: '#FFF', fontSize: '0.65rem', padding: '1px 4px', borderRadius: '4px', marginLeft: '2px' }}>PRO</span>
-                </button>
-                {stops.some(s => s.time) && (
-                  <button
-                    onClick={onSortByTime}
-                    style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '5px', padding: 0 }}
-                  >
-                    <span style={{ fontSize: '1.1rem' }}>🕐</span> {t('itinerary.sort_by_time')}
-                  </button>
-                )}
+            {/* Hotel line anchor for between/cout-only days */}
+            {(hotelContext.isBetween || hotelContext.isCoutOnly) && hotelContext.stay && (
+              <div style={{ position: 'relative', height: 0 }}>
+                <HotelLine top="0" bottom="0" />
               </div>
-            </div>
+            )}
 
             {/* "From hotel" hint — between days */}
             {(hotelContext.isBetween || hotelContext.isCoutOnly) && hotelContext.stay && (

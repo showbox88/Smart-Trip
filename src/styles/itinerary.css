@@ -126,6 +126,11 @@
     opacity: 0.95;
 }
 
+/* Hide transit row & add-button when its card is being dragged — stays in layout flow */
+.timeline-item-wrapper.dragging .transit-info-row {
+    visibility: hidden;
+}
+
 .rich-stop-card:hover {
     background: rgba(255, 255, 255, 0.08) !important;
     backdrop-filter: blur(8px) saturate(180%);

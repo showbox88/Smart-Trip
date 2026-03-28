@@ -82,12 +82,13 @@ export function useTimelineDrag(trip, moveStop) {
     const { originalIndex, cardData, initialTop, offsetY, dragHeight } = dragRef.current;
     const dy = e.clientY - offsetY - initialTop;
 
-    // Move dragged card visually
+    // Move only the card visual — not the TransitInfo/add-button below it
     const dragEl = cardData[originalIndex].el;
-    dragEl.style.transform = `translateY(${dy}px) scale(1.03)`;
-    dragEl.style.zIndex = '100';
-    dragEl.style.boxShadow = '0 20px 60px rgba(0,0,0,0.5)';
-    dragEl.style.transition = 'box-shadow 0.2s, scale 0.2s';
+    const cardEl = dragEl.querySelector('.stop-card-container') || dragEl;
+    cardEl.style.transform = `translateY(${dy}px) scale(1.03)`;
+    cardEl.style.boxShadow = '0 20px 60px rgba(0,0,0,0.5)';
+    cardEl.style.transition = 'box-shadow 0.2s, scale 0.2s';
+    dragEl.style.zIndex = '100'; // wrapper z-index so floated card renders above siblings
 
     // Calculate new insert position based on 30% overlap
     const dragTop = initialTop + dy;
@@ -138,6 +139,12 @@ export function useTimelineDrag(trip, moveStop) {
       card.el.style.transition = '';
       card.el.style.zIndex = '';
       card.el.style.boxShadow = '';
+      const cardEl = card.el.querySelector('.stop-card-container');
+      if (cardEl) {
+        cardEl.style.transform = '';
+        cardEl.style.boxShadow = '';
+        cardEl.style.transition = '';
+      }
     });
 
     // Commit reorder if position changed

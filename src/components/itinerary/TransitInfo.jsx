@@ -292,8 +292,35 @@ export default memo(function TransitInfo({ transit, transitMode, origin, dest, o
   const [showAddMenu, setShowAddMenu] = useState(false);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
   const [showSteps, setShowSteps] = useState(false);
+  const [calculating, setCalculating] = useState(false);
+  const prevModeRef = useRef(transitMode);
+  const calcTimerRef = useRef(null);
   const menuRef = useRef(null);
   const btnRef = useRef(null);
+
+  // 切换模式时进入 calculating 状态，避免短暂显示"无路线"
+  useEffect(() => {
+    if (prevModeRef.current !== transitMode) {
+      prevModeRef.current = transitMode;
+      setCalculating(true);
+      clearTimeout(calcTimerRef.current);
+      // 最多等 6 秒，超时强制结束 calculating
+      calcTimerRef.current = setTimeout(() => setCalculating(false), 6000);
+    }
+    return () => clearTimeout(calcTimerRef.current);
+  }, [transitMode]);
+
+  // 新路线数据返回后结束 calculating
+  useEffect(() => {
+    if (calculating) {
+      const SDK_TO_SHORT_CHK = { 'DRIVING': 'DRIVE', 'WALKING': 'WALK', 'TRANSIT': 'TRANSIT' };
+      const returnedMode = SDK_TO_SHORT_CHK[transit?.mode] || transit?.mode;
+      if (returnedMode === transitMode) {
+        clearTimeout(calcTimerRef.current);
+        setCalculating(false);
+      }
+    }
+  }, [transit, transitMode, calculating]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -317,10 +344,13 @@ export default memo(function TransitInfo({ transit, transitMode, origin, dest, o
   };
 
   const hasData = transit?.duration || transit?.distance;
-  const effectiveMode = transit?.mode || transitMode || 'DRIVE';
+  // transit.mode uses SDK values ('DRIVING','WALKING','TRANSIT'), transitMode uses short form ('DRIVE','WALK','TRANSIT')
+  const SDK_TO_SHORT = { 'DRIVING': 'DRIVE', 'WALKING': 'WALK', 'TRANSIT': 'TRANSIT' };
+  const transitModeShort = SDK_TO_SHORT[transit?.mode] || transit?.mode;
+  const effectiveMode = transitModeShort || transitMode || 'DRIVE';
   const isTransit = effectiveMode === 'TRANSIT';
   const hasSteps = isTransit && transit?.steps?.length > 0;
-  const noRouteForMode = hasData && transit?.mode && transit.mode !== (transitMode || 'DRIVE');
+  const noRouteForMode = hasData && transitModeShort && transitModeShort !== (transitMode || 'DRIVE');
 
   if (hideAdd && !hasData) return null;
 
@@ -416,7 +446,9 @@ export default memo(function TransitInfo({ transit, transitMode, origin, dest, o
         </span>
       )}
 
-      {hasData ? (
+      {calculating ? (
+        <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.75rem' }}>···</span>
+      ) : hasData ? (
         <>
           {noRouteForMode && (
             <span style={{ color: '#f87171', fontSize: '0.72rem' }}>
@@ -443,7 +475,7 @@ export default memo(function TransitInfo({ transit, transitMode, origin, dest, o
             )}
           </span>
         </>
-      ) : onToggleMode ? (
+      ) : onToggleMode && !calculating ? (
         <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.75rem' }}>
           {t('itinerary.no_route') || '无路线'}
         </span>

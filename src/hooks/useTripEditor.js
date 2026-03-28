@@ -559,7 +559,7 @@ export function useTripEditor(tripId) {
       };
 
       insertStopIntoDay(day, newStop, afterStopId);
-      if (!afterStopId) sortStopsByTime(day.stops);
+      sortStopsByTime(day.stops);
 
       applyUpdate(updated);
       await computeTransitData(dayId, updated);
@@ -613,7 +613,6 @@ export function useTripEditor(tripId) {
         const afterIdx = tgtDay.stops.findIndex((item) => item.id === afterStopId);
         tgtDay.stops.splice(afterIdx + 1, 0, stop);
       }
-
       return updated;
     });
 
