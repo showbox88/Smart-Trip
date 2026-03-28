@@ -11,6 +11,7 @@ import DayPage from './pages/DayPage';
 import ArchivePage from './pages/ArchivePage';
 import AdminPage from './pages/AdminPage';
 import SharedTripPage from './pages/SharedTripPage';
+import CalendarPage from './pages/CalendarPage';
 import { isAdmin } from './utils/admin';
 
 export default function App() {
@@ -49,6 +50,7 @@ export default function App() {
       <main id={isArchiveRoute ? "archive-container" : "app-container"} style={isArchiveRoute ? { padding: 0 } : {}}>
         <Routes>
           <Route path="/" element={<DashboardPage />} />
+          <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/trip/:id" element={<TripPage />} />
           <Route path="/trip-v2/:tripId" element={<TripPageV2 />} />
           <Route path="/day/:date" element={<DayPage />} />

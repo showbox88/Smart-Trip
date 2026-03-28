@@ -352,6 +352,13 @@
         "view_only": "View only · Shared via Smart Trip",
         "shared": "Shared"
     },
+    "calendar": {
+        "title": "Calendar",
+        "month_view": "Month",
+        "year_view": "Year",
+        "today": "Today",
+        "no_activities": "No activities"
+    },
     "app": {
         "albums": {
             "title": "Local Memories",

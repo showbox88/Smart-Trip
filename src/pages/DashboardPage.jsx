@@ -11,13 +11,14 @@ import TripGrid from '../components/dashboard/TripGrid';
 import BudgetSummary from '../components/dashboard/BudgetSummary';
 import TripEditModal from '../components/modals/TripEditModal';
 import ShareModal from '../components/modals/ShareModal';
+import CalendarPage from './CalendarPage';
 
 export default function DashboardPage() {
   const { state } = useApp();
   const { t } = useI18n();
   const navigate = useNavigate();
   const { saveTrip } = useTrips();
-  const { createTrip, linkDaysToTrip, refreshTrips } = useTripsV2();
+  const { createTrip, updateTrip, linkDaysToTrip, refreshTrips } = useTripsV2();
 
   // Refresh v2 trips with stop counts whenever dashboard mounts
   useEffect(() => {
@@ -83,22 +84,34 @@ export default function DashboardPage() {
   const handleSaveEditedTrip = useCallback(async (patch) => {
     if (!editingTrip) return;
     try {
-      const updated = { ...editingTrip, ...patch };
-
-      // If startDate changed, recalculate each day's date
-      if (patch.startDate && patch.startDate !== editingTrip.startDate && updated.days) {
-        updated.days = updated.days.map((day, index) => ({
-          ...day,
-          date: formatTripDate(patch.startDate, index),
-        }));
+      if (editingTrip._isV2) {
+        // V2 trip: update only metadata — do NOT call saveTrip which would
+        // add the virtual trip to state.trips and cause duplicate cards.
+        await updateTrip(editingTrip.id, {
+          title: patch.title,
+          startDate: patch.startDate || null,
+          endDate: patch.endDate || null,
+          thumb: patch.thumb,
+        });
+        if (patch._dayIdsToLink?.length) {
+          await linkDaysToTrip(editingTrip.id, patch._dayIdsToLink);
+        }
+      } else {
+        // V1 trip: full object save via saveTrip
+        const updated = { ...editingTrip, ...patch };
+        if (patch.startDate && patch.startDate !== editingTrip.startDate && updated.days) {
+          updated.days = updated.days.map((day, index) => ({
+            ...day,
+            date: formatTripDate(patch.startDate, index),
+          }));
+        }
+        await saveTrip(updated);
       }
-
-      await saveTrip(updated);
       setEditingTrip(null);
     } catch (err) {
       alert(err.message);
     }
-  }, [editingTrip, saveTrip]);
+  }, [editingTrip, saveTrip, updateTrip, linkDaysToTrip]);
 
   return (
     <div className="trip-dashboard-container fade-in">
@@ -135,7 +148,11 @@ export default function DashboardPage() {
       <DashboardFilters />
 
       <div id="trip-grid-container">
-        <TripGrid trips={filteredTrips} onAddTrip={handleAddNewTrip} onEdit={setEditingTrip} onShare={setSharingTrip} />
+        {state.dashboardView === 'calendar' ? (
+          <CalendarPage />
+        ) : (
+          <TripGrid trips={filteredTrips} onAddTrip={handleAddNewTrip} onEdit={setEditingTrip} onShare={setSharingTrip} />
+        )}
       </div>
 
       <BudgetSummary />

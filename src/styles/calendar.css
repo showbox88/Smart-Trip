@@ -1,0 +1,370 @@
+/* ── Calendar View ──────────────────────────────────────── */
+
+.calendar-page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 0 3rem;
+}
+
+/* ── Toolbar ── */
+.calendar-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.calendar-toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.calendar-toolbar-left h2 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+    min-width: 180px;
+}
+
+.calendar-nav-btn {
+    background: none;
+    border: 1px solid var(--glass-border);
+    color: var(--text-secondary);
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, color 0.15s;
+}
+.calendar-nav-btn:hover {
+    background: rgba(255,255,255,0.06);
+    color: var(--text-primary);
+}
+
+.calendar-today-btn {
+    background: rgba(60,131,246,0.12);
+    border: 1px solid rgba(60,131,246,0.25);
+    color: var(--accent-primary);
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+.calendar-today-btn:hover {
+    background: rgba(60,131,246,0.22);
+}
+
+.calendar-view-toggle {
+    display: flex;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--glass-border);
+    border-radius: 10px;
+    overflow: hidden;
+}
+.calendar-view-toggle button {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    padding: 6px 16px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+.calendar-view-toggle button.active {
+    background: rgba(60,131,246,0.15);
+    color: var(--accent-primary);
+}
+.calendar-view-toggle button:hover:not(.active) {
+    background: rgba(255,255,255,0.04);
+}
+
+/* ── Month Grid ── */
+.calendar-month {
+    position: relative;
+}
+
+.calendar-weekday-row {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    margin-bottom: 2px;
+}
+.calendar-weekday-cell {
+    text-align: center;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    padding: 6px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+    background: rgba(255,255,255,0.02);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--glass-border);
+}
+
+/* ── Cell ── */
+.calendar-cell {
+    min-height: 90px;
+    background: var(--glass-bg);
+    padding: 6px 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+.calendar-cell:hover {
+    background: rgba(255,255,255,0.06);
+}
+.calendar-cell.outside {
+    opacity: 0.3;
+}
+.calendar-cell.today .calendar-date-num {
+    background: var(--accent-primary);
+    color: #fff;
+    border-radius: 50%;
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+}
+
+.calendar-date-num {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    margin-bottom: 4px;
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ── Activity dots in cell ── */
+.calendar-cell-dots {
+    display: flex;
+    gap: 3px;
+    flex-wrap: wrap;
+    margin-top: auto;
+}
+.calendar-cell-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--accent-primary);
+    opacity: 0.7;
+}
+
+/* ── Trip bars ── */
+.calendar-trips-area {
+    position: relative;
+    margin-top: 2px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-height: 0;
+}
+
+.calendar-trip-bar {
+    height: 18px;
+    border-radius: 4px;
+    padding: 0 6px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 18px;
+    cursor: pointer;
+    transition: filter 0.15s, transform 0.1s;
+    position: relative;
+}
+.calendar-trip-bar:hover {
+    filter: brightness(1.25);
+    transform: translateY(-1px);
+}
+
+.calendar-trip-bar.start {
+    border-top-left-radius: 9px;
+    border-bottom-left-radius: 9px;
+    margin-left: 2px;
+}
+.calendar-trip-bar.end {
+    border-top-right-radius: 9px;
+    border-bottom-right-radius: 9px;
+    margin-right: 2px;
+}
+.calendar-trip-bar.start.end {
+    border-radius: 9px;
+    margin: 0 2px;
+}
+
+/* Trip bar spanning full row (positioned absolutely) */
+.calendar-bar-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 2;
+}
+.calendar-bar-overlay .calendar-trip-bar {
+    pointer-events: auto;
+    position: absolute;
+}
+
+/* ── More indicator ── */
+.calendar-cell-more {
+    font-size: 0.62rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+    cursor: pointer;
+}
+.calendar-cell-more:hover {
+    color: var(--accent-primary);
+}
+
+/* ── Year View ── */
+.calendar-year-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+}
+
+.calendar-mini-month {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 14px;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, transform 0.15s;
+    display: flex;
+    flex-direction: column;
+    aspect-ratio: 1;
+    overflow: hidden;
+}
+.calendar-mini-month:hover {
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(255,255,255,0.15);
+    transform: translateY(-2px);
+}
+.calendar-mini-month.current-month {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 1px var(--accent-primary);
+}
+
+.calendar-mini-month-title {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.calendar-mini-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: calc(16px / 6);
+}
+.calendar-mini-cell {
+    aspect-ratio: 1;
+    border-radius: 3px;
+    background: transparent;
+    min-width: 0;
+}
+.calendar-mini-cell.has-activity {
+    background: rgba(60,131,246,0.35);
+}
+.calendar-mini-cell.has-trip {
+    background: rgba(255,140,66,0.5);
+}
+.calendar-mini-cell.has-both {
+    background: #3c83f6;
+    box-shadow: 0 0 4px rgba(60,131,246,0.8);
+}
+.calendar-mini-cell.is-today {
+    outline: 1.5px solid var(--accent-primary);
+    outline-offset: -0.5px;
+}
+
+/* ── Trip legend (below year view) ── */
+.calendar-trip-legend {
+    margin-top: 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+.calendar-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    cursor: pointer;
+    transition: background 0.15s;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+.calendar-legend-item:hover {
+    background: rgba(255,255,255,0.06);
+    color: var(--text-primary);
+}
+.calendar-legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+    .calendar-year-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    .calendar-cell {
+        min-height: 70px;
+        padding: 4px 5px;
+    }
+    .calendar-toolbar-left h2 {
+        font-size: 1.1rem;
+        min-width: unset;
+    }
+}
+
+@media (max-width: 600px) {
+    .calendar-year-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .calendar-cell {
+        min-height: 55px;
+    }
+    .calendar-trip-bar {
+        font-size: 0;
+        height: 14px;
+    }
+    .calendar-page {
+        padding: 1rem 0.5rem 2rem;
+    }
+}

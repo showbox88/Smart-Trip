@@ -353,6 +353,13 @@
         "view_only": "只读 · 通过 Smart Trip 分享",
         "shared": "已分享"
     },
+    "calendar": {
+        "title": "日历",
+        "month_view": "月",
+        "year_view": "年",
+        "today": "今天",
+        "no_activities": "暂无活动"
+    },
     "app": {
         "albums": {
             "title": "我的本地相册",

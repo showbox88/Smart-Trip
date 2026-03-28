@@ -45,6 +45,13 @@ export default function DashboardFilters() {
         >
           <span className="material-symbols-outlined">collections</span>
         </button>
+        <button
+          className={`view-icon${state.dashboardView === 'calendar' ? ' active' : ''}`}
+          onClick={() => dispatch({ type: 'SET_DASHBOARD_VIEW', payload: 'calendar' })}
+          title={t('calendar.title') || 'Calendar'}
+        >
+          <span className="material-symbols-outlined">calendar_month</span>
+        </button>
       </div>
     </div>
   );
