@@ -13,7 +13,8 @@ export default memo(function ListCard(props) {
   const [focusIndex, setFocusIndex] = useState(null);
   const listContainerRef = useRef(null);
   const titleRef = useRef(null);
-  const [isFlipped, setIsFlipped] = useState(false);
+  const [rotation, setRotation] = useState(0);
+  const isFlipped = (rotation / 180) % 2 !== 0;
   const touchStartX = useRef(null);
   const [attachments, setAttachments] = useState(stop.attachments || []);
   const [uploading, setUploading] = useState(false);
@@ -48,8 +49,8 @@ export default memo(function ListCard(props) {
   const handleTouchEnd = (e) => {
     if (touchStartX.current === null) return;
     const diff = touchStartX.current - e.changedTouches[0].clientX;
-    if (diff > 50) setIsFlipped(true);
-    else if (diff < -50) setIsFlipped(false);
+    if (diff > 50) setRotation(prev => prev - 180);
+    else if (diff < -50) setRotation(prev => prev + 180);
     touchStartX.current = null;
   };
 
@@ -100,7 +101,7 @@ export default memo(function ListCard(props) {
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
-        <div className={`note-list-card-inner${isFlipped ? ' is-flipped' : ''}`}>
+        <div className="note-list-card-inner" style={{ transform: `rotateY(${rotation}deg)` }}>
 
           {/* Front face */}
           <div
@@ -112,7 +113,7 @@ export default memo(function ListCard(props) {
               border: '1px dashed var(--glass-border)',
               borderColor: state.hoveredStopId === stop.id ? 'var(--accent-primary)' : 'rgba(255,255,255,0.05)',
               borderRadius: '0.75rem',
-              padding: '0.75rem var(--note-card-px)',
+              padding: '0.75rem var(--note-card-px) 2.5rem',
               position: 'relative',
               transition: 'background 0.25s, border-color 0.25s, box-shadow 0.25s, transform 0.25s',
               transform: state.hoveredStopId === stop.id ? 'translateX(4px)' : 'none',
@@ -217,13 +218,24 @@ export default memo(function ListCard(props) {
           {/* Back face - photo gallery */}
           <div className="note-list-card-back">
             {/* Minimalist Upload buttons */}
-            <div style={{ display: 'flex', gap: '0.4rem', marginBottom: '0.6rem', justifyContent: 'flex-start' }}>
-              <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', background: 'rgba(59,130,246,0.08)', border: '1px dashed rgba(59,130,246,0.4)', borderRadius: '8px', cursor: uploading ? 'not-allowed' : 'pointer', flexShrink: 0 }} title={t('itinerary.take_photo') || '拍照'}>
-                <span className="material-symbols-outlined" style={{ fontSize: '20px', color: '#3b82f6' }}>photo_camera</span>
+            <div className="back-content-grid" style={{ flex: '0 0 auto', padding: '0 0.5rem', marginBottom: '0.8rem' }}>
+              <label 
+                className="back-action-item" 
+                style={{ opacity: uploading ? 0.5 : 1, cursor: uploading ? 'not-allowed' : 'pointer' }}
+                title={t('itinerary.take_photo') || '拍照'}
+              >
+                <span className="material-symbols-outlined" style={{ color: '#3b82f6' }}>photo_camera</span>
+                <label style={{ cursor: 'inherit', fontSize: 'inherit', fontWeight: 'inherit', color: 'inherit' }}>{t('itinerary.take_photo') || '拍照'}</label>
                 <input ref={cameraRef} type="file" accept="image/*" capture="environment" onChange={(e) => handleFiles(e.target.files)} style={{ display: 'none' }} disabled={uploading} />
               </label>
-              <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', background: 'rgba(16,185,129,0.08)', border: '1px dashed rgba(16,185,129,0.4)', borderRadius: '8px', cursor: uploading ? 'not-allowed' : 'pointer', flexShrink: 0 }} title={t('itinerary.choose_photo') || '从相册选择'}>
-                <span className="material-symbols-outlined" style={{ fontSize: '20px', color: '#10b981' }}>add_photo_alternate</span>
+              
+              <label 
+                className="back-action-item" 
+                style={{ opacity: uploading ? 0.5 : 1, cursor: uploading ? 'not-allowed' : 'pointer' }}
+                title={t('itinerary.choose_photo') || '从相册选择'}
+              >
+                <span className="material-symbols-outlined" style={{ color: '#10b981' }}>add_photo_alternate</span>
+                <label style={{ cursor: 'inherit', fontSize: 'inherit', fontWeight: 'inherit', color: 'inherit' }}>{t('itinerary.choose_photo') || '相册'}</label>
                 <input ref={galleryRef} type="file" accept="image/*" multiple onChange={(e) => handleFiles(e.target.files)} style={{ display: 'none' }} disabled={uploading} />
               </label>
             </div>
@@ -236,25 +248,29 @@ export default memo(function ListCard(props) {
             )}
 
             {/* Photo grid */}
+            {/* Horizontal Row Content */}
+            <div className="back-icon-side">
+              <span className="material-symbols-outlined">description</span>
+            </div>
+
             {attachments.length === 0 ? (
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '32px', display: 'block', marginBottom: '0.3rem', opacity: 0.35 }}>image_not_supported</span>
-                {t('itinerary.no_attachments') || '还没有照片'}
+              <div className="attachment-empty-row">
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>image_not_supported</span>
+                <span>{t('itinerary.no_attachments') || '还没有照片'}</span>
               </div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '5px' }}>
+              <div className="note-card-attachments-row">
                 {attachments.map((att, idx) => (
-                  <div key={att.path || idx} style={{ position: 'relative', aspectRatio: '1', borderRadius: '8px', overflow: 'hidden', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                  <div key={att.path || idx} className="attachment-thumb-full">
                     <img
                       src={att.url}
                       alt=""
-                      style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'zoom-in' }}
-                      onClick={() => setPreviewUrl(att.url)}
+                      onClick={(e) => { e.stopPropagation(); setPreviewUrl(att.url); }}
                       loading="lazy"
                     />
                     <button
-                      onClick={() => handleDeletePhoto(idx)}
-                      style={{ position: 'absolute', top: '3px', right: '3px', background: 'rgba(0,0,0,0.7)', border: 'none', borderRadius: '50%', width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#ff6b6b' }}
+                      className="attachment-delete-mini"
+                      onClick={(e) => { e.stopPropagation(); handleDeletePhoto(idx); }}
                     >
                       <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>close</span>
                     </button>
@@ -262,20 +278,17 @@ export default memo(function ListCard(props) {
                 ))}
               </div>
             )}
-
-            {/* Swipe-back hint */}
-            <div className="flip-back-hint">
-              <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>swipe_right</span>
-              <span>{t('itinerary.swipe_back') || '右滑返回'}</span>
-            </div>
           </div>
 
         </div>
 
-        {/* Indicator dots (desktop only) */}
-        <div className="stop-card-dots">
-          <div className={`stop-card-dot${!isFlipped ? ' active' : ''}`} onClick={() => setIsFlipped(false)} />
-          <div className={`stop-card-dot${isFlipped ? ' active' : ''}`} onClick={() => setIsFlipped(true)} />
+        {/* Flip Icon */}
+        <div className="stop-card-flip-container">
+          <button
+            className="stop-card-flip-btn"
+            onClick={(e) => { e.stopPropagation(); setRotation(prev => prev + 180); }}
+            title={t('itinerary.flip_card') || 'Explore Back'}
+          />
         </div>
       </div>
 

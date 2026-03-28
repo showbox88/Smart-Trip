@@ -1,18 +1,91 @@
 import { useState, useRef, useEffect } from 'react';
 import { useI18n } from '../../context/I18nContext';
 
-const TIMES = [];
-for (let h = 0; h < 24; h++) {
-  for (let m = 0; m < 60; m += 30) {
-    const hh = h % 12 || 12;
-    const mm = String(m).padStart(2, '0');
-    const period = h < 12 ? 'AM' : 'PM';
-    TIMES.push({ h: String(hh).padStart(2, '0'), m: mm, p: period });
-  }
-}
+const HOURS = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'));
+const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
 
 const ITEM_HEIGHT = 40;
 const PADDING_TOP = 55;
+
+function ScrollColumn({ items, selectedIdx, onSelect }) {
+  const scrollRef = useRef(null);
+  const rafRef = useRef(null);
+  const debounceRef = useRef(null);
+
+  const REPEAT_COUNT = 100;
+  const extendedItems = Array.from({ length: items.length * REPEAT_COUNT }, (_, i) => items[i % items.length]);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      const centerGroup = Math.floor(REPEAT_COUNT / 2);
+      const targetIdx = centerGroup * items.length + selectedIdx;
+      
+      // Perform instantaneous un-animated jump to center on mount
+      const targetScroll = targetIdx * ITEM_HEIGHT;
+      scrollRef.current.style.scrollBehavior = 'auto'; // ensure instant
+      scrollRef.current.scrollTop = targetScroll;
+      
+      // Small delay before enabling smooth scroll behavior if they click to select
+      setTimeout(() => {
+        if (scrollRef.current) scrollRef.current.style.scrollBehavior = 'smooth';
+      }, 50);
+    }
+    return () => {
+      cancelAnimationFrame(rafRef.current);
+      clearTimeout(debounceRef.current);
+    };
+  }, []); // Only run once on mount
+
+  const handleScroll = () => {
+    if (rafRef.current) return;
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null;
+      if (!scrollRef.current) return;
+      const st = scrollRef.current.scrollTop;
+      const centerOffset = st + scrollRef.current.offsetHeight / 2 - PADDING_TOP;
+      const idx = Math.round((centerOffset - ITEM_HEIGHT / 2) / ITEM_HEIGHT);
+      const clamped = Math.max(0, Math.min(extendedItems.length - 1, idx));
+
+      clearTimeout(debounceRef.current);
+      // Wait for scrolling to settle
+      debounceRef.current = setTimeout(() => {
+        onSelect(clamped % items.length);
+      }, 60);
+    });
+  };
+
+  return (
+    <div className="time-picker-scroll-container" style={{ position: 'relative', height: '150px', flex: 1 }}>
+      <div style={{ position: 'absolute', top: '50%', left: '0', right: '0', height: '40px', transform: 'translateY(-50%)', background: '#3b82f6', borderRadius: '12px', zIndex: 0, boxShadow: '0 6px 20px rgba(59,130,246,0.35)', pointerEvents: 'none' }} />
+
+      <div 
+        ref={scrollRef}
+        onScroll={handleScroll}
+        className="custom-scrollbar hide-scrollbar"
+        style={{ height: '150px', overflowY: 'auto', position: 'relative', padding: '55px 0', zIndex: 2, scrollSnapType: 'y mandatory', maskImage: 'linear-gradient(to bottom, transparent, black 40%, black 60%, transparent)', WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 40%, black 60%, transparent)' }}
+      >
+        {extendedItems.map((item, i) => {
+          const isSel = selectedIdx === (i % items.length);
+          return (
+            <div
+              key={i}
+              onClick={() => {
+                onSelect(i % items.length);
+                if (scrollRef.current && scrollRef.current.children[i]) {
+                  scrollRef.current.children[i].scrollIntoView({ block: 'center', behavior: 'smooth' });
+                }
+              }}
+              style={{ height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem', fontWeight: 800, color: isSel ? 'white' : 'rgba(255,255,255,0.3)', cursor: 'pointer', transform: isSel ? 'scale(1.15)' : 'scale(1)', transition: 'transform 0.2s ease, color 0.15s ease', scrollSnapAlign: 'center', lineHeight: 1, willChange: 'transform' }}
+            >
+              {item}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 
 export default function TimePickerModal({ stop, dayDate, onSave, onClose }) {
   const { t } = useI18n();
@@ -26,9 +99,16 @@ export default function TimePickerModal({ stop, dayDate, onSave, onClose }) {
   const initialPeriod = stop.period || 'AM';
   const [h, m] = initialTime.split(':');
 
-  const [selectedIdx, setSelectedIdx] = useState(() => {
-    const idx = TIMES.findIndex(t => t.h === h && t.m === m && t.p === initialPeriod);
-    return idx >= 0 ? idx : 20;
+  const [period, setPeriod] = useState(initialPeriod);
+
+  const [hourIdx, setHourIdx] = useState(() => {
+    const idx = HOURS.indexOf(h);
+    return idx >= 0 ? idx : 9; // Default 10
+  });
+
+  const [minIdx, setMinIdx] = useState(() => {
+    const idx = MINUTES.indexOf(m);
+    return idx >= 0 ? idx : 0; // Default 00
   });
 
   // Determine which weekday this stop falls on (for "Closed" detection)
@@ -59,38 +139,25 @@ export default function TimePickerModal({ stop, dayDate, onSave, onClose }) {
     }
   }, [stop.placeId]);
 
-  useEffect(() => {
-    if (scrollRef.current && selectedIdx >= 0) {
-      const el = scrollRef.current.children[selectedIdx];
-      if (el) {
-        el.scrollIntoView({ block: 'center', behavior: 'auto' });
-      }
-    }
-    return () => {
-      cancelAnimationFrame(rafRef.current);
-      clearTimeout(debounceRef.current);
-    };
-  }, []);
-
-  // O(1) scroll handler: compute center item from scrollTop math, throttle with rAF, debounce state update
-  const handleScroll = () => {
-    if (rafRef.current) return;
-    rafRef.current = requestAnimationFrame(() => {
-      rafRef.current = null;
-      if (!scrollRef.current) return;
-      const st = scrollRef.current.scrollTop;
-      const centerOffset = st + scrollRef.current.offsetHeight / 2 - PADDING_TOP;
-      const idx = Math.round((centerOffset - ITEM_HEIGHT / 2) / ITEM_HEIGHT);
-      const clamped = Math.max(0, Math.min(TIMES.length - 1, idx));
-
-      clearTimeout(debounceRef.current);
-      debounceRef.current = setTimeout(() => setSelectedIdx(clamped), 60);
-    });
+  const handleSave = () => {
+    const timeH = HOURS[hourIdx];
+    const timeM = MINUTES[minIdx];
+    onSave?.({ time: `${timeH}:${timeM}`, period, openingHours });
+    onClose();
   };
 
-  const handleSave = () => {
-    const time = TIMES[selectedIdx];
-    onSave?.({ time: `${time.h}:${time.m}`, period: time.p, openingHours });
+  const handlePunchIn = () => {
+    const now = new Date();
+    let hours = now.getHours();
+    const minutes = now.getMinutes();
+    const isPM = hours >= 12;
+    const currentPeriod = isPM ? 'PM' : 'AM';
+    hours = hours % 12 || 12;
+
+    const timeH = String(hours).padStart(2, '0');
+    const timeM = String(minutes).padStart(2, '0');
+
+    onSave?.({ time: `${timeH}:${timeM}`, period: currentPeriod, openingHours });
     onClose();
   };
 
@@ -195,91 +262,61 @@ export default function TimePickerModal({ stop, dayDate, onSave, onClose }) {
           </div>
 
           {/* Right: Time Selection */}
-          <div className="time-picker-selector" style={{ textAlign: 'center', position: 'relative', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <div className="time-picker-selector" style={{ textAlign: 'center', position: 'relative', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
             
-            <div className="time-picker-scroll-container" style={{ position: 'relative', height: '150px' }}>
-              {/* FIXED Selection Highlight (Stay in place, items roll behind it) */}
-              <div style={{ 
-                position: 'absolute', 
-                top: '50%', 
-                left: '0', 
-                right: '0', 
-                height: '40px', 
-                transform: 'translateY(-50%)', 
-                background: '#3b82f6', 
-                borderRadius: '12px', 
-                zIndex: 0,
-                boxShadow: '0 6px 20px rgba(59,130,246,0.35)',
-                pointerEvents: 'none'
-              }} />
-
-              <div 
-                ref={scrollRef}
-                onScroll={handleScroll}
-                className="custom-scrollbar hide-scrollbar"
-                style={{ 
-                  height: '150px', 
-                  overflowY: 'auto', 
-                  position: 'relative',
-                  padding: '55px 0',
-                  zIndex: 2,
-                  scrollSnapType: 'y mandatory',
-                  maskImage: 'linear-gradient(to bottom, transparent, black 40%, black 60%, transparent)',
-                  WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 40%, black 60%, transparent)'
-                }}
+            {/* AM/PM Toggle */}
+            <div style={{ display: 'flex', background: 'rgba(255,255,255,0.06)', borderRadius: '12px', padding: '4px', marginBottom: '1.5rem', width: '100%', maxWidth: '200px' }}>
+              <button
+                onClick={() => setPeriod('AM')}
+                style={{ flex: 1, padding: '8px 0', border: 'none', background: period === 'AM' ? '#3b82f6' : 'transparent', color: period === 'AM' ? 'white' : 'rgba(255,255,255,0.5)', borderRadius: '8px', fontWeight: 800, fontSize: '0.95rem', cursor: 'pointer', transition: 'all 0.2s', boxShadow: period === 'AM' ? '0 4px 12px rgba(59,130,246,0.3)' : 'none' }}
               >
-                {TIMES.map((t, i) => {
-                  const isSel = selectedIdx === i;
-                  return (
-                    <div
-                      key={i}
-                      onClick={() => {
-                        setSelectedIdx(i);
-                        scrollRef.current.children[i].scrollIntoView({ block: 'center', behavior: 'smooth' });
-                      }}
-                      style={{
-                        height: '40px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '6px',
-                        fontSize: '1.25rem',
-                        fontWeight: 800,
-                        color: isSel ? 'white' : 'rgba(255,255,255,0.3)',
-                        cursor: 'pointer',
-                        transform: isSel ? 'scale(1.15)' : 'scale(1)',
-                        transition: 'transform 0.2s ease, color 0.15s ease',
-                        scrollSnapAlign: 'center',
-                        lineHeight: 1,
-                        willChange: 'transform'
-                      }}
-                    >
-                      <span>{t.h}:{t.m}</span>
-                      <span style={{ fontSize: '0.7rem', fontWeight: 700, opacity: isSel ? 0.9 : 0.7 }}>{t.p}</span>
-                    </div>
-                  );
-                })}
-              </div>
+                {t('common.am') || 'AM'}
+              </button>
+              <button
+                onClick={() => setPeriod('PM')}
+                style={{ flex: 1, padding: '8px 0', border: 'none', background: period === 'PM' ? '#3b82f6' : 'transparent', color: period === 'PM' ? 'white' : 'rgba(255,255,255,0.5)', borderRadius: '8px', fontWeight: 800, fontSize: '0.95rem', cursor: 'pointer', transition: 'all 0.2s', boxShadow: period === 'PM' ? '0 4px 12px rgba(59,130,246,0.3)' : 'none' }}
+              >
+                {t('common.pm') || 'PM'}
+              </button>
             </div>
+
+            {/* Scrolling Wheels */}
+            <div style={{ display: 'flex', gap: '8px', width: '100%', maxWidth: '280px' }}>
+              <ScrollColumn items={HOURS} selectedIdx={hourIdx} onSelect={setHourIdx} />
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', fontWeight: 800, color: 'rgba(255,255,255,0.5)' }}>:</div>
+              <ScrollColumn items={MINUTES} selectedIdx={minIdx} onSelect={setMinIdx} />
+            </div>
+
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginTop: '1.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr 1fr', gap: '0.8rem', marginTop: '1.2rem' }}>
           <button 
             onClick={onClose}
-            style={{ padding: '1.2rem', borderRadius: '20px', background: 'rgba(255,255,255,0.06)', border: 'none', color: 'rgba(255,255,255,0.85)', fontWeight: 800, cursor: 'pointer', fontSize: '1.1rem', transition: 'all 0.2s' }}
+            style={{ padding: '0.8rem 0.5rem', borderRadius: '16px', background: 'rgba(255,255,255,0.06)', border: 'none', color: 'rgba(255,255,255,0.85)', fontWeight: 800, cursor: 'pointer', fontSize: '0.95rem', transition: 'all 0.2s' }}
             onMouseOver={(e) => e.target.style.background = 'rgba(255,255,255,0.1)'}
             onMouseOut={(e) => e.target.style.background = 'rgba(255,255,255,0.06)'}
           >
-            Cancel
+            {t('common.cancel') || 'Cancel'}
           </button>
+          
+          <button 
+            onClick={handlePunchIn}
+            style={{ padding: '0.8rem 0.5rem', borderRadius: '16px', background: 'rgba(249,115,22,0.15)', border: '1px solid rgba(249,115,22,0.3)', color: '#f97316', fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
+            onMouseOver={(e) => e.target.style.background = 'rgba(249,115,22,0.25)'}
+            onMouseOut={(e) => e.target.style.background = 'rgba(249,115,22,0.15)'}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>location_on</span>
+            {t('itinerary.punch_in') || '打卡此时'}
+          </button>
+
           <button 
             onClick={handleSave}
-            style={{ padding: '1.2rem', borderRadius: '20px', background: '#3b82f6', border: 'none', color: 'white', fontWeight: 800, cursor: 'pointer', fontSize: '1.1rem', boxShadow: '0 10px 30px rgba(59,130,246,0.3)', transition: 'all 0.2s' }}
+            style={{ padding: '0.8rem 0.5rem', borderRadius: '16px', background: '#3b82f6', border: 'none', color: 'white', fontWeight: 800, cursor: 'pointer', fontSize: '0.95rem', boxShadow: '0 6px 15px rgba(59,130,246,0.3)', transition: 'all 0.2s' }}
             onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
             onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
           >
-            Save
+            {t('common.save') || 'Save'}
           </button>
         </div>
       </div>

@@ -1,5 +1,7 @@
 {
-    "_meta": { "label": "中文" },
+    "_meta": {
+        "label": "中文"
+    },
     "common": {
         "cancel": "取消",
         "confirm": "确定",
@@ -46,6 +48,7 @@
     "dashboard": {
         "title": " 的旅行仪表盘",
         "subtitle": "规划您的下一次精彩冒险",
+        "today_checkin": "今日打卡",
         "new_trip": "新建旅行",
         "new_trip_default_title": "我的新旅行",
         "filter_all": "全部",
@@ -154,6 +157,11 @@
         "add_expense": "添加支出",
         "edit_expense": "修改支出",
         "navigate": "导航",
+        "walk": "步行",
+        "drive": "驾车",
+        "transit": "公共交通",
+        "no_route": "无路线",
+        "stops": "站",
         "select_appointment_approx": "选择预约大概时间",
         "scheduled_time": "预约时间",
         "opening_hours": "地点营业时间",
@@ -207,13 +215,15 @@
         "back_web_link": "确认链接",
         "back_qr_code": "二维码凭证",
         "swipe_back": "右滑返回",
+        "flip_card": "翻转卡片",
         "private_note_title_label": "标题",
         "private_note_title_placeholder": "如：酒店确认号、取票信息...",
         "private_note_content_label": "内容",
         "private_note_content_placeholder": "记录任何私密信息：确认码、密码、提醒事项...",
         "take_photo": "拍照",
         "choose_photo": "从相册选择",
-        "no_attachments": "还没有附件，点上方按钮添加"
+        "no_attachments": "还没有附件，点上方按钮添加",
+        "punch_in": "打卡此时"
     },
     "auth": {
         "tagline": "开启您的全球智能旅行规划之旅",
@@ -263,6 +273,13 @@
         "category_gas": "加油站",
         "category_charging": "电动车充电",
         "category_lodging": "酒店",
+        "nearby_checkin": "附近打卡",
+        "checkin_cat_all": "全部",
+        "checkin_cat_cafe": "咖啡",
+        "checkin_cat_shopping": "购物",
+        "checkin_add": "打卡",
+        "checkin_added": "已打卡",
+        "no_nearby": "附近暂无结果",
         "place_restaurant": "餐厅",
         "place_cafe": "咖啡馆",
         "place_bar": "酒吧",

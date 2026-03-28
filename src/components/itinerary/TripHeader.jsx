@@ -10,7 +10,16 @@ function formatDateShort(dateStr) {
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-export default function TripHeader({ trip, onDeleteTrip, onEditTrip, onShareTrip }) {
+function formatCheckinDate(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr.replace(/-/g, '/'));
+  if (isNaN(d)) return dateStr;
+  const weekday = d.toLocaleDateString(undefined, { weekday: 'long' });
+  const full = d.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
+  return { weekday, full };
+}
+
+export default function TripHeader({ trip, onDeleteTrip, onEditTrip, onShareTrip, isDayMode = false }) {
   const { t } = useI18n();
   const { state } = useApp();
   const [showMenu, setShowMenu] = useState(false);
@@ -43,62 +52,86 @@ export default function TripHeader({ trip, onDeleteTrip, onEditTrip, onShareTrip
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          {/* Thumbnail */}
-          <div
-            style={{
-              width: '56px',
-              height: '56px',
-              borderRadius: '12px',
-              background: trip.thumb ? `url(${trip.thumb}) center/cover no-repeat` : 'rgba(255,255,255,0.05)',
-              border: '1px solid var(--glass-border)',
-              flexShrink: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              overflow: 'hidden'
-            }}
-          >
-            {!trip.thumb && <span className="material-symbols-outlined" style={{ opacity: 0.2 }}>image</span>}
-          </div>
-
-          {/* Title + meta */}
-          <div>
-            <h2 style={{ margin: 0, fontSize: '1.25rem', lineHeight: 1.2 }}>{trip.title}</h2>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginTop: '0.3rem', flexWrap: 'wrap' }}>
-              <span style={{ color: 'var(--text-secondary)', fontSize: '0.82rem' }}>
-                {formatDateShort(trip.startDate)} - {formatDateShort(trip.endDate)}
-              </span>
-              {dayCount > 0 && (
-                <span className="header-badge">{dayCount} {t('itinerary.days') || 'days'}</span>
-              )}
-              {totalCost > 0 && (
-                <span className="header-badge">{formatCurrency(totalCost, state.settings)}</span>
-              )}
+          {isDayMode ? (
+            /* Day mode: show weekday + full date + daily cost */
+            <div>
+              {(() => {
+                const dateInfo = formatCheckinDate(trip.startDate);
+                return (
+                  <>
+                    <h2 style={{ margin: 0, fontSize: '1.25rem', lineHeight: 1.2 }}>{dateInfo.weekday}</h2>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginTop: '0.3rem', flexWrap: 'wrap' }}>
+                      <span style={{ color: 'var(--text-secondary)', fontSize: '0.82rem' }}>{dateInfo.full}</span>
+                      {totalCost > 0 && (
+                        <span className="header-badge">{formatCurrency(totalCost, state.settings)}</span>
+                      )}
+                    </div>
+                  </>
+                );
+              })()}
             </div>
-          </div>
-        </div>
+          ) : (
+            <>
+              {/* Thumbnail */}
+              <div
+                style={{
+                  width: '56px',
+                  height: '56px',
+                  borderRadius: '12px',
+                  background: trip.thumb ? `url(${trip.thumb}) center/cover no-repeat` : 'rgba(255,255,255,0.05)',
+                  border: '1px solid var(--glass-border)',
+                  flexShrink: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  overflow: 'hidden'
+                }}
+              >
+                {!trip.thumb && <span className="material-symbols-outlined" style={{ opacity: 0.2 }}>image</span>}
+              </div>
 
-        {/* Menu */}
-        <div ref={menuRef} style={{ position: 'relative' }}>
-          <button
-            className="menu-dots"
-            onClick={() => setShowMenu(v => !v)}
-          >⋮</button>
-          {showMenu && (
-            <div className="menu-dropdown active" style={{ top: '2rem', right: 0 }}>
-              <button onClick={() => { onEditTrip?.(); setShowMenu(false); }}>
-                {t('itinerary.edit_trip') || 'Edit trip'}
-              </button>
-              <button onClick={() => { onShareTrip?.(); setShowMenu(false); }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>share</span>
-                {t('itinerary.share_trip') || 'Share trip'}
-              </button>
-              <button className="danger" onClick={() => { onDeleteTrip?.(trip.id); setShowMenu(false); }}>
-                {t('itinerary.delete_trip') || 'Delete trip'}
-              </button>
-            </div>
+              {/* Title + meta */}
+              <div>
+                <h2 style={{ margin: 0, fontSize: '1.25rem', lineHeight: 1.2 }}>{trip.title}</h2>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginTop: '0.3rem', flexWrap: 'wrap' }}>
+                  <span style={{ color: 'var(--text-secondary)', fontSize: '0.82rem' }}>
+                    {formatDateShort(trip.startDate)} - {formatDateShort(trip.endDate)}
+                  </span>
+                  {dayCount > 0 && (
+                    <span className="header-badge">{dayCount} {t('itinerary.days') || 'days'}</span>
+                  )}
+                  {totalCost > 0 && (
+                    <span className="header-badge">{formatCurrency(totalCost, state.settings)}</span>
+                  )}
+                </div>
+              </div>
+            </>
           )}
         </div>
+
+        {/* Menu — 单天打卡模式下隐藏行程编辑/分享/删除 */}
+        {!isDayMode && (
+          <div ref={menuRef} style={{ position: 'relative' }}>
+            <button
+              className="menu-dots"
+              onClick={() => setShowMenu(v => !v)}
+            >⋮</button>
+            {showMenu && (
+              <div className="menu-dropdown active" style={{ top: '2rem', right: 0 }}>
+                <button onClick={() => { onEditTrip?.(); setShowMenu(false); }}>
+                  {t('itinerary.edit_trip') || 'Edit trip'}
+                </button>
+                <button onClick={() => { onShareTrip?.(); setShowMenu(false); }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>share</span>
+                  {t('itinerary.share_trip') || 'Share trip'}
+                </button>
+                <button className="danger" onClick={() => { onDeleteTrip?.(trip.id); setShowMenu(false); }}>
+                  {t('itinerary.delete_trip') || 'Delete trip'}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -16,6 +16,10 @@ const initialState = {
   dashboardView: 'grid',
   sidebarCollapsed: false,
   isLoading: true,
+  transitPreview: null, // { steps: [...] } — temporary transit route to preview on map
+  // v2: day-centric architecture
+  days: {},        // { [date: string]: DayObject } — 全局日期索引
+  tripsV2: [],     // Trip 元数据列表（不含 days 内容）
 };
 
 function appReducer(state, action) {
@@ -51,6 +55,39 @@ function appReducer(state, action) {
       return { ...state, editState: { editingStopId: null, editingDayId: null, modalType: null } };
     case 'LOGOUT':
       return { ...initialState, isLoading: false };
+
+    // v2 actions
+    case 'SET_TRIPS_V2':
+      return { ...state, tripsV2: action.payload };
+    case 'UPDATE_TRIP_V2': {
+      const exists = state.tripsV2.find(t => t.id === action.payload.id);
+      if (exists) {
+        return { ...state, tripsV2: state.tripsV2.map(t => t.id === action.payload.id ? action.payload : t) };
+      }
+      return { ...state, tripsV2: [action.payload, ...state.tripsV2] };
+    }
+    case 'DELETE_TRIP_V2':
+      return { ...state, tripsV2: state.tripsV2.filter(t => t.id !== action.payload) };
+    case 'SET_DAYS':
+      // payload: DayObject[] — 合并进 days 索引（按 date 为 key）
+      return {
+        ...state,
+        days: action.payload.reduce((acc, day) => {
+          acc[day.date] = day;
+          return acc;
+        }, { ...state.days }),
+      };
+    case 'UPSERT_DAY':
+      return { ...state, days: { ...state.days, [action.payload.date]: action.payload } };
+    case 'DELETE_DAY': {
+      const next = { ...state.days };
+      delete next[action.payload]; // payload = date string
+      return { ...state, days: next };
+    }
+
+    case 'SET_TRANSIT_PREVIEW':
+      return { ...state, transitPreview: action.payload };
+
     default:
       return state;
   }

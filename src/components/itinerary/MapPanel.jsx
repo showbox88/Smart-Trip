@@ -3,57 +3,162 @@ import { useApp } from '../../context/AppContext';
 import { useI18n } from '../../context/I18nContext';
 import MapInfoPanel from './MapInfoPanel';
 import MapSearchBox from './MapSearchBox';
+import NearbyCheckinPanel from './NearbyCheckinPanel';
 import { getTripStayMap, isHotelStop } from '../../utils/stayHelpers';
 
-const TRAVEL_MODE_MAP = { 'DRIVE': 'DRIVING', 'WALK': 'WALKING' };
+const TRAVEL_MODE_MAP = { 'DRIVE': 'DRIVING', 'WALK': 'WALKING', 'TRANSIT': 'TRANSIT' };
+
+// Draw an array of transit steps (raw Routes API step objects or normalized fetchTransitDetails steps)
+// rawSteps: raw from computeRoutes legs → uses step.polyline.encodedPolyline + step.transitDetails.line.color
+// normalizedSteps: from fetchTransitDetails → uses step.encodedPolyline + step.lineColor
+async function decodeAndDrawSteps(steps, fallbackColor, mapInstance, normalized = false) {
+  const { encoding } = await google.maps.importLibrary('geometry');
+  const polylines = [];
+  for (const step of steps) {
+    const encoded = normalized ? step.encodedPolyline : step.polyline?.encodedPolyline;
+    if (!encoded) continue;
+    const path = encoding.decodePath(encoded);
+    if (!path?.length) continue;
+    const isWalk = step.travelMode === 'WALK' || step.travelMode === 'WALKING';
+    const lineColor = normalized ? step.lineColor : step.transitDetails?.line?.color;
+    const strokeColor = (!isWalk && lineColor) ? lineColor : (isWalk ? '#888888' : fallbackColor);
+    const poly = new google.maps.Polyline({
+      path,
+      strokeColor,
+      strokeOpacity: isWalk ? 0 : 0.9,
+      strokeWeight: isWalk ? 2 : 5,
+      map: mapInstance,
+      ...(isWalk ? {
+        icons: [{ icon: { path: 'M 0,-1 0,1', strokeOpacity: 0.6, scale: 3 }, offset: '0', repeat: '10px' }],
+      } : {}),
+    });
+    polylines.push(poly);
+  }
+  return polylines;
+}
+
+async function tryDrawRoute(routePath, color, mapInstance, googleMode) {
+  const { Route } = await google.maps.importLibrary('routes');
+  const origin = routePath[0];
+  const dest = routePath[routePath.length - 1];
+
+  if (googleMode === 'TRANSIT') {
+    // TRANSIT: no intermediates allowed; use createPolylines() for the route path,
+    // then try to extract step-level colors for segmented drawing
+    const { routes } = await Route.computeRoutes({
+      origin: new google.maps.LatLng(Number(origin.lat), Number(origin.lng)),
+      destination: new google.maps.LatLng(Number(dest.lat), Number(dest.lng)),
+      travelMode: 'TRANSIT',
+      fields: ['path', 'legs'],
+    });
+    if (!routes?.[0]) return null;
+    const route = routes[0];
+    const leg = route.legs?.[0];
+    const steps = leg?.steps || [];
+
+    // Try step-level colored drawing: check if steps expose polyline via any known accessor
+    if (steps.length > 0) {
+      const { encoding } = await google.maps.importLibrary('geometry');
+      const drawnPolylines = [];
+      for (const step of steps) {
+        // JS SDK may expose polyline as .polyline.encodedPolyline, .encodedPolyline, or via obfuscated keys
+        const encoded = step.polyline?.encodedPolyline
+          || step.encodedPolyline
+          || step.polylineEncoded;
+        if (!encoded) continue;
+        const path = encoding.decodePath(encoded);
+        if (!path?.length) continue;
+        const isWalk = step.travelMode === 'WALK' || step.travelMode === 'WALKING';
+        const lineColor = step.transitDetails?.line?.color;
+        const strokeColor = (!isWalk && lineColor) ? lineColor : (isWalk ? '#888888' : color);
+        const poly = new google.maps.Polyline({
+          path, strokeColor,
+          strokeOpacity: isWalk ? 0 : 0.9,
+          strokeWeight: isWalk ? 2 : 5,
+          map: mapInstance,
+          ...(isWalk ? { icons: [{ icon: { path: 'M 0,-1 0,1', strokeOpacity: 0.6, scale: 3 }, offset: '0', repeat: '10px' }] } : {}),
+        });
+        drawnPolylines.push(poly);
+      }
+      if (drawnPolylines.length > 0) return drawnPolylines;
+    }
+
+    // Fallback: draw entire transit route as single-color polyline via createPolylines()
+    const polylines = route.createPolylines();
+    polylines.forEach(p => {
+      p.setOptions({
+        strokeColor: color,
+        strokeOpacity: 0.8,
+        strokeWeight: 4,
+      });
+      p.setMap(mapInstance);
+    });
+    return polylines.length > 0 ? polylines : null;
+  }
+
+  const intermediates = routePath.slice(1, -1).slice(0, 25).map(p => ({
+    location: new google.maps.LatLng(Number(p.lat), Number(p.lng))
+  }));
+
+  const { routes } = await Route.computeRoutes({
+    origin: new google.maps.LatLng(Number(origin.lat), Number(origin.lng)),
+    destination: new google.maps.LatLng(Number(dest.lat), Number(dest.lng)),
+    travelMode: googleMode,
+    ...(intermediates.length ? { intermediates } : {}),
+    fields: ['path'],
+  });
+
+  if (!routes?.[0]) return null;
+
+  const isWalk = googleMode === 'WALKING';
+  const polylines = routes[0].createPolylines();
+  polylines.forEach(p => {
+    p.setOptions({
+      strokeColor: color,
+      strokeOpacity: isWalk ? 0 : 0.8,
+      strokeWeight: 4,
+      ...(isWalk ? {
+        icons: [{ icon: { path: 'M 0,-1 0,1', strokeOpacity: 0.8, scale: 3 }, offset: '0', repeat: '12px' }],
+      } : {}),
+    });
+    p.setMap(mapInstance);
+  });
+  return polylines;
+}
+
+// Draw transit route using pre-fetched normalized step data (from fetchTransitDetails)
+// Returns [] if no encodedPolylines in steps (caller should fall back to tryDrawRoute)
+async function drawTransitSteps(steps, color, mapInstance) {
+  try {
+    const hasPolylines = steps.some(s => s.encodedPolyline);
+    if (!hasPolylines) return [];
+    return await decodeAndDrawSteps(steps, color, mapInstance, true);
+  } catch (err) {
+    console.warn('[MapPanel] drawTransitSteps failed:', err);
+    return [];
+  }
+}
 
 async function fetchAndDrawRoute(routePath, color, mapInstance, travelMode = 'DRIVE') {
   try {
     if (typeof google === 'undefined') return [];
-    const { Route } = await google.maps.importLibrary('routes');
-    const origin = routePath[0];
-    const dest = routePath[routePath.length - 1];
-    const intermediates = routePath.slice(1, -1).slice(0, 25).map(p => ({
-      location: new google.maps.LatLng(Number(p.lat), Number(p.lng))
-    }));
 
-    const googleMode = TRAVEL_MODE_MAP[travelMode] || 'DRIVING';
+    const primaryMode = TRAVEL_MODE_MAP[travelMode] || 'DRIVING';
+    let polylines = await tryDrawRoute(routePath, color, mapInstance, primaryMode);
 
-    const { routes } = await Route.computeRoutes({
-      origin: new google.maps.LatLng(Number(origin.lat), Number(origin.lng)),
-      destination: new google.maps.LatLng(Number(dest.lat), Number(dest.lng)),
-      travelMode: googleMode,
-      intermediates,
-      fields: ['path'],
-    });
+    // Fallback to TRANSIT if DRIVE/WALK returns nothing (e.g. South Korea)
+    if (!polylines && primaryMode !== 'TRANSIT') {
+      polylines = await tryDrawRoute(routePath, color, mapInstance, 'TRANSIT');
+    }
 
-    if (!routes?.[0]) return [];
-
-    const isWalk = travelMode === 'WALK';
-    const polylines = routes[0].createPolylines();
-    polylines.forEach(p => {
-      p.setOptions({
-        strokeColor: color,
-        strokeOpacity: isWalk ? 0 : 0.8,
-        strokeWeight: isWalk ? 3 : 4,
-        ...(isWalk ? {
-          icons: [{
-            icon: { path: 'M 0,-1 0,1', strokeOpacity: 0.8, scale: 3 },
-            offset: '0',
-            repeat: '12px',
-          }],
-        } : {}),
-      });
-      p.setMap(mapInstance);
-    });
-    return polylines;
+    return polylines || [];
   } catch (err) {
     console.warn('[MapPanel] Routes API failed:', err?.message || err);
     return [];
   }
 }
 
-const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [] }, ref) {
+const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [], isDayMode = false, dayId = null, existingPlaceIds = [] }, ref) {
   const { state } = useApp();
   const { t } = useI18n();
   const mapRef = useRef(null);
@@ -77,6 +182,9 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [] }, 
   const renderDebounceRef = useRef(null);
   const [gpsToast, setGpsToast] = useState(null);
   const [showLocPrompt, setShowLocPrompt] = useState(false);
+  // v2 day mode
+  const [userLocation, setUserLocation] = useState(null);       // { lat, lng }
+  const [showCheckinPanel, setShowCheckinPanel] = useState(false);
 
   useEffect(() => {
     selectedPlaceIdRef.current = selectedPlaceId;
@@ -314,7 +422,7 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [] }, 
         const isHotel = isHotelStop(stop);
 
         if ((isLoc || isHotel) && stop.lat && stop.lng) {
-          const pos = { lat: Number(stop.lat), lng: Number(stop.lng), transitMode: stop.transitMode || 'DRIVE' };
+          const pos = { lat: Number(stop.lat), lng: Number(stop.lng), transitMode: stop.transitMode || 'DRIVE', transitSteps: stop.transitToNext?.steps || null };
           if (isNaN(pos.lat) || isNaN(pos.lng)) return;
 
           routePath.push(pos);
@@ -563,6 +671,39 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [] }, 
           try {
             for (const seg of segments) {
               if (seg.path.length < 2) continue;
+
+              // For transit segments: try pre-fetched step colors first, fall back to tryDrawRoute(TRANSIT)
+              if (seg.mode === 'TRANSIT' || seg.path.some(p => p.transitSteps?.length)) {
+                let anyDrawn = false;
+                for (let pi = 0; pi < seg.path.length - 1; pi++) {
+                  const from = seg.path[pi];
+                  const to = seg.path[pi + 1];
+                  if (from.transitSteps?.length) {
+                    // Try using pre-fetched step data (avoids extra API call)
+                    const stepPolylines = await drawTransitSteps(from.transitSteps, color, mapInst);
+                    if (stepPolylines.length > 0 && mapInstanceRef.current) {
+                      polylinesRef.current.push(...stepPolylines);
+                      anyDrawn = true;
+                      continue;
+                    }
+                  }
+                  // No cached steps or encodedPolyline missing — call API directly (tryDrawRoute handles TRANSIT legs)
+                  const pairPolylines = await tryDrawRoute([from, to], color, mapInst, 'TRANSIT');
+                  if (pairPolylines?.length > 0 && mapInstanceRef.current) {
+                    polylinesRef.current.push(...pairPolylines);
+                    anyDrawn = true;
+                  }
+                }
+                if (!anyDrawn) {
+                  const fallbackPoly = new google.maps.Polyline({
+                    path: seg.path, strokeColor: color, strokeOpacity: 0, strokeWeight: 3, map: mapInst,
+                    icons: [{ icon: { path: 'M 0,-1 0,1', strokeOpacity: 0.6, scale: 3 }, offset: '0', repeat: '14px' }],
+                  });
+                  polylinesRef.current.push(fallbackPoly);
+                }
+                continue;
+              }
+
               const realPolylines = await fetchAndDrawRoute(seg.path, color, mapInst, seg.mode);
               if (realPolylines.length > 0 && mapInstanceRef.current) {
                 polylinesRef.current.push(...realPolylines);
@@ -644,6 +785,55 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [] }, 
     }
     prevHoveredRef.current = next;
   }, [state.hoveredStopId, mapReady]);
+
+  // Transit route preview — draw/clear when transitPreview changes
+  const transitPreviewRef = useRef([]);
+  useEffect(() => {
+    // Clear previous preview polylines
+    transitPreviewRef.current.forEach(p => p.setMap(null));
+    transitPreviewRef.current = [];
+
+    const preview = state.transitPreview;
+    if (!preview?.steps?.length || !mapInstanceRef.current) return;
+
+    (async () => {
+      try {
+        const { encoding } = await google.maps.importLibrary('geometry');
+        const mapInst = mapInstanceRef.current;
+        if (!mapInst) return;
+        const bounds = new google.maps.LatLngBounds();
+        const polylines = [];
+
+        for (const step of preview.steps) {
+          if (!step.encodedPolyline) continue;
+          const path = encoding.decodePath(step.encodedPolyline);
+          if (!path?.length) continue;
+          path.forEach(p => bounds.extend(p));
+          const isWalk = step.travelMode === 'WALKING';
+          const color = (!isWalk && step.lineColor) ? step.lineColor : (isWalk ? '#888888' : '#4ade80');
+          const poly = new google.maps.Polyline({
+            path,
+            strokeColor: color,
+            strokeOpacity: isWalk ? 0 : 0.95,
+            strokeWeight: isWalk ? 3 : 6,
+            map: mapInst,
+            zIndex: 1000,
+            ...(isWalk ? {
+              icons: [{ icon: { path: 'M 0,-1 0,1', strokeOpacity: 0.7, scale: 3 }, offset: '0', repeat: '10px' }],
+            } : {}),
+          });
+          polylines.push(poly);
+        }
+
+        transitPreviewRef.current = polylines;
+        if (!bounds.isEmpty()) {
+          mapInst.fitBounds(bounds, { top: 60, bottom: 60, left: 40, right: 40 });
+        }
+      } catch (err) {
+        console.warn('[MapPanel] transit preview failed:', err);
+      }
+    })();
+  }, [state.transitPreview]);
 
   // Expose focusStop method via ref (no state change = no re-render = no flash)
   const focusStop = useCallback((stopId) => {
@@ -916,6 +1106,56 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [] }, 
     );
   }, [placeLocationMarker, showGpsToast]);
 
+  // isDayMode: 地图 ready 后自动定位，并记录 userLocation 用于打卡面板
+  useEffect(() => {
+    if (!isDayMode || !mapReady || !mapInstanceRef.current) return;
+
+    const autoLocate = async () => {
+      if (!navigator.geolocation) return;
+      if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') return;
+
+      try {
+        const perm = navigator.permissions ? await navigator.permissions.query({ name: 'geolocation' }) : null;
+        const state = perm?.state;
+
+        const doLocate = () => {
+          setLocating(true);
+          navigator.geolocation.getCurrentPosition(
+            async (pos) => {
+              try {
+                const { latitude: lat, longitude: lng, accuracy } = pos.coords;
+                await placeLocationMarker(lat, lng, accuracy);
+                setUserLocation({ lat, lng });
+                setShowCheckinPanel(true);
+              } catch (e) {
+                console.warn('[MapPanel] autoLocate marker error:', e);
+              } finally {
+                setLocating(false);
+              }
+            },
+            (err) => {
+              setLocating(false);
+              console.warn('[MapPanel] autoLocate error:', err.code);
+            },
+            { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+          );
+        };
+
+        if (state === 'granted') {
+          doLocate();
+        } else if (state !== 'denied') {
+          // 显示自定义提示，用户允许后定位并展示打卡面板
+          setShowLocPrompt(true);
+        }
+      } catch {
+        // permissions API 不支持，直接尝试
+        setShowLocPrompt(true);
+      }
+    };
+
+    autoLocate();
+  }, [isDayMode, mapReady]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleLocate = useCallback(async () => {
     if (!mapInstanceRef.current) return;
 
@@ -1070,7 +1310,26 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [] }, 
                 <button
                   onClick={() => {
                     setShowLocPrompt(false);
-                    doGeolocate();
+                    if (isDayMode) {
+                      // 定位后同时记录坐标用于打卡面板
+                      setLocating(true);
+                      navigator.geolocation.getCurrentPosition(
+                        async (pos) => {
+                          try {
+                            const { latitude: lat, longitude: lng, accuracy } = pos.coords;
+                            await placeLocationMarker(lat, lng, accuracy);
+                            setUserLocation({ lat, lng });
+                            setShowCheckinPanel(true);
+                          } finally {
+                            setLocating(false);
+                          }
+                        },
+                        () => setLocating(false),
+                        { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+                      );
+                    } else {
+                      doGeolocate();
+                    }
                   }}
                   style={{
                     width: '100%', padding: '11px', borderRadius: '12px',
@@ -1103,6 +1362,19 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [] }, 
               lastCloseTimeRef.current = Date.now();
             }}
             onAddToDay={onAddToDay}
+          />
+        )}
+
+        {/* 打卡面板：isDayMode 且已定位时显示 */}
+        {isDayMode && showCheckinPanel && userLocation && mapInstanceRef.current && (
+          <NearbyCheckinPanel
+            mapInstance={mapInstanceRef.current}
+            userLocation={userLocation}
+            existingPlaceIds={existingPlaceIds}
+            onAddPlace={async (placeId) => {
+              if (dayId) await onAddToDay?.(dayId, placeId, true); // true = useNow，记录实时打卡时间
+            }}
+            onClose={() => setShowCheckinPanel(false)}
           />
         )}
       </div>

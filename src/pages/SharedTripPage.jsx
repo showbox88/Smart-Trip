@@ -68,17 +68,41 @@ export default function SharedTripPage() {
     setLoadingPage(true);
     supabase
       .from('trips')
-      .select('trip_data, title, thumb')
+      .select(`
+        trip_data, title, thumb, start_date, end_date,
+        trip_days ( days_v2 ( id, date, title, color, stops_data ) )
+      `)
       .eq('share_token', token)
       .single()
       .then(({ data, error: err }) => {
         if (err || !data) {
           setError('not_found');
+          setLoadingPage(false);
+          return;
+        }
+
+        if (data.trip_data) {
+          // v1 trip
+          setTripData({ ...data.trip_data, title: data.title, thumb: data.thumb });
         } else {
+          // v2 trip — build days from trip_days join
+          const days = (data.trip_days || [])
+            .map(td => td.days_v2)
+            .filter(Boolean)
+            .sort((a, b) => (a.date > b.date ? 1 : -1))
+            .map(d => ({
+              id: d.id,
+              date: d.date,
+              label: d.title,
+              color: d.color,
+              stops: Array.isArray(d.stops_data) ? d.stops_data : [],
+            }));
           setTripData({
-            ...data.trip_data,
             title: data.title,
             thumb: data.thumb,
+            startDate: data.start_date,
+            endDate: data.end_date,
+            days,
           });
         }
         setLoadingPage(false);
