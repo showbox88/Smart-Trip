@@ -114,8 +114,8 @@ export default memo(function DaySection({
 
   const renderStop = (stop, index) => {
     const isPoi = stop.type === 'location' || !stop.type || stop.type === 'hotel_checkin' || stop.type === 'hotel_checkout';
-    const hasNextPoi = stops.slice(index + 1).some(s => s.type === 'location' || !s.type || s.type === 'hotel_checkin' || s.type === 'hotel_checkout');
-    const showTransit = isPoi && hasNextPoi;
+    const nextPoiStop = stops.slice(index + 1).find(s => s.type === 'location' || !s.type || s.type === 'hotel_checkin' || s.type === 'hotel_checkout');
+    const showTransit = isPoi && !!nextPoiStop;
 
     // Calculate display index for POI (location/hotel) reset per day
     let displayIndex = null;
@@ -156,6 +156,7 @@ export default memo(function DaySection({
           stop={stop} dayId={day.id} dayColor={activeColor}
           index={displayIndex ? displayIndex - 1 : index}
           showTransit={showTransit}
+          nextStop={nextPoiStop}
           dayWeekdayIdx={dayWeekdayIdx}
           isToday={isToday}
           onDelete={onDeleteStop}

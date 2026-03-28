@@ -16,6 +16,7 @@ const initialState = {
   dashboardView: 'grid',
   sidebarCollapsed: false,
   isLoading: true,
+  transitPreview: null, // { steps: [...] } — temporary transit route to preview on map
   // v2: day-centric architecture
   days: {},        // { [date: string]: DayObject } — 全局日期索引
   tripsV2: [],     // Trip 元数据列表（不含 days 内容）
@@ -83,6 +84,9 @@ function appReducer(state, action) {
       delete next[action.payload]; // payload = date string
       return { ...state, days: next };
     }
+
+    case 'SET_TRANSIT_PREVIEW':
+      return { ...state, transitPreview: action.payload };
 
     default:
       return state;

@@ -241,7 +241,8 @@ export function useTripEditor(tripId) {
       const day = findDayById(updated, dayId);
       const stop = findStopById(day, stopId);
       if (!stop) return false;
-      stop.transitMode = stop.transitMode === 'WALK' ? 'DRIVE' : 'WALK';
+      const cycle = { 'DRIVE': 'WALK', 'WALK': 'TRANSIT', 'TRANSIT': 'DRIVE' };
+      stop.transitMode = cycle[stop.transitMode] || 'WALK';
       return updated;
     });
 
@@ -255,10 +256,11 @@ export function useTripEditor(tripId) {
       const day = findDayById(updated, dayId);
       const stop = findStopById(day, stopId);
       if (!stop) return false;
+      const cycle = { 'DRIVE': 'WALK', 'WALK': 'TRANSIT', 'TRANSIT': 'DRIVE' };
       if (direction === 'from') {
-        stop.transitModeFromHotel = stop.transitModeFromHotel === 'WALK' ? 'DRIVE' : 'WALK';
+        stop.transitModeFromHotel = cycle[stop.transitModeFromHotel] || 'WALK';
       } else {
-        stop.transitModeToHotel = stop.transitModeToHotel === 'WALK' ? 'DRIVE' : 'WALK';
+        stop.transitModeToHotel = cycle[stop.transitModeToHotel] || 'WALK';
       }
       return updated;
     });

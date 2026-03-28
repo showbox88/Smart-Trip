@@ -61,6 +61,7 @@ function getStopTimeStatus(stop, isToday, t) {
 
 export default React.memo(function StopCard({
   stop, dayId, dayColor, index, showTransit, dayWeekdayIdx, isToday,
+  nextStop,
   onDelete, onToggleTransitMode, onOpenTimePicker, onOpenExpense, onOpenStayInfo,
   onChangePhoto, onAddStop, onAddNote, onAddList, onFocusStop,
   onUpdateStop,
@@ -726,6 +727,8 @@ export default React.memo(function StopCard({
         <TransitInfo
           transit={stop.transitToNext}
           transitMode={stop.transitMode || 'DRIVE'}
+          origin={stop.lat && stop.lng ? { lat: stop.lat, lng: stop.lng } : null}
+          dest={nextStop?.lat && nextStop?.lng ? { lat: nextStop.lat, lng: nextStop.lng } : null}
           onToggleMode={() => onToggleTransitMode?.(dayId, stop.id)}
           onAddStop={() => onAddStop?.(dayId, stop.id)}
           onAddNote={() => onAddNote?.(dayId, stop.id)}

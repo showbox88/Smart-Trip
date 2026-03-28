@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
 import { isAdmin } from '../utils/admin';
 import { Navigate } from 'react-router-dom';
+import { fetchRouteDuration } from '../utils/transitHelpers';
 
 export default function AdminPage() {
   const { state } = useApp();
@@ -22,6 +23,10 @@ export default function AdminPage() {
   const [migrationRunning, setMigrationRunning] = useState(false);
   const [migrationLog, setMigrationLog] = useState([]);
 
+  // Repair state
+  const [repairLog, setRepairLog] = useState([]);
+  const [repairingTripId, setRepairingTripId] = useState(null);
+
   // Security check
   if (!isAdmin(state.user)) {
     return <Navigate to="/" replace />;
@@ -36,40 +41,49 @@ export default function AdminPage() {
   const loadAllTrips = async () => {
     setLoading(true);
     try {
-      // 1. Fetch all trips
+      // 1. 获取所有行程 (管理后台不应限制 user_id)
       const { data: tripData, error: tripError } = await supabase
         .from('trips')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (tripError) throw tripError;
+      if (tripError) {
+        console.error('[Admin] Trips fetch error:', tripError);
+        setCleanupStatus(`获取行程失败: ${tripError.message}。这很可能是后端 RLS 策略拒绝了管理员访问。`);
+        setShowSql(true);
+      }
 
-      // 2. Fetch all profiles (to get emails)
+      // 2. 获取所有用户的 Profile (用于匹配 Email)
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('id, email');
 
-      // 3. Merge profiles into trips (Manual Join)
+      if (profileError) {
+        console.warn('[Admin] Profiles table issue (ignore if not setup):', profileError);
+      }
+
       const profileMap = {};
       profileData?.forEach(p => profileMap[p.id] = p.email);
 
-      const mergedTrips = tripData.map(t => ({
+      // 处理空数据保护
+      const validTripData = tripData || [];
+      const mergedTrips = validTripData.map(t => ({
         ...t,
         profiles: { email: profileMap[t.user_id] }
       }));
 
       setTrips(mergedTrips);
       
-      // If profiles fetch failed, suggest setup
-      if (profileError || !profileData || profileData.length === 0) {
+      // 诊断：如果一个行程都看不到，或者只能看到自己的数据，自动显示 SQL 指引
+      if (mergedTrips.length === 0 || !profileData || profileData.length === 0) {
           setShowSql(true);
       }
       
-      if (mergedTrips.length === 0) {
-          setCleanupStatus('注意：未发现行程。如果数据库中确实有数据，这通常是因为 Supabase RLS 策略限制。建议在 Supabase 控制台添加允许管理员 SELECT 的策略。');
+      if (mergedTrips.length === 0 && !tripError) {
+          setCleanupStatus('注意：数据库中未发现任何行程。如果确实有其他用户的数据，则说明由于 RLS 策略，管理员暂时只能看到自己。请运行下方的 SQL 脚本。');
       }
     } catch (err) {
-      console.error('Error fetching trips:', err);
+      console.error('[Admin] Critical fetch failure:', err);
     } finally {
       setLoading(false);
     }
@@ -399,6 +413,97 @@ export default function AdminPage() {
     setMigrationRunning(false);
   };
 
+  // ── Repair helpers ─────────────────────────────────────
+
+  function getStreetViewThumb(lat, lng) {
+    return new Promise((resolve) => {
+      if (!window.google?.maps?.StreetViewService) { resolve(null); return; }
+      const sv = new window.google.maps.StreetViewService();
+      sv.getPanorama({ location: { lat: Number(lat), lng: Number(lng) }, radius: 100 }, (data, status) => {
+        if (status === 'OK') {
+          const pano = data.location.pano;
+          const heading = data.links?.[0]?.heading ?? 90;
+          resolve(`https://streetviewpixels-pa.googleapis.com/v1/thumbnail?panoid=${pano}&cb_client=maps_sv.tactile.gps&w=320&h=240&yaw=${heading}&pitch=0&thumbfov=100`);
+        } else {
+          resolve(null);
+        }
+      });
+    });
+  }
+
+  const repairTripData = async (trip) => {
+    if (!window.google?.maps) {
+      alert('Google Maps 未就绪，请先打开一个行程页面再回来重试');
+      return;
+    }
+    setRepairingTripId(trip.id);
+    setRepairLog([`▶ 开始修复: ${trip.title}`]);
+
+    const { data: tripDays, error } = await supabase
+      .from('trip_days')
+      .select('days_v2 ( id, date, stops_data )')
+      .eq('trip_id', trip.id);
+
+    if (error) {
+      setRepairLog(l => [...l, `加载失败: ${error.message}`]);
+      setRepairingTripId(null);
+      return;
+    }
+
+    let totalPhotos = 0;
+    let totalTransit = 0;
+    const lines = [];
+
+    for (const td of (tripDays || [])) {
+      const day = td.days_v2;
+      if (!day || !Array.isArray(day.stops_data)) continue;
+
+      const stops = day.stops_data.map(s => ({ ...s }));
+      let changed = false;
+
+      // Fill missing photos
+      for (const stop of stops) {
+        if (!stop.photo && stop.lat && stop.lng) {
+          const url = await getStreetViewThumb(stop.lat, stop.lng);
+          if (url) {
+            stop.photo = url;
+            changed = true;
+            totalPhotos++;
+            lines.push(`  📸 ${day.date} · ${stop.name || stop.location || 'Stop'}: 补充图片`);
+          }
+        }
+      }
+
+      // Fill missing transit between consecutive stops with coordinates
+      const locStops = stops.filter(s => s.lat && s.lng);
+      for (let i = 0; i < locStops.length - 1; i++) {
+        const curr = locStops[i];
+        const next = locStops[i + 1];
+        if (!curr.transitToNext) {
+          const result = await fetchRouteDuration(
+            { lat: curr.lat, lng: curr.lng },
+            { lat: next.lat, lng: next.lng },
+            curr.transitMode || 'DRIVE'
+          );
+          if (result) {
+            curr.transitToNext = { ...result, mode: curr.transitMode || 'DRIVE' };
+            changed = true;
+            totalTransit++;
+            lines.push(`  🗺 ${day.date} · ${curr.name || curr.location} → ${next.name || next.location}: 路线已计算`);
+          }
+        }
+      }
+
+      if (changed) {
+        await supabase.from('days_v2').update({ stops_data: stops }).eq('id', day.id);
+      }
+    }
+
+    lines.push(`✅ 完成: 补充 ${totalPhotos} 张图片、${totalTransit} 条路线`);
+    setRepairLog(lines);
+    setRepairingTripId(null);
+  };
+
   const runMigration = async (onlyMine) => {
     const targets = onlyMine
       ? migrationV1Trips.filter(t => t.user_id === state.user?.id)
@@ -429,38 +534,59 @@ export default function AdminPage() {
 
   return (
     <div className="admin-page" style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
-      <header style={{ marginBottom: '2rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '1rem' }}>
-        <h1 style={{ fontSize: '1.8rem', fontWeight: 'bold', marginBottom: '1rem' }}>Admin Dashboard</h1>
-        <div style={{ display: 'flex', gap: '1rem' }}>
-          <button 
-            onClick={() => setActiveTab('itineraries')}
-            className={`tab-btn ${activeTab === 'itineraries' ? 'active' : ''}`}
-            style={{ 
-                padding: '0.5rem 1rem', 
-                borderRadius: '8px', 
-                background: activeTab === 'itineraries' ? 'var(--accent)' : 'rgba(255,255,255,0.05)',
-                border: 'none',
-                color: '#fff',
-                cursor: 'pointer'
-            }}
-          >
-            All Itineraries
-          </button>
-          <button
-            onClick={() => setActiveTab('cleanup')}
-            className={`tab-btn ${activeTab === 'cleanup' ? 'active' : ''}`}
-            style={{ padding: '0.5rem 1rem', borderRadius: '8px', background: activeTab === 'cleanup' ? 'var(--accent)' : 'rgba(255,255,255,0.05)', border: 'none', color: '#fff', cursor: 'pointer' }}
-          >
-            Image Cleanup
-          </button>
-          <button
-            onClick={() => { setActiveTab('migration'); scanV1Trips(); }}
-            className={`tab-btn ${activeTab === 'migration' ? 'active' : ''}`}
-            style={{ padding: '0.5rem 1rem', borderRadius: '8px', background: activeTab === 'migration' ? 'var(--accent)' : 'rgba(255,255,255,0.05)', border: 'none', color: '#fff', cursor: 'pointer' }}
-          >
-            V1 → V2 迁移
-          </button>
+      <header style={{ marginBottom: '2rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div>
+          <h1 style={{ fontSize: '1.8rem', fontWeight: 'bold', marginBottom: '1rem' }}>Admin Dashboard</h1>
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <button 
+              onClick={() => setActiveTab('itineraries')}
+              className={`tab-btn ${activeTab === 'itineraries' ? 'active' : ''}`}
+              style={{ 
+                  padding: '0.5rem 1rem', 
+                  borderRadius: '8px', 
+                  background: activeTab === 'itineraries' ? 'var(--accent)' : 'rgba(255,255,255,0.05)',
+                  border: 'none',
+                  color: '#fff',
+                  cursor: 'pointer'
+              }}
+            >
+              All Itineraries
+            </button>
+            <button
+              onClick={() => setActiveTab('cleanup')}
+              className={`tab-btn ${activeTab === 'cleanup' ? 'active' : ''}`}
+              style={{ padding: '0.5rem 1rem', borderRadius: '8px', background: activeTab === 'cleanup' ? 'var(--accent)' : 'rgba(255,255,255,0.05)', border: 'none', color: '#fff', cursor: 'pointer' }}
+            >
+              Image Cleanup
+            </button>
+            <button
+              onClick={() => { setActiveTab('migration'); scanV1Trips(); }}
+              className={`tab-btn ${activeTab === 'migration' ? 'active' : ''}`}
+              style={{ padding: '0.5rem 1rem', borderRadius: '8px', background: activeTab === 'migration' ? 'var(--accent)' : 'rgba(255,255,255,0.05)', border: 'none', color: '#fff', cursor: 'pointer' }}
+            >
+              V1 → V2 迁移
+            </button>
+          </div>
         </div>
+        <button 
+          onClick={() => setShowSql(!showSql)}
+          style={{ 
+            background: showSql ? 'rgba(56, 189, 248, 0.2)' : 'rgba(255,255,255,0.05)', 
+            border: `1px solid ${showSql ? '#38bdf8' : 'rgba(255,255,255,0.1)'}`, 
+            color: showSql ? '#38bdf8' : 'var(--text-secondary)',
+            padding: '0.6rem 1rem',
+            borderRadius: '10px',
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            transition: 'all 0.2s'
+          }}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>help</span>
+          {showSql ? '隐藏设置指引' : '查看权限设置'}
+        </button>
       </header>
 
       {activeTab === 'itineraries' && (
@@ -499,13 +625,22 @@ export default function AdminPage() {
                         </span>
                       </td>
                       <td style={{ padding: '1rem' }}>{new Date(trip.created_at).toLocaleDateString()}</td>
-                      <td style={{ padding: '1rem', display: 'flex', gap: '1rem' }}>
+                      <td style={{ padding: '1rem', display: 'flex', gap: '1rem', alignItems: 'center' }}>
                         <button
                           onClick={() => window.open(isV2 ? `/trip-v2/${trip.id}` : `/trip/${trip.id}`, '_blank')}
                           style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', fontSize: '0.9rem' }}
                         >
                           View
                         </button>
+                        {isV2 && (
+                          <button
+                            onClick={() => repairTripData(trip)}
+                            disabled={repairingTripId === trip.id}
+                            style={{ background: 'none', border: 'none', color: '#a78bfa', cursor: repairingTripId === trip.id ? 'not-allowed' : 'pointer', fontSize: '0.9rem', opacity: repairingTripId === trip.id ? 0.5 : 1 }}
+                          >
+                            {repairingTripId === trip.id ? '修复中...' : '🔧 Repair'}
+                          </button>
+                        )}
                         <button
                           onClick={() => handleDeleteTrip(trip.id)}
                           style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '0.9rem' }}
@@ -518,6 +653,16 @@ export default function AdminPage() {
                   })}
                 </tbody>
               </table>
+            </div>
+          )}
+
+          {/* Repair log */}
+          {repairLog.length > 0 && (
+            <div style={{ marginTop: '1rem' }}>
+              <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>修复日志</div>
+              <pre style={{ background: 'rgba(0,0,0,0.4)', borderRadius: '8px', padding: '1rem', fontSize: '0.78rem', color: '#94a3b8', maxHeight: '240px', overflowY: 'auto', whiteSpace: 'pre-wrap' }}>
+                {repairLog.join('\n')}
+              </pre>
             </div>
           )}
         </section>
@@ -738,62 +883,55 @@ export default function AdminPage() {
         </div>
       )}
 
-      {(showSql || trips.length === 0) && (
-        <div style={{ marginTop: '2rem', padding: '1rem', background: 'rgba(56, 189, 248, 0.1)', border: '1px solid rgba(56, 189, 248, 0.2)', borderRadius: '8px' }}>
-          <h3 style={{ color: '#38bdf8', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span className="material-symbols-outlined">help</span>
-            管理员设置指引 (SQL 脚本)
+      {showSql && (
+        <div style={{ marginTop: '2rem', padding: '1.5rem', background: 'rgba(56, 189, 248, 0.08)', border: '1px solid rgba(56, 189, 248, 0.2)', borderRadius: '12px' }}>
+          <h3 style={{ color: '#38bdf8', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1.1rem' }}>
+            <span className="material-symbols-outlined">key</span>
+            管理员 RLS 权限配置 (SQL 脚本)
           </h3>
-          <p style={{ fontSize: '0.85rem', marginBottom: '1rem', color: '#94a3b8' }}>
-            如果你看不到其他人行程或 Email 显示为 ID，请在 Supabase SQL Editor 中运行以下命令：
+          <p style={{ fontSize: '0.88rem', marginBottom: '1.2rem', color: '#94a3b8', lineHeight: '1.5' }}>
+            由于 Supabase RLS 默认拦截非所属数据的查询，管理员需手动开启后端访问权限。请将在 Supabase SQL Editor 中运行下方脚本：
           </p>
-          <pre style={{ background: '#000', padding: '1rem', borderRadius: '4px', fontSize: '0.8rem', color: '#cbd5e1', overflowX: 'auto' }}>
-{`/* 1. 允许管理员读取所有行程 */
-CREATE POLICY "Admins can view all trips" ON trips 
-FOR SELECT USING (auth.jwt() ->> 'email' = 'showbox88@gmail.com');
+          <div style={{ position: 'relative' }}>
+            <pre style={{ background: '#000', padding: '1.2rem', borderRadius: '8px', fontSize: '0.8rem', color: '#cbd5e1', overflowX: 'auto', border: '1px solid rgba(255,255,255,0.1)' }}>
+{`/* --- 管理员权限一键配置脚本 (增强版) --- */
 
-/* 2. 允许管理员删除/更新任何行程 */
-CREATE POLICY "Admins can delete trips" ON trips 
-FOR DELETE USING (auth.jwt() ->> 'email' = 'showbox88@gmail.com');
+-- 1. 行程元数据 (trips): 全局操作权限
+DROP POLICY IF EXISTS "Admins can manage all trips" ON trips;
+CREATE POLICY "Admins can manage all trips" ON trips FOR ALL
+USING (auth.jwt() ->> 'email' = '${state.user?.email || 'showbox88@gmail.com'}');
 
-CREATE POLICY "Admins can update trips" ON trips 
-FOR UPDATE USING (auth.jwt() ->> 'email' = 'showbox88@gmail.com');
+-- 2. V2 天数据 (days_v2): 全局操作权限
+DROP POLICY IF EXISTS "Admins can manage all days" ON days_v2;
+CREATE POLICY "Admins can manage all days" ON days_v2 FOR ALL 
+USING (auth.jwt() ->> 'email' = '${state.user?.email || 'showbox88@gmail.com'}' OR auth.uid() = user_id);
 
-/* 3. V2 架构：允许管理员读取/修改所有 days_v2 */
-CREATE POLICY "Admins can manage days_v2" ON days_v2
-FOR ALL USING (auth.jwt() ->> 'email' = 'showbox88@gmail.com' OR auth.uid() = user_id);
+-- 3. V2 关联表 (trip_days): 全局操作权限
+DROP POLICY IF EXISTS "Admins can manage all trip_days" ON trip_days;
+CREATE POLICY "Admins can manage all trip_days" ON trip_days FOR ALL 
+USING (auth.jwt() ->> 'email' = '${state.user?.email || 'showbox88@gmail.com'}');
 
-/* 4. V2 架构：允许管理员读取/修改所有 trip_days 关联 */
-CREATE POLICY "Admins can manage trip_days" ON trip_days
-FOR ALL USING (auth.jwt() ->> 'email' = 'showbox88@gmail.com');
-
-/* 5. 创建 profiles 表以便显示 Email */
-CREATE TABLE IF NOT EXISTS profiles (
-  id uuid REFERENCES auth.users PRIMARY KEY,
-  email text
-);
+-- 4. 用户资料表 (profiles): 允许管理员查看用户 Email 
+CREATE TABLE IF NOT EXISTS profiles ( id uuid REFERENCES auth.users PRIMARY KEY, email text );
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Public profiles are viewable by admins" ON profiles
-  FOR SELECT USING (auth.jwt() ->> 'email' = 'showbox88@gmail.com' OR auth.uid() = id);
+DROP POLICY IF EXISTS "Admins can view all profiles" ON profiles;
+CREATE POLICY "Admins can view all profiles" ON profiles FOR SELECT 
+USING (auth.jwt() ->> 'email' = '${state.user?.email || 'showbox88@gmail.com'}' OR auth.uid() = id);
 
--- 自动同步 Email 到 profiles 表的触发器
-CREATE OR REPLACE FUNCTION public.handle_new_user() 
-RETURNS trigger AS $$
-BEGIN
-  INSERT INTO public.profiles (id, email)
-  VALUES (new.id, new.email);
-  RETURN new;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
-CREATE OR REPLACE TRIGGER on_auth_user_created
-  AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
-
-/* 6. 允许管理员管理存储桶中的所有文件 */
--- 在 Storage -> Policies 中，为 'trip-media' bucket 添加策略：
--- SELECT/INSERT/UPDATE/DELETE USING: (auth.jwt() ->> 'email' = 'showbox88@gmail.com')`}
-          </pre>
+-- 5. 存储桶权限 (Storage): 请前往 Storage -> Policies 页面手动添加针对 'trip-media' 的策略：
+-- ALLOW ALL to authenticated users with condition: (auth.jwt() ->> 'email' = '${state.user?.email || 'showbox88@gmail.com'}')`}
+            </pre>
+            <button 
+              onClick={() => {
+                const text = `/* --- 管理员权限配置 --- */\n\n-- 1. trips\nDROP POLICY IF EXISTS "Admins can manage all trips" ON trips;\nCREATE POLICY "Admins can manage all trips" ON trips FOR ALL\nUSING (auth.jwt() ->> 'email' = '${state.user?.email || 'showbox88@gmail.com'}');\n\n-- 2. days_v2\nDROP POLICY IF EXISTS "Admins can manage all days" ON days_v2;\nCREATE POLICY "Admins can manage all days" ON days_v2 FOR ALL \nUSING (auth.jwt() ->> 'email' = '${state.user?.email || 'showbox88@gmail.com'}' OR auth.uid() = user_id);\n\n-- 3. trip_days\nDROP POLICY IF EXISTS "Admins can manage all trip_days" ON trip_days;\nCREATE POLICY "Admins can manage all trip_days" ON trip_days FOR ALL \nUSING (auth.jwt() ->> 'email' = '${state.user?.email || 'showbox88@gmail.com'}');\n\n-- 4. profiles\nCREATE TABLE IF NOT EXISTS profiles ( id uuid REFERENCES auth.users PRIMARY KEY, email text );\nALTER TABLE profiles ENABLE ROW LEVEL SECURITY;\nDROP POLICY IF EXISTS "Admins can view all profiles" ON profiles;\nCREATE POLICY "Admins can view all profiles" ON profiles FOR SELECT \nUSING (auth.jwt() ->> 'email' = '${state.user?.email || 'showbox88@gmail.com'}' OR auth.uid() = id);`;
+                navigator.clipboard.writeText(text);
+                alert('脚本已复制到剪贴板！');
+              }}
+              style={{ position: 'absolute', top: '10px', right: '10px', background: 'var(--accent)', border: 'none', borderRadius: '6px', padding: '5px 12px', color: '#fff', fontSize: '0.75rem', cursor: 'pointer', fontWeight: 600 }}
+            >
+              复制 SQL
+            </button>
+          </div>
         </div>
       )}
     </div>
