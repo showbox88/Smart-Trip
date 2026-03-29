@@ -116,6 +116,21 @@
     width: 100% !important;
 }
 
+/* Dashboard Container & Header — Mobile Fix */
+.trip-dashboard-container {
+    padding: 1.5rem 1rem;
+}
+
+.dashboard-header {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: flex-start;
+}
+
+.dashboard-header > div:last-child {
+    flex-shrink: 0;
+}
+
 /* Trip Grid for Mobile */
 .trip-dashboard-container .trip-grid {
     grid-template-columns: 1fr;
