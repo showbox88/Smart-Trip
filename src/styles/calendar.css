@@ -357,14 +357,49 @@
     .calendar-year-grid {
         grid-template-columns: repeat(2, 1fr);
     }
+    .calendar-page {
+        padding: 0.5rem 0 2rem;
+        overflow-x: hidden;
+    }
+    .calendar-month {
+        overflow-x: hidden;
+    }
+    .calendar-weekday-cell {
+        font-size: 0.6rem;
+        padding: 4px 0;
+    }
     .calendar-cell {
         min-height: 55px;
+        padding: 3px 2px;
+        overflow: hidden;
+    }
+    .calendar-date-num {
+        font-size: 0.7rem;
+        width: 20px;
+        height: 20px;
+    }
+    .calendar-cell.today .calendar-date-num {
+        width: 20px;
+        height: 20px;
+    }
+    /* Stop count row: hide text label, keep dot + icon only */
+    .calendar-stop-info {
+        margin-left: 2px !important;
+        gap: 2px !important;
+    }
+    .calendar-stop-label {
+        display: none;
     }
     .calendar-trip-bar {
         font-size: 0;
-        height: 14px;
+        height: 12px;
+        padding: 0 2px;
     }
-    .calendar-page {
-        padding: 1rem 0.5rem 2rem;
+    .calendar-toolbar-left h2 {
+        font-size: 1rem;
+        min-width: unset;
+    }
+    .calendar-toolbar {
+        gap: 0.5rem;
     }
 }

@@ -338,10 +338,10 @@ function MonthView({ year, month, days, trips, language, t, onDayClick, onTripCl
 
                   {/* stop count — right below date, left-aligned */}
                   {stopCount > 0 && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px', marginLeft: '8px' }}>
+                    <div className="calendar-stop-info" style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px', marginLeft: '8px' }}>
                       <div className="calendar-cell-dot" style={{ width: '7px', height: '7px', ...(dayData?.color ? { background: dayData.color } : {}) }} />
                       <span className="material-symbols-outlined" style={{ fontSize: '13px', color: 'var(--text-muted)' }}>location_on</span>
-                      <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>{stopCount} stops</span>
+                      <span className="calendar-stop-label" style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>{stopCount} stops</span>
                     </div>
                   )}
 
