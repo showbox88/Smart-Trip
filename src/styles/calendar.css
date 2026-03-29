@@ -382,12 +382,15 @@
         width: 20px;
         height: 20px;
     }
-    /* Stop count row: hide text label, keep dot + icon only */
+    /* Stop count row: compact on mobile, show number only (no "stops" word) */
     .calendar-stop-info {
         margin-left: 2px !important;
         gap: 2px !important;
     }
     .calendar-stop-label {
+        font-size: 0.62rem !important;
+    }
+    .calendar-stop-word {
         display: none;
     }
     .calendar-trip-bar {
