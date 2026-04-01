@@ -7,7 +7,6 @@ import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import TripPageV2 from './pages/TripPageV2';
 import DayPage from './pages/DayPage';
-import ArchivePage from './pages/ArchivePage';
 import AdminPage from './pages/AdminPage';
 import SharedTripPage from './pages/SharedTripPage';
 import CalendarPage from './pages/CalendarPage';
@@ -41,18 +40,15 @@ export default function App() {
     );
   }
 
-  const isArchiveRoute = location.pathname.startsWith('/archive');
-
   return (
     <>
-      {!isArchiveRoute && <Navbar />}
-      <main id={isArchiveRoute ? "archive-container" : "app-container"} style={isArchiveRoute ? { padding: 0 } : {}}>
+      <Navbar />
+      <main id="app-container">
         <Routes>
           <Route path="/" element={<DashboardPage />} />
           <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/trip-v2/:tripId" element={<TripPageV2 />} />
           <Route path="/day/:date" element={<DayPage />} />
-          <Route path="/archive/*" element={<ArchivePage />} />
           {isAdmin(state.user) && <Route path="/admin" element={<AdminPage />} />}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
