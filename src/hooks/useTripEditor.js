@@ -60,33 +60,6 @@ export function useTripEditor(tripId) {
 
   const trip = state.trips.find((tr) => tr.id === tripId) || null;
 
-  useEffect(() => {
-    if (!trip && tripId && !tripId.startsWith('day-trip-') && !tripId.startsWith('v2-trip-') && isAdmin(state.user)) {
-      const fetchGlobalTrip = async () => {
-        try {
-          const { data, error } = await supabase
-            .from('trips')
-            .select('*')
-            .eq('id', tripId)
-            .single();
-          
-          if (data && !error) {
-            const formattedTrip = {
-              ...data.trip_data,
-              id: data.id,
-              user_id: data.user_id,
-              title: data.title,
-              thumb: data.thumb,
-            };
-            dispatch({ type: 'UPDATE_TRIP', payload: formattedTrip });
-          }
-        } catch (e) {
-          console.warn('[useTripEditor] Global fetch failed:', e);
-        }
-      };
-      fetchGlobalTrip();
-    }
-  }, [trip, tripId, state.user, dispatch]);
 
   const scheduleCloudSave = useCallback((updatedTrip) => {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);

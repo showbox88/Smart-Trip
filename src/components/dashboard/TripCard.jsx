@@ -37,7 +37,7 @@ export default function TripCard({ trip, isList = false, onEdit, onShare }) {
         return acc + (day.stops?.reduce((s, stop) => s + (parseFloat(stop.price) || 0), 0) || 0);
       }, 0) : 0);
 
-  const handleOpen = () => navigate(trip._isV2 ? `/trip-v2/${trip.id}` : `/trip/${trip.id}`);
+  const handleOpen = () => navigate(`/trip-v2/${trip.id}`);
 
   const handleDelete = async (e) => {
     e.stopPropagation();

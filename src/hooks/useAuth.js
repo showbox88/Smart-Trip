@@ -2,7 +2,6 @@ import { useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
-import { formatTripDate } from '../utils/tripEditorHelpers';
 
 export function useAuth() {
   const { state, dispatch } = useApp();
@@ -68,46 +67,12 @@ export function useAuth() {
           }
         }
 
-        // Load trips (旧架构：只加载有 trip_data 的记录，v2 trips 由 tripsV2Data 单独加载)
-        const { data: tripsData, error } = await supabase
-          .from('trips')
-          .select('*')
-          .eq('user_id', state.user.id)
-          .not('trip_data', 'is', null)
-          .order('created_at', { ascending: false });
-
-        if (error) throw error;
-
-        if (tripsData) {
-          const trips = tripsData.map(row => {
-            const trip = {
-              ...row.trip_data,
-              id: row.id,
-              title: row.title,
-              thumb: row.thumb,
-              share_token: row.share_token || null,
-            };
-            // Auto-fix days whose dates don't match startDate
-            if (trip.startDate && trip.days?.length) {
-              const expectedFirst = formatTripDate(trip.startDate, 0);
-              if (trip.days[0].date !== expectedFirst) {
-                trip.days = trip.days.map((day, i) => ({
-                  ...day,
-                  date: formatTripDate(trip.startDate, i),
-                }));
-              }
-            }
-            return trip;
-          });
-          dispatch({ type: 'SET_TRIPS', payload: trips });
-        }
-
-        // v2: Load trip metadata from new schema (no trip_data, no days)
+        // Load v2 trip metadata
         const { data: tripsV2Data, error: tripsV2Error } = await supabase
           .from('trips')
           .select('id, title, thumb, start_date, end_date, settings, share_token, created_at')
           .eq('user_id', state.user.id)
-          .is('trip_data', null)  // Only v2 trips (no legacy trip_data)
+          .is('trip_data', null)
           .order('created_at', { ascending: false });
 
         if (!tripsV2Error && tripsV2Data?.length) {

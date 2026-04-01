@@ -2,7 +2,6 @@ import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
-import { useTrips } from '../hooks/useTrips';
 import { useTripsV2 } from '../hooks/useTripsV2';
 import { createDraftTrip, getDashboardTripStatus } from '../utils/tripFactory';
 import { formatTripDate } from '../utils/tripEditorHelpers';
@@ -17,7 +16,6 @@ export default function DashboardPage() {
   const { state } = useApp();
   const { t } = useI18n();
   const navigate = useNavigate();
-  const { saveTrip } = useTrips();
   const { createTrip, updateTrip, linkDaysToTrip, refreshTrips } = useTripsV2();
 
   // Refresh v2 trips with stop counts whenever dashboard mounts
@@ -29,10 +27,9 @@ export default function DashboardPage() {
   const [sharingTrip, setSharingTrip] = useState(null);
   const [showNewTripModal, setShowNewTripModal] = useState(false);
 
-  const allTrips = [
-    ...state.trips.filter(t => !t._isVirtualDay && !t._isVirtualTrip),
-    ...(state.tripsV2 || []).map(t => ({ ...t, _isV2: true })),
-  ].sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+  const allTrips = (state.tripsV2 || [])
+    .map(t => ({ ...t, _isV2: true }))
+    .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
 
   const filteredTrips = allTrips.filter((trip) => {
     if (state.dashboardFilter === 'all' || !state.dashboardFilter) return true;

@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
 import { useDays } from '../hooks/useDays';
-import { useTrips } from '../hooks/useTrips';
 import { useTripsV2 } from '../hooks/useTripsV2';
 
 // ── helpers ──────────────────────────────────────────────
@@ -60,7 +59,6 @@ export default function CalendarPage() {
   const { t, language } = useI18n();
   const navigate = useNavigate();
   const { loadDaysInRange, days } = useDays();
-  const { refreshTrips: refreshV1 } = useTrips();
   const { refreshTrips: refreshV2 } = useTripsV2();
 
   const [viewMode, setViewMode] = useState('month'); // 'month' | 'year'
@@ -71,7 +69,6 @@ export default function CalendarPage() {
 
   // ── load data ──
   useEffect(() => {
-    refreshV1();
     refreshV2();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -91,18 +88,9 @@ export default function CalendarPage() {
     loadDaysInRange(start, end);
   }, [state.user, viewMode, currentDate, loadDaysInRange]);
 
-  // ── merge trips (V1 + V2) ──
+  // ── trips ──
   const allTrips = useMemo(() => {
-    const v1 = (state.trips || [])
-      .filter(t => !t._isVirtualDay && !t._isVirtualTrip && t.startDate && t.endDate)
-      .map(t => ({
-        id: t.id,
-        title: t.title || t.trip_data?.title || '',
-        startDate: t.startDate || t.trip_data?.startDate,
-        endDate: t.endDate || t.trip_data?.endDate,
-        _isV2: false,
-      }));
-    const v2 = (state.tripsV2 || [])
+    return (state.tripsV2 || [])
       .filter(t => t.startDate && t.endDate)
       .map(t => ({
         id: t.id,
@@ -111,8 +99,7 @@ export default function CalendarPage() {
         endDate: t.endDate,
         _isV2: true,
       }));
-    return [...v1, ...v2];
-  }, [state.trips, state.tripsV2]);
+  }, [state.tripsV2]);
 
   // ── navigation ──
   const goToday = useCallback(() => {
@@ -143,8 +130,7 @@ export default function CalendarPage() {
   }, [navigate]);
 
   const handleTripClick = useCallback((trip) => {
-    if (trip._isV2) navigate(`/trip-v2/${trip.id}`);
-    else navigate(`/trip/${trip.id}`);
+    navigate(`/trip-v2/${trip.id}`);
   }, [navigate]);
 
   const handleMonthClick = useCallback((month) => {

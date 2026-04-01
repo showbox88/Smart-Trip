@@ -2,51 +2,10 @@ import { useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
 import { deleteFilesFromSupabase } from '../utils/uploadHelpers';
-import { formatTripDate } from '../utils/tripEditorHelpers';
 import { saveDayToDB } from '../utils/dayHelpers';
 
 export function useTrips() {
   const { state, dispatch } = useApp();
-
-  // ... refreshTrips and deleteTrip follow ...
-
-  const refreshTrips = useCallback(async () => {
-    if (!state.user) return;
-    const { data, error } = await supabase
-      .from('trips')
-      .select('*')
-      .eq('user_id', state.user.id)
-      .not('trip_data', 'is', null)
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('[useTrips] refreshTrips error:', error.message);
-      return;
-    }
-
-    const trips = data.map(row => {
-      const trip = {
-        ...row.trip_data,
-        id: row.id,
-        user_id: row.user_id,
-        title: row.title,
-        thumb: row.thumb,
-        share_token: row.share_token || null,
-      };
-      // Auto-fix days whose dates don't match startDate
-      if (trip.startDate && trip.days?.length) {
-        const expectedFirst = formatTripDate(trip.startDate, 0);
-        if (trip.days[0].date !== expectedFirst) {
-          trip.days = trip.days.map((day, i) => ({
-            ...day,
-            date: formatTripDate(trip.startDate, i),
-          }));
-        }
-      }
-      return trip;
-    });
-    dispatch({ type: 'SET_TRIPS', payload: trips });
-  }, [state.user, dispatch]);
 
   const deleteTrip = useCallback(async (tripId) => {
     if (!state.user) return;
@@ -153,22 +112,6 @@ export function useTrips() {
       dispatch({ type: 'SET_TRIPS', payload: isNew ? [finalTrip, ...state.trips] : state.trips.map(t => t.id === trip.id ? finalTrip : t) });
       return;
     }
-
-    const { error } = await supabase
-      .from('trips')
-      .upsert({
-        id: trip.id,
-        user_id: trip.user_id || state.user.id,
-        title: trip.title,
-        thumb: trip.thumb,
-        trip_data: trip,
-      });
-
-    if (error) throw error;
-
-    const updated = state.trips.map(t => t.id === trip.id ? trip : t);
-    const isNew = !state.trips.find(t => t.id === trip.id);
-    dispatch({ type: 'SET_TRIPS', payload: isNew ? [trip, ...state.trips] : updated });
   }, [state.user, state.trips, dispatch]);
 
   const setShareToken = useCallback(async (tripId) => {
@@ -231,7 +174,6 @@ export function useTrips() {
 
   return {
     trips: state.trips,
-    refreshTrips,
     deleteTrip,
     saveTrip,
     setShareToken,
