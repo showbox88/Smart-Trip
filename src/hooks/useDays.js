@@ -108,13 +108,23 @@ export function useDays() {
 
     const { data: inserted, error: insertError } = await supabase
       .from('days_v2')
-      .insert(newDay)
+      .upsert(newDay, { onConflict: 'user_id,date', ignoreDuplicates: false })
       .select()
       .single();
 
     if (insertError) {
-      console.error('[useDays] getOrCreateDay insert error:', insertError.message);
-      return null;
+      // Fallback: fetch existing record if upsert still fails
+      console.warn('[useDays] getOrCreateDay upsert error, fetching existing:', insertError.message);
+      const { data: existing } = await supabase
+        .from('days_v2')
+        .select('*')
+        .eq('user_id', state.user.id)
+        .eq('date', date)
+        .single();
+      if (!existing) return null;
+      const day = normalizeDayRow(existing);
+      dispatch({ type: 'UPSERT_DAY', payload: day });
+      return day;
     }
 
     const day = normalizeDayRow(inserted);

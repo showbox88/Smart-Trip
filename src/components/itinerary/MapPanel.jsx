@@ -137,7 +137,7 @@ async function tryDrawRoute(routePath, color, mapInstance, googleMode, userId = 
     destination: new google.maps.LatLng(Number(dest.lat), Number(dest.lng)),
     travelMode: googleMode,
     ...(intermediates.length ? { intermediates } : {}),
-    fields: ['path', 'polyline'],
+    fields: ['path', 'legs'],
   });
 
   if (!routes?.[0]) return null;
@@ -158,10 +158,14 @@ async function tryDrawRoute(routePath, color, mapInstance, googleMode, userId = 
 
   if (polylines.length > 0) {
     logApiCall('directions', userId, 'success');
-    const encoded = routes[0].polyline?.encodedPolyline;
-    const segments = encoded
-      ? [{ encoded, color, isWalk, opacity: isWalk ? 0 : 0.8, weight: 4 }]
-      : [];
+    // Collect encoded polylines from all steps across all legs
+    const segments = [];
+    for (const leg of (routes[0].legs || [])) {
+      for (const step of (leg.steps || [])) {
+        const encoded = step.polyline?.encodedPolyline;
+        if (encoded) segments.push({ encoded, color, isWalk, opacity: isWalk ? 0 : 0.8, weight: 4 });
+      }
+    }
     saveRouteCache(origin.lat, origin.lng, dest.lat, dest.lng, googleMode, { polylineData: { segments } });
   }
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useI18n } from '../../context/I18nContext';
 
 const CATEGORIES = [
@@ -10,7 +10,7 @@ const CATEGORIES = [
   { id: 'lodging',     icon: 'hotel',              type: 'lodging',                     label_key: 'map.category_lodging' },
 ];
 
-const RADIUS = 500; // metres
+const RADIUS = 100; // metres
 
 /**
  * NearbyCheckinPanel
@@ -31,35 +31,41 @@ export default function NearbyCheckinPanel({ mapInstance, userLocation, existing
   const [places, setPlaces]   = useState([]);
   const [loading, setLoading] = useState(false);
   const [addingId, setAddingId] = useState(null);
-  const serviceRef = useRef(null);
-
   // 搜索附近地点
-  const searchNearby = useCallback((categoryId) => {
+  const searchNearby = useCallback(async (categoryId) => {
     const mapsApi = globalThis.google;
-    if (!mapInstance || !mapsApi?.maps?.places || !userLocation) return;
-
-    if (!serviceRef.current) {
-      serviceRef.current = new mapsApi.maps.places.PlacesService(mapInstance);
-    }
+    if (!mapInstance || !mapsApi || !userLocation) return;
 
     setLoading(true);
     setPlaces([]);
 
-    const cat = CATEGORIES.find(c => c.id === categoryId);
-    const request = {
-      location: new mapsApi.maps.LatLng(userLocation.lat, userLocation.lng),
-      radius: RADIUS,
-      ...(cat?.type ? { type: cat.type } : {}),
-    };
-
-    serviceRef.current.nearbySearch(request, (results, status) => {
+    try {
+      const { Place } = await mapsApi.maps.importLibrary('places');
+      const cat = CATEGORIES.find(c => c.id === categoryId);
+      const request = {
+        fields: ['id', 'displayName', 'location', 'rating', 'businessStatus', 'types'],
+        locationRestriction: {
+          center: new mapsApi.maps.LatLng(userLocation.lat, userLocation.lng),
+          radius: RADIUS,
+        },
+        ...(cat?.type ? { includedTypes: [cat.type] } : {}),
+        maxResultCount: 20,
+      };
+      const { places: results } = await Place.searchNearby(request);
+      setPlaces((results || []).map(p => ({
+        place_id: p.id,
+        name: p.displayName,
+        vicinity: '',
+        rating: p.rating,
+        geometry: { location: p.location },
+        types: p.types || [],
+      })));
+    } catch (err) {
+      console.warn('[NearbyCheckinPanel] searchNearby failed:', err);
+      setPlaces([]);
+    } finally {
       setLoading(false);
-      if (status === mapsApi.maps.places.PlacesServiceStatus.OK && results?.length) {
-        setPlaces(results.slice(0, 20));
-      } else {
-        setPlaces([]);
-      }
-    });
+    }
   }, [mapInstance, userLocation]);
 
   // 切换分类时重新搜索

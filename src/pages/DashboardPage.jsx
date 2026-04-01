@@ -4,7 +4,6 @@ import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
 import { useTripsV2 } from '../hooks/useTripsV2';
 import { createDraftTrip, getDashboardTripStatus } from '../utils/tripFactory';
-import { formatTripDate } from '../utils/tripEditorHelpers';
 import DashboardFilters from '../components/dashboard/DashboardFilters';
 import TripGrid from '../components/dashboard/TripGrid';
 import BudgetSummary from '../components/dashboard/BudgetSummary';
@@ -81,34 +80,20 @@ export default function DashboardPage() {
   const handleSaveEditedTrip = useCallback(async (patch) => {
     if (!editingTrip) return;
     try {
-      if (editingTrip._isV2) {
-        // V2 trip: update only metadata — do NOT call saveTrip which would
-        // add the virtual trip to state.trips and cause duplicate cards.
-        await updateTrip(editingTrip.id, {
-          title: patch.title,
-          startDate: patch.startDate || null,
-          endDate: patch.endDate || null,
-          thumb: patch.thumb,
-        });
-        if (patch._dayIdsToLink?.length) {
-          await linkDaysToTrip(editingTrip.id, patch._dayIdsToLink);
-        }
-      } else {
-        // V1 trip: full object save via saveTrip
-        const updated = { ...editingTrip, ...patch };
-        if (patch.startDate && patch.startDate !== editingTrip.startDate && updated.days) {
-          updated.days = updated.days.map((day, index) => ({
-            ...day,
-            date: formatTripDate(patch.startDate, index),
-          }));
-        }
-        await saveTrip(updated);
+      await updateTrip(editingTrip.id, {
+        title: patch.title,
+        startDate: patch.startDate || null,
+        endDate: patch.endDate || null,
+        thumb: patch.thumb,
+      });
+      if (patch._dayIdsToLink?.length) {
+        await linkDaysToTrip(editingTrip.id, patch._dayIdsToLink);
       }
       setEditingTrip(null);
     } catch (err) {
       alert(err.message);
     }
-  }, [editingTrip, saveTrip, updateTrip, linkDaysToTrip]);
+  }, [editingTrip, updateTrip, linkDaysToTrip]);
 
   return (
     <div className="trip-dashboard-container fade-in">

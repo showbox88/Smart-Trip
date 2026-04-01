@@ -1,5 +1,36 @@
 import { useState, useCallback, useEffect } from 'react';
-import * as idb from '../archive/utils/idb';
+
+// Minimal IndexedDB helpers (inlined from removed archive/utils/idb.js)
+const IDB_NAME = 'ArchiveStore';
+const IDB_STORE = 'KeyValueStore';
+function openDb() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(IDB_NAME, 1);
+    req.onupgradeneeded = e => e.target.result.createObjectStore(IDB_STORE);
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror = e => reject(e.target.error);
+  });
+}
+const idb = {
+  async get(key, store = IDB_STORE) {
+    const db = await openDb();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(store, 'readonly');
+      const req = tx.objectStore(store).get(key);
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = e => reject(e.target.error);
+    });
+  },
+  async set(key, value, store = IDB_STORE) {
+    const db = await openDb();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(store, 'readwrite');
+      const req = tx.objectStore(store).put(value, key);
+      req.onsuccess = () => resolve();
+      req.onerror = e => reject(e.target.error);
+    });
+  },
+};
 
 export function useArchiveSync() {
   const [archiveDb, setArchiveDb] = useState(null);

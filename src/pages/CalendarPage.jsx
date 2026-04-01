@@ -299,7 +299,11 @@ function MonthView({ year, month, days, trips, language, t, onDayClick, onTripCl
       {weeks.map((week, weekIdx) => {
         const weekSegs = tripSegments.filter(s => s.weekIdx === weekIdx);
         const maxLanes = maxLanesPerWeek[weekIdx] || 0;
-        const extraH = Math.max(0, maxLanes) * 20;
+        // top offset: date-num (~28px) + stop-info (~22px) + padding (~4px)
+        const BAR_TOP_OFFSET = 54;
+        const BAR_H = 18;
+        const BAR_GAP = 2;
+        const extraH = Math.max(0, maxLanes) * (BAR_H + BAR_GAP);
 
         return (
           <div key={weekIdx} style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '2px', marginBottom: '2px', position: 'relative' }}>
@@ -310,9 +314,6 @@ function MonthView({ year, month, days, trips, language, t, onDayClick, onTripCl
               const dayData = days[dateStr];
               const stopCount = dayData?.stops?.length || 0;
 
-              // trip bars that START in this cell
-              const cellSegs = weekSegs.filter(s => s.colStart === colIdx);
-
               return (
                 <div
                   key={colIdx}
@@ -322,7 +323,6 @@ function MonthView({ year, month, days, trips, language, t, onDayClick, onTripCl
                 >
                   <div className="calendar-date-num">{date.getDate()}</div>
 
-                  {/* stop count — right below date, left-aligned */}
                   {stopCount > 0 && (
                     <div className="calendar-stop-info" style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px', marginLeft: '8px' }}>
                       <div className="calendar-cell-dot" style={{ width: '7px', height: '7px', ...(dayData?.color ? { background: dayData.color } : {}) }} />
@@ -330,49 +330,40 @@ function MonthView({ year, month, days, trips, language, t, onDayClick, onTripCl
                       <span className="calendar-stop-label" style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>{stopCount}<span className="calendar-stop-word"> stops</span></span>
                     </div>
                   )}
-
-                  {/* trip bars */}
-                  <div className="calendar-trips-area">
-                    {/* spacer lanes for proper ordering */}
-                    {Array.from({ length: maxLanes }, (_, laneIdx) => {
-                      const seg = cellSegs.find(s => s.lane === laneIdx);
-                      if (!seg) {
-                        // check if another cell's bar passes through here at this lane
-                        const passing = weekSegs.find(s => s.lane === laneIdx && colIdx >= s.colStart && colIdx < s.colStart + s.colSpan);
-                        if (passing) return <div key={laneIdx} style={{ height: '18px', marginBottom: '2px' }} />;
-                        return <div key={laneIdx} style={{ height: '18px', marginBottom: '2px' }} />;
-                      }
-
-                      // calculate width to span across cells
-                      // We use percentage-based positioning
-                      const widthPercent = seg.colSpan; // number of cells
-                      const barClasses = ['calendar-trip-bar'];
-                      if (seg.isStart) barClasses.push('start');
-                      if (seg.isEnd) barClasses.push('end');
-
-                      return (
-                        <div
-                          key={laneIdx}
-                          className={barClasses.join(' ')}
-                          style={{
-                            background: tripColorSolid(seg.tripId),
-                            width: widthPercent > 1 ? `calc(${widthPercent * 100}% + ${(widthPercent - 1) * 2}px)` : '100%',
-                            position: widthPercent > 1 ? 'relative' : 'relative',
-                            zIndex: 3,
-                            marginBottom: '2px',
-                          }}
-                          title={seg.trip.title}
-                          onClick={(e) => { e.stopPropagation(); onTripClick(seg.trip); }}
-                        >
-                          {seg.trip.title}
-                        </div>
-                      );
-                    })}
-                  </div>
-
                 </div>
               );
             })}
+
+            {/* Trip bars rendered as an absolute overlay — avoids overlapping sibling cells */}
+            <div className="calendar-bar-overlay">
+              {weekSegs.map((seg) => {
+                const colW = 100 / 7;
+                const left = `calc(${seg.colStart * colW}% + 3px)`;
+                const width = `calc(${seg.colSpan * colW}% - 6px)`;
+                const top = BAR_TOP_OFFSET + seg.lane * (BAR_H + BAR_GAP);
+                const barClasses = ['calendar-trip-bar'];
+                if (seg.isStart) barClasses.push('start');
+                if (seg.isEnd) barClasses.push('end');
+
+                return (
+                  <div
+                    key={`${seg.tripId}-${seg.weekIdx}`}
+                    className={barClasses.join(' ')}
+                    style={{
+                      background: tripColorSolid(seg.tripId),
+                      left,
+                      width,
+                      top: `${top}px`,
+                      height: `${BAR_H}px`,
+                    }}
+                    title={seg.trip.title}
+                    onClick={(e) => { e.stopPropagation(); onTripClick(seg.trip); }}
+                  >
+                    {seg.trip.title}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         );
       })}

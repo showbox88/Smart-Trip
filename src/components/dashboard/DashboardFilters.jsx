@@ -27,7 +27,7 @@ export default function DashboardFilters() {
           ))}
         </div>
       )}
-      <div className="view-toggles" id="dashboard-view-toggles">
+      <div className="view-toggles" id="dashboard-view-toggles" style={{ marginLeft: 'auto' }}>
         <button
           className={`view-icon${state.dashboardView === 'grid' || !state.dashboardView ? ' active' : ''}`}
           onClick={() => dispatch({ type: 'SET_DASHBOARD_VIEW', payload: 'grid' })}
