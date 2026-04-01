@@ -1,12 +1,20 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useI18n } from '../../context/I18nContext';
+import { checkApiAllowed, logApiCall } from '../../utils/apiGuard';
 
 async function fetchPlacePredictions(query) {
   const mapsApi = globalThis.google;
   if (!mapsApi || !query || query.length < 2) return [];
 
+  const { allowed } = await checkApiAllowed('places_search', null);
+  if (!allowed) {
+    console.warn('[MapSearchBox] places_search blocked by guard');
+    return [];
+  }
+
   const { AutocompleteSuggestion } = await mapsApi.maps.importLibrary('places');
   const { suggestions } = await AutocompleteSuggestion.fetchAutocompleteSuggestions({ input: query });
+  logApiCall('places_search', null, 'success');
 
   return (suggestions || []).map((suggestion) => ({
     placeId: suggestion.placePrediction.placeId,
@@ -19,11 +27,18 @@ async function focusPlaceOnMap(placeId, mapInstance) {
   const mapsApi = globalThis.google;
   if (!mapsApi || !placeId || !mapInstance) return null;
 
+  const { allowed } = await checkApiAllowed('place_details', null);
+  if (!allowed) {
+    console.warn('[MapSearchBox] place_details blocked by guard');
+    return null;
+  }
+
   const { Place } = await mapsApi.maps.importLibrary('places');
   const place = new Place({ id: placeId });
   await place.fetchFields({
     fields: ['displayName', 'location', 'viewport'],
   });
+  logApiCall('place_details', null, 'success');
 
   if (place.viewport) {
     mapInstance.fitBounds(place.viewport);

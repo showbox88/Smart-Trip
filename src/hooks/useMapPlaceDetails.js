@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
+import { checkApiAllowed, logApiCall } from '../utils/apiGuard';
+import { useApp } from '../context/AppContext';
 
 function getMatchedStop(trip, placeId) {
   return trip?.days?.flatMap((day) => day.stops).find((stop) => stop.placeId === placeId) || null;
@@ -39,9 +41,11 @@ async function getStreetViewFallbackPhoto(place) {
 }
 
 export function useMapPlaceDetails(trip, placeId) {
+  const { state } = useApp();
   const [place, setPlace] = useState(null);
   const [loading, setLoading] = useState(true);
   const [fallbackPhotoUrl, setFallbackPhotoUrl] = useState('');
+  const [apiBlocked, setApiBlocked] = useState(false);
 
   const matchedStop = useMemo(() => getMatchedStop(trip, placeId), [trip, placeId]);
   const addedDays = useMemo(() => getAddedDays(trip, placeId), [trip, placeId]);
@@ -54,9 +58,17 @@ export function useMapPlaceDetails(trip, placeId) {
     setLoading(true);
     setPlace(null);
     setFallbackPhotoUrl('');
+    setApiBlocked(false);
 
     (async () => {
       try {
+        const { allowed, reason } = await checkApiAllowed('place_details', state.user?.id);
+        if (!allowed) {
+          console.warn('[useMapPlaceDetails] place_details blocked:', reason);
+          if (!cancelled) { setApiBlocked(true); setLoading(false); }
+          return;
+        }
+
         const { Place } = await mapsApi.maps.importLibrary('places');
         const nextPlace = new Place({ id: placeId });
         await nextPlace.fetchFields({
@@ -68,6 +80,7 @@ export function useMapPlaceDetails(trip, placeId) {
           ],
         });
 
+        logApiCall('place_details', state.user?.id, 'success');
         if (!cancelled) {
           setPlace(nextPlace);
           if (!nextPlace.photos?.length) {
@@ -101,5 +114,6 @@ export function useMapPlaceDetails(trip, placeId) {
     photos: place?.photos || [],
     reviews: place?.reviews || [],
     fallbackPhotoUrl,
+    apiBlocked,
   };
 }

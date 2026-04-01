@@ -6,6 +6,7 @@ import { getCategoryFromTypes } from '../utils/tripHelpers';
 import { supabase } from '../lib/supabase';
 import { isAdmin } from '../utils/admin'; // Add this
 import { fetchRouteDuration } from '../utils/transitHelpers';
+import { checkApiAllowed, logApiCall } from '../utils/apiGuard';
 import {
   DEFAULT_DAY_COLORS,
   buildStayGroups,
@@ -322,9 +323,16 @@ export function useTripEditor(tripId) {
       const day = findDayById(updated, dayId);
       if (!day) return false;
       day.color = color;
+      // 同步到 state.days，日历颜色点即时更新
+      if (day.date) {
+        const existingDay = state.days?.[day.date];
+        if (existingDay) {
+          dispatch({ type: 'UPSERT_DAY', payload: { ...existingDay, color } });
+        }
+      }
       return updated;
     });
-  }, [withTripUpdate]);
+  }, [withTripUpdate, state.days, dispatch]);
 
   const updateDay = useCallback((dayId, patch) => {
     withTripUpdate((updated) => {
@@ -489,22 +497,97 @@ export function useTripEditor(tripId) {
     }
 
     try {
-      const { Place } = await mapsApi.maps.importLibrary('places');
-      const place = new Place({ id: placeId });
-      await place.fetchFields({
-        fields: ['displayName', 'formattedAddress', 'addressComponents', 'nationalPhoneNumber', 'location', 'photos', 'rating', 'editorialSummary', 'types', 'regularOpeningHours'],
-      });
-
       const updated = cloneTrip(trip);
       const day = findDayById(updated, dayId);
       if (!day) return null;
       if (day.stops.some((stop) => stop.placeId === placeId)) return null;
 
+      // ── 查 places 缓存 ──
+      let placeData = null;
+      const { data: cached } = await supabase
+        .from('places')
+        .select('*')
+        .eq('place_id', placeId)
+        .maybeSingle();
+
+      if (cached) {
+        console.log('[addStopFromPlace] places cache hit:', placeId);
+        placeData = {
+          displayName: cached.name,
+          formattedAddress: cached.address,
+          lat: cached.lat,
+          lng: cached.lng,
+          phone: cached.phone || '',
+          rating: cached.rating,
+          category: cached.category,
+          photoUrl: cached.photo_url || '',
+          openingHours: cached.opening_hours || [],
+          types: cached.category ? [cached.category] : [],
+          editorialSummary: '',
+          addressComponents: null,
+        };
+      }
+
+      // ── 缓存未命中：调 Google API ──
+      if (!placeData) {
+        const { allowed, reason } = await checkApiAllowed('place_details', state.user?.id);
+        if (!allowed) {
+          console.warn('[addStopFromPlace] place_details blocked:', reason);
+          return null;
+        }
+        console.log('[addStopFromPlace] cache miss, calling Google API:', placeId);
+        const { Place } = await mapsApi.maps.importLibrary('places');
+        const place = new Place({ id: placeId });
+        await place.fetchFields({
+          fields: ['displayName', 'formattedAddress', 'addressComponents', 'nationalPhoneNumber', 'location', 'photos', 'rating', 'editorialSummary', 'types', 'regularOpeningHours'],
+        });
+        logApiCall('place_details', state.user?.id, 'success');
+
+        const lat = place.location?.lat() || 0;
+        const lng = place.location?.lng() || 0;
+        let photoUrl = place.photos?.length > 0 ? place.photos[0].getURI({ maxWidth: 400 }) : '';
+        if (!photoUrl && lat && lng) {
+          photoUrl = (await getStreetViewThumbUrl(lat, lng, 320, 240)) || '';
+        }
+        const categoryInfo = getCategoryFromTypes(place.types || []);
+
+        placeData = {
+          displayName: place.displayName,
+          formattedAddress: place.formattedAddress || '',
+          lat,
+          lng,
+          phone: place.nationalPhoneNumber || '',
+          rating: place.rating,
+          category: categoryInfo.labelKey,
+          categoryIcon: categoryInfo.icon,
+          photoUrl,
+          openingHours: place.regularOpeningHours?.weekdayDescriptions || [],
+          types: place.types || [],
+          editorialSummary: place.editorialSummary || '',
+          addressComponents: place.addressComponents,
+        };
+
+        // 异步写入 places 缓存
+        supabase.from('places').upsert({
+          place_id: placeId,
+          name: placeData.displayName,
+          address: placeData.formattedAddress,
+          lat: placeData.lat,
+          lng: placeData.lng,
+          category: placeData.category,
+          phone: placeData.phone || null,
+          opening_hours: placeData.openingHours,
+          photo_url: placeData.photoUrl || null,
+          rating: placeData.rating ?? null,
+        }, { onConflict: 'place_id' }).then(({ error }) => {
+          if (error) console.warn('[places cache] upsert failed:', error.message);
+        });
+      }
+
       let timeStr = '09:00';
       let period = 'AM';
 
       if (useNow) {
-        // 实时打卡：用当前时间
         const now = new Date();
         const h = now.getHours();
         const m = now.getMinutes();
@@ -527,35 +610,31 @@ export function useTripEditor(tripId) {
         }
       }
 
-      const lat = place.location?.lat() || 0;
-      const lng = place.location?.lng() || 0;
-      let photoUrl = place.photos?.length > 0 ? place.photos[0].getURI({ maxWidth: 400 }) : '';
-      if (!photoUrl && lat && lng) {
-        photoUrl = (await getStreetViewThumbUrl(lat, lng, 320, 240)) || '';
-      }
+      const categoryInfo = placeData.categoryIcon
+        ? { labelKey: placeData.category, icon: placeData.categoryIcon }
+        : getCategoryFromTypes(placeData.types || []);
 
-      const categoryInfo = getCategoryFromTypes(place.types || []);
       const newStop = {
         id: `s${Date.now()}`,
-        location: place.displayName,
-        desc: place.editorialSummary || '',
-        address: place.formattedAddress || '',
-        city: extractCityFromAddressComponents(place.addressComponents),
-        phone: place.nationalPhoneNumber || '',
+        location: placeData.displayName,
+        desc: placeData.editorialSummary || '',
+        address: placeData.formattedAddress || '',
+        city: placeData.addressComponents ? extractCityFromAddressComponents(placeData.addressComponents) : '',
+        phone: placeData.phone || '',
         time: timeStr,
         period,
         note: '',
         price: '0',
         type: 'location',
-        lat,
-        lng,
-        photo: photoUrl,
-        rating: place.rating,
+        lat: placeData.lat,
+        lng: placeData.lng,
+        photo: placeData.photoUrl,
+        rating: placeData.rating,
         category: categoryInfo.labelKey,
         categoryIcon: categoryInfo.icon,
-        placeTypes: place.types || [],
-        placeId: place.id,
-        openingHours: place.regularOpeningHours?.weekdayDescriptions || [],
+        placeTypes: placeData.types || [],
+        placeId,
+        openingHours: placeData.openingHours || [],
       };
 
       insertStopIntoDay(day, newStop, afterStopId);
@@ -564,9 +643,9 @@ export function useTripEditor(tripId) {
       applyUpdate(updated);
       await computeTransitData(dayId, updated);
 
-      if (photoUrl) {
+      if (placeData.photoUrl) {
         try {
-          const resp = await fetch(photoUrl);
+          const resp = await fetch(placeData.photoUrl);
           if (resp.ok) {
             const blob = await resp.blob();
             const ext = blob.type.split('/')[1] || 'jpg';

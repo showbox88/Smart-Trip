@@ -127,6 +127,17 @@ export default function ShareModal({ trip, onClose }) {
               {shareUrl}
             </div>
 
+            {/* Open link */}
+            <a
+              href={shareUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', color: 'var(--accent-primary)', marginBottom: '0.85rem', textDecoration: 'none', width: 'fit-content' }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>open_in_new</span>
+              {t('share.open_link') || 'Open in new tab'}
+            </a>
+
             {/* Action buttons */}
             <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
               <button

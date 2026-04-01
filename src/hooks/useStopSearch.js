@@ -1,6 +1,9 @@
 import { useState, useRef, useCallback } from 'react';
+import { checkApiAllowed, logApiCall } from '../utils/apiGuard';
+import { useApp } from '../context/AppContext';
 
 export function useStopSearch(dayId, onSelect) {
+  const { state } = useApp();
   const [query, setQuery] = useState('');
   const [predictions, setPredictions] = useState([]);
   const [focusIdx, setFocusIdx] = useState(-1);
@@ -17,8 +20,16 @@ export function useStopSearch(dayId, onSelect) {
     }
     setIsLoading(true);
     try {
+      const { allowed, reason } = await checkApiAllowed('places_search', state.user?.id);
+      if (!allowed) {
+        console.warn('[useStopSearch] places_search blocked:', reason);
+        setPredictions([]);
+        setIsLoading(false);
+        return;
+      }
       const { AutocompleteSuggestion } = await google.maps.importLibrary('places');
       const { suggestions } = await AutocompleteSuggestion.fetchAutocompleteSuggestions({ input: q });
+      logApiCall('places_search', state.user?.id, 'success');
 
       if (!suggestions?.length) {
         setPredictions([]);

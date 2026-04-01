@@ -7,7 +7,7 @@ import { fetchRouteDuration } from '../utils/transitHelpers';
 
 export default function AdminPage() {
   const { state } = useApp();
-  const [activeTab, setActiveTab] = useState('itineraries');
+  const [activeTab, setActiveTab] = useState('api');
   const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(false);
   const [unusedImages, setUnusedImages] = useState([]);
@@ -17,11 +17,12 @@ export default function AdminPage() {
   const [showSql, setShowSql] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
 
-  // Migration state
-  const [migrationV1Trips, setMigrationV1Trips] = useState([]);
-  const [migrationScanning, setMigrationScanning] = useState(false);
-  const [migrationRunning, setMigrationRunning] = useState(false);
-  const [migrationLog, setMigrationLog] = useState([]);
+  // API monitoring state
+  const [apiSettings, setApiSettings] = useState({});
+  const [apiStats, setApiStats] = useState({});
+  const [apiLogs, setApiLogs] = useState([]);
+  const [apiSaving, setApiSaving] = useState(false);
+  const [apiLimitInputs, setApiLimitInputs] = useState({});
 
   // Repair state
   const [repairLog, setRepairLog] = useState([]);
@@ -33,10 +34,11 @@ export default function AdminPage() {
   }
 
   useEffect(() => {
-    if (activeTab === 'itineraries') {
-      loadAllTrips();
-    }
+    if (activeTab === 'itineraries') loadAllTrips();
+    if (activeTab === 'api') loadApiData();
   }, [activeTab]);
+
+  useEffect(() => { loadApiData(); }, []);
 
   const loadAllTrips = async () => {
     setLoading(true);
@@ -277,7 +279,83 @@ export default function AdminPage() {
     }
   };
 
-  // ── Migration helpers ──────────────────────────────────────
+  // ── API monitoring helpers ─────────────────────────────────
+
+  const API_TYPES = ['places_search', 'place_details', 'directions'];
+
+  const loadApiData = async () => {
+    // Load settings
+    const { data: settings } = await supabase.from('system_settings').select('key, value');
+    const map = {};
+    settings?.forEach(s => { map[s.key] = s.value; });
+    setApiSettings(map);
+    setApiLimitInputs({
+      daily_api_limit: map.daily_api_limit ?? 200,
+      per_2min_api_limit: map.per_2min_api_limit ?? 20,
+    });
+
+    // Load stats
+    const startOfDay = new Date(); startOfDay.setHours(0, 0, 0, 0);
+    const twoMinAgo = new Date(Date.now() - 2 * 60 * 1000);
+
+    const stats = {};
+    await Promise.all(API_TYPES.map(async (type) => {
+      const [{ count: today }, { count: recent }, { count: totalBlocked }] = await Promise.all([
+        supabase.from('api_logs').select('*', { count: 'exact', head: true })
+          .eq('api_type', type).eq('status', 'success').gte('created_at', startOfDay.toISOString()),
+        supabase.from('api_logs').select('*', { count: 'exact', head: true })
+          .eq('api_type', type).eq('status', 'success').gte('created_at', twoMinAgo.toISOString()),
+        supabase.from('api_logs').select('*', { count: 'exact', head: true })
+          .eq('api_type', type).eq('status', 'blocked').gte('created_at', startOfDay.toISOString()),
+      ]);
+      stats[type] = { today: today || 0, recent: recent || 0, blocked: totalBlocked || 0 };
+    }));
+    setApiStats(stats);
+
+    // Recent logs
+    const { data: logs } = await supabase.from('api_logs')
+      .select('api_type, status, created_at')
+      .order('created_at', { ascending: false })
+      .limit(50);
+    setApiLogs(logs || []);
+  };
+
+  const toggleApiSwitch = async (key, currentValue) => {
+    const newValue = currentValue === true || currentValue === 'true' ? 'false' : 'true';
+    setApiSaving(true);
+    await supabase.from('system_settings')
+      .update({ value: newValue, updated_at: new Date().toISOString() })
+      .eq('key', key);
+    await loadApiData();
+    setApiSaving(false);
+  };
+
+  const saveLimits = async () => {
+    setApiSaving(true);
+    await Promise.all([
+      supabase.from('system_settings').update({ value: String(apiLimitInputs.daily_api_limit), updated_at: new Date().toISOString() }).eq('key', 'daily_api_limit'),
+      supabase.from('system_settings').update({ value: String(apiLimitInputs.per_2min_api_limit), updated_at: new Date().toISOString() }).eq('key', 'per_2min_api_limit'),
+    ]);
+    await loadApiData();
+    setApiSaving(false);
+  };
+
+  const API_SWITCH_KEYS = ['places_search_enabled', 'place_details_enabled', 'directions_enabled'];
+
+  const toggleAllApis = async (enable) => {
+    setApiSaving(true);
+    const value = enable ? 'true' : 'false';
+    await Promise.all(
+      API_SWITCH_KEYS.map(key =>
+        supabase.from('system_settings')
+          .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' })
+      )
+    );
+    await loadApiData();
+    setApiSaving(false);
+  };
+
+  // ── (removed) Migration helpers ────────────────────────────
 
   const scanV1Trips = async () => {
     setMigrationScanning(true);
@@ -538,17 +616,17 @@ export default function AdminPage() {
         <div>
           <h1 style={{ fontSize: '1.8rem', fontWeight: 'bold', marginBottom: '1rem' }}>Admin Dashboard</h1>
           <div style={{ display: 'flex', gap: '1rem' }}>
-            <button 
+            <button
+              onClick={() => setActiveTab('api')}
+              className={`tab-btn ${activeTab === 'api' ? 'active' : ''}`}
+              style={{ padding: '0.5rem 1rem', borderRadius: '8px', background: activeTab === 'api' ? 'var(--accent)' : 'rgba(255,255,255,0.05)', border: 'none', color: '#fff', cursor: 'pointer' }}
+            >
+              API 监控
+            </button>
+            <button
               onClick={() => setActiveTab('itineraries')}
               className={`tab-btn ${activeTab === 'itineraries' ? 'active' : ''}`}
-              style={{ 
-                  padding: '0.5rem 1rem', 
-                  borderRadius: '8px', 
-                  background: activeTab === 'itineraries' ? 'var(--accent)' : 'rgba(255,255,255,0.05)',
-                  border: 'none',
-                  color: '#fff',
-                  cursor: 'pointer'
-              }}
+              style={{ padding: '0.5rem 1rem', borderRadius: '8px', background: activeTab === 'itineraries' ? 'var(--accent)' : 'rgba(255,255,255,0.05)', border: 'none', color: '#fff', cursor: 'pointer' }}
             >
               All Itineraries
             </button>
@@ -558,13 +636,6 @@ export default function AdminPage() {
               style={{ padding: '0.5rem 1rem', borderRadius: '8px', background: activeTab === 'cleanup' ? 'var(--accent)' : 'rgba(255,255,255,0.05)', border: 'none', color: '#fff', cursor: 'pointer' }}
             >
               Image Cleanup
-            </button>
-            <button
-              onClick={() => { setActiveTab('migration'); scanV1Trips(); }}
-              className={`tab-btn ${activeTab === 'migration' ? 'active' : ''}`}
-              style={{ padding: '0.5rem 1rem', borderRadius: '8px', background: activeTab === 'migration' ? 'var(--accent)' : 'rgba(255,255,255,0.05)', border: 'none', color: '#fff', cursor: 'pointer' }}
-            >
-              V1 → V2 迁移
             </button>
           </div>
         </div>
@@ -779,92 +850,148 @@ export default function AdminPage() {
         </section>
       )}
 
-      {activeTab === 'migration' && (
+      {activeTab === 'api' && (
         <section style={{ padding: '1.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '12px' }}>
-          <h2 style={{ fontSize: '1.2rem', marginBottom: '0.4rem' }}>V1 → V2 数据迁移</h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
-            将旧架构（<code>trip_data</code> JSONB）的行程迁移到新架构（<code>days_v2</code> + <code>trip_days</code>）。迁移后 <code>trip_data</code> 会被置为 null。
-          </p>
-
-          {/* Actions */}
-          <div style={{ display: 'flex', gap: '0.8rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-            <button
-              onClick={scanV1Trips}
-              disabled={migrationScanning || migrationRunning}
-              style={{ padding: '0.6rem 1.2rem', borderRadius: '8px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>refresh</span>
-              重新扫描
-            </button>
-            <button
-              onClick={() => runMigration(true)}
-              disabled={migrationRunning || migrationScanning || !migrationV1Trips.some(t => t.user_id === state.user?.id)}
-              style={{ padding: '0.6rem 1.2rem', borderRadius: '8px', background: '#2563eb', border: 'none', color: '#fff', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px', opacity: migrationRunning ? 0.6 : 1 }}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>person</span>
-              迁移我的数据（测试）
-            </button>
-            <button
-              onClick={() => runMigration(false)}
-              disabled={migrationRunning || migrationScanning || migrationV1Trips.length === 0}
-              style={{ padding: '0.6rem 1.2rem', borderRadius: '8px', background: '#dc2626', border: 'none', color: '#fff', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px', opacity: migrationRunning ? 0.6 : 1 }}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>group</span>
-              迁移全部用户
-            </button>
-            <button
-              onClick={fixMissingDates}
-              disabled={migrationRunning || migrationScanning}
-              style={{ padding: '0.6rem 1.2rem', borderRadius: '8px', background: '#7c3aed', border: 'none', color: '#fff', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px', opacity: migrationRunning ? 0.6 : 1 }}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>calendar_month</span>
-              修复缺失日期
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+            <h2 style={{ fontSize: '1.2rem' }}>Google API 监控</h2>
+            <button onClick={loadApiData} disabled={apiSaving} style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: '#fff', padding: '0.4rem 0.9rem', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>refresh</span>刷新
             </button>
           </div>
 
-          {/* Pending trips table */}
-          {migrationScanning ? (
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>扫描中...</p>
-          ) : migrationV1Trips.length === 0 ? (
-            <p style={{ color: '#22c55e', fontSize: '0.9rem' }}>✅ 没有待迁移的 v1 行程</p>
-          ) : (
-            <div style={{ background: 'rgba(0,0,0,0.2)', borderRadius: '10px', overflow: 'hidden', marginBottom: '1.5rem' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
-                <thead style={{ background: 'rgba(255,255,255,0.05)' }}>
-                  <tr>
-                    <th style={{ padding: '0.7rem 1rem', textAlign: 'left' }}>行程名</th>
-                    <th style={{ padding: '0.7rem 1rem', textAlign: 'left' }}>用户</th>
-                    <th style={{ padding: '0.7rem 1rem', textAlign: 'left' }}>天数</th>
-                    <th style={{ padding: '0.7rem 1rem', textAlign: 'left' }}>创建时间</th>
-                    <th style={{ padding: '0.7rem 1rem', textAlign: 'left' }}>归属</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {migrationV1Trips.map(trip => (
-                    <tr key={trip.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                      <td style={{ padding: '0.7rem 1rem' }}>{trip.title}</td>
-                      <td style={{ padding: '0.7rem 1rem', color: 'var(--text-muted)' }}>{trip.email}</td>
-                      <td style={{ padding: '0.7rem 1rem' }}>{trip.dayCount} 天</td>
-                      <td style={{ padding: '0.7rem 1rem', color: 'var(--text-muted)' }}>{new Date(trip.created_at).toLocaleDateString()}</td>
-                      <td style={{ padding: '0.7rem 1rem' }}>
-                        {trip.user_id === state.user?.id
-                          ? <span style={{ color: '#60a5fa', fontSize: '0.75rem', fontWeight: 700 }}>我的</span>
-                          : <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>其他用户</span>}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+          {/* Master toggle */}
+          {(() => {
+            const API_SWITCH_KEYS_LOCAL = ['places_search_enabled', 'place_details_enabled', 'directions_enabled'];
+            const allOn = API_SWITCH_KEYS_LOCAL.every(k => apiSettings[k] === true || apiSettings[k] === 'true');
+            const allOff = API_SWITCH_KEYS_LOCAL.every(k => apiSettings[k] !== true && apiSettings[k] !== 'true');
+            return (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: allOn ? 'rgba(34,197,94,0.08)' : 'rgba(239,68,68,0.08)', border: `1px solid ${allOn ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`, borderRadius: '14px', padding: '1rem 1.4rem', marginBottom: '1.5rem' }}>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: '1rem' }}>总开关</div>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                    {allOn ? '所有 Google API 已开启' : allOff ? '所有 Google API 已关闭' : '部分 API 已开启'}
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                  <button
+                    onClick={() => !apiSaving && toggleAllApis(true)}
+                    disabled={apiSaving || allOn}
+                    style={{ padding: '0.5rem 1.1rem', borderRadius: '8px', background: allOn ? 'rgba(34,197,94,0.15)' : '#22c55e', border: `1px solid ${allOn ? 'rgba(34,197,94,0.3)' : '#16a34a'}`, color: allOn ? '#4ade80' : '#fff', fontWeight: 600, fontSize: '0.85rem', cursor: allOn || apiSaving ? 'not-allowed' : 'pointer', opacity: allOn || apiSaving ? 0.6 : 1, transition: 'all 0.2s' }}
+                  >
+                    全部开启
+                  </button>
+                  <button
+                    onClick={() => !apiSaving && toggleAllApis(false)}
+                    disabled={apiSaving || allOff}
+                    style={{ padding: '0.5rem 1.1rem', borderRadius: '8px', background: allOff ? 'rgba(239,68,68,0.15)' : '#ef4444', border: `1px solid ${allOff ? 'rgba(239,68,68,0.3)' : '#dc2626'}`, color: allOff ? '#f87171' : '#fff', fontWeight: 600, fontSize: '0.85rem', cursor: allOff || apiSaving ? 'not-allowed' : 'pointer', opacity: allOff || apiSaving ? 0.6 : 1, transition: 'all 0.2s' }}
+                  >
+                    全部关闭
+                  </button>
+                </div>
+              </div>
+            );
+          })()}
 
-          {/* Migration log */}
-          {migrationLog.length > 0 && (
+          {/* API switches + stats */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+            {[
+              { key: 'places_search_enabled', label: 'Places Search', type: 'places_search', desc: '地点搜索自动补全' },
+              { key: 'place_details_enabled', label: 'Place Details', type: 'place_details', desc: '地点详情 / 添加 stop' },
+              { key: 'directions_enabled', label: 'Directions', type: 'directions', desc: '路线和交通时间' },
+            ].map(({ key, label, type, desc }) => {
+              const on = apiSettings[key] === true || apiSettings[key] === 'true';
+              const stats = apiStats[type] || {};
+              return (
+                <div key={key} style={{ background: 'rgba(0,0,0,0.25)', borderRadius: '12px', padding: '1.2rem', border: `1px solid ${on ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)'}` }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem' }}>
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{label}</div>
+                      <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginTop: '2px' }}>{desc}</div>
+                    </div>
+                    {/* Toggle switch */}
+                    <div
+                      onClick={() => !apiSaving && toggleApiSwitch(key, apiSettings[key])}
+                      style={{ width: '44px', height: '24px', borderRadius: '12px', background: on ? '#22c55e' : '#374151', cursor: 'pointer', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}
+                    >
+                      <div style={{ position: 'absolute', top: '3px', left: on ? '23px' : '3px', width: '18px', height: '18px', borderRadius: '50%', background: '#fff', transition: 'left 0.2s' }} />
+                    </div>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem', fontSize: '0.78rem' }}>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ color: 'var(--text-muted)' }}>今日</div>
+                      <div style={{ fontWeight: 700, fontSize: '1.1rem', color: '#60a5fa' }}>{stats.today ?? '—'}</div>
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ color: 'var(--text-muted)' }}>近2分钟</div>
+                      <div style={{ fontWeight: 700, fontSize: '1.1rem', color: '#a78bfa' }}>{stats.recent ?? '—'}</div>
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ color: 'var(--text-muted)' }}>今日拦截</div>
+                      <div style={{ fontWeight: 700, fontSize: '1.1rem', color: '#f87171' }}>{stats.blocked ?? '—'}</div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Limits config */}
+          <div style={{ background: 'rgba(0,0,0,0.2)', borderRadius: '12px', padding: '1.2rem', marginBottom: '1.5rem' }}>
+            <div style={{ fontWeight: 600, marginBottom: '1rem' }}>限额设置</div>
+            <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '4px' }}>每日最大调用次数（所有类型合计）</label>
+                <input
+                  type="number" min="1"
+                  value={apiLimitInputs.daily_api_limit ?? ''}
+                  onChange={e => setApiLimitInputs(p => ({ ...p, daily_api_limit: e.target.value }))}
+                  style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: '#fff', borderRadius: '8px', padding: '0.5rem 0.8rem', width: '120px', fontSize: '0.9rem' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '4px' }}>2分钟内最大次数（超限自动切断）</label>
+                <input
+                  type="number" min="1"
+                  value={apiLimitInputs.per_2min_api_limit ?? ''}
+                  onChange={e => setApiLimitInputs(p => ({ ...p, per_2min_api_limit: e.target.value }))}
+                  style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: '#fff', borderRadius: '8px', padding: '0.5rem 0.8rem', width: '120px', fontSize: '0.9rem' }}
+                />
+              </div>
+              <button onClick={saveLimits} disabled={apiSaving} style={{ padding: '0.5rem 1.2rem', borderRadius: '8px', background: 'var(--accent)', border: 'none', color: '#fff', cursor: 'pointer', fontWeight: 600, opacity: apiSaving ? 0.6 : 1 }}>
+                保存
+              </button>
+            </div>
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.8rem' }}>超限时对应 API 开关会被自动关闭，需手动重新开启。</p>
+          </div>
+
+          {/* Recent log */}
+          {apiLogs.length > 0 && (
             <div>
-              <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>迁移日志</div>
-              <pre style={{ background: 'rgba(0,0,0,0.4)', borderRadius: '8px', padding: '1rem', fontSize: '0.78rem', color: '#94a3b8', maxHeight: '360px', overflowY: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
-                {migrationLog.join('\n')}
-              </pre>
+              <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>最近 50 条记录</div>
+              <div style={{ background: 'rgba(0,0,0,0.3)', borderRadius: '8px', overflow: 'hidden', maxHeight: '300px', overflowY: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.78rem' }}>
+                  <thead style={{ background: 'rgba(255,255,255,0.05)', position: 'sticky', top: 0 }}>
+                    <tr>
+                      <th style={{ padding: '0.5rem 0.8rem', textAlign: 'left' }}>时间</th>
+                      <th style={{ padding: '0.5rem 0.8rem', textAlign: 'left' }}>类型</th>
+                      <th style={{ padding: '0.5rem 0.8rem', textAlign: 'left' }}>状态</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {apiLogs.map((log, i) => (
+                      <tr key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                        <td style={{ padding: '0.4rem 0.8rem', color: 'var(--text-muted)' }}>{new Date(log.created_at).toLocaleTimeString()}</td>
+                        <td style={{ padding: '0.4rem 0.8rem' }}>{log.api_type}</td>
+                        <td style={{ padding: '0.4rem 0.8rem' }}>
+                          <span style={{ color: log.status === 'success' ? '#22c55e' : log.status === 'blocked' ? '#f87171' : '#fbbf24', fontWeight: 600 }}>
+                            {log.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </section>

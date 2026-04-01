@@ -350,7 +350,8 @@
         "import_success": "Trip imported successfully!",
         "not_found": "This trip is no longer available or the link has been revoked.",
         "view_only": "View only · Shared via Smart Trip",
-        "shared": "Shared"
+        "shared": "Shared",
+        "open_link": "Open in new tab"
     },
     "calendar": {
         "title": "Calendar",
@@ -363,7 +364,10 @@
         "albums": {
             "title": "Local Memories",
             "linked": "Local album linked",
-            "not_linked": "Local album not linked, click any album to configure"
+            "not_linked": "Local album not linked, click any album to configure",
+            "manage": "Manage Photos",
+            "empty": "No albums yet",
+            "empty_hint": "Go to photo management to sync your trips"
         }
     }
 }

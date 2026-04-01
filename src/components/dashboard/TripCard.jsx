@@ -18,6 +18,7 @@ function getStatus(trip, t) {
   return { label: t('common.completed'), cls: 'status-completed' };
 }
 
+
 export default function TripCard({ trip, isList = false, onEdit, onShare }) {
   const { t } = useI18n();
   const { state } = useApp();
@@ -55,6 +56,7 @@ export default function TripCard({ trip, isList = false, onEdit, onShare }) {
   };
 
   if (isList) {
+    const cities = trip.cities || [];
     return (
       <div
         className="trip-card-list"
@@ -65,9 +67,9 @@ export default function TripCard({ trip, isList = false, onEdit, onShare }) {
           <div className="thumb-blur-bg" style={{ backgroundImage: `url('${trip.thumb}')`, opacity: 0.3, filter: 'blur(10px)' }} />
           <img src={trip.thumb} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'contain', position: 'relative', zIndex: 1 }} alt={trip.title} />
         </div>
-        <div style={{ flex: 1 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
           <h4 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: '4px' }}>{trip.title}</h4>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: cities.length ? '6px' : 0 }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
               <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>calendar_today</span>
               {trip.startDate} - {trip.endDate}
@@ -77,6 +79,15 @@ export default function TripCard({ trip, isList = false, onEdit, onShare }) {
               {stopsCount} {t('itinerary.stops_count')}
             </span>
           </div>
+          {cities.length > 0 && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+              {cities.map(city => (
+                <span key={city} style={{ fontSize: '0.72rem', padding: '2px 8px', borderRadius: '20px', background: 'rgba(255,255,255,0.07)', color: 'var(--text-muted)', border: '1px solid rgba(255,255,255,0.1)', whiteSpace: 'nowrap' }}>
+                  {city}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
         <span className={`status-badge ${status.cls}`} style={{ position: 'static', padding: '4px 12px', borderRadius: '20px' }}>{status.label}</span>
         <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'white', minWidth: '100px', textAlign: 'right' }}>

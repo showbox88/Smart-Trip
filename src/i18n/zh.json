@@ -351,7 +351,8 @@
         "import_success": "行程导入成功！",
         "not_found": "此行程已不可访问，或分享链接已被撤销。",
         "view_only": "只读 · 通过 Smart Trip 分享",
-        "shared": "已分享"
+        "shared": "已分享",
+        "open_link": "在新标签页打开"
     },
     "calendar": {
         "title": "日历",
@@ -364,7 +365,10 @@
         "albums": {
             "title": "我的本地相册",
             "linked": "本地相册已链接",
-            "not_linked": "未链接本地相册，点击任意相册进行配置"
+            "not_linked": "未链接本地相册，点击任意相册进行配置",
+            "manage": "管理照片",
+            "empty": "暂无相册",
+            "empty_hint": "前往照片管理页面以同步你的行程"
         }
     }
 }

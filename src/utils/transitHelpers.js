@@ -1,3 +1,6 @@
+import { checkApiAllowed, logApiCall } from './apiGuard';
+import { getRouteCache, saveRouteCache } from './routeCache';
+
 // Map legacy REST API travel modes to JS SDK values
 const TRAVEL_MODE_MAP = {
   'DRIVE': 'DRIVING',
@@ -7,12 +10,12 @@ const TRAVEL_MODE_MAP = {
   'TWO_WHEELER': 'TWO_WHEELER',
 };
 
-// In-memory cache to avoid hitting Quota limits on repeated requests
-const routeCache = new Map();
-
 async function fetchRouteForMode(origin, dest, mode) {
-  const cacheKey = `${origin.lat},${origin.lng}|${dest.lat},${dest.lng}|${mode}`;
-  if (routeCache.has(cacheKey)) return routeCache.get(cacheKey);
+  // 查 DB 缓存
+  const cached = await getRouteCache(origin.lat, origin.lng, dest.lat, dest.lng, mode);
+  if (cached) {
+    return { duration: cached.duration_seconds, distance: cached.distance_meters, mode };
+  }
 
   const { Route } = await google.maps.importLibrary('routes');
   const { routes } = await Route.computeRoutes({
@@ -30,7 +33,12 @@ async function fetchRouteForMode(origin, dest, mode) {
     distance: route.distanceMeters,
     mode,
   };
-  routeCache.set(cacheKey, result);
+
+  saveRouteCache(origin.lat, origin.lng, dest.lat, dest.lng, mode, {
+    durationSeconds: result.duration,
+    distanceMeters: result.distance,
+  });
+
   return result;
 }
 
@@ -94,14 +102,32 @@ function parseDirectionsRoute(route) {
 }
 
 export async function fetchTransitDetails(origin, dest) {
-  const cacheKey = `transit-detail:${origin.lat},${origin.lng}|${dest.lat},${dest.lng}`;
-  if (routeCache.has(cacheKey)) return routeCache.get(cacheKey);
+  // 查 DB 缓存
+  const cached = await getRouteCache(origin.lat, origin.lng, dest.lat, dest.lng, 'TRANSIT');
+  if (cached?.polyline_data) {
+    return {
+      duration: cached.duration_seconds,
+      distance: cached.distance_meters,
+      mode: 'TRANSIT',
+      steps: cached.polyline_data.steps || [],
+      durationText: '',
+      distanceText: '',
+      departureTime: null,
+      arrivalTime: null,
+    };
+  }
 
   try {
     const routes = await directionsServiceTransit(origin, dest, false);
     if (!routes) return null;
     const result = parseDirectionsRoute(routes[0]);
-    if (result) routeCache.set(cacheKey, result);
+    if (result) {
+      saveRouteCache(origin.lat, origin.lng, dest.lat, dest.lng, 'TRANSIT', {
+        durationSeconds: result.duration,
+        distanceMeters: result.distance,
+        polylineData: { steps: result.steps },
+      });
+    }
     return result;
   } catch (err) {
     console.error('[transitHelpers] fetchTransitDetails failed:', err);
@@ -111,15 +137,19 @@ export async function fetchTransitDetails(origin, dest) {
 
 // Fetch multiple transit route alternatives (for the detail panel)
 export async function fetchTransitAlternatives(origin, dest) {
-  const cacheKey = `transit-alts:${origin.lat},${origin.lng}|${dest.lat},${dest.lng}`;
-  if (routeCache.has(cacheKey)) return routeCache.get(cacheKey);
+  // alternatives 不走 DB 缓存（每次可能有新班次），但走内存缓存
+  const memKey = `transit-alts:${origin.lat},${origin.lng}|${dest.lat},${dest.lng}`;
+  if (fetchTransitAlternatives._cache?.has(memKey)) return fetchTransitAlternatives._cache.get(memKey);
 
   try {
     if (typeof google === 'undefined') return null;
     const routes = await directionsServiceTransit(origin, dest, true);
     if (!routes) return null;
     const parsed = routes.map(r => parseDirectionsRoute(r)).filter(Boolean);
-    if (parsed.length) routeCache.set(cacheKey, parsed);
+    if (parsed.length) {
+      if (!fetchTransitAlternatives._cache) fetchTransitAlternatives._cache = new Map();
+      fetchTransitAlternatives._cache.set(memKey, parsed);
+    }
     return parsed;
   } catch (err) {
     console.error('[transitHelpers] fetchTransitAlternatives failed:', err);
@@ -127,9 +157,15 @@ export async function fetchTransitAlternatives(origin, dest) {
   }
 }
 
-export async function fetchRouteDuration(origin, dest, travelMode = 'DRIVE') {
+export async function fetchRouteDuration(origin, dest, travelMode = 'DRIVE', userId = null) {
   try {
     if (typeof google === 'undefined') return null;
+
+    const { allowed, reason } = await checkApiAllowed('directions', userId);
+    if (!allowed) {
+      console.warn('[transitHelpers] directions blocked:', reason);
+      return null;
+    }
 
     const primaryMode = TRAVEL_MODE_MAP[travelMode] || travelMode;
 
@@ -139,10 +175,12 @@ export async function fetchRouteDuration(origin, dest, travelMode = 'DRIVE') {
     }
 
     const result = await fetchRouteForMode(origin, dest, primaryMode);
-    if (result) return result;
+    if (result) { logApiCall('directions', userId, 'success'); return result; }
 
     // Fallback: if DRIVE/WALK returned nothing (e.g. South Korea restriction), try TRANSIT with steps
-    return await fetchTransitDetails(origin, dest);
+    const fallback = await fetchTransitDetails(origin, dest);
+    if (fallback) logApiCall('directions', userId, 'success');
+    return fallback;
   } catch (err) {
     console.error('[transitHelpers] fetchRouteDuration failed:', err);
     return null;

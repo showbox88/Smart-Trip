@@ -14,17 +14,19 @@ export default function DashboardFilters() {
 
   return (
     <div className="dashboard-filters">
-      <div className="filter-tabs" id="dashboard-filter-tabs">
-        {filters.map(f => (
-          <button
-            key={f.key}
-            className={`filter-tab${state.dashboardFilter === f.key ? ' active' : ''}`}
-            onClick={() => dispatch({ type: 'SET_DASHBOARD_FILTER', payload: f.key })}
-          >
-            {f.label}
-          </button>
-        ))}
-      </div>
+      {state.dashboardView !== 'calendar' && state.dashboardView !== 'album' && (
+        <div className="filter-tabs" id="dashboard-filter-tabs">
+          {filters.map(f => (
+            <button
+              key={f.key}
+              className={`filter-tab${state.dashboardFilter === f.key ? ' active' : ''}`}
+              onClick={() => dispatch({ type: 'SET_DASHBOARD_FILTER', payload: f.key })}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+      )}
       <div className="view-toggles" id="dashboard-view-toggles">
         <button
           className={`view-icon${state.dashboardView === 'grid' || !state.dashboardView ? ' active' : ''}`}
@@ -39,18 +41,18 @@ export default function DashboardFilters() {
           <span className="material-symbols-outlined">list</span>
         </button>
         <button
-          className={`view-icon${state.dashboardView === 'album' ? ' active' : ''}`}
-          onClick={() => dispatch({ type: 'SET_DASHBOARD_VIEW', payload: 'album' })}
-          title={t('dashboard.view_album') || 'Album Mode'}
-        >
-          <span className="material-symbols-outlined">collections</span>
-        </button>
-        <button
           className={`view-icon${state.dashboardView === 'calendar' ? ' active' : ''}`}
           onClick={() => dispatch({ type: 'SET_DASHBOARD_VIEW', payload: 'calendar' })}
           title={t('calendar.title') || 'Calendar'}
         >
           <span className="material-symbols-outlined">calendar_month</span>
+        </button>
+        <button
+          className={`view-icon${state.dashboardView === 'album' ? ' active' : ''}`}
+          onClick={() => dispatch({ type: 'SET_DASHBOARD_VIEW', payload: 'album' })}
+          title={t('dashboard.view_album') || 'Album Mode'}
+        >
+          <span className="material-symbols-outlined">collections</span>
         </button>
       </div>
     </div>

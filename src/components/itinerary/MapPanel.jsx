@@ -5,6 +5,8 @@ import MapInfoPanel from './MapInfoPanel';
 import MapSearchBox from './MapSearchBox';
 import NearbyCheckinPanel from './NearbyCheckinPanel';
 import { getTripStayMap, isHotelStop } from '../../utils/stayHelpers';
+import { getRouteCache, saveRouteCache } from '../../utils/routeCache';
+import { checkApiAllowed, logApiCall } from '../../utils/apiGuard';
 
 const TRAVEL_MODE_MAP = { 'DRIVE': 'DRIVING', 'WALK': 'WALKING', 'TRANSIT': 'TRANSIT' };
 
@@ -37,10 +39,40 @@ async function decodeAndDrawSteps(steps, fallbackColor, mapInstance, normalized 
   return polylines;
 }
 
-async function tryDrawRoute(routePath, color, mapInstance, googleMode) {
-  const { Route } = await google.maps.importLibrary('routes');
+async function tryDrawRoute(routePath, color, mapInstance, googleMode, userId = null) {
   const origin = routePath[0];
   const dest = routePath[routePath.length - 1];
+
+  // ── 查 DB 缓存 ──
+  const cached = await getRouteCache(origin.lat, origin.lng, dest.lat, dest.lng, googleMode);
+  if (cached?.polyline_data?.segments) {
+    // 用缓存的 encoded polyline 直接绘制，不调 API
+    const { encoding } = await google.maps.importLibrary('geometry');
+    const drawnPolylines = [];
+    for (const seg of cached.polyline_data.segments) {
+      const path = encoding.decodePath(seg.encoded);
+      if (!path?.length) continue;
+      const poly = new google.maps.Polyline({
+        path,
+        strokeColor: seg.color || color,
+        strokeOpacity: seg.isWalk ? 0 : (seg.opacity ?? 0.85),
+        strokeWeight: seg.isWalk ? 2 : (seg.weight ?? 4),
+        map: mapInstance,
+        ...(seg.isWalk ? { icons: [{ icon: { path: 'M 0,-1 0,1', strokeOpacity: 0.6, scale: 3 }, offset: '0', repeat: '10px' }] } : {}),
+      });
+      drawnPolylines.push(poly);
+    }
+    if (drawnPolylines.length > 0) return drawnPolylines;
+  }
+
+  // ── 检查 API 开关 ──
+  const { allowed } = await checkApiAllowed('directions', userId);
+  if (!allowed) {
+    console.warn('[MapPanel] directions blocked by guard');
+    return null;
+  }
+
+  const { Route } = await google.maps.importLibrary('routes');
 
   if (googleMode === 'TRANSIT') {
     // TRANSIT: no intermediates allowed; use createPolylines() for the route path,
@@ -56,21 +88,20 @@ async function tryDrawRoute(routePath, color, mapInstance, googleMode) {
     const leg = route.legs?.[0];
     const steps = leg?.steps || [];
 
-    // Try step-level colored drawing: check if steps expose polyline via any known accessor
+    // Try step-level colored drawing
     if (steps.length > 0) {
       const { encoding } = await google.maps.importLibrary('geometry');
       const drawnPolylines = [];
+      const segments = [];
       for (const step of steps) {
-        // JS SDK may expose polyline as .polyline.encodedPolyline, .encodedPolyline, or via obfuscated keys
-        const encoded = step.polyline?.encodedPolyline
-          || step.encodedPolyline
-          || step.polylineEncoded;
+        const encoded = step.polyline?.encodedPolyline || step.encodedPolyline || step.polylineEncoded;
         if (!encoded) continue;
         const path = encoding.decodePath(encoded);
         if (!path?.length) continue;
         const isWalk = step.travelMode === 'WALK' || step.travelMode === 'WALKING';
         const lineColor = step.transitDetails?.line?.color;
         const strokeColor = (!isWalk && lineColor) ? lineColor : (isWalk ? '#888888' : color);
+        segments.push({ encoded, color: strokeColor, isWalk });
         const poly = new google.maps.Polyline({
           path, strokeColor,
           strokeOpacity: isWalk ? 0 : 0.9,
@@ -80,19 +111,20 @@ async function tryDrawRoute(routePath, color, mapInstance, googleMode) {
         });
         drawnPolylines.push(poly);
       }
-      if (drawnPolylines.length > 0) return drawnPolylines;
+      if (drawnPolylines.length > 0) {
+        logApiCall('directions', userId, 'success');
+        saveRouteCache(origin.lat, origin.lng, dest.lat, dest.lng, googleMode, { polylineData: { segments } });
+        return drawnPolylines;
+      }
     }
 
-    // Fallback: draw entire transit route as single-color polyline via createPolylines()
+    // Fallback: single-color polyline
     const polylines = route.createPolylines();
-    polylines.forEach(p => {
-      p.setOptions({
-        strokeColor: color,
-        strokeOpacity: 0.8,
-        strokeWeight: 4,
-      });
-      p.setMap(mapInstance);
-    });
+    polylines.forEach(p => { p.setOptions({ strokeColor: color, strokeOpacity: 0.8, strokeWeight: 4 }); p.setMap(mapInstance); });
+    if (polylines.length > 0) {
+      logApiCall('directions', userId, 'success');
+      saveRouteCache(origin.lat, origin.lng, dest.lat, dest.lng, googleMode, { polylineData: { segments: [] } });
+    }
     return polylines.length > 0 ? polylines : null;
   }
 
@@ -105,7 +137,7 @@ async function tryDrawRoute(routePath, color, mapInstance, googleMode) {
     destination: new google.maps.LatLng(Number(dest.lat), Number(dest.lng)),
     travelMode: googleMode,
     ...(intermediates.length ? { intermediates } : {}),
-    fields: ['path'],
+    fields: ['path', 'polyline'],
   });
 
   if (!routes?.[0]) return null;
@@ -123,6 +155,16 @@ async function tryDrawRoute(routePath, color, mapInstance, googleMode) {
     });
     p.setMap(mapInstance);
   });
+
+  if (polylines.length > 0) {
+    logApiCall('directions', userId, 'success');
+    const encoded = routes[0].polyline?.encodedPolyline;
+    const segments = encoded
+      ? [{ encoded, color, isWalk, opacity: isWalk ? 0 : 0.8, weight: 4 }]
+      : [];
+    saveRouteCache(origin.lat, origin.lng, dest.lat, dest.lng, googleMode, { polylineData: { segments } });
+  }
+
   return polylines;
 }
 

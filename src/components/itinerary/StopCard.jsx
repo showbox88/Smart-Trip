@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, forwardRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useApp } from '../../context/AppContext';
+import { checkApiAllowed, logApiCall } from '../../utils/apiGuard';
 import { useI18n } from '../../context/I18nContext';
 import {
   Utensils, Landmark, MapPin,
@@ -144,9 +145,17 @@ export default React.memo(function StopCard({
     setShowPhotoPicker(true);
     setLoadingPhotos(true);
     try {
+      const { allowed } = await checkApiAllowed('place_details', state.user?.id);
+      if (!allowed) {
+        console.warn('[StopCard] place_details blocked by guard');
+        setPlacePhotos([]);
+        setLoadingPhotos(false);
+        return;
+      }
       const { Place } = await google.maps.importLibrary('places');
       const place = new Place({ id: stop.placeId });
       await place.fetchFields({ fields: ['photos'] });
+      logApiCall('place_details', state.user?.id, 'success');
       const photos = place.photos || [];
       setPlacePhotos(photos.map(p => ({
         url: p.getURI({ maxWidth: 400, maxHeight: 300 }),

@@ -290,6 +290,7 @@ function normalizeTripRow(row) {
   const tripDays = row.trip_days || [];
   let stopsCount = 0;
   let totalCost = 0;
+  const citySet = new Set();
 
   for (const td of tripDays) {
     const stops = td.days_v2?.stops_data;
@@ -298,6 +299,7 @@ function normalizeTripRow(row) {
     for (const stop of stops) {
       const price = parseFloat(stop.price);
       if (!isNaN(price)) totalCost += price;
+      if (stop.city) citySet.add(stop.city);
     }
   }
 
@@ -312,6 +314,7 @@ function normalizeTripRow(row) {
     created_at: row.created_at,
     stopsCount,
     totalCost,
+    cities: [...citySet],
   };
 }
 
