@@ -64,7 +64,7 @@ export default React.memo(function StopCard({
   stop, dayId, dayColor, index, showTransit, dayWeekdayIdx, isToday,
   nextStop,
   onDelete, onToggleTransitMode, onOpenTimePicker, onOpenExpense, onOpenStayInfo,
-  onChangePhoto, onAddStop, onAddNote, onAddList, onFocusStop,
+  onChangePhoto, onAddStop, onAddNote, onAddList, onAddTransport, onFocusStop,
   onUpdateStop,
   inHotelStay,
 }) {
@@ -742,6 +742,7 @@ export default React.memo(function StopCard({
           onAddStop={() => onAddStop?.(dayId, stop.id)}
           onAddNote={() => onAddNote?.(dayId, stop.id)}
           onAddList={() => onAddList?.(dayId, stop.id)}
+          onAddTransport={() => onAddTransport?.(dayId, stop.id)}
         />
       )}
 

@@ -57,6 +57,7 @@ export default function TripSidebar({ trip, activeDayId, onAddDay, onRemoveLastD
 
   return (
     <aside ref={sidebarRef} className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
+      <style>{`@media (max-width: 768px) { .add-day-text { display: none; } }`}</style>
       <div
         className="sidebar-toggle"
         onClick={() => dispatch({ type: 'SET_SIDEBAR_COLLAPSED', payload: !isCollapsed })}

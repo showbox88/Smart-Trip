@@ -144,6 +144,8 @@
         "add_stop": "Add Stop",
         "add_note_btn": "Add Note",
         "add_list": "Add Checklist",
+        "add_transport": "Add Transport",
+        "today_schedule": "Today's Schedule",
         "calculating": "Calculating...",
         "checkin": "Check-in",
         "checkout": "Check-out",
@@ -319,6 +321,11 @@
         "tab_about": "About",
         "tab_reviews": "Reviews",
         "tab_photos": "Photos",
+        "tab_favorites": "Saved",
+        "favorite": "Save",
+        "unfavorite": "Unsave",
+        "favorites_empty": "No saved places yet — tap the heart to save",
+        "trip": "Trip",
         "add_to_itinerary": "Add to Trip",
         "added": "Added",
         "anonymous_user": "Anonymous",
@@ -369,5 +376,17 @@
             "empty": "No albums yet",
             "empty_hint": "Go to photo management to sync your trips"
         }
+    },
+    "transport": {
+        "edit": "Transport Info",
+        "carrier": "Carrier",
+        "trip_number": "Flight / Train No.",
+        "departure": "Departure",
+        "arrival": "Arrival",
+        "arrival_next_day": "Arrives next day",
+        "note": "Notes",
+        "note_placeholder": "Seat number, booking reference… (optional)",
+        "ticket_photo": "Ticket Photo",
+        "tap_to_add": "Tap to add details"
     }
 }

@@ -127,6 +127,39 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* Today's schedule entry card */}
+      <div
+        onClick={() => navigate('/today')}
+        style={{
+          background: 'linear-gradient(135deg, rgba(249,115,22,0.12), rgba(234,88,12,0.08))',
+          border: '1px solid rgba(249,115,22,0.3)',
+          borderRadius: '14px',
+          padding: '1rem 1.25rem',
+          marginBottom: '1.5rem',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          cursor: 'pointer', transition: 'all 0.2s',
+        }}
+        onMouseEnter={e => e.currentTarget.style.background = 'linear-gradient(135deg, rgba(249,115,22,0.18), rgba(234,88,12,0.12))'}
+        onMouseLeave={e => e.currentTarget.style.background = 'linear-gradient(135deg, rgba(249,115,22,0.12), rgba(234,88,12,0.08))'}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <div style={{
+            width: 40, height: 40, borderRadius: '10px',
+            background: 'linear-gradient(135deg, #f97316, #ea580c)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+          }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'white' }}>today</span>
+          </div>
+          <div>
+            <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-primary)' }}>今日行程</div>
+            <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '1px' }}>
+              {new Date().toLocaleDateString(undefined, { month: 'long', day: 'numeric', weekday: 'short' })}
+            </div>
+          </div>
+        </div>
+        <span className="material-symbols-outlined" style={{ fontSize: '20px', color: '#f97316' }}>chevron_right</span>
+      </div>
+
       <DashboardFilters />
 
       <div id="trip-grid-container">

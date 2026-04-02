@@ -286,7 +286,7 @@ function TransitStepsPanel({ origin, dest, transit, onClose, t }) {
   );
 }
 
-export default memo(function TransitInfo({ transit, transitMode, origin, dest, onToggleMode, onAddStop, onAddNote, onAddList, hideAdd, inHotelStay }) {
+export default memo(function TransitInfo({ transit, transitMode, origin, dest, onToggleMode, onAddStop, onAddNote, onAddList, onAddTransport, hideAdd, inHotelStay }) {
   const { t } = useI18n();
   const { state } = useApp();
   const [showAddMenu, setShowAddMenu] = useState(false);
@@ -426,6 +426,14 @@ export default memo(function TransitInfo({ transit, transitMode, origin, dest, o
           >
             <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#10b981' }}>check</span>
             {t('itinerary.add_list') || 'Add Checklist'}
+          </div>
+          <div
+            className="menu-item"
+            onClick={(e) => { e.stopPropagation(); onAddTransport?.(); setShowAddMenu(false); }}
+            style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', color: 'white', fontSize: '0.85rem' }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#4FC3F7' }}>flight</span>
+            {t('itinerary.add_transport') || '添加交通'}
           </div>
         </div>,
         document.body

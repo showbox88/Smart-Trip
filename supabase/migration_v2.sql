@@ -70,3 +70,52 @@ CREATE POLICY "Users own their trip_days" ON trip_days
         AND trips.user_id = auth.uid()
     )
   );
+
+-- 4. places 表（全局共享 place 缓存，first-write-wins 照片）
+CREATE TABLE IF NOT EXISTS places (
+  place_id      TEXT PRIMARY KEY,
+  name          TEXT,
+  address       TEXT,
+  lat           DOUBLE PRECISION,
+  lng           DOUBLE PRECISION,
+  category      TEXT,
+  phone         TEXT,
+  photo_url     TEXT,
+  rating        NUMERIC(3,1),
+  opening_hours JSONB,
+  fetched_at    TIMESTAMPTZ DEFAULT now()
+);
+
+-- places 无 RLS（所有已登录用户可读，写入由应用层控制）
+ALTER TABLE places ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Anyone can read places" ON places;
+CREATE POLICY "Anyone can read places" ON places
+  FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Authenticated users can insert places" ON places;
+CREATE POLICY "Authenticated users can insert places" ON places
+  FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+
+DROP POLICY IF EXISTS "Authenticated users can update places" ON places;
+CREATE POLICY "Authenticated users can update places" ON places
+  FOR UPDATE USING (auth.uid() IS NOT NULL);
+
+-- Add fetched_at if upgrading from older schema
+ALTER TABLE places ADD COLUMN IF NOT EXISTS fetched_at TIMESTAMPTZ DEFAULT now();
+
+-- 6. favorites 表（每个用户私有，收藏地址记录）
+CREATE TABLE IF NOT EXISTS favorites (
+  id         UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id    UUID NOT NULL REFERENCES auth.users ON DELETE CASCADE,
+  place_id   TEXT NOT NULL,
+  saved_at   TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(user_id, place_id)
+);
+
+ALTER TABLE favorites ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "user own favorites" ON favorites;
+CREATE POLICY "user own favorites" ON favorites
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);

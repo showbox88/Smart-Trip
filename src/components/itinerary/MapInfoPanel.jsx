@@ -5,6 +5,7 @@ import { useApp } from '../../context/AppContext';
 import { PLACE_CATEGORY_MAP } from '../../utils/tripHelpers';
 import { useMapPlaceDetails } from '../../hooks/useMapPlaceDetails';
 import { useLightboxGallery } from '../../hooks/useLightboxGallery';
+import { useFavorites } from '../../hooks/useFavorites';
 
 function StarRating({ rating }) {
   if (!rating) return null;
@@ -48,11 +49,78 @@ function renderAddress(address) {
   return address;
 }
 
-export default function MapInfoPanel({ placeId, onClose, onAddToDay }) {
+function FavoritesTab({ favorites, loading, trip, onSelectPlace, onAddToDay, onToggleFavorite, t }) {
+  if (loading) {
+    return <div style={{ color: '#64748b', textAlign: 'center', padding: '2rem' }}>{t('common.loading')}</div>;
+  }
+  if (!favorites.length) {
+    return (
+      <div style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
+        <span className="material-symbols-outlined" style={{ fontSize: '40px', marginBottom: '8px', display: 'block', opacity: 0.4 }}>favorite_border</span>
+        <div style={{ fontSize: '0.85rem' }}>{t('map.favorites_empty') || '还没有收藏，心形按钮点一下就能保存'}</div>
+      </div>
+    );
+  }
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      {favorites.map((fav) => (
+        <div
+          key={fav.place_id}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '10px',
+            background: 'rgba(255,255,255,0.04)', borderRadius: '10px',
+            padding: '8px 10px', cursor: 'pointer', transition: 'background 0.15s',
+          }}
+          onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
+          onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
+          onClick={() => onSelectPlace(fav.place_id)}
+        >
+          {/* Thumbnail */}
+          <div style={{ width: 48, height: 48, borderRadius: '8px', overflow: 'hidden', flexShrink: 0, background: '#1e293b' }}>
+            {fav.photo_url
+              ? <img src={fav.photo_url} alt={fav.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '22px', color: '#475569' }}>place</span>
+                </div>
+            }
+          </div>
+          {/* Info */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontWeight: 700, fontSize: '0.85rem', color: 'white', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{fav.name || fav.place_id}</div>
+            <div style={{ fontSize: '0.73rem', color: '#64748b', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              {fav.category && <span>{fav.category}</span>}
+              {fav.rating && <span style={{ color: '#f59e0b' }}>★ {fav.rating}</span>}
+            </div>
+          </div>
+          {/* Add to trip */}
+          <button
+            onClick={e => { e.stopPropagation(); onAddToDay(fav.place_id, e.currentTarget); }}
+            title={t('map.add_to_itinerary') || '添加到行程'}
+            style={{ background: 'rgba(60,131,246,0.15)', border: '1px solid rgba(60,131,246,0.3)', color: '#60a5fa', borderRadius: '6px', padding: '4px 8px', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700, flexShrink: 0, whiteSpace: 'nowrap' }}
+          >
+            + {t('map.trip') || '行程'}
+          </button>
+          {/* Unfavorite */}
+          <button
+            onClick={e => { e.stopPropagation(); onToggleFavorite(fav.place_id, fav); }}
+            title={t('map.unfavorite') || '取消收藏'}
+            style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '4px', flexShrink: 0 }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '18px', fontVariationSettings: "'FILL' 1" }}>favorite</span>
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export default function MapInfoPanel({ placeId, onClose, onAddToDay, onSelectPlace }) {
   const { t } = useI18n();
   const { state } = useApp();
+  const userId = state.user?.id || null;
   const [activeTab, setActiveTab] = useState('about');
   const [showDayPicker, setShowDayPicker] = useState(false);
+  const [pickerTargetPlaceId, setPickerTargetPlaceId] = useState(null); // for favorites list day picker
   const [mutableAddedDays, setMutableAddedDays] = useState(new Set());
   useEffect(() => { setMutableAddedDays(new Set()); }, [placeId]);
   const [dayPickerPos, setDayPickerPos] = useState({ top: 0, left: 0 });
@@ -60,6 +128,8 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay }) {
   const [hoursPos, setHoursPos] = useState({ bottom: 0, left: 0 });
   const addBtnRef = useRef(null);
   const hoursTriggerRef = useRef(null);
+
+  const { favorites, loading: favLoading, isFavorited, toggleFavorite } = useFavorites(userId);
 
   const trip = state.trips.find((tr) => tr.id === state.activeTripId);
   const { place, loading, matchedStop, addedDays, photos, reviews, fallbackPhotoUrl } = useMapPlaceDetails(trip, placeId);
@@ -92,20 +162,24 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay }) {
   const isMobileDevice = typeof window !== 'undefined' && window.innerWidth < 768;
 
   const handleAddToDay = useCallback(async (dayId) => {
+    const targetId = pickerTargetPlaceId || placeId;
     setShowDayPicker(false);
+    setPickerTargetPlaceId(null);
     try {
-      await onAddToDay?.(dayId, placeId);
-      setMutableAddedDays((prev) => new Set([...prev, dayId]));
+      await onAddToDay?.(dayId, targetId);
+      if (targetId === placeId) setMutableAddedDays((prev) => new Set([...prev, dayId]));
     } catch (err) {
       console.error('[MapInfoPanel] add failed:', err);
     }
-  }, [onAddToDay, placeId]);
+  }, [onAddToDay, placeId, pickerTargetPlaceId]);
 
-  const openDayPicker = useCallback(() => {
-    if (!showDayPicker && addBtnRef.current) {
-      const rect = addBtnRef.current.getBoundingClientRect();
+  const openDayPicker = useCallback((targetPid, btnEl) => {
+    const el = btnEl || addBtnRef.current;
+    if (!showDayPicker && el) {
+      const rect = el.getBoundingClientRect();
       setDayPickerPos({ bottom: window.innerHeight - rect.top + 8, left: rect.left });
     }
+    setPickerTargetPlaceId(targetPid || null);
     setShowDayPicker((value) => !value);
   }, [showDayPicker]);
 
@@ -141,7 +215,7 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay }) {
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', padding: '0 1.5rem', height: '50px', position: 'relative', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-        <div style={{ display: 'flex', gap: '20px' }}>
+        <div style={{ display: 'flex', gap: '20px', flex: 1 }}>
           {['about', 'reviews', 'photos'].map((tab) => (
             <button
               key={tab}
@@ -160,10 +234,31 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay }) {
               {tab === 'about' ? t('map.tab_about') : tab === 'reviews' ? t('map.tab_reviews') : t('map.tab_photos')}
             </button>
           ))}
+          {/* Favorites tab */}
+          <button
+            onClick={() => setActiveTab('favorites')}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.8rem',
+              color: activeTab === 'favorites' ? '#ef4444' : '#64748b',
+              fontWeight: 700,
+              padding: '14px 0',
+              borderBottom: activeTab === 'favorites' ? '2px solid #ef4444' : '2px solid transparent',
+              transition: 'all 0.2s',
+              display: 'flex', alignItems: 'center', gap: '4px',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '15px', fontVariationSettings: "'FILL' 1" }}>favorite</span>
+            {t('map.tab_favorites') || '收藏'}
+            {favorites.length > 0 && (
+              <span style={{ fontSize: '0.65rem', background: '#ef4444', color: 'white', borderRadius: '10px', padding: '0 5px', lineHeight: '16px', fontWeight: 800 }}>
+                {favorites.length}
+              </span>
+            )}
+          </button>
         </div>
         <button
           onClick={closePanel}
-          style={{ position: 'absolute', right: '1rem', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}
+          style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', flexShrink: 0 }}
         >
           <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>close</span>
         </button>
@@ -218,7 +313,7 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay }) {
               <div style={{ marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                 <button
                   ref={addBtnRef}
-                  onClick={openDayPicker}
+                  onClick={() => openDayPicker(null, addBtnRef.current)}
                   style={{
                     background: 'var(--accent-primary)', color: 'white', border: 'none', borderRadius: '8px',
                     padding: '0.4rem 14px', fontWeight: 800, fontSize: '0.75rem', cursor: 'pointer',
@@ -232,6 +327,28 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay }) {
                   onMouseOut={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
                 >
                   <span style={{ fontSize: '1rem' }}>+</span> {t('map.add_to_itinerary')}
+                </button>
+
+                {/* Heart / favorite button */}
+                <button
+                  onClick={() => {
+                    const snap = place ? {
+                      name: place.displayName,
+                      address: place.formattedAddress,
+                      photoUrl: photoUrls[0] || null,
+                      rating: place.rating,
+                      category: getCategoryLabel(place, t),
+                      lat: place.location?.lat?.(),
+                      lng: place.location?.lng?.(),
+                    } : {};
+                    toggleFavorite(placeId, snap);
+                  }}
+                  title={isFavorited(placeId) ? (t('map.unfavorite') || '取消收藏') : (t('map.favorite') || '收藏')}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', color: isFavorited(placeId) ? '#ef4444' : '#64748b', transition: 'color 0.2s' }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '24px', fontVariationSettings: isFavorited(placeId) ? "'FILL' 1" : "'FILL' 0" }}>
+                    favorite
+                  </span>
                 </button>
               </div>
 
@@ -433,6 +550,19 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay }) {
                 </div>
               )}
             </>
+          )}
+
+          {/* ── Favorites tab — shown regardless of selected place ── */}
+          {activeTab === 'favorites' && (
+            <FavoritesTab
+              favorites={favorites}
+              loading={favLoading}
+              trip={trip}
+              onSelectPlace={(pid) => { onSelectPlace?.(pid); setActiveTab('about'); }}
+              onAddToDay={(pid, btnEl) => openDayPicker(pid, btnEl)}
+              onToggleFavorite={toggleFavorite}
+              t={t}
+            />
           )}
         </div>
 

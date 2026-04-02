@@ -146,6 +146,8 @@
         "add_stop": "添加地点",
         "add_note_btn": "添加笔记",
         "add_list": "添加清单",
+        "add_transport": "添加交通",
+        "today_schedule": "今日行程表",
         "calculating": "计算中...",
         "checkin": "入住",
         "checkout": "退房",
@@ -320,6 +322,11 @@
         "tab_about": "简介",
         "tab_reviews": "评价",
         "tab_photos": "照片",
+        "tab_favorites": "收藏",
+        "favorite": "收藏",
+        "unfavorite": "取消收藏",
+        "favorites_empty": "还没有收藏，点击心形按钮保存地址",
+        "trip": "行程",
         "add_to_itinerary": "添加到行程",
         "added": "已加入",
         "anonymous_user": "匿名用户",
@@ -370,5 +377,17 @@
             "empty": "暂无相册",
             "empty_hint": "前往照片管理页面以同步你的行程"
         }
+    },
+    "transport": {
+        "edit": "交通信息",
+        "carrier": "公司/运营商",
+        "trip_number": "班次号",
+        "departure": "出发时间",
+        "arrival": "到达时间",
+        "arrival_next_day": "次日到达（跨天）",
+        "note": "备注",
+        "note_placeholder": "座位号、订单号等（可选）",
+        "ticket_photo": "票据照片",
+        "tap_to_add": "点击添加详情"
     }
 }

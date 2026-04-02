@@ -9,13 +9,15 @@ import ListCard from './ListCard';
 import AddStopRow from './AddStopRow';
 import TransitInfo from './TransitInfo';
 import HotelLine from './HotelLine';
+import TransportCard from './TransportCard';
+import TransportCardModal from './TransportCardModal';
 import { getHotelContextForDay } from '../../utils/stayHelpers';
 
 export default memo(function DaySection({
   day, dayIndex, trip,
   isCollapsed, onToggleCollapse,
   onAddStop, onDeleteStop, onToggleTransitMode,
-  onAddNote, onAddList,
+  onAddNote, onAddList, onAddTransport,
   onDeleteNote, onUpdateNoteContent,
   onDeleteList, onUpdateListTitle, onUpdateListItem, onToggleListItem, onAddListItem, onDeleteListItem,
   onColorChange, onEditDay, onDeleteDay, onUpdateDay, onUpdateStop,
@@ -31,6 +33,7 @@ export default memo(function DaySection({
 }) {
   const { t, language } = useI18n();
   const [insertingAfterStopId, setInsertingAfterStopId] = useState(null);
+  const [editingTransport, setEditingTransport] = useState(null); // { stop, dayId }
   const activeColor = day.color || '#5b7a99';
 
   const hotelContext = getHotelContextForDay(trip, day.id);
@@ -83,7 +86,7 @@ export default memo(function DaySection({
   const { firstPlainStop, lastPlainStop } = useMemo(() => {
     const pois = stops
       .map((s, i) => ({ s, i }))
-      .filter(({ s }) => s.type !== 'hotel_checkin' && s.type !== 'hotel_checkout' && s.type !== 'note' && s.type !== 'list');
+      .filter(({ s }) => s.type !== 'hotel_checkin' && s.type !== 'hotel_checkout' && s.type !== 'note' && s.type !== 'list' && s.type !== 'transport');
     return {
       firstPlainStop: pois[0]?.s ?? null,
       lastPlainStop: pois[pois.length - 1]?.s ?? null,
@@ -113,7 +116,7 @@ export default memo(function DaySection({
 
   const renderStop = (stop, index) => {
     const isPoi = stop.type === 'location' || !stop.type || stop.type === 'hotel_checkin' || stop.type === 'hotel_checkout';
-    const nextPoiStop = stops.slice(index + 1).find(s => s.type === 'location' || !s.type || s.type === 'hotel_checkin' || s.type === 'hotel_checkout');
+    const nextPoiStop = stops.slice(index + 1).find(s => s.type === 'location' || !s.type || s.type === 'hotel_checkin' || s.type === 'hotel_checkout' || s.type === 'transport');
     const showTransit = isPoi && !!nextPoiStop;
 
     // Calculate display index for POI (location/hotel) reset per day
@@ -127,7 +130,16 @@ export default memo(function DaySection({
     const inHotelStay = getInHotelStay(index, stop.type);
 
     let card;
-    if (stop.type === 'note') {
+    if (stop.type === 'transport') {
+      card = (
+        <TransportCard
+          stop={stop} dayId={day.id} dayColor={activeColor}
+          onDelete={onDeleteStop}
+          onEdit={(s, dId) => setEditingTransport({ stop: s, dayId: dId })}
+          inHotelStay={inHotelStay}
+        />
+      );
+    } else if (stop.type === 'note') {
       card = (
         <NoteCard
           stop={stop} dayId={day.id} dayColor={activeColor}
@@ -168,6 +180,7 @@ export default memo(function DaySection({
           onAddStop={(dId, afterId) => setInsertingAfterStopId(afterId)}
           onAddNote={onAddNote}
           onAddList={onAddList}
+          onAddTransport={onAddTransport}
           onFocusStop={onFocusStop}
           inHotelStay={inHotelStay}
         />
@@ -269,6 +282,7 @@ export default memo(function DaySection({
                   onAddStop={() => setInsertingAfterStopId('__before_first__')}
                   onAddNote={() => onAddNote?.(day.id, '__prepend__')}
                   onAddList={() => onAddList?.(day.id, '__prepend__')}
+                  onAddTransport={() => onAddTransport?.(day.id, '__prepend__')}
                   inHotelStay
                 />
               </>
@@ -318,6 +332,7 @@ export default memo(function DaySection({
                   onAddStop={() => setInsertingAfterStopId(lastPlainStop?.id)}
                   onAddNote={() => onAddNote?.(day.id, lastPlainStop?.id)}
                   onAddList={() => onAddList?.(day.id, lastPlainStop?.id)}
+                  onAddTransport={() => onAddTransport?.(day.id, lastPlainStop?.id)}
                   inHotelStay
                 />
                 <div style={{ paddingLeft: '2.25rem', marginTop: '0.2rem', color: '#f59e0b', fontSize: '0.85rem', fontWeight: 600, display: 'flex', flexDirection: 'column', gap: '4px', position: 'relative', cursor: 'pointer' }}>
@@ -336,10 +351,22 @@ export default memo(function DaySection({
               onAddStop={onAddStop}
               onAddNote={onAddNote}
               onAddList={onAddList}
+              onAddTransport={onAddTransport}
               inHotelStay={!!(hotelContext.stay && (hotelContext.isCinOnly || hotelContext.isBetween))}
             />
           </div>
         </div>
+      )}
+
+      {editingTransport && (
+        <TransportCardModal
+          stop={editingTransport.stop}
+          dayId={editingTransport.dayId}
+          onSave={(updated) => {
+            onUpdateStop?.(editingTransport.dayId, editingTransport.stop.id, updated);
+          }}
+          onClose={() => setEditingTransport(null)}
+        />
       )}
     </div>
   );

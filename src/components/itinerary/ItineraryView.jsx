@@ -17,6 +17,7 @@ import TimePickerModal from '../modals/TimePickerModal';
 import ExpenseModal from '../modals/ExpenseModal';
 import StayInfoModal from '../modals/StayInfoModal';
 import { useI18n } from '../../context/I18nContext';
+import TodayScheduleModal from './TodayScheduleModal';
 
 function scrollToNewStop(id, attempts = 0) {
   const el = document.querySelector(`.id-${id}`);
@@ -32,11 +33,12 @@ export default function ItineraryView({ tripId, isDayMode = false, date = null }
   const navigate = useNavigate();
   const { deleteTrip } = useTrips();
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
   const {
     trip,
     addDay, deleteDay, removeDay, setDayColor, updateDay,
     deleteStop, updateStop, updateStopAndSort, moveStop, moveDay,
-    addNote, addList,
+    addNote, addList, addTransport,
     updateNoteContent, updateListTitle, updateListItem, toggleListItem, addListItem, deleteListItem,
     addStopFromPlace, updateTripMetadata, toggleTransitMode, toggleHotelTransitMode,
     computeTransitData, saveStayInfo,
@@ -254,6 +256,11 @@ export default function ItineraryView({ tripId, isDayMode = false, date = null }
     }
   }, [addList, setPendingFocusId]);
 
+  const handleAddTransport = useCallback(async (dayId, afterId) => {
+    const newId = await addTransport(dayId, afterId);
+    if (newId) scrollToNewStop(newId);
+  }, [addTransport, scrollToNewStop]);
+
   const handleChangePhoto = useCallback((dayId, stopId, photoUrl) => {
     updateStop(dayId, stopId, { photo: photoUrl });
   }, [updateStop]);
@@ -287,7 +294,7 @@ export default function ItineraryView({ tripId, isDayMode = false, date = null }
       )}
 
       <section className="main-itinerary" id="itinerary-scroll-container">
-        <TripHeader trip={trip} onDeleteTrip={handleDeleteTrip} onEditTrip={() => setTripEditModal(true)} onShareTrip={() => setShowShareModal(true)} isDayMode={isDayMode} />
+        <TripHeader trip={trip} onDeleteTrip={handleDeleteTrip} onEditTrip={() => setTripEditModal(true)} onShareTrip={() => setShowShareModal(true)} onShowSchedule={() => setShowScheduleModal(true)} isDayMode={isDayMode} />
 
         {pendingInsertion && (
           <div style={{
@@ -333,6 +340,7 @@ export default function ItineraryView({ tripId, isDayMode = false, date = null }
               onToggleHotelTransitMode={toggleHotelTransitMode}
               onAddNote={handleAddNote}
               onAddList={handleAddList}
+              onAddTransport={handleAddTransport}
               onDeleteNote={handleDeleteNote}
               onUpdateNoteContent={updateNoteContent}
               onUpdateListTitle={updateListTitle}
@@ -402,6 +410,14 @@ export default function ItineraryView({ tripId, isDayMode = false, date = null }
             closeConfirm();
           }}
           onCancel={closeConfirm}
+        />
+      )}
+
+      {showScheduleModal && (
+        <TodayScheduleModal
+          trip={trip}
+          onUpdateStop={updateStop}
+          onClose={() => setShowScheduleModal(false)}
         />
       )}
 

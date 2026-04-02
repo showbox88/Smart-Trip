@@ -412,6 +412,10 @@ export function useTripEditor(tripId) {
     return insertStop(dayId, { id: `l${Date.now()}`, type: 'list', title: '', items: [{ text: '', checked: false }] }, afterStopId);
   }, [insertStop]);
 
+  const addTransport = useCallback((dayId, afterStopId = null, transportType = 'FLIGHT') => {
+    return insertStop(dayId, { id: `tr${Date.now()}`, type: 'transport', transportType, carrier: '', tripNumber: '', departureTime: '', arrivalTime: '', note: '', attachments: [] }, afterStopId);
+  }, [insertStop]);
+
   const updateNoteContent = useCallback((dayId, stopId, content) => {
     updateStop(dayId, stopId, { content });
   }, [updateStop]);
@@ -540,20 +544,37 @@ export function useTripEditor(tripId) {
           addressComponents: place.addressComponents,
         };
 
-        // 异步写入 places 缓存
-        supabase.from('places').upsert({
-          place_id: placeId,
-          name: placeData.displayName,
-          address: placeData.formattedAddress,
-          lat: placeData.lat,
-          lng: placeData.lng,
-          category: placeData.category,
-          phone: placeData.phone || null,
-          opening_hours: placeData.openingHours,
-          photo_url: placeData.photoUrl || null,
-          rating: placeData.rating ?? null,
-        }, { onConflict: 'place_id' }).then(({ error }) => {
-          if (error) console.warn('[places cache] upsert failed:', error.message);
+        // 异步写入 places 缓存（first-write-wins: 静态字段 + 照片永不覆盖）
+        const THREE_MONTHS_MS = 90 * 24 * 60 * 60 * 1000;
+        supabase.from('places').select('place_id, fetched_at').eq('place_id', placeId).maybeSingle().then(({ data: existing }) => {
+          const isStale = !existing || !existing.fetched_at || (Date.now() - new Date(existing.fetched_at).getTime() > THREE_MONTHS_MS);
+          if (!existing) {
+            // New place — insert everything
+            supabase.from('places').insert({
+              place_id: placeId,
+              name: placeData.displayName,
+              address: placeData.formattedAddress,
+              lat: placeData.lat,
+              lng: placeData.lng,
+              category: placeData.category,
+              phone: placeData.phone || null,
+              opening_hours: placeData.openingHours,
+              photo_url: placeData.photoUrl || null,
+              rating: placeData.rating ?? null,
+              fetched_at: new Date().toISOString(),
+            }).then(({ error }) => {
+              if (error && error.code !== '23505') console.warn('[places cache] insert failed:', error.message);
+            });
+          } else if (isStale) {
+            // Existing but stale — refresh rating/opening_hours only, never overwrite photo/name/address/coords
+            supabase.from('places').update({
+              rating: placeData.rating ?? null,
+              opening_hours: placeData.openingHours,
+              fetched_at: new Date().toISOString(),
+            }).eq('place_id', placeId).then(({ error }) => {
+              if (error) console.warn('[places cache] refresh failed:', error.message);
+            });
+          }
         });
       }
 
@@ -771,6 +792,7 @@ export function useTripEditor(tripId) {
     moveDay,
     addNote,
     addList,
+    addTransport,
     updateNoteContent,
     updateListTitle,
     updateListItem,

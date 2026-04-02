@@ -19,7 +19,7 @@ function formatCheckinDate(dateStr) {
   return { weekday, full };
 }
 
-export default function TripHeader({ trip, onDeleteTrip, onEditTrip, onShareTrip, isDayMode = false }) {
+export default function TripHeader({ trip, onDeleteTrip, onEditTrip, onShareTrip, onShowSchedule, isDayMode = false }) {
   const { t } = useI18n();
   const { state } = useApp();
   const [showMenu, setShowMenu] = useState(false);
@@ -118,6 +118,10 @@ export default function TripHeader({ trip, onDeleteTrip, onEditTrip, onShareTrip
             >⋮</button>
             {showMenu && (
               <div className="menu-dropdown active" style={{ top: '2rem', right: 0 }}>
+                <button onClick={() => { onShowSchedule?.(); setShowMenu(false); }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>today</span>
+                  {t('itinerary.today_schedule') || '今日行程表'}
+                </button>
                 <button onClick={() => { onEditTrip?.(); setShowMenu(false); }}>
                   {t('itinerary.edit_trip') || 'Edit trip'}
                 </button>
@@ -132,6 +136,7 @@ export default function TripHeader({ trip, onDeleteTrip, onEditTrip, onShareTrip
             )}
           </div>
         )}
+
       </div>
     </div>
   );

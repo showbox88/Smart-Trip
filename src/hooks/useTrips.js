@@ -86,20 +86,26 @@ export function useTrips() {
           if (day._isPlaceholder) {
             if (!day.stops?.length) return day;
             const newDayId = `day-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
-            const { error: insertErr } = await supabase.from('days_v2').insert({
-              id: newDayId,
-              user_id: state.user.id,
-              date: day.date,
-              title: day.title || null,
-              color: day.color || '#5b7a99',
-              stops_data: day.stops,
-            });
+            // upsert on (user_id, date): if day already exists reuse its id, otherwise insert
+            const { data: savedDay, error: insertErr } = await supabase
+              .from('days_v2')
+              .upsert({
+                id: newDayId,
+                user_id: state.user.id,
+                date: day.date,
+                title: day.title || null,
+                color: day.color || '#5b7a99',
+                stops_data: day.stops,
+              }, { onConflict: 'user_id,date', ignoreDuplicates: false })
+              .select('id')
+              .single();
             if (insertErr) { console.error('[useTrips] v2 lazy create day failed:', insertErr.message); return day; }
+            const realDayId = savedDay?.id || newDayId;
             if (realTripId) {
-              await supabase.from('trip_days').upsert({ trip_id: realTripId, day_id: newDayId });
+              await supabase.from('trip_days').upsert({ trip_id: realTripId, day_id: realDayId });
             }
             tripChanged = true;
-            return { ...day, id: newDayId, _dayId: newDayId, _isPlaceholder: false };
+            return { ...day, id: realDayId, _dayId: realDayId, _isPlaceholder: false };
           }
           // 真实天：直接写 days_v2
           const dayId = day._dayId || day.id;

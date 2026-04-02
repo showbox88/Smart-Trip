@@ -10,6 +10,77 @@ import { checkApiAllowed, logApiCall } from '../../utils/apiGuard';
 
 const TRAVEL_MODE_MAP = { 'DRIVE': 'DRIVING', 'WALK': 'WALKING', 'TRANSIT': 'TRANSIT' };
 
+const TRANSPORT_MODES = new Set(['FLIGHT', 'TRAIN', 'BUS', 'SHIP']);
+
+const TRANSPORT_STYLES = {
+  FLIGHT: { color: '#4FC3F7', geodesic: true, opacity: 0, weight: 3, dash: true },
+  TRAIN:  { color: '#9E9E9E', geodesic: false, opacity: 0.85, weight: 4, rail: true },
+  BUS:    { color: '#FF8F00', geodesic: false, opacity: 0.85, weight: 4 },
+  SHIP:   { color: '#1E88E5', geodesic: false, opacity: 0.9, weight: 5 },
+};
+
+function drawTransportLine(from, to, transportType, mapInstance) {
+  const style = TRANSPORT_STYLES[transportType] || TRANSPORT_STYLES.FLIGHT;
+  const polylines = [];
+
+  if (transportType === 'FLIGHT') {
+    // Dashed geodesic arc
+    const poly = new google.maps.Polyline({
+      path: [from, to],
+      geodesic: true,
+      strokeColor: style.color,
+      strokeOpacity: 0,
+      strokeWeight: style.weight,
+      map: mapInstance,
+      icons: [
+        { icon: { path: 'M 0,-1 0,1', strokeOpacity: 0.85, scale: 3, strokeColor: style.color }, offset: '0', repeat: '14px' },
+      ],
+    });
+    polylines.push(poly);
+    // Small plane icon marker at midpoint (visual only, not a real marker)
+  } else if (transportType === 'TRAIN') {
+    // Rail-style: solid line + cross-ties effect via icons
+    const poly = new google.maps.Polyline({
+      path: [from, to],
+      geodesic: false,
+      strokeColor: style.color,
+      strokeOpacity: style.opacity,
+      strokeWeight: style.weight,
+      map: mapInstance,
+      icons: [
+        { icon: { path: 'M -2,0 2,0', strokeOpacity: 0.9, scale: 2, strokeColor: '#757575', strokeWeight: 3 }, offset: '0', repeat: '16px' },
+      ],
+    });
+    polylines.push(poly);
+  } else if (transportType === 'SHIP') {
+    const poly = new google.maps.Polyline({
+      path: [from, to],
+      geodesic: false,
+      strokeColor: style.color,
+      strokeOpacity: style.opacity,
+      strokeWeight: style.weight,
+      map: mapInstance,
+      icons: [
+        { icon: { path: 'M 0,-1 0,1', strokeOpacity: 0.6, scale: 2, strokeColor: style.color }, offset: '0', repeat: '20px' },
+      ],
+    });
+    polylines.push(poly);
+  } else {
+    // BUS — simple solid line
+    const poly = new google.maps.Polyline({
+      path: [from, to],
+      geodesic: false,
+      strokeColor: style.color,
+      strokeOpacity: style.opacity,
+      strokeWeight: style.weight,
+      map: mapInstance,
+    });
+    polylines.push(poly);
+  }
+
+  return polylines;
+}
+
 // Draw an array of transit steps (raw Routes API step objects or normalized fetchTransitDetails steps)
 // rawSteps: raw from computeRoutes legs → uses step.polyline.encodedPolyline + step.transitDetails.line.color
 // normalizedSteps: from fetchTransitDetails → uses step.encodedPolyline + step.lineColor
@@ -463,12 +534,20 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [], is
       }
 
       let locationIdx = 0;
-      day.stops.forEach(stop => {
+      day.stops.forEach((stop, stopIdx) => {
         const isLoc = !stop.type || stop.type === 'location';
         const isHotel = isHotelStop(stop);
 
         if ((isLoc || isHotel) && stop.lat && stop.lng) {
-          const pos = { lat: Number(stop.lat), lng: Number(stop.lng), transitMode: stop.transitMode || 'DRIVE', transitSteps: stop.transitToNext?.steps || null };
+          // Look ahead: if the next non-note/list stop is a transport card, use its type for the line
+          const nextMeaningfulStop = day.stops.slice(stopIdx + 1).find(s => s.type !== 'note' && s.type !== 'list');
+          let effectiveTransitMode = stop.transitMode || 'DRIVE';
+          let effectiveTransitSteps = stop.transitToNext?.steps || null;
+          if (nextMeaningfulStop?.type === 'transport') {
+            effectiveTransitMode = nextMeaningfulStop.transportType || 'FLIGHT';
+            effectiveTransitSteps = null;
+          }
+          const pos = { lat: Number(stop.lat), lng: Number(stop.lng), transitMode: effectiveTransitMode, transitSteps: effectiveTransitSteps };
           if (isNaN(pos.lat) || isNaN(pos.lng)) return;
 
           routePath.push(pos);
@@ -717,6 +796,17 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [], is
           try {
             for (const seg of segments) {
               if (seg.path.length < 2) continue;
+
+              // Transport card segments — draw special lines, skip route API entirely
+              if (TRANSPORT_MODES.has(seg.mode)) {
+                const from = seg.path[0];
+                const to = seg.path[seg.path.length - 1];
+                const tPolylines = drawTransportLine(from, to, seg.mode, mapInst);
+                if (tPolylines.length > 0 && mapInstanceRef.current) {
+                  polylinesRef.current.push(...tPolylines);
+                }
+                continue;
+              }
 
               // For transit segments: try pre-fetched step colors first, fall back to tryDrawRoute(TRANSIT)
               if (seg.mode === 'TRANSIT' || seg.path.some(p => p.transitSteps?.length)) {
@@ -1408,6 +1498,7 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [], is
               lastCloseTimeRef.current = Date.now();
             }}
             onAddToDay={onAddToDay}
+            onSelectPlace={setSelectedPlaceId}
           />
         )}
 
