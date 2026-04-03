@@ -151,7 +151,7 @@ export default function DashboardPage() {
             <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'white' }}>today</span>
           </div>
           <div>
-            <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--md-sys-color-on-surface)' }}>今日行程</div>
+            <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--md-sys-color-on-surface)' }}>{t('dashboard.today_schedule') || "Today's Schedule"}</div>
             <div style={{ fontSize: '0.78rem', color: 'var(--st-color-text-muted)', marginTop: '1px' }}>
               {new Date().toLocaleDateString(undefined, { month: 'long', day: 'numeric', weekday: 'short' })}
             </div>

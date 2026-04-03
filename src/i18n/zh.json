@@ -49,6 +49,8 @@
         "title": " 的旅行仪表盘",
         "subtitle": "规划您的下一次精彩冒险",
         "today_checkin": "今日打卡",
+        "today_schedule": "今日行程",
+        "loading_today": "加载今日行程...",
         "new_trip": "新建旅行",
         "new_trip_default_title": "我的新旅行",
         "filter_all": "全部",

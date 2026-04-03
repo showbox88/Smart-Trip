@@ -12,6 +12,7 @@ import SharedTripPage from './pages/SharedTripPage';
 import CalendarPage from './pages/CalendarPage';
 import TodayPage from './pages/TodayPage';
 import { isAdmin } from './utils/admin';
+import ThemeSwitcher from './components/common/ThemeSwitcher';
 
 export default function App() {
   const { state } = useApp();
@@ -55,6 +56,7 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
+      <ThemeSwitcher />
     </>
   );
 }

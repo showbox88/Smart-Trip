@@ -11,6 +11,7 @@ export { validateTheme, REQUIRED_COLOR_KEYS } from './themeSchema';
 export { applyTheme, clearTheme, getPreviewColors, deepMerge } from './themeUtils';
 export { migrateTheme } from './themeMigrations';
 export { STATUS_COLORS, TRANSIT_COLORS, HOTEL_COLORS, CATEGORY_COLORS, M3 } from './semanticColors';
+export { PRESET_THEMES, OCEAN, SAKURA, FOREST, EMBER, MIDNIGHT } from './presetThemes';
 export {
   getCachedTheme,
   setCachedTheme,

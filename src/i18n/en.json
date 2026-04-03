@@ -47,6 +47,8 @@
         "title": "'s Trips",
         "subtitle": "Plan Your Next Awesome Adventure",
         "today_checkin": "Today's Check-in",
+        "today_schedule": "Today's Schedule",
+        "loading_today": "Loading today's schedule...",
         "new_trip": "New Trip",
         "new_trip_default_title": "My New Trip",
         "filter_all": "All",

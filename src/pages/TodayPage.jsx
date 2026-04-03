@@ -188,7 +188,7 @@ export default function TodayPage() {
       <div style={{ minHeight: '100vh', background: 'var(--md-sys-color-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ textAlign: 'center', color: 'var(--st-color-text-muted)' }}>
           <span className="material-symbols-outlined" style={{ fontSize: '3rem', display: 'block', marginBottom: '0.75rem', opacity: 0.4 }}>today</span>
-          <p style={{ margin: 0 }}>加载今日行程...</p>
+          <p style={{ margin: 0 }}>{t('dashboard.loading_today') || "Loading today's schedule..."}</p>
         </div>
       </div>
     );
@@ -257,7 +257,7 @@ export default function TodayPage() {
             <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>arrow_back</span>
           </button>
           <div>
-            <div style={{ fontWeight: 800, fontSize: '1rem', lineHeight: 1.2 }}>今日行程</div>
+            <div style={{ fontWeight: 800, fontSize: '1rem', lineHeight: 1.2 }}>{t('dashboard.today_schedule') || "Today's Schedule"}</div>
             <div style={{ fontSize: '0.75rem', color: 'var(--st-color-text-muted)' }}>{formatTodayLabel()}</div>
           </div>
         </div>
