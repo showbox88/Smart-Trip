@@ -22,8 +22,51 @@ import {
   fetchThemeById,
   saveActiveThemeId,
 } from './themeStorage';
+import { PRESET_THEMES } from './presetThemes';
 
 export const ThemeContext = createContext(null);
+
+/** Look up a preset theme by its short ID (e.g. 'ocean', 'clean') */
+function findPresetById(id) {
+  return PRESET_THEMES.find(p => p.id === id);
+}
+
+/** Fire-and-forget: persist preset theme to Supabase themes table */
+async function persistPresetToSupabase(supabase, userId, themeJson) {
+  try {
+    // Reuse a single "_user_active" row per user
+    const { data: existing } = await supabase
+      .from('themes')
+      .select('id')
+      .eq('author_id', userId)
+      .eq('name', '_user_active')
+      .maybeSingle();
+
+    let dbId;
+    if (existing) {
+      await supabase.from('themes')
+        .update({ theme_data: themeJson, schema_version: themeJson.schemaVersion || 2 })
+        .eq('id', existing.id);
+      dbId = existing.id;
+    } else {
+      const { data } = await supabase.from('themes')
+        .insert({
+          author_id: userId,
+          name: '_user_active',
+          description: 'User active theme preference',
+          schema_version: themeJson.schemaVersion || 2,
+          theme_data: themeJson,
+          is_public: false,
+        })
+        .select('id')
+        .single();
+      dbId = data?.id;
+    }
+    if (dbId) saveActiveThemeId(supabase, userId, dbId);
+  } catch {
+    // silently fail — localStorage cache serves as fallback
+  }
+}
 
 export function ThemeProvider({ children, supabase, userId }) {
   const [currentTheme, setCurrentTheme] = useState(() => {
@@ -122,6 +165,25 @@ export function ThemeProvider({ children, supabase, userId }) {
     return true;
   }, []);
 
+  // Apply a preset theme by ID — persists to localStorage + Supabase
+  const applyPresetTheme = useCallback((presetId, themeJson) => {
+    const { valid, errors } = validateTheme(themeJson);
+    if (!valid) {
+      console.warn('[Theme] Invalid preset theme:', errors);
+      return false;
+    }
+    applyTheme(themeJson);
+    setCurrentTheme(themeJson);
+    setThemeId(presetId);
+    setCachedTheme(presetId, themeJson);
+
+    // Persist to Supabase in background
+    if (supabase && userId) {
+      persistPresetToSupabase(supabase, userId, themeJson);
+    }
+    return true;
+  }, [supabase, userId]);
+
   // Reset to default theme
   const resetTheme = useCallback(() => {
     clearTheme();
@@ -141,8 +203,9 @@ export function ThemeProvider({ children, supabase, userId }) {
     isLoading,
     setTheme: setThemeById,
     applyCustomTheme,
+    applyPresetTheme,
     resetTheme,
-  }), [currentTheme, themeId, isLoading, setThemeById, applyCustomTheme, resetTheme]);
+  }), [currentTheme, themeId, isLoading, setThemeById, applyCustomTheme, applyPresetTheme, resetTheme]);
 
   return (
     <ThemeContext.Provider value={value}>

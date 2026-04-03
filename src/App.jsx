@@ -12,7 +12,6 @@ import SharedTripPage from './pages/SharedTripPage';
 import CalendarPage from './pages/CalendarPage';
 import TodayPage from './pages/TodayPage';
 import { isAdmin } from './utils/admin';
-import ThemeSwitcher from './components/common/ThemeSwitcher';
 import BottomNav from './components/layout/BottomNav';
 import { useTheme } from './theme';
 
@@ -60,7 +59,6 @@ export default function App() {
         </Routes>
       </main>
       {layoutVariant === 'clean' && <BottomNav />}
-      <ThemeSwitcher />
     </>
   );
 }

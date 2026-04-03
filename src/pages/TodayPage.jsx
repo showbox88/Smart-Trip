@@ -304,6 +304,25 @@ export default function TodayPage() {
             />
           ))}
         </div>
+
+        {/* ── Check-in button ── */}
+        <button
+          onClick={() => navigate(`/day/${today}`)}
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+            width: '100%', marginTop: '1rem', marginBottom: '1rem',
+            padding: '0.75rem 1.25rem',
+            background: 'var(--md-sys-color-primary)',
+            color: 'var(--md-sys-color-on-primary)',
+            border: 'none', borderRadius: 'var(--md-sys-shape-corner-medium)',
+            fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+            transition: 'opacity 0.15s ease',
+          }}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>my_location</span>
+          {t('dashboard.today_checkin') || 'Check In'}
+        </button>
       </div>
 
       {/* ── GPS nearby toast ── */}
