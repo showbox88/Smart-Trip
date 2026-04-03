@@ -10,14 +10,9 @@
    1. STOP CARD — flat white card, no 3D flip shell
    ═══════════════════════════════════════════════════ */
 
-/* Remove 3D perspective from container */
+/* Keep 3D flip working — only reduce perspective depth for subtler effect */
 [data-layout="clean"] .stop-card-container {
-  perspective: none;
-}
-
-/* Keep flip working but without 3D perspective */
-[data-layout="clean"] .stop-card-inner {
-  transform-style: flat;
+  perspective: 1200px;
 }
 
 /* Back face in clean layout — light surface instead of dark gradient */
