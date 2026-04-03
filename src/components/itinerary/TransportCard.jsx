@@ -27,21 +27,51 @@ export default memo(function TransportCard({ stop, dayId, dayColor, onDelete, on
       className={`timeline-item note-item id-${stop.id}`}
       style={{ position: 'relative', marginBottom: '0.75rem' }}
     >
-      {/* Timeline dot — hollow in clean, filled+glow in glass */}
-      <div style={{
-        position: 'absolute',
-        left: 'var(--timeline-line-x)',
-        top: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: isClean ? 20 : 12,
-        height: isClean ? 20 : 12,
-        borderRadius: '50%',
-        background: isClean ? 'var(--md-sys-color-surface-container-lowest)' : cfg.color,
-        border: isClean ? `2.5px solid ${cfg.color}` : '2px solid var(--md-sys-color-surface)',
-        boxShadow: isClean ? 'none' : `0 0 0 3px ${cfg.color}44`,
-        zIndex: 2,
-        transition: 'all 0.3s ease',
-      }} />
+      {/* Timeline dot — bubble icon in clean, filled+glow in glass */}
+      {isClean ? (
+        <div style={{
+          position: 'absolute',
+          left: 'var(--timeline-line-x)',
+          top: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: '36px',
+          height: '36px',
+          borderRadius: '50%',
+          background: 'var(--md-sys-color-surface-container-lowest)',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 2,
+        }}>
+          <div style={{
+            width: '30px',
+            height: '30px',
+            borderRadius: '50%',
+            background: `${cfg.color}20`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '16px', color: cfg.color }}>{cfg.icon}</span>
+          </div>
+        </div>
+      ) : (
+        <div style={{
+          position: 'absolute',
+          left: 'var(--timeline-line-x)',
+          top: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: 12,
+          height: 12,
+          borderRadius: '50%',
+          background: cfg.color,
+          border: '2px solid var(--md-sys-color-surface)',
+          boxShadow: `0 0 0 3px ${cfg.color}44`,
+          zIndex: 2,
+          transition: 'all 0.3s ease',
+        }} />
+      )}
 
       {inHotelStay && <HotelLine />}
 

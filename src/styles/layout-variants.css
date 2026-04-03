@@ -49,7 +49,7 @@
 
 
 /* ═══════════════════════════════════════════════════
-   2. TIMELINE — hollow dots, adjusted line
+   2. TIMELINE — hollow dots, gradient line, bubble icons
    ═══════════════════════════════════════════════════ */
 
 /* Timeline dots — hollow style with colored border */
@@ -74,6 +74,39 @@
 [data-layout="clean"] .dot.green {
   color: var(--md-sys-color-tertiary);
   border-color: var(--md-sys-color-tertiary);
+}
+
+/* Timeline line — gradient, solid, thicker */
+[data-layout="clean"] .timeline-main-line {
+  border-left-style: solid !important;
+  border-left-width: 3px !important;
+  border-image: linear-gradient(
+    to bottom,
+    var(--md-sys-color-primary-container),
+    var(--md-sys-color-secondary-container),
+    transparent
+  ) 1 !important;
+  opacity: 0.8 !important;
+}
+
+/* Stop cards — larger rounded corners and softer shadow */
+[data-layout="clean"] .rich-stop-card {
+  border-radius: var(--md-sys-shape-corner-large, 1rem) !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04) !important;
+}
+
+[data-layout="clean"] .rich-stop-card:hover {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Inline transit — small pill with softer appearance */
+[data-layout="clean"] .transit-inline {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--md-sys-color-primary);
+  opacity: 0.7;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 /* Hotel line segment — subtle, no glow */

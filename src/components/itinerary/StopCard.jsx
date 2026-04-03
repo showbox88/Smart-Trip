@@ -212,21 +212,54 @@ export default React.memo(function StopCard({
 
   return (
     <div className={`timeline-item id-${stop.id}`} style={{ position: 'relative', marginBottom: '0.75rem' }}>
-      {/* Timeline Dot — hollow in clean, filled in glass */}
-      <div style={{
-        position: 'absolute',
-        left: 'var(--timeline-line-x)',
-        top: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: isClean ? '20px' : '8px',
-        height: isClean ? '20px' : '8px',
-        borderRadius: '50%',
-        background: isClean ? 'var(--md-sys-color-surface-container-lowest)' : dotColor,
-        border: isClean ? `2.5px solid ${dotColor}` : 'none',
-        zIndex: 2,
-        boxShadow: isClean ? 'none' : `0 0 10px ${dotColor}`,
-        transition: 'all 0.3s ease',
-      }} />
+      {/* Timeline Dot — bubble icon in clean, filled dot in glass */}
+      {isClean ? (
+        <div style={{
+          position: 'absolute',
+          left: 'var(--timeline-line-x)',
+          top: '1.2rem',
+          transform: 'translateX(-50%)',
+          width: '40px',
+          height: '40px',
+          borderRadius: '50%',
+          background: 'var(--md-sys-color-surface-container-lowest)',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 2,
+          transition: 'transform 0.2s ease',
+        }}>
+          <div style={{
+            width: '34px',
+            height: '34px',
+            borderRadius: '50%',
+            background: `${dotColor}20`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            {(() => {
+              const Icon = getCategoryIcon(stop.category);
+              return <Icon size={18} strokeWidth={2.2} style={{ color: dotColor }} />;
+            })()}
+          </div>
+        </div>
+      ) : (
+        <div style={{
+          position: 'absolute',
+          left: 'var(--timeline-line-x)',
+          top: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: '8px',
+          height: '8px',
+          borderRadius: '50%',
+          background: dotColor,
+          zIndex: 2,
+          boxShadow: `0 0 10px ${dotColor}`,
+          transition: 'all 0.3s ease',
+        }} />
+      )}
 
       {/* Hotel checkin/checkout card: amber line from dot to edge */}
       {isHotelType && (
@@ -428,12 +461,30 @@ export default React.memo(function StopCard({
                   <h4 className="rich-stop-card-title" style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: 'var(--md-sys-color-on-surface)', letterSpacing: '-0.02em' }}>
                     {stop.location}
                   </h4>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginLeft: '4px', flexShrink: 0 }} title={stop.category ? (t(stop.category) !== stop.category ? t(stop.category) : stop.category) : t('map.place_default')}>
-                    {(() => {
-                      const Icon = getCategoryIcon(stop.category);
-                      return <Icon size={16} strokeWidth={2.5} className="text-white opacity-90" />;
-                    })()}
-                  </div>
+                  {isClean ? (
+                    /* Clean layout: colored pill badge */
+                    <span style={{
+                      background: `${dotColor}15`,
+                      color: dotColor,
+                      fontSize: '0.65rem',
+                      fontWeight: 700,
+                      padding: '2px 8px',
+                      borderRadius: '9999px',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.03em',
+                      flexShrink: 0,
+                      whiteSpace: 'nowrap',
+                    }}>
+                      {stop.category ? (t(stop.category) !== stop.category ? t(stop.category) : stop.category) : t('map.place_default')}
+                    </span>
+                  ) : (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginLeft: '4px', flexShrink: 0 }} title={stop.category ? (t(stop.category) !== stop.category ? t(stop.category) : stop.category) : t('map.place_default')}>
+                      {(() => {
+                        const Icon = getCategoryIcon(stop.category);
+                        return <Icon size={16} strokeWidth={2.5} className="text-white opacity-90" />;
+                      })()}
+                    </div>
+                  )}
                   {stop.rating && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '3px', flexShrink: 0 }}>
                       <span style={{ color: 'var(--st-color-status-soon)', fontSize: '13px' }}>★</span>

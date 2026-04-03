@@ -255,7 +255,7 @@ export default memo(function DaySection({
         <div style={{ paddingLeft: 0 }}>
           <div className="timeline-container" style={{ position: 'relative' }}>
             {/* Dashed timeline line */}
-            <div style={{ position: 'absolute', top: 0, bottom: 0, left: 'var(--timeline-line-x)', width: 0, borderLeft: `2px dashed ${activeColor}`, opacity: 0.5, zIndex: 0, transform: 'translateX(-50%)', transition: 'border-color 0.2s, left 0.3s' }} />
+            <div className="timeline-main-line" style={{ position: 'absolute', top: 0, bottom: 0, left: 'var(--timeline-line-x)', width: 0, borderLeft: `2px dashed ${activeColor}`, opacity: 0.5, zIndex: 0, transform: 'translateX(-50%)', transition: 'border-color 0.2s, left 0.3s' }} />
 
             {/* Hotel line anchor for between/cout-only days */}
             {(hotelContext.isBetween || hotelContext.isCoutOnly) && hotelContext.stay && (
