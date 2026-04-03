@@ -55,20 +55,17 @@ function MapThumbnail({ url }) {
     );
   }
 
+  if (status === 'error') return null;
+
   return (
     <div style={{
       borderRadius: '14px', overflow: 'hidden',
       border: '1px solid var(--md-sys-color-outline)',
       marginBottom: '1.25rem', background: '#1a1a2e',
-      minHeight: status === 'error' ? '60px' : '180px',
+      minHeight: '180px',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
     }}>
-      {status === 'error' ? (
-        <div style={{ color: 'var(--md-sys-color-error)', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '6px', padding: '1rem' }}>
-          <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>error</span>
-          Static Maps API 加载失败 — 请检查 Google Cloud Console 是否启用
-        </div>
-      ) : (
+      {(
         <img
           src={url}
           alt="今日路线"

@@ -90,7 +90,7 @@ export default function TripCard({ trip, isList = false, onEdit, onShare }) {
           )}
         </div>
         <span className={`status-badge ${status.cls}`} style={{ position: 'static', padding: '4px 12px', borderRadius: '20px' }}>{status.label}</span>
-        <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'white', minWidth: '100px', textAlign: 'right' }}>
+        <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--md-sys-color-on-surface)', minWidth: '100px', textAlign: 'right' }}>
           {formatCurrency(totalCost, state.settings)}
         </div>
         <div style={{ position: 'relative', marginLeft: '10px' }}>
@@ -138,7 +138,7 @@ export default function TripCard({ trip, isList = false, onEdit, onShare }) {
         <div className="trip-meta">
           <div>
             <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--st-color-text-muted)', fontWeight: 800, letterSpacing: '0.08em', marginBottom: '2px' }}>{t('dashboard.total_expenses')}</div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'white' }}>{formatCurrency(totalCost, state.settings)}</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--md-sys-color-on-surface)' }}>{formatCurrency(totalCost, state.settings)}</div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <div className="meta-item" style={{ background: 'rgba(255,255,255,0.05)', padding: '4px 10px', borderRadius: '8px' }}>

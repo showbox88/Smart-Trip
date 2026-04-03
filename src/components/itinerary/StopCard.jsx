@@ -455,8 +455,8 @@ export default React.memo(function StopCard({
                             const parts = addr.split(',');
                             return (
                               <>
-                                <div style={{ color: 'white', fontWeight: 700, marginBottom: '2px' }}>{parts[0].trim()}</div>
-                                <div style={{ opacity: 0.6, fontSize: '0.78rem' }}>{parts.slice(1).join(',').trim()}</div>
+                                <div style={{ color: 'var(--md-sys-color-on-surface)', fontWeight: 700, marginBottom: '2px' }}>{parts[0].trim()}</div>
+                                <div style={{ color: 'var(--md-sys-color-on-surface-variant)', fontSize: '0.78rem' }}>{parts.slice(1).join(',').trim()}</div>
                               </>
                             );
                           }
@@ -465,8 +465,8 @@ export default React.memo(function StopCard({
                           if (match) {
                             return (
                               <>
-                                <div style={{ color: 'white', fontWeight: 700, marginBottom: '2px' }}>{match[1]}</div>
-                                <div style={{ opacity: 0.6, fontSize: '0.78rem' }}>{match[2]}</div>
+                                <div style={{ color: 'var(--md-sys-color-on-surface)', fontWeight: 700, marginBottom: '2px' }}>{match[1]}</div>
+                                <div style={{ color: 'var(--md-sys-color-on-surface-variant)', fontSize: '0.78rem' }}>{match[2]}</div>
                               </>
                             );
                           }

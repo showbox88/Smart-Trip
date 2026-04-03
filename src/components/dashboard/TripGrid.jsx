@@ -24,7 +24,7 @@ export default function TripGrid({ trips, onAddTrip, onEdit, onShare }) {
         <div className="placeholder-icon">
           <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>add_location_alt</span>
         </div>
-        <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'white' }}>{t('dashboard.placeholder_title') || 'No trips yet?'}</h3>
+        <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--md-sys-color-on-surface)' }}>{t('dashboard.placeholder_title') || 'No trips yet?'}</h3>
         <p style={{ fontSize: '0.85rem', color: 'var(--st-color-text-muted)', textAlign: 'center', marginTop: '0.5rem' }}>{t('dashboard.placeholder_desc') || 'Click to start planning!'}</p>
       </div>
     </div>
