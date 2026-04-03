@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useMemo, useImperativeHandle, forwardRef, useCallback } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useI18n } from '../../context/I18nContext';
+import { useTheme } from '../../theme';
 import MapInfoPanel from './MapInfoPanel';
 import MapSearchBox from './MapSearchBox';
 import NearbyCheckinPanel from './NearbyCheckinPanel';
@@ -278,6 +279,7 @@ async function fetchAndDrawRoute(routePath, color, mapInstance, travelMode = 'DR
 const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [], isDayMode = false, dayId = null, existingPlaceIds = [] }, ref) {
   const { state } = useApp();
   const { t } = useI18n();
+  const { layoutVariant } = useTheme();
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersRef = useRef([]);
@@ -287,7 +289,7 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [], is
   const prevHoveredRef = useRef(null); // track previous hovered stopId
   const prevFocusDayIdsRef = useRef([]); // track previous focusDayIds to avoid redundant fitBounds
   const [mapReady, setMapReady] = useState(!!window.googleMapsReady);
-  const [darkMode, setDarkMode] = useState(true);
+  const [darkMode, setDarkMode] = useState(layoutVariant !== 'clean');
   const [selectedPlaceId, setSelectedPlaceId] = useState(null);
   const selectedPlaceIdRef = useRef(null);
   const lastCloseTimeRef = useRef(0);
@@ -378,6 +380,11 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [], is
       locationDotRef.current.style.filter = darkMode ? 'invert(100%) hue-rotate(180deg)' : '';
     }
   }, [darkMode]);
+
+  // Sync dark mode when theme layout changes
+  useEffect(() => {
+    setDarkMode(layoutVariant !== 'clean');
+  }, [layoutVariant]);
 
   // 地址换行辅助函数 (用于 Google Maps Tooltip HTML 拼串)
   const formatAddressHTML = (addr) => {
