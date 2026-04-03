@@ -45,7 +45,7 @@ export default memo(function DayHeader({
   const colorRef = useRef(null);
   const menuRef = useRef(null);
   const inputRef = useRef(null);
-  const activeColor = day.color || '#5b7a99';
+  const activeColor = day.color || 'var(--st-color-timeline-default)';
 
   const suffix = t('itinerary.day_suffix');
   const dayLabel = `${t('itinerary.day_label') || 'Day'} ${dayIndex + 1}${suffix === 'itinerary.day_suffix' ? '' : suffix}`;
@@ -121,7 +121,7 @@ export default memo(function DayHeader({
 
             {/* Total Expense */}
             {totalExpense > 0 && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.82rem', color: '#10b981', fontWeight: 800 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.82rem', color: 'var(--md-sys-color-tertiary)', fontWeight: 800 }}>
                 <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>payments</span>
                 <span>{formatCurrency(totalExpense, state.settings)}</span>
               </div>

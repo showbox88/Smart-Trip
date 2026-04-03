@@ -113,7 +113,7 @@ export default function TodayScheduleModal({ trip, onUpdateStop, onClose }) {
             </div>
             <button
               onClick={onClose}
-              style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '4px' }}
+              style={{ background: 'none', border: 'none', color: 'var(--st-color-text-muted)', cursor: 'pointer', padding: '4px' }}
             >
               <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>close</span>
             </button>
@@ -165,7 +165,7 @@ export default function TodayScheduleModal({ trip, onUpdateStop, onClose }) {
             </div>
 
             {days.length === 0 && (
-              <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
+              <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--st-color-text-muted)' }}>
                 <span className="material-symbols-outlined" style={{ fontSize: '40px', display: 'block', marginBottom: '8px', opacity: 0.3 }}>event_busy</span>
                 <div style={{ fontSize: '0.88rem' }}>暂无行程</div>
               </div>
@@ -205,8 +205,8 @@ export default function TodayScheduleModal({ trip, onUpdateStop, onClose }) {
                   {stops.map((stop, stopIdx) => {
                     const price = parseFloat(stop.price) || 0;
                     const hotelBadge =
-                      stop.type === 'hotel_checkin' ? { label: 'Check-in', color: '#22c55e' } :
-                      stop.type === 'hotel_checkout' ? { label: 'Check-out', color: '#f59e0b' } : null;
+                      stop.type === 'hotel_checkin' ? { label: 'Check-in', color: 'var(--st-color-hotel-checkin)' } :
+                      stop.type === 'hotel_checkout' ? { label: 'Check-out', color: 'var(--st-color-status-soon)' } : null;
                     const navUrl = stop.address
                       ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(stop.address)}${stop.placeId ? `&destination_place_id=${stop.placeId}` : ''}`
                       : null;
@@ -244,7 +244,7 @@ export default function TodayScheduleModal({ trip, onUpdateStop, onClose }) {
                             )}
                             {stop.rating && (
                               <span style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', flexShrink: 0 }}>
-                                <span style={{ color: '#f59e0b', fontSize: '11px', lineHeight: 1 }}>★</span>
+                                <span style={{ color: 'var(--st-color-status-soon)', fontSize: '11px', lineHeight: 1 }}>★</span>
                                 <span style={{ color: 'var(--text-secondary)', fontSize: '0.7rem', fontWeight: 700 }}>{stop.rating}</span>
                               </span>
                             )}
@@ -253,7 +253,7 @@ export default function TodayScheduleModal({ trip, onUpdateStop, onClose }) {
                           {/* Row 2: address */}
                           {stop.address && (
                             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '3px', marginBottom: '0.35rem' }}>
-                              <span className="material-symbols-outlined" style={{ fontSize: '11px', color: '#f97316', flexShrink: 0, marginTop: '2px' }}>location_on</span>
+                              <span className="material-symbols-outlined" style={{ fontSize: '11px', color: 'var(--st-color-category-food)', flexShrink: 0, marginTop: '2px' }}>location_on</span>
                               <span style={{
                                 color: 'var(--text-muted)', fontSize: '0.71rem', lineHeight: 1.45,
                                 display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
@@ -268,7 +268,7 @@ export default function TodayScheduleModal({ trip, onUpdateStop, onClose }) {
                             {/* Time chip — clickable */}
                             <Chip
                               bg={stop.time ? 'rgba(249,115,22,0.1)' : 'rgba(255,255,255,0.05)'}
-                              color={stop.time ? '#f97316' : '#64748b'}
+                              color={stop.time ? 'var(--st-color-category-food)' : 'var(--st-color-text-muted)'}
                               border={stop.time ? 'rgba(249,115,22,0.25)' : 'rgba(255,255,255,0.08)'}
                               icon="schedule"
                               label={stop.time ? `${stop.time}${stop.period ? ` ${stop.period}` : ''}` : '--:--'}
@@ -279,7 +279,7 @@ export default function TodayScheduleModal({ trip, onUpdateStop, onClose }) {
                             {/* Expense chip — always shown */}
                             <Chip
                               bg={price > 0 ? 'rgba(16,185,129,0.1)' : 'rgba(255,255,255,0.04)'}
-                              color={price > 0 ? '#10b981' : '#475569'}
+                              color={price > 0 ? 'var(--md-sys-color-tertiary)' : '#475569'}
                               border={price > 0 ? 'rgba(16,185,129,0.25)' : 'rgba(255,255,255,0.07)'}
                               icon="payments"
                               label={price > 0 ? String(stop.price) : '0'}
@@ -295,7 +295,7 @@ export default function TodayScheduleModal({ trip, onUpdateStop, onClose }) {
                                 rel="noreferrer"
                                 style={{
                                   display: 'inline-flex', alignItems: 'center', gap: '3px',
-                                  background: 'rgba(59,130,246,0.1)', color: '#3b82f6',
+                                  background: 'rgba(59,130,246,0.1)', color: 'var(--md-sys-color-primary)',
                                   border: '1px solid rgba(59,130,246,0.25)',
                                   borderRadius: '6px', padding: '2px 7px',
                                   fontSize: '0.7rem', fontWeight: 700, textDecoration: 'none', whiteSpace: 'nowrap',

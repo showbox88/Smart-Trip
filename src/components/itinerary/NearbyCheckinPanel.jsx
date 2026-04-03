@@ -131,7 +131,7 @@ export default function NearbyCheckinPanel({ mapInstance, userLocation, existing
             style={{
               display: 'flex', alignItems: 'center', gap: '5px',
               padding: '5px 12px', borderRadius: '20px', border: 'none',
-              background: activeCategory === cat.id ? 'var(--accent-primary, #3b82f6)' : 'rgba(255,255,255,0.07)',
+              background: activeCategory === cat.id ? 'var(--md-sys-color-primary)' : 'rgba(255,255,255,0.07)',
               color: activeCategory === cat.id ? 'white' : 'var(--text-secondary)',
               fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
               transition: 'all 0.2s',
@@ -218,7 +218,7 @@ export default function NearbyCheckinPanel({ mapInstance, userLocation, existing
                   padding: '6px 14px',
                   borderRadius: '20px',
                   border: 'none',
-                  background: added ? 'rgba(255,255,255,0.07)' : 'var(--accent-primary, #3b82f6)',
+                  background: added ? 'rgba(255,255,255,0.07)' : 'var(--md-sys-color-primary)',
                   color: added ? 'var(--text-muted)' : 'white',
                   fontSize: '0.8rem', fontWeight: 700,
                   cursor: added ? 'default' : 'pointer',

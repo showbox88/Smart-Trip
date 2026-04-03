@@ -1,0 +1,47 @@
+/* ============================================================
+ * Backward Compatibility Layer
+ * Maps old variable names → new M3/ST tokens
+ *
+ * PURPOSE: Zero-breakage migration. All existing var(--old-name)
+ *          references continue to work through these aliases.
+ *
+ * TODO: Remove this file after all components are migrated
+ *       to use new token names directly.
+ * ============================================================ */
+
+:root {
+  /* ── Background aliases ─────────────────────────────────── */
+  --bg-primary:   var(--md-sys-color-surface);
+  --bg-secondary: var(--md-sys-color-surface-variant);
+  --bg-deep:      var(--md-sys-color-surface);
+  --bg-dark:      var(--md-sys-color-surface);
+  --bg-light:     var(--md-sys-color-inverse-surface);
+  --bg-itinerary: var(--md-sys-color-surface-container);
+
+  /* ── Accent aliases ─────────────────────────────────────── */
+  --accent-primary:   var(--md-sys-color-primary);
+  --accent-secondary: var(--md-sys-color-secondary);
+  --accent-blue:      var(--md-sys-color-primary);
+
+  /* ── Text aliases ───────────────────────────────────────── */
+  --text-primary:   var(--md-sys-color-on-surface);
+  --text-main:      var(--md-sys-color-on-surface);
+  --text-secondary: var(--md-sys-color-on-surface-variant);
+  --text-muted:     var(--st-color-text-muted);
+  --text-bright:    var(--md-sys-color-on-surface);
+
+  /* ── Glass aliases ──────────────────────────────────────── */
+  --glass-bg:     var(--st-glass-bg);
+  --glass-nav:    var(--st-glass-nav);
+  --glass-border: var(--md-sys-color-outline);
+  --glass-blur:   var(--st-glass-blur);
+
+  /* ── Shadow aliases ─────────────────────────────────────── */
+  --shadow-premium: var(--st-shadow-premium);
+
+  /* ── Font aliases ───────────────────────────────────────── */
+  --font-main: var(--md-sys-typescale-body-font);
+
+  /* ── Component-specific aliases ─────────────────────────── */
+  --hotel-line-color: var(--st-color-hotel-line);
+}

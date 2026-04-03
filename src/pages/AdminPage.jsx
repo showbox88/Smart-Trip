@@ -527,7 +527,7 @@ export default function AdminPage() {
                         <span style={{
                           fontSize: '0.72rem', fontWeight: 700, padding: '2px 8px', borderRadius: '6px',
                           background: isV2 ? 'rgba(34,197,94,0.15)' : 'rgba(251,191,36,0.15)',
-                          color: isV2 ? '#22c55e' : '#fbbf24',
+                          color: isV2 ? 'var(--st-color-hotel-checkin)' : '#fbbf24',
                           border: `1px solid ${isV2 ? 'rgba(34,197,94,0.3)' : 'rgba(251,191,36,0.3)'}`,
                         }}>
                           {isV2 ? 'V2 新' : 'V1 旧'}
@@ -552,7 +552,7 @@ export default function AdminPage() {
                         )}
                         <button
                           onClick={() => handleDeleteTrip(trip.id)}
-                          style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '0.9rem' }}
+                          style={{ background: 'none', border: 'none', color: 'var(--md-sys-color-error)', cursor: 'pointer', fontSize: '0.9rem' }}
                         >
                           Delete
                         </button>
@@ -569,7 +569,7 @@ export default function AdminPage() {
           {repairLog.length > 0 && (
             <div style={{ marginTop: '1rem' }}>
               <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>修复日志</div>
-              <pre style={{ background: 'rgba(0,0,0,0.4)', borderRadius: '8px', padding: '1rem', fontSize: '0.78rem', color: '#94a3b8', maxHeight: '240px', overflowY: 'auto', whiteSpace: 'pre-wrap' }}>
+              <pre style={{ background: 'rgba(0,0,0,0.4)', borderRadius: '8px', padding: '1rem', fontSize: '0.78rem', color: 'var(--st-color-text-muted)', maxHeight: '240px', overflowY: 'auto', whiteSpace: 'pre-wrap' }}>
                 {repairLog.join('\n')}
               </pre>
             </div>
@@ -645,7 +645,7 @@ export default function AdminPage() {
                     }}
                   >
                     {/* Thumbnail */}
-                    <div style={{ aspectRatio: '1', overflow: 'hidden', background: '#0a0c10' }}>
+                    <div style={{ aspectRatio: '1', overflow: 'hidden', background: 'var(--md-sys-color-surface-container-lowest)' }}>
                       {isImage ? (
                         <img
                           src={url}
@@ -714,14 +714,14 @@ export default function AdminPage() {
                   <button
                     onClick={() => !apiSaving && toggleAllApis(true)}
                     disabled={apiSaving || allOn}
-                    style={{ padding: '0.5rem 1.1rem', borderRadius: '8px', background: allOn ? 'rgba(34,197,94,0.15)' : '#22c55e', border: `1px solid ${allOn ? 'rgba(34,197,94,0.3)' : '#16a34a'}`, color: allOn ? '#4ade80' : '#fff', fontWeight: 600, fontSize: '0.85rem', cursor: allOn || apiSaving ? 'not-allowed' : 'pointer', opacity: allOn || apiSaving ? 0.6 : 1, transition: 'all 0.2s' }}
+                    style={{ padding: '0.5rem 1.1rem', borderRadius: '8px', background: allOn ? 'rgba(34,197,94,0.15)' : 'var(--st-color-hotel-checkin)', border: `1px solid ${allOn ? 'rgba(34,197,94,0.3)' : '#16a34a'}`, color: allOn ? 'var(--st-color-hotel-checkin)' : '#fff', fontWeight: 600, fontSize: '0.85rem', cursor: allOn || apiSaving ? 'not-allowed' : 'pointer', opacity: allOn || apiSaving ? 0.6 : 1, transition: 'all 0.2s' }}
                   >
                     全部开启
                   </button>
                   <button
                     onClick={() => !apiSaving && toggleAllApis(false)}
                     disabled={apiSaving || allOff}
-                    style={{ padding: '0.5rem 1.1rem', borderRadius: '8px', background: allOff ? 'rgba(239,68,68,0.15)' : '#ef4444', border: `1px solid ${allOff ? 'rgba(239,68,68,0.3)' : '#dc2626'}`, color: allOff ? '#f87171' : '#fff', fontWeight: 600, fontSize: '0.85rem', cursor: allOff || apiSaving ? 'not-allowed' : 'pointer', opacity: allOff || apiSaving ? 0.6 : 1, transition: 'all 0.2s' }}
+                    style={{ padding: '0.5rem 1.1rem', borderRadius: '8px', background: allOff ? 'rgba(239,68,68,0.15)' : 'var(--md-sys-color-error)', border: `1px solid ${allOff ? 'rgba(239,68,68,0.3)' : '#dc2626'}`, color: allOff ? '#f87171' : '#fff', fontWeight: 600, fontSize: '0.85rem', cursor: allOff || apiSaving ? 'not-allowed' : 'pointer', opacity: allOff || apiSaving ? 0.6 : 1, transition: 'all 0.2s' }}
                   >
                     全部关闭
                   </button>
@@ -749,7 +749,7 @@ export default function AdminPage() {
                     {/* Toggle switch */}
                     <div
                       onClick={() => !apiSaving && toggleApiSwitch(key, apiSettings[key])}
-                      style={{ width: '44px', height: '24px', borderRadius: '12px', background: on ? '#22c55e' : '#374151', cursor: 'pointer', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}
+                      style={{ width: '44px', height: '24px', borderRadius: '12px', background: on ? 'var(--st-color-hotel-checkin)' : '#374151', cursor: 'pointer', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}
                     >
                       <div style={{ position: 'absolute', top: '3px', left: on ? '23px' : '3px', width: '18px', height: '18px', borderRadius: '50%', background: '#fff', transition: 'left 0.2s' }} />
                     </div>
@@ -821,7 +821,7 @@ export default function AdminPage() {
                         <td style={{ padding: '0.4rem 0.8rem', color: 'var(--text-muted)' }}>{new Date(log.created_at).toLocaleTimeString()}</td>
                         <td style={{ padding: '0.4rem 0.8rem' }}>{log.api_type}</td>
                         <td style={{ padding: '0.4rem 0.8rem' }}>
-                          <span style={{ color: log.status === 'success' ? '#22c55e' : log.status === 'blocked' ? '#f87171' : '#fbbf24', fontWeight: 600 }}>
+                          <span style={{ color: log.status === 'success' ? 'var(--st-color-hotel-checkin)' : log.status === 'blocked' ? '#f87171' : '#fbbf24', fontWeight: 600 }}>
                             {log.status}
                           </span>
                         </td>
@@ -854,7 +854,7 @@ export default function AdminPage() {
             <span className="material-symbols-outlined">key</span>
             管理员 RLS 权限配置 (SQL 脚本)
           </h3>
-          <p style={{ fontSize: '0.88rem', marginBottom: '1.2rem', color: '#94a3b8', lineHeight: '1.5' }}>
+          <p style={{ fontSize: '0.88rem', marginBottom: '1.2rem', color: 'var(--st-color-text-muted)', lineHeight: '1.5' }}>
             由于 Supabase RLS 默认拦截非所属数据的查询，管理员需手动开启后端访问权限。请将在 Supabase SQL Editor 中运行下方脚本：
           </p>
           <div style={{ position: 'relative' }}>

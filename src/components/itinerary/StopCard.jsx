@@ -54,10 +54,10 @@ function getStopTimeStatus(stop, isToday, t) {
   if (stop.period === 'AM' && hh === 12) hh = 0;
   const stopMin = hh * 60 + (mm || 0);
   const diff = nowMin - stopMin;
-  if (diff > 120) return { label: t('itinerary.stop_status_passed'), color: '#94a3b8', bg: 'rgba(148,163,184,0.1)', border: 'rgba(148,163,184,0.2)' };
-  if (diff >= 0) return { label: t('itinerary.stop_status_ongoing'), color: '#3b82f6', bg: 'rgba(59,130,246,0.1)', border: 'rgba(59,130,246,0.25)' };
-  if (diff > -60) return { label: t('itinerary.stop_status_soon'), color: '#f59e0b', bg: 'rgba(245,158,11,0.1)', border: 'rgba(245,158,11,0.25)' };
-  return { label: t('itinerary.stop_status_upcoming'), color: '#10b981', bg: 'rgba(16,185,129,0.08)', border: 'rgba(16,185,129,0.2)' };
+  if (diff > 120) return { label: t('itinerary.stop_status_passed'), color: 'var(--st-color-status-passed)', bg: 'rgba(148,163,184,0.1)', border: 'rgba(148,163,184,0.2)' };
+  if (diff >= 0) return { label: t('itinerary.stop_status_ongoing'), color: 'var(--st-color-status-ongoing)', bg: 'rgba(59,130,246,0.1)', border: 'rgba(59,130,246,0.25)' };
+  if (diff > -60) return { label: t('itinerary.stop_status_soon'), color: 'var(--st-color-status-soon)', bg: 'rgba(245,158,11,0.1)', border: 'rgba(245,158,11,0.25)' };
+  return { label: t('itinerary.stop_status_upcoming'), color: 'var(--st-color-status-upcoming)', bg: 'rgba(16,185,129,0.08)', border: 'rgba(16,185,129,0.2)' };
 }
 
 export default React.memo(function StopCard({
@@ -188,7 +188,7 @@ export default React.memo(function StopCard({
   };
 
   const isHotelType = stop.type === 'hotel_checkin' || stop.type === 'hotel_checkout';
-  const dotColor = isHotelType ? '#f59e0b' : (dayColor || '#5b7a99');
+  const dotColor = isHotelType ? 'var(--st-color-hotel-line)' : (dayColor || 'var(--st-color-timeline-default)');
 
   const handleTouchStart = (e) => {
     touchStart.current = e.touches[0].clientX;
@@ -228,7 +228,7 @@ export default React.memo(function StopCard({
         <HotelLine
           top={stop.type === 'hotel_checkin' ? 'calc(50% + 8px)' : '-1rem'}
           bottom={stop.type === 'hotel_checkout' ? 'calc(50% + 8px)' : '-1rem'}
-          color='#f59e0b'
+          color='var(--st-color-hotel-line)'
         />
       )}
 
@@ -267,7 +267,7 @@ export default React.memo(function StopCard({
 
       {/* Timeline line */}
       {showTransit && !isHotelType && (
-        <div style={{ position: 'absolute', left: 'var(--transit-line-x)', top: '2.5rem', bottom: '-0.5rem', width: '2px', background: `${dayColor || '#5b7a99'}40`, zIndex: 1 }} />
+        <div style={{ position: 'absolute', left: 'var(--transit-line-x)', top: '2.5rem', bottom: '-0.5rem', width: '2px', background: `${dayColor || 'var(--st-color-timeline-default)'}40`, zIndex: 1 }} />
       )}
       {/* Card Wrapper with 3D context */}
       <div 
@@ -285,7 +285,7 @@ export default React.memo(function StopCard({
             onMouseEnter={() => dispatch({ type: 'SET_HOVERED_STOP', payload: stop.id })}
             onMouseLeave={() => dispatch({ type: 'SET_HOVERED_STOP', payload: null })}
             style={{
-              background: state.hoveredStopId === stop.id ? 'rgba(255,255,255,0.04)' : '#0a0c10',
+              background: state.hoveredStopId === stop.id ? 'rgba(255,255,255,0.04)' : 'var(--md-sys-color-surface-container-lowest)',
               border: isClosed ? '1px solid rgba(239,68,68,0.35)' : '1px solid var(--glass-border)',
               borderColor: isClosed ? 'rgba(239,68,68,0.35)' : state.hoveredStopId === stop.id ? 'var(--accent-primary)' : 'rgba(255,255,255,0.05)',
               borderRadius: '1.2rem',
@@ -313,7 +313,7 @@ export default React.memo(function StopCard({
                 position: 'absolute',
                 top: '-10px',
                 right: '2.8rem',
-                background: stop.type === 'hotel_checkout' ? '#ef4444' : '#f59e0b',
+                background: stop.type === 'hotel_checkout' ? 'var(--st-color-hotel-checkout)' : 'var(--st-color-hotel-line)',
                 color: 'white',
                 padding: '2px 10px',
                 borderRadius: '6px',
@@ -331,7 +331,7 @@ export default React.memo(function StopCard({
             <div ref={deleteRef} style={{ position: 'absolute', top: '-0.5rem', right: '0.3rem', zIndex: 5 }}>
               <button
                 onClick={handleDelete}
-                style={{ background: '#1e3a5f', border: 'none', color: '#93c5fd', cursor: 'pointer', padding: '3px 5px', borderRadius: '6px', lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                style={{ background: 'var(--md-sys-color-primary-container)', border: 'none', color: 'var(--md-sys-color-on-primary-container)', cursor: 'pointer', padding: '3px 5px', borderRadius: '6px', lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 title={t('common.delete') || 'Delete'}
               >
                 <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>close</span>
@@ -344,7 +344,7 @@ export default React.memo(function StopCard({
                   >{t('common.cancel') || 'Cancel'}</button>
                   <button
                     onClick={handleConfirmDelete}
-                    style={{ padding: '0.25rem 0.6rem', borderRadius: '6px', background: '#ef4444', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600 }}
+                    style={{ padding: '0.25rem 0.6rem', borderRadius: '6px', background: 'var(--md-sys-color-error)', border: 'none', color: 'var(--md-sys-color-on-surface)', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600 }}
                   >{t('common.delete') || 'Delete'}</button>
                 </div>
               )}
@@ -373,8 +373,8 @@ export default React.memo(function StopCard({
                   gap: '6px',
                   animation: 'pulse-border 2s ease-in-out infinite'
                 }}>
-                  <span className="material-symbols-outlined" style={{ color: '#ef4444', fontSize: '16px', flexShrink: 0 }}>error</span>
-                  <span style={{ color: '#ef4444', fontSize: '0.78rem', fontWeight: 700 }}>
+                  <span className="material-symbols-outlined" style={{ color: 'var(--md-sys-color-error)', fontSize: '16px', flexShrink: 0 }}>error</span>
+                  <span style={{ color: 'var(--md-sys-color-error)', fontSize: '0.78rem', fontWeight: 700 }}>
                     {t('itinerary.closed_today') || 'Closed today!'}
                   </span>
                 </div>
@@ -401,12 +401,12 @@ export default React.memo(function StopCard({
                       width: '14px',
                       height: '14px',
                       borderRadius: '50%',
-                      background: isHotelType ? '#f59e0b' : (dayColor || '#52c41a'),
+                      background: isHotelType ? 'var(--st-color-hotel-line)' : (dayColor || 'var(--st-color-hotel-checkin)'),
                       zIndex: 0
                     }} />
                     <span className="material-symbols-outlined" style={{
                       fontSize: '32px',
-                      color: isHotelType ? '#f59e0b' : (dayColor || '#52c41a'),
+                      color: isHotelType ? 'var(--st-color-hotel-line)' : (dayColor || 'var(--st-color-hotel-checkin)'),
                       position: 'absolute',
                       fontVariationSettings: "'FILL' 1",
                       zIndex: 1
@@ -431,7 +431,7 @@ export default React.memo(function StopCard({
                   </div>
                   {stop.rating && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '3px', flexShrink: 0 }}>
-                      <span style={{ color: '#f59e0b', fontSize: '13px' }}>★</span>
+                      <span style={{ color: 'var(--st-color-status-soon)', fontSize: '13px' }}>★</span>
                       <span style={{ color: 'var(--text-secondary)', fontSize: '0.82rem', fontWeight: 700 }}>{stop.rating}</span>
                     </div>
                   )}
@@ -442,7 +442,7 @@ export default React.memo(function StopCard({
                   {/* Address */}
                   {stop.address && (
                     <div className="rich-stop-card-address" style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
-                      <span className="material-symbols-outlined" style={{ color: '#f97316', fontSize: '15px', flexShrink: 0, marginTop: '2px' }}>location_on</span>
+                      <span className="material-symbols-outlined" style={{ color: 'var(--st-color-category-food)', fontSize: '15px', flexShrink: 0, marginTop: '2px' }}>location_on</span>
                       <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
                         {(() => {
                           const addr = stop.address;
@@ -474,8 +474,8 @@ export default React.memo(function StopCard({
                   {/* Phone */}
                   {stop.phone && (
                     <div className="rich-stop-card-phone" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                      <Phone size={14} strokeWidth={2.5} style={{ color: '#3b82f6', flexShrink: 0 }} />
-                      <a href={`tel:${stop.phone}`} style={{ fontSize: '0.82rem', color: '#3b82f6', fontWeight: 700, textDecoration: 'none' }}>
+                      <Phone size={14} strokeWidth={2.5} style={{ color: 'var(--md-sys-color-primary)', flexShrink: 0 }} />
+                      <a href={`tel:${stop.phone}`} style={{ fontSize: '0.82rem', color: 'var(--md-sys-color-primary)', fontWeight: 700, textDecoration: 'none' }}>
                         {stop.phone}
                       </a>
                     </div>
@@ -484,8 +484,8 @@ export default React.memo(function StopCard({
                   {/* Website (if available) */}
                   {stop.website && (
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                      <span className="material-symbols-outlined" style={{ color: '#10b981', fontSize: '15px', flexShrink: 0 }}>public</span>
-                      <a href={stop.website} target="_blank" rel="noreferrer" style={{ fontSize: '0.82rem', color: '#10b981', fontWeight: 700, textDecoration: 'none', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <span className="material-symbols-outlined" style={{ color: 'var(--md-sys-color-tertiary)', fontSize: '15px', flexShrink: 0 }}>public</span>
+                      <a href={stop.website} target="_blank" rel="noreferrer" style={{ fontSize: '0.82rem', color: 'var(--md-sys-color-tertiary)', fontWeight: 700, textDecoration: 'none', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {stop.website.replace(/^https?:\/\//, '').replace(/\/$/, '')}
                       </a>
                     </div>
@@ -503,7 +503,7 @@ export default React.memo(function StopCard({
                         onClick={(e) => { e.stopPropagation(); onOpenStayInfo?.(dayId, stop.id); }}
                         style={{
                           background: 'rgba(139, 92, 246, 0.08)',
-                          color: '#8b5cf6',
+                          color: 'var(--st-color-category-attraction)',
                           padding: '4px 10px',
                           borderRadius: '8px',
                           fontSize: '0.78rem',
@@ -529,7 +529,7 @@ export default React.memo(function StopCard({
                         onClick={handleTimeClick}
                         style={{
                           background: 'rgba(249, 115, 22, 0.08)',
-                          color: '#f97316',
+                          color: 'var(--st-color-category-food)',
                           padding: '4px 10px',
                           borderRadius: '8px',
                           fontSize: '0.78rem',
@@ -551,7 +551,7 @@ export default React.memo(function StopCard({
                       onClick={handleExpenseClick}
                       style={{ 
                         background: 'rgba(16, 185, 129, 0.08)', 
-                        color: '#10b981', 
+                        color: 'var(--md-sys-color-tertiary)',
                         padding: '4px 10px', 
                         borderRadius: '8px', 
                         fontSize: '0.78rem', 
@@ -577,7 +577,7 @@ export default React.memo(function StopCard({
                         onClick={(e) => e.stopPropagation()}
                         title={t('itinerary.navigate') || 'Navigate'}
                         className="stop-chip nav-chip"
-                        style={{ background: 'rgba(59,130,246,0.08)', color: '#3b82f6', padding: '4px 10px', borderRadius: '8px', fontSize: '0.78rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '6px', border: '1px solid rgba(59,130,246,0.25)', textDecoration: 'none', cursor: 'pointer' }}
+                        style={{ background: 'rgba(59,130,246,0.08)', color: 'var(--md-sys-color-primary)', padding: '4px 10px', borderRadius: '8px', fontSize: '0.78rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '6px', border: '1px solid rgba(59,130,246,0.25)', textDecoration: 'none', cursor: 'pointer' }}
                       >
                         <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>near_me</span>
                         {t('itinerary.navigate') || 'Navigate'}
@@ -829,15 +829,15 @@ function PhotoSheet({ stop, userId, tripId, onUpdateStop, onClose, t }) {
         <div style={{ display: 'flex', gap: '0.8rem', padding: '0.9rem 1.2rem' }}>
           {/* Camera (mobile only) */}
           <label style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px', padding: '0.7rem', background: 'rgba(59,130,246,0.08)', border: '1px dashed rgba(59,130,246,0.4)', borderRadius: '12px', cursor: uploading ? 'not-allowed' : 'pointer', transition: 'all 0.2s' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '22px', color: '#3b82f6' }}>photo_camera</span>
-            <span style={{ fontSize: '0.72rem', color: '#3b82f6', fontWeight: 600 }}>{t('itinerary.take_photo') || '拍照'}</span>
+            <span className="material-symbols-outlined" style={{ fontSize: '22px', color: 'var(--md-sys-color-primary)' }}>photo_camera</span>
+            <span style={{ fontSize: '0.72rem', color: 'var(--md-sys-color-primary)', fontWeight: 600 }}>{t('itinerary.take_photo') || '拍照'}</span>
             <input ref={cameraRef} type="file" accept="image/*" capture="environment" onChange={(e) => handleFiles(e.target.files)} style={{ display: 'none' }} disabled={uploading} />
           </label>
 
           {/* Gallery */}
           <label style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px', padding: '0.7rem', background: 'rgba(16,185,129,0.08)', border: '1px dashed rgba(16,185,129,0.4)', borderRadius: '12px', cursor: uploading ? 'not-allowed' : 'pointer', transition: 'all 0.2s' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '22px', color: '#10b981' }}>add_photo_alternate</span>
-            <span style={{ fontSize: '0.72rem', color: '#10b981', fontWeight: 600 }}>{t('itinerary.choose_photo') || '从相册选择'}</span>
+            <span className="material-symbols-outlined" style={{ fontSize: '22px', color: 'var(--md-sys-color-tertiary)' }}>add_photo_alternate</span>
+            <span style={{ fontSize: '0.72rem', color: 'var(--md-sys-color-tertiary)', fontWeight: 600 }}>{t('itinerary.choose_photo') || '从相册选择'}</span>
             <input ref={galleryRef} type="file" accept="image/*" multiple onChange={(e) => handleFiles(e.target.files)} style={{ display: 'none' }} disabled={uploading} />
           </label>
         </div>
@@ -870,7 +870,7 @@ function PhotoSheet({ stop, userId, tripId, onUpdateStop, onClose, t }) {
                   {/* Delete button */}
                   <button
                     onClick={() => handleDelete(idx)}
-                    style={{ position: 'absolute', top: '4px', right: '4px', background: 'rgba(0,0,0,0.7)', border: 'none', borderRadius: '50%', width: '22px', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#ff6b6b' }}
+                    style={{ position: 'absolute', top: '4px', right: '4px', background: 'rgba(0,0,0,0.7)', border: 'none', borderRadius: '50%', width: '22px', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--md-sys-color-error)' }}
                   >
                     <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>close</span>
                   </button>

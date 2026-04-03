@@ -22,9 +22,9 @@
 }
 
 body {
-    background-color: var(--bg-primary);
-    color: var(--text-primary);
-    font-family: var(--font-main);
+    background-color: var(--md-sys-color-surface);
+    color: var(--md-sys-color-on-surface);
+    font-family: var(--md-sys-typescale-body-font);
     line-height: 1.6;
     overflow-x: hidden;
 }
@@ -60,12 +60,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-    background: var(--glass-border);
+    background: var(--md-sys-color-outline);
     border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: var(--text-secondary);
+    background: var(--md-sys-color-on-surface-variant);
 }
 
 /* Utilities */

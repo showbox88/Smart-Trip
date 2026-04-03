@@ -124,7 +124,7 @@ export default function AuthForm() {
             </div>
 
             {error && (
-              <div style={{ marginTop: '0.75rem', color: '#ef4444', fontSize: '0.85rem', textAlign: 'center' }}>
+              <div style={{ marginTop: '0.75rem', color: 'var(--md-sys-color-error)', fontSize: '0.85rem', textAlign: 'center' }}>
                 {error}
               </div>
             )}

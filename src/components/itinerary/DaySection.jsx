@@ -34,7 +34,7 @@ export default memo(function DaySection({
   const { t, language } = useI18n();
   const [insertingAfterStopId, setInsertingAfterStopId] = useState(null);
   const [editingTransport, setEditingTransport] = useState(null); // { stop, dayId }
-  const activeColor = day.color || '#5b7a99';
+  const activeColor = day.color || 'var(--st-color-timeline-default)';
 
   const hotelContext = getHotelContextForDay(trip, day.id);
   const stops = useMemo(() => day.stops || [], [day.stops]);
@@ -267,7 +267,7 @@ export default memo(function DaySection({
             {/* "From hotel" hint — between days */}
             {(hotelContext.isBetween || hotelContext.isCoutOnly) && hotelContext.stay && (
               <>
-                <div style={{ paddingLeft: '2.25rem', marginBottom: '0.2rem', color: '#f59e0b', fontSize: '0.85rem', fontWeight: 600, display: 'flex', flexDirection: 'column', gap: '4px', position: 'relative', cursor: 'pointer' }}>
+                <div style={{ paddingLeft: '2.25rem', marginBottom: '0.2rem', color: 'var(--st-color-hotel-line)', fontSize: '0.85rem', fontWeight: 600, display: 'flex', flexDirection: 'column', gap: '4px', position: 'relative', cursor: 'pointer' }}>
                   {/* amber line from top of day down through hint, connects to first card's fromHotel line */}
                   <HotelLine top="0" bottom="-0.2rem" />
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -335,7 +335,7 @@ export default memo(function DaySection({
                   onAddTransport={() => onAddTransport?.(day.id, lastPlainStop?.id)}
                   inHotelStay
                 />
-                <div style={{ paddingLeft: '2.25rem', marginTop: '0.2rem', color: '#f59e0b', fontSize: '0.85rem', fontWeight: 600, display: 'flex', flexDirection: 'column', gap: '4px', position: 'relative', cursor: 'pointer' }}>
+                <div style={{ paddingLeft: '2.25rem', marginTop: '0.2rem', color: 'var(--st-color-hotel-line)', fontSize: '0.85rem', fontWeight: 600, display: 'flex', flexDirection: 'column', gap: '4px', position: 'relative', cursor: 'pointer' }}>
                   {/* amber line from last card's toHotel line, connects through hint */}
                   <HotelLine top="-0.2rem" bottom="0" />
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>

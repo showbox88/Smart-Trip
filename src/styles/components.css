@@ -3,7 +3,7 @@
   --timeline-line-x: 22px;
   --timeline-dot-x: 0.75rem;
   --hotel-line-x: 0.75rem;
-  --hotel-line-color: #f59e0b;
+  --hotel-line-color: var(--st-color-status-soon);
   --hotel-line-width: 3px;
   --transit-line-x: 1.22rem;
   --card-margin-l: 2.2rem;
@@ -29,7 +29,7 @@
 
 /* --- Buttons --- */
 .btn-primary a {
-    background: var(--accent-primary);
+    background: var(--md-sys-color-primary);
     color: white;
     padding: 0.6rem 1.2rem;
     border-radius: 8px;
@@ -37,7 +37,7 @@
 }
 
 .btn-main {
-    background: var(--accent-primary);
+    background: var(--md-sys-color-primary);
     color: white;
     border: none;
     padding: 0.75rem 1.5rem;
@@ -55,14 +55,14 @@
 .btn-main:hover {
     transform: scale(1.02);
     box-shadow: 0 8px 20px rgba(60, 131, 246, 0.35);
-    background: #2563eb;
+    background: var(--md-sys-color-primary-dim);
     /* Slightly darker blue on hover */
 }
 
 .btn-secondary {
     background: transparent;
-    color: var(--text-primary);
-    border: 1px solid var(--glass-border);
+    color: var(--md-sys-color-on-surface);
+    border: 1px solid var(--md-sys-color-outline);
     padding: 1rem 2rem;
     font-size: 1.1rem;
     font-weight: 600;
@@ -77,7 +77,7 @@
 
 .submit-btn {
     width: 100%;
-    background: var(--accent-primary);
+    background: var(--md-sys-color-primary);
     color: white;
     border: none;
     padding: 1rem;
@@ -93,8 +93,8 @@
 
 /* --- Cards --- */
 .glass-card {
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
+    background: var(--st-glass-bg);
+    border: 1px solid var(--md-sys-color-outline);
     backdrop-filter: blur(12px);
     border-radius: 20px;
     padding: 2rem;
@@ -110,8 +110,8 @@
 }
 
 .login-card {
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
+    background: var(--st-glass-bg);
+    border: 1px solid var(--md-sys-color-outline);
     backdrop-filter: blur(12px);
     border-radius: 16px;
     padding: 3rem;
@@ -153,8 +153,8 @@
 
 .filter-tab {
     background: rgba(255, 255, 255, 0.04);
-    border: 1px solid var(--glass-border);
-    color: var(--text-secondary);
+    border: 1px solid var(--md-sys-color-outline);
+    color: var(--md-sys-color-on-surface-variant);
     padding: 0.6rem 1.4rem;
     border-radius: 999px;
     font-size: 0.85rem;
@@ -171,16 +171,16 @@
 }
 
 .filter-tab.active {
-    background: var(--accent-primary);
+    background: var(--md-sys-color-primary);
     color: white;
-    border-color: var(--accent-primary);
+    border-color: var(--md-sys-color-primary);
     box-shadow: 0 4px 15px rgba(60, 131, 246, 0.3);
 }
 
 .view-toggles {
     display: flex;
     background: rgba(255, 255, 255, 0.04);
-    border: 1px solid var(--glass-border);
+    border: 1px solid var(--md-sys-color-outline);
     border-radius: 12px;
     padding: 5px;
     gap: 2px;
@@ -189,7 +189,7 @@
 .view-icon {
     background: transparent;
     border: none;
-    color: var(--text-muted);
+    color: var(--st-color-text-muted);
     width: 36px;
     height: 36px;
     border-radius: 8px;
@@ -205,13 +205,13 @@
 }
 
 .view-icon:hover {
-    color: var(--text-secondary);
+    color: var(--md-sys-color-on-surface-variant);
     background: rgba(255, 255, 255, 0.04);
 }
 
 .view-icon.active {
     background: rgba(255, 255, 255, 0.1);
-    color: var(--accent-primary);
+    color: var(--md-sys-color-primary);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
@@ -227,9 +227,9 @@
 
 
 .trip-dashboard-container .trip-card {
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    backdrop-filter: var(--glass-blur);
+    background: var(--st-glass-bg);
+    border: 1px solid var(--md-sys-color-outline);
+    backdrop-filter: var(--st-glass-blur);
     border-radius: 20px;
     overflow: hidden;
     display: flex;
@@ -254,7 +254,7 @@
     border-radius: 0;
     position: relative;
     overflow: hidden;
-    background: #0d111b;
+    background: var(--md-sys-color-surface);
     /* Fallback for very empty images */
 }
 
@@ -304,17 +304,17 @@
 }
 
 .trip-dashboard-container .status-ongoing {
-    background: var(--accent-primary);
+    background: var(--md-sys-color-primary);
     color: white;
 }
 
 .trip-dashboard-container .status-planned {
-    background: #10b981;
+    background: var(--md-sys-color-tertiary);
     color: white;
 }
 
 .trip-dashboard-container .status-completed {
-    background: #64748b;
+    background: var(--st-color-text-muted);
     color: white;
 }
 
@@ -326,7 +326,7 @@
 }
 
 .trip-dashboard-container .trip-card:hover h4 {
-    color: var(--accent-primary);
+    color: var(--md-sys-color-primary);
 }
 
 .trip-dashboard-container .trip-meta {
@@ -342,7 +342,7 @@
     display: flex;
     align-items: center;
     gap: 0.4rem;
-    color: var(--text-muted);
+    color: var(--st-color-text-muted);
     font-size: 0.8rem;
 }
 
@@ -360,7 +360,7 @@
 }
 
 .trip-dashboard-container .trip-card-placeholder:hover {
-    border-color: var(--accent-primary);
+    border-color: var(--md-sys-color-primary);
     background: rgba(60, 131, 246, 0.03);
 }
 
@@ -374,20 +374,20 @@
     justify-content: center;
     margin-bottom: 1rem;
     font-size: 2rem;
-    color: var(--text-muted);
+    color: var(--st-color-text-muted);
     transition: all 0.3s;
 }
 
 .trip-dashboard-container .trip-card-placeholder:hover .placeholder-icon {
-    background: var(--accent-primary);
+    background: var(--md-sys-color-primary);
     color: white;
 }
 
 /* Budget Summary Section */
 .trip-dashboard-container .budget-summary-panel {
     margin-top: 4rem;
-    background: rgba(13, 17, 27, 0.4);
-    border: 1px solid var(--glass-border);
+    background: rgba(var(--md-sys-color-surface-rgb, 13, 17, 27), 0.4);
+    border: 1px solid var(--md-sys-color-outline);
     border-radius: 24px;
     padding: 2.5rem;
 }
@@ -437,8 +437,8 @@
     overflow-y: auto;
     padding: 1.5rem 2rem;
     position: relative;
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
+    background: var(--st-glass-bg);
+    border: 1px solid var(--md-sys-color-outline);
     backdrop-filter: blur(12px);
     border-radius: 20px;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
@@ -455,7 +455,7 @@
 .close-btn {
     background: transparent;
     border: none;
-    color: var(--text-secondary);
+    color: var(--md-sys-color-on-surface-variant);
     font-size: 1.5rem;
     cursor: pointer;
 }
@@ -468,7 +468,7 @@
 .form-group label {
     display: block;
     margin-bottom: 0.5rem;
-    color: var(--text-secondary);
+    color: var(--md-sys-color-on-surface-variant);
     font-size: 0.9rem;
 }
 
@@ -476,11 +476,11 @@
 .form-group textarea,
 .form-group select {
     width: 100%;
-    background: var(--bg-primary);
-    border: 1px solid var(--glass-border);
+    background: var(--md-sys-color-surface);
+    border: 1px solid var(--md-sys-color-outline);
     padding: 0.8rem;
     border-radius: 8px;
-    color: var(--text-primary);
+    color: var(--md-sys-color-on-surface);
     font-family: inherit;
 }
 
@@ -499,7 +499,7 @@
     top: 50%;
     transform: translateY(-50%);
     right: 1rem;
-    color: var(--text-secondary);
+    color: var(--md-sys-color-on-surface-variant);
     background: transparent;
     border: none;
     font-size: 1.5rem;
@@ -510,7 +510,7 @@
 
 .menu-dots:hover {
     background: rgba(255, 255, 255, 0.1);
-    color: var(--text-primary);
+    color: var(--md-sys-color-on-surface);
 }
 
 .menu-dropdown {
@@ -518,8 +518,8 @@
     top: 50%;
     right: 3.5rem;
     transform: translateY(-50%);
-    background: var(--bg-secondary);
-    border: 1px solid var(--glass-border);
+    background: var(--md-sys-color-surface-variant);
+    border: 1px solid var(--md-sys-color-outline);
     border-radius: 8px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
     z-index: 100;
@@ -537,9 +537,9 @@
     padding: 0.8rem 1.2rem;
     background: none;
     border: none;
-    color: var(--text-primary);
+    color: var(--md-sys-color-on-surface);
     cursor: pointer;
-    border-bottom: 1px solid var(--glass-border);
+    border-bottom: 1px solid var(--md-sys-color-outline);
     white-space: nowrap;
 }
 
@@ -572,7 +572,7 @@
 }
 
 .image-thumb-option.selected {
-    border-color: var(--accent-primary);
+    border-color: var(--md-sys-color-primary);
     box-shadow: 0 0 10px rgba(249, 115, 22, 0.5);
     transform: scale(1.05);
     z-index: 2;
@@ -603,7 +603,7 @@
     background-color: rgba(255, 255, 255, 0.1);
     transition: .3s;
     border-radius: 34px;
-    border: 1px solid var(--glass-border);
+    border: 1px solid var(--md-sys-color-outline);
 }
 
 .slider:before {
@@ -620,8 +620,8 @@
 }
 
 input:checked+.slider {
-    background-color: var(--accent-primary);
-    border-color: var(--accent-primary);
+    background-color: var(--md-sys-color-primary);
+    border-color: var(--md-sys-color-primary);
 }
 
 input:checked+.slider:before {
@@ -630,7 +630,7 @@ input:checked+.slider:before {
 
 .switch-label {
     font-size: 0.8rem;
-    color: var(--text-secondary);
+    color: var(--md-sys-color-on-surface-variant);
     margin-left: 6px;
     user-select: none;
     cursor: pointer;
@@ -662,7 +662,7 @@ input:checked+.slider:before {
     background-color: rgba(255, 255, 255, 0.05);
     transition: .4s;
     border-radius: 24px;
-    border: 1px solid var(--glass-border);
+    border: 1px solid var(--md-sys-color-outline);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -686,7 +686,7 @@ input:checked+.slider:before {
 .slider-labeled .label-text {
     font-size: 0.65rem;
     font-weight: 700;
-    color: var(--text-secondary);
+    color: var(--md-sys-color-on-surface-variant);
     transition: .4s;
     z-index: 1;
     pointer-events: none;
@@ -696,8 +696,8 @@ input:checked+.slider:before {
 }
 
 input:checked+.slider-labeled {
-    background-color: var(--accent-primary);
-    border-color: var(--accent-primary);
+    background-color: var(--md-sys-color-primary);
+    border-color: var(--md-sys-color-primary);
 }
 
 input:checked+.slider-labeled:before {
@@ -822,7 +822,7 @@ input:checked+.slider-labeled .label-text {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--text-muted);
+    color: var(--st-color-text-muted);
     opacity: 0.3;
     cursor: grab;
     touch-action: none; /* 核心：点在把手上绝不允许滚动 */
@@ -841,13 +841,13 @@ input:checked+.slider-labeled .label-text {
 .drag-handle:hover,
 .drag-handle:active {
     opacity: 0.8;
-    color: var(--text-secondary);
+    color: var(--md-sys-color-on-surface-variant);
 }
 
 .timeline-item-wrapper.dragging .drag-handle {
     cursor: grabbing;
     opacity: 1;
-    color: var(--accent-primary);
+    color: var(--md-sys-color-primary);
 }
 
 /* 在平板和电脑端（>= 768px）彻底隐藏拖拽把手，保持桌面版原有的清爽外观 */

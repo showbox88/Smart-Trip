@@ -52,7 +52,7 @@ export default function ExpenseModal({ stop, onSave, onDelete, onClose }) {
         onClick={(e) => e.stopPropagation()} 
         style={{ 
           width: '420px', 
-          background: '#0a0c10', 
+          background: 'var(--md-sys-color-surface-container-lowest)', 
           borderRadius: '28px', 
           padding: '2rem',
           border: '1px solid rgba(255,255,255,0.08)',
@@ -138,10 +138,10 @@ export default function ExpenseModal({ stop, onSave, onDelete, onClose }) {
                     cursor: 'pointer'
                   }}
                 >
-                  <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: category === cat.id ? '#3b82f6' : 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: category === cat.id ? '0 4px 10px rgba(59,130,246,0.4)' : 'none' }}>
+                  <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: category === cat.id ? 'var(--md-sys-color-primary)' : 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: category === cat.id ? '0 4px 10px rgba(59,130,246,0.4)' : 'none' }}>
                     <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'white' }}>{cat.icon}</span>
                   </div>
-                  <span style={{ fontSize: '0.65rem', fontWeight: 700, color: category === cat.id ? '#3b82f6' : 'rgba(255,255,255,0.6)', textTransform: 'uppercase' }}>{cat.label}</span>
+                  <span style={{ fontSize: '0.65rem', fontWeight: 700, color: category === cat.id ? 'var(--md-sys-color-primary)' : 'rgba(255,255,255,0.6)', textTransform: 'uppercase' }}>{cat.label}</span>
                 </div>
               ))}
             </div>
@@ -163,7 +163,7 @@ export default function ExpenseModal({ stop, onSave, onDelete, onClose }) {
           <div style={{ background: '#11141b', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)', padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span style={{ fontWeight: 700, color: 'white' }}>Payer</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: '#3b82f6', overflow: 'hidden' }}>
+              <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'var(--md-sys-color-primary)', overflow: 'hidden' }}>
                 <img src="https://ui-avatars.com/api/?name=User&background=3b82f6&color=fff" style={{ width: '100%', height: '100%' }} />
               </div>
               <span style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.8)' }}>showbox88</span>
@@ -199,7 +199,7 @@ export default function ExpenseModal({ stop, onSave, onDelete, onClose }) {
             </button>
             <button
               onClick={handleSave}
-              style={{ background: '#ef4444', border: 'none', borderRadius: '14px', padding: '10px 24px', color: 'white', fontSize: '1rem', fontWeight: 800, cursor: 'pointer', boxShadow: '0 8px 20px rgba(239, 68, 68, 0.3)' }}
+              style={{ background: 'var(--md-sys-color-error)', border: 'none', borderRadius: '14px', padding: '10px 24px', color: 'white', fontSize: '1rem', fontWeight: 800, cursor: 'pointer', boxShadow: '0 8px 20px rgba(239, 68, 68, 0.3)' }}
             >
               Save
             </button>

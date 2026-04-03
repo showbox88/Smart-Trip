@@ -500,16 +500,16 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [], is
                   <div style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.08);border-radius:6px;padding:2px 8px;flex-shrink:0;">
                     <span class="material-symbols-outlined" style="font-size:13px;color:rgba(255,255,255,0.6);">bed</span>
                     <span style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.7);letter-spacing:0.04em;">Stay</span>
-                    ${hRating ? `<span style="color:#f59e0b;font-size:12px;margin-left:4px;">★</span><span style="color:white;font-weight:700;font-size:12px;">${hRating}</span>` : ''}
+                    ${hRating ? `<span style="color:var(--st-color-status-soon);font-size:12px;margin-left:4px;">★</span><span style="color:white;font-weight:700;font-size:12px;">${hRating}</span>` : ''}
                   </div>
                 </div>
-                ${cinDateStr ? `<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;font-size:12.5px;"><span class="material-symbols-outlined" style="font-size:14px;color:#22c55e;">login</span><span style="color:rgba(255,255,255,0.5);width:72px;font-weight:600;">Check-in:</span><span style="color:rgba(255,255,255,0.85);font-weight:600;">${cinDateStr}</span>${cinTimeStr ? `<span style="color:#22c55e;font-weight:700;margin-left:auto;">${cinTimeStr}</span>` : ''}</div>` : ''}
-                ${coutDateStr ? `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:12.5px;"><span class="material-symbols-outlined" style="font-size:14px;color:#ef4444;">logout</span><span style="color:rgba(255,255,255,0.5);width:72px;font-weight:600;">Check-out:</span><span style="color:rgba(255,255,255,0.85);font-weight:600;">${coutDateStr}</span>${coutTimeStr ? `<span style="color:#ef4444;font-weight:700;margin-left:auto;">${coutTimeStr}</span>` : ''}</div>` : ''}
-                ${cin.address ? `<div style="display:flex;gap:6px;color:rgba(255,255,255,0.55);font-size:12px;line-height:1.3;margin-bottom:4px;"><span class="material-symbols-outlined" style="font-size:14px;color:#f97316;margin-top:1px;flex-shrink:0;">location_on</span><div style="white-space:normal;overflow:hidden;">${formatAddressHTML(cin.address)}</div></div>` : ''}
+                ${cinDateStr ? `<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;font-size:12.5px;"><span class="material-symbols-outlined" style="font-size:14px;color:var(--st-color-hotel-checkin);">login</span><span style="color:rgba(255,255,255,0.5);width:72px;font-weight:600;">Check-in:</span><span style="color:rgba(255,255,255,0.85);font-weight:600;">${cinDateStr}</span>${cinTimeStr ? `<span style="color:var(--st-color-hotel-checkin);font-weight:700;margin-left:auto;">${cinTimeStr}</span>` : ''}</div>` : ''}
+                ${coutDateStr ? `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:12.5px;"><span class="material-symbols-outlined" style="font-size:14px;color:var(--md-sys-color-error);">logout</span><span style="color:rgba(255,255,255,0.5);width:72px;font-weight:600;">Check-out:</span><span style="color:rgba(255,255,255,0.85);font-weight:600;">${coutDateStr}</span>${coutTimeStr ? `<span style="color:var(--md-sys-color-error);font-weight:700;margin-left:auto;">${coutTimeStr}</span>` : ''}</div>` : ''}
+                ${cin.address ? `<div style="display:flex;gap:6px;color:rgba(255,255,255,0.55);font-size:12px;line-height:1.3;margin-bottom:4px;"><span class="material-symbols-outlined" style="font-size:14px;color:var(--st-color-category-food);margin-top:1px;flex-shrink:0;">location_on</span><div style="white-space:normal;overflow:hidden;">${formatAddressHTML(cin.address)}</div></div>` : ''}
               </div>
               <div style="display:flex;gap:8px;margin-top:2px;">
-                ${hNights !== '' ? `<div style="background:#f59e0b;color:#1a1200;padding:4px 12px;border-radius:8px;font-size:12px;font-weight:700;">${hNights} Night${hNights !== 1 ? 's' : ''}</div>` : ''}
-                <div style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);color:#22c55e;padding:4px 12px;border-radius:8px;font-size:12px;font-weight:700;">${hPrice}</div>
+                ${hNights !== '' ? `<div style="background:var(--st-color-status-soon);color:#1a1200;padding:4px 12px;border-radius:8px;font-size:12px;font-weight:700;">${hNights} Night${hNights !== 1 ? 's' : ''}</div>` : ''}
+                <div style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);color:var(--st-color-hotel-checkin);padding:4px 12px;border-radius:8px;font-size:12px;font-weight:700;">${hPrice}</div>
               </div>
             </div>
             ${cin.photo ? `<div style="width:130px;align-self:stretch;flex-shrink:0;overflow:hidden;"><img src="${cin.photo}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.style.display='none'"/></div>` : ''}
@@ -647,37 +647,37 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [], is
                     <div style="display:flex; align-items:center; gap:5px; background:rgba(255,255,255,0.08); border-radius:6px; padding:2px 8px; flex-shrink:0;">
                       <span class="material-symbols-outlined" style="font-size:13px; color:rgba(255,255,255,0.6);">bed</span>
                       <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.7); letter-spacing:0.04em;">Stay</span>
-                      ${rating ? `<span style="color:#f59e0b; font-size:12px; margin-left:4px;">★</span><span style="color:white; font-weight:700; font-size:12px;">${rating}</span>` : ''}
+                      ${rating ? `<span style="color:var(--st-color-status-soon); font-size:12px; margin-left:4px;">★</span><span style="color:white; font-weight:700; font-size:12px;">${rating}</span>` : ''}
                     </div>
                   </div>
                   ${cinDateStr ? `
                   <div style="display:flex; align-items:center; gap:8px; margin-bottom:5px; font-size:12.5px;">
-                    <span class="material-symbols-outlined" style="font-size:14px; color:#22c55e;">login</span>
+                    <span class="material-symbols-outlined" style="font-size:14px; color:var(--st-color-hotel-checkin);">login</span>
                     <span style="color:rgba(255,255,255,0.5); width:72px; font-weight:600;">Check-in:</span>
                     <span style="color:rgba(255,255,255,0.85); font-weight:600;">${cinDateStr}</span>
-                    ${cinTimeStr ? `<span style="color:#22c55e; font-weight:700; margin-left:auto;">${cinTimeStr}</span>` : ''}
+                    ${cinTimeStr ? `<span style="color:var(--st-color-hotel-checkin); font-weight:700; margin-left:auto;">${cinTimeStr}</span>` : ''}
                   </div>` : ''}
                   ${coutDateStr ? `
                   <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px; font-size:12.5px;">
-                    <span class="material-symbols-outlined" style="font-size:14px; color:#ef4444;">logout</span>
+                    <span class="material-symbols-outlined" style="font-size:14px; color:var(--md-sys-color-error);">logout</span>
                     <span style="color:rgba(255,255,255,0.5); width:72px; font-weight:600;">Check-out:</span>
                     <span style="color:rgba(255,255,255,0.85); font-weight:600;">${coutDateStr}</span>
-                    ${coutTimeStr ? `<span style="color:#ef4444; font-weight:700; margin-left:auto;">${coutTimeStr}</span>` : ''}
+                    ${coutTimeStr ? `<span style="color:var(--md-sys-color-error); font-weight:700; margin-left:auto;">${coutTimeStr}</span>` : ''}
                   </div>` : ''}
                   ${stop.address ? `
                   <div style="display:flex; gap:6px; color:rgba(255,255,255,0.55); font-size:12px; line-height:1.3; margin-bottom:4px;">
-                    <span class="material-symbols-outlined" style="font-size:14px; color:#f97316; margin-top:1px; flex-shrink:0;">location_on</span>
+                    <span class="material-symbols-outlined" style="font-size:14px; color:var(--st-color-category-food); margin-top:1px; flex-shrink:0;">location_on</span>
                     <div style="white-space:normal; overflow:hidden;">${formatAddressHTML(stop.address)}</div>
                   </div>` : ''}
                   ${phone ? `
                   <div style="display:flex; gap:6px; color:rgba(255,255,255,0.55); font-size:12px; line-height:1.4;">
-                    <span class="material-symbols-outlined" style="font-size:14px; color:#3b82f6; flex-shrink:0;">call</span>
+                    <span class="material-symbols-outlined" style="font-size:14px; color:var(--md-sys-color-primary); flex-shrink:0;">call</span>
                     <span>${phone}</span>
                   </div>` : ''}
                 </div>
                 <div style="display:flex; gap:8px; margin-top:2px;">
-                  ${nights !== '' ? `<div style="background:#f59e0b; color:#1a1200; padding:4px 12px; border-radius:8px; font-size:12px; font-weight:700;">${nights} Night${nights !== 1 ? 's' : ''}</div>` : ''}
-                  <div style="background:rgba(34,197,94,0.15); border:1px solid rgba(34,197,94,0.3); color:#22c55e; padding:4px 12px; border-radius:8px; font-size:12px; font-weight:700;">${price}</div>
+                  ${nights !== '' ? `<div style="background:var(--st-color-status-soon); color:#1a1200; padding:4px 12px; border-radius:8px; font-size:12px; font-weight:700;">${nights} Night${nights !== 1 ? 's' : ''}</div>` : ''}
+                  <div style="background:rgba(34,197,94,0.15); border:1px solid rgba(34,197,94,0.3); color:var(--st-color-hotel-checkin); padding:4px 12px; border-radius:8px; font-size:12px; font-weight:700;">${price}</div>
                 </div>
               </div>
             `;
@@ -693,17 +693,17 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [], is
                     <div style="display:flex; align-items:center; gap:5px; background:rgba(255,255,255,0.08); border-radius:6px; padding:2px 8px; flex-shrink:0;">
                       <span class="material-symbols-outlined" style="font-size:13px; color:rgba(255,255,255,0.6);">${stop.categoryIcon || 'place'}</span>
                       <span style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.7); letter-spacing:0.04em;">${catLabel}</span>
-                      ${rating ? `<span style="color:#f59e0b; font-size:12px; margin-left:4px;">★</span><span style="color:white; font-weight:700; font-size:12px;">${rating}</span>` : ''}
+                      ${rating ? `<span style="color:var(--st-color-status-soon); font-size:12px; margin-left:4px;">★</span><span style="color:white; font-weight:700; font-size:12px;">${rating}</span>` : ''}
                     </div>
                   </div>
                   <div style="display:flex; flex-direction:column; gap:6px;">
                     <div style="display:flex; gap:6px; color:rgba(255,255,255,0.55); font-size:12px; line-height:1.3;">
-                      <span class="material-symbols-outlined" style="font-size:14px; color:#f97316; margin-top:1px; flex-shrink:0;">location_on</span>
+                      <span class="material-symbols-outlined" style="font-size:14px; color:var(--st-color-category-food); margin-top:1px; flex-shrink:0;">location_on</span>
                       <div style="white-space:normal; overflow:hidden;">${formatAddressHTML(stop.address || stop.location || '')}</div>
                     </div>
                     ${phone ? `
                     <div style="display:flex; gap:6px; color:rgba(255,255,255,0.55); font-size:12px; line-height:1.4;">
-                      <span class="material-symbols-outlined" style="font-size:14px; color:#3b82f6; flex-shrink:0;">call</span>
+                      <span class="material-symbols-outlined" style="font-size:14px; color:var(--md-sys-color-primary); flex-shrink:0;">call</span>
                       <span>${phone}</span>
                     </div>` : ''}
                   </div>
@@ -1042,7 +1042,7 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [], is
 
       const pin = document.createElement('div');
       pin.style.cssText = [
-        'width:36px;height:36px;background:#f97316;',
+        'width:36px;height:36px;background:var(--st-color-category-food);',
         'border-radius:50% 50% 50% 0;transform:rotate(-45deg);',
         'border:3px solid white;box-shadow:0 4px 12px rgba(0,0,0,0.5);',
         'display:flex;align-items:center;justify-content:center;',
@@ -1079,19 +1079,19 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [], is
               <span style="font-size:15px; font-weight:800; color:white; flex:1; overflow:hidden; text-overflow:ellipsis;">${maxName}</span>
               ${place.rating ? `
               <div style="display:flex; align-items:center; gap:4px; background:rgba(255,255,255,0.08); border-radius:6px; padding:2px 8px; flex-shrink:0;">
-                <span style="color:#f59e0b; font-size:12px;">★</span>
+                <span style="color:var(--st-color-status-soon); font-size:12px;">★</span>
                 <span style="color:white; font-weight:700; font-size:12px;">${place.rating}</span>
                 <span style="color:rgba(255,255,255,0.45); font-size:11px;">(${place.user_ratings_total || 0})</span>
               </div>` : ''}
             </div>
             <div style="display:flex; flex-direction:column; gap:6px;">
               <div style="display:flex; gap:6px; color:rgba(255,255,255,0.55); font-size:12px; line-height:1.3;">
-                <span class="material-symbols-outlined" style="font-size:14px; color:#f97316; margin-top:1px; flex-shrink:0;">location_on</span>
+                <span class="material-symbols-outlined" style="font-size:14px; color:var(--st-color-category-food); margin-top:1px; flex-shrink:0;">location_on</span>
                 <div style="white-space:normal; overflow:hidden;">${formatAddressHTML(place.formatted_address || place.vicinity || '')}</div>
               </div>
               ${place.international_phone_number || place.national_phone_number ? `
               <div style="display:flex; gap:6px; color:rgba(255,255,255,0.55); font-size:12px; line-height:1.4;">
-                <span class="material-symbols-outlined" style="font-size:14px; color:#3b82f6; flex-shrink:0;">call</span>
+                <span class="material-symbols-outlined" style="font-size:14px; color:var(--md-sys-color-primary); flex-shrink:0;">call</span>
                 <span>${place.international_phone_number || place.national_phone_number}</span>
               </div>` : ''}
             </div>
@@ -1170,7 +1170,7 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [], is
     const dot = document.createElement('div');
     dot.style.cssText = `
       width:20px;height:20px;border-radius:50%;
-      background:#4285f4;border:3px solid white;
+      background:var(--md-sys-color-primary);border:3px solid white;
       box-shadow:0 2px 8px rgba(66,133,244,0.7);
       position:relative;
     `;
@@ -1426,7 +1426,7 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [], is
                 border: '1.5px solid rgba(66,133,244,0.4)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '32px', color: '#4285f4' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '32px', color: 'var(--md-sys-color-primary)' }}>
                   my_location
                 </span>
               </div>
@@ -1469,7 +1469,7 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [], is
                   }}
                   style={{
                     width: '100%', padding: '11px', borderRadius: '12px',
-                    background: '#4285f4', border: 'none', color: 'white',
+                    background: 'var(--md-sys-color-primary)', border: 'none', color: 'white',
                     fontSize: '0.9rem', fontWeight: 700, cursor: 'pointer',
                   }}
                 >

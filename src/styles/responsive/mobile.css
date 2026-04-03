@@ -12,7 +12,7 @@
     position: sticky;
     top: 0;
     z-index: 1001;
-    background: var(--bg-primary); 
+    background: var(--md-sys-color-surface); 
     min-height: 28px !important;
 }
 
@@ -50,7 +50,7 @@
     min-width: 48px !important;
     flex-direction: row !important; /* Side by side */
     padding: 0 !important;
-    border: 1px solid var(--glass-border) !important;
+    border: 1px solid var(--md-sys-color-outline) !important;
     border-radius: 8px !important;
     justify-content: center !important;
     align-items: center !important;
@@ -88,7 +88,7 @@
     margin: 0 !important;
     height: auto !important;
     padding: 0.5rem 1rem !important;
-    border: 1px dashed var(--glass-border) !important;
+    border: 1px dashed var(--md-sys-color-outline) !important;
 }
 
 .main-itinerary {
@@ -140,8 +140,8 @@
 body.mobile-mode-map .main-itinerary { display: none !important; }
 body.mobile-mode-plan .map-view { display: none !important; }
 
-body.mobile-mode-plan .mobile-nav-btn[data-mode="plan"] { color: var(--accent-primary); }
-body.mobile-mode-map .mobile-nav-btn[data-mode="map"] { color: var(--accent-primary); }
+body.mobile-mode-plan .mobile-nav-btn[data-mode="plan"] { color: var(--md-sys-color-primary); }
+body.mobile-mode-map .mobile-nav-btn[data-mode="map"] { color: var(--md-sys-color-primary); }
 
 /* --- Mobile UI Elements --- */
 .itinerary-header {
@@ -167,7 +167,7 @@ body.mobile-mode-map .mobile-nav-btn[data-mode="map"] { color: var(--accent-prim
 .mobile-nav-btn {
     background: rgba(13, 17, 27, 0.9) !important;
     backdrop-filter: blur(12px);
-    border: 1px solid var(--glass-border) !important;
+    border: 1px solid var(--md-sys-color-outline) !important;
     width: 40px !important; /* Shrunk to 40px */
     height: 40px !important;
     border-radius: 50% !important;
@@ -175,7 +175,7 @@ body.mobile-mode-map .mobile-nav-btn[data-mode="map"] { color: var(--accent-prim
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--text-muted);
+    color: var(--st-color-text-muted);
     transition: all 0.2s;
     box-shadow: 0 4px 15px rgba(0,0,0,0.4);
 }
@@ -191,9 +191,9 @@ body.mobile-mode-map .mobile-nav-btn[data-mode="map"] { color: var(--accent-prim
 }
 
 .mobile-nav-btn.active {
-    background: var(--accent-secondary) !important; /* Changed to Orange */
+    background: var(--md-sys-color-secondary) !important; /* Changed to Orange */
     color: white !important;
-    border-color: var(--accent-secondary) !important;
+    border-color: var(--md-sys-color-secondary) !important;
 }
 
     .day-header-controls {
@@ -227,7 +227,7 @@ body.mobile-mode-map .mobile-nav-btn[data-mode="map"] { color: var(--accent-prim
 
     .transit-summary-text {
         font-size: 0.7rem !important;
-        color: var(--text-muted) !important;
+        color: var(--st-color-text-muted) !important;
         white-space: nowrap;
     }
 

@@ -56,7 +56,7 @@ function ScrollColumn({ items, selectedIdx, onSelect }) {
 
   return (
     <div className="time-picker-scroll-container" style={{ position: 'relative', height: '150px', flex: 1 }}>
-      <div style={{ position: 'absolute', top: '50%', left: '0', right: '0', height: '40px', transform: 'translateY(-50%)', background: '#3b82f6', borderRadius: '12px', zIndex: 0, boxShadow: '0 6px 20px rgba(59,130,246,0.35)', pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', top: '50%', left: '0', right: '0', height: '40px', transform: 'translateY(-50%)', background: 'var(--md-sys-color-primary)', borderRadius: '12px', zIndex: 0, boxShadow: '0 6px 20px rgba(59,130,246,0.35)', pointerEvents: 'none' }} />
 
       <div 
         ref={scrollRef}
@@ -168,7 +168,7 @@ export default function TimePickerModal({ stop, dayDate, onSave, onClose }) {
         onClick={(e) => e.stopPropagation()} 
         style={{ 
           width: '680px', 
-          background: '#0a0c11', 
+          background: 'var(--md-sys-color-surface-container-lowest)',
           borderRadius: '32px', 
           padding: '2.5rem',
           border: '1px solid rgba(255,255,255,0.1)',
@@ -199,11 +199,11 @@ export default function TimePickerModal({ stop, dayDate, onSave, onClose }) {
             {todayName && (
               <span style={{ 
                 background: 'rgba(249,115,22,0.15)', 
-                color: '#f97316', 
-                padding: '2px 10px', 
-                borderRadius: '6px', 
-                fontSize: '0.8rem', 
-                fontWeight: 800 
+                color: 'var(--st-color-category-food)',
+                padding: '2px 10px',
+                borderRadius: '6px',
+                fontSize: '0.8rem',
+                fontWeight: 800
               }}>
                 {todayName}
               </span>
@@ -214,8 +214,8 @@ export default function TimePickerModal({ stop, dayDate, onSave, onClose }) {
         {/* Closed-day warning */}
         {isTodayClosed && (
           <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.35)', borderRadius: '16px', padding: '12px 18px', marginBottom: '1.2rem', display: 'flex', alignItems: 'center', gap: '10px', animation: 'pulse-border 2s ease-in-out infinite' }}>
-            <span className="material-symbols-outlined" style={{ color: '#ef4444', fontSize: '20px', flexShrink: 0 }}>error</span>
-            <span style={{ color: '#ef4444', fontSize: '0.85rem', fontWeight: 700 }}>
+            <span className="material-symbols-outlined" style={{ color: 'var(--md-sys-color-error)', fontSize: '20px', flexShrink: 0 }}>error</span>
+            <span style={{ color: 'var(--md-sys-color-error)', fontSize: '0.85rem', fontWeight: 700 }}>
               {todayName} Closed
             </span>
           </div>
@@ -224,7 +224,7 @@ export default function TimePickerModal({ stop, dayDate, onSave, onClose }) {
         <div className="time-picker-body" style={{ display: 'grid', gridTemplateColumns: '1fr 1.1fr', gap: '2rem', marginBottom: '1.5rem', minHeight: '340px' }}>
           {/* Left: Opening Hours */}
           <div className="time-picker-hours" style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '24px', padding: '1.5rem', border: isTodayClosed ? '1px solid rgba(239,68,68,0.3)' : '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#f97316', marginBottom: '1rem', fontWeight: 800, fontSize: '0.9rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--st-color-category-food)', marginBottom: '1rem', fontWeight: 800, fontSize: '0.9rem' }}>
               <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>schedule</span>
               Opening Hours
             </div>
@@ -239,11 +239,11 @@ export default function TimePickerModal({ stop, dayDate, onSave, onClose }) {
                   return (
                     <div key={i} style={{
                       fontSize: '0.85rem',
-                      color: isClosedLine ? '#ef4444' : isToday ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.5)',
+                      color: isClosedLine ? 'var(--md-sys-color-error)' : isToday ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.5)',
                       lineHeight: 1.5,
                       wordBreak: 'break-word',
                       fontWeight: isToday ? 700 : 400,
-                      borderLeft: isToday ? `3px solid ${isClosedLine ? '#ef4444' : '#f97316'}` : 'none',
+                      borderLeft: isToday ? `3px solid ${isClosedLine ? 'var(--md-sys-color-error)' : 'var(--st-color-category-food)'}` : 'none',
                       paddingLeft: isToday ? '10px' : 0,
                       background: isToday && isClosedLine ? 'rgba(239,68,68,0.08)' : 'transparent',
                       borderRadius: isToday ? '4px' : 0,
@@ -268,13 +268,13 @@ export default function TimePickerModal({ stop, dayDate, onSave, onClose }) {
             <div style={{ display: 'flex', background: 'rgba(255,255,255,0.06)', borderRadius: '12px', padding: '4px', marginBottom: '1.5rem', width: '100%', maxWidth: '200px' }}>
               <button
                 onClick={() => setPeriod('AM')}
-                style={{ flex: 1, padding: '8px 0', border: 'none', background: period === 'AM' ? '#3b82f6' : 'transparent', color: period === 'AM' ? 'white' : 'rgba(255,255,255,0.5)', borderRadius: '8px', fontWeight: 800, fontSize: '0.95rem', cursor: 'pointer', transition: 'all 0.2s', boxShadow: period === 'AM' ? '0 4px 12px rgba(59,130,246,0.3)' : 'none' }}
+                style={{ flex: 1, padding: '8px 0', border: 'none', background: period === 'AM' ? 'var(--md-sys-color-primary)' : 'transparent', color: period === 'AM' ? 'white' : 'rgba(255,255,255,0.5)', borderRadius: '8px', fontWeight: 800, fontSize: '0.95rem', cursor: 'pointer', transition: 'all 0.2s', boxShadow: period === 'AM' ? '0 4px 12px rgba(59,130,246,0.3)' : 'none' }}
               >
                 {t('common.am') || 'AM'}
               </button>
               <button
                 onClick={() => setPeriod('PM')}
-                style={{ flex: 1, padding: '8px 0', border: 'none', background: period === 'PM' ? '#3b82f6' : 'transparent', color: period === 'PM' ? 'white' : 'rgba(255,255,255,0.5)', borderRadius: '8px', fontWeight: 800, fontSize: '0.95rem', cursor: 'pointer', transition: 'all 0.2s', boxShadow: period === 'PM' ? '0 4px 12px rgba(59,130,246,0.3)' : 'none' }}
+                style={{ flex: 1, padding: '8px 0', border: 'none', background: period === 'PM' ? 'var(--md-sys-color-primary)' : 'transparent', color: period === 'PM' ? 'white' : 'rgba(255,255,255,0.5)', borderRadius: '8px', fontWeight: 800, fontSize: '0.95rem', cursor: 'pointer', transition: 'all 0.2s', boxShadow: period === 'PM' ? '0 4px 12px rgba(59,130,246,0.3)' : 'none' }}
               >
                 {t('common.pm') || 'PM'}
               </button>
@@ -302,7 +302,7 @@ export default function TimePickerModal({ stop, dayDate, onSave, onClose }) {
           
           <button 
             onClick={handlePunchIn}
-            style={{ padding: '0.8rem 0.5rem', borderRadius: '16px', background: 'rgba(249,115,22,0.15)', border: '1px solid rgba(249,115,22,0.3)', color: '#f97316', fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
+            style={{ padding: '0.8rem 0.5rem', borderRadius: '16px', background: 'rgba(249,115,22,0.15)', border: '1px solid rgba(249,115,22,0.3)', color: 'var(--st-color-category-food)', fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
             onMouseOver={(e) => e.target.style.background = 'rgba(249,115,22,0.25)'}
             onMouseOut={(e) => e.target.style.background = 'rgba(249,115,22,0.15)'}
           >
@@ -312,7 +312,7 @@ export default function TimePickerModal({ stop, dayDate, onSave, onClose }) {
 
           <button 
             onClick={handleSave}
-            style={{ padding: '0.8rem 0.5rem', borderRadius: '16px', background: '#3b82f6', border: 'none', color: 'white', fontWeight: 800, cursor: 'pointer', fontSize: '0.95rem', boxShadow: '0 6px 15px rgba(59,130,246,0.3)', transition: 'all 0.2s' }}
+            style={{ padding: '0.8rem 0.5rem', borderRadius: '16px', background: 'var(--md-sys-color-primary)', border: 'none', color: 'white', fontWeight: 800, cursor: 'pointer', fontSize: '0.95rem', boxShadow: '0 6px 15px rgba(59,130,246,0.3)', transition: 'all 0.2s' }}
             onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
             onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
           >

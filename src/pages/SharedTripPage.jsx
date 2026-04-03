@@ -46,8 +46,8 @@ function getCategoryIcon(stop) {
 }
 
 function getHotelBadge(type) {
-  if (type === 'hotel_checkin') return { label: 'Check-in', color: '#22c55e' };
-  if (type === 'hotel_checkout') return { label: 'Check-out', color: '#f59e0b' };
+  if (type === 'hotel_checkin') return { label: 'Check-in', color: 'var(--st-color-hotel-checkin)' };
+  if (type === 'hotel_checkout') return { label: 'Check-out', color: 'var(--st-color-status-soon)' };
   return null;
 }
 
@@ -386,7 +386,7 @@ export default function SharedTripPage() {
                       )}
                       {stop.rating && (
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', flexShrink: 0 }}>
-                          <span style={{ color: '#f59e0b', fontSize: '11px', lineHeight: 1 }}>★</span>
+                          <span style={{ color: 'var(--st-color-status-soon)', fontSize: '11px', lineHeight: 1 }}>★</span>
                           <span style={{ color: 'var(--text-secondary)', fontSize: '0.7rem', fontWeight: 700 }}>{stop.rating}</span>
                         </span>
                       )}
@@ -395,7 +395,7 @@ export default function SharedTripPage() {
                     {/* Row 2: address */}
                     {stop.address && (
                       <div style={{ display: 'flex', alignItems: 'flex-start', gap: '3px', marginBottom: '0.35rem' }}>
-                        <span className="material-symbols-outlined" style={{ fontSize: '11px', color: '#f97316', flexShrink: 0, marginTop: '2px' }}>location_on</span>
+                        <span className="material-symbols-outlined" style={{ fontSize: '11px', color: 'var(--st-color-category-food)', flexShrink: 0, marginTop: '2px' }}>location_on</span>
                         <span style={{
                           color: 'var(--text-muted)', fontSize: '0.71rem', lineHeight: 1.45,
                           display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
@@ -406,13 +406,13 @@ export default function SharedTripPage() {
                     {/* Row 3: time + reservationTime + price + navigate */}
                     {(stop.time || stop.reservationTime || (!isNaN(price) && price > 0) || navUrl) && (
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', flexWrap: 'wrap' }}>
-                        {stop.time && chip('rgba(249,115,22,0.1)', '#f97316', 'rgba(249,115,22,0.25)', 'schedule', `${stop.time}${stop.period ? ` ${stop.period}` : ''}`)}
+                        {stop.time && chip('rgba(249,115,22,0.1)', 'var(--st-color-category-food)', 'rgba(249,115,22,0.25)', 'schedule', `${stop.time}${stop.period ? ` ${stop.period}` : ''}`)}
                         {stop.reservationTime && chip('rgba(255,255,255,0.06)', 'var(--text-primary)', 'rgba(255,255,255,0.12)', 'event_available', stop.reservationTime)}
-                        {!isNaN(price) && price > 0 && chip('rgba(16,185,129,0.1)', '#10b981', 'rgba(16,185,129,0.25)', 'payments', stop.price)}
+                        {!isNaN(price) && price > 0 && chip('rgba(16,185,129,0.1)', 'var(--md-sys-color-tertiary)', 'rgba(16,185,129,0.25)', 'payments', stop.price)}
                         {navUrl && (
                           <a href={navUrl} target="_blank" rel="noreferrer" style={{
                             display: 'inline-flex', alignItems: 'center', gap: '3px',
-                            background: 'rgba(59,130,246,0.1)', color: '#3b82f6',
+                            background: 'rgba(59,130,246,0.1)', color: 'var(--md-sys-color-primary)',
                             border: '1px solid rgba(59,130,246,0.25)',
                             borderRadius: '6px', padding: '2px 7px',
                             fontSize: '0.7rem', fontWeight: 700, textDecoration: 'none', whiteSpace: 'nowrap',

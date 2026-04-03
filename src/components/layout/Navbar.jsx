@@ -74,7 +74,7 @@ export default function Navbar() {
                 )}
               </div>
               {dropdownOpen && (
-                <div className="user-dropdown" style={{ position: 'absolute', right: 0, top: 'calc(100% + 8px)', background: '#1a1d24', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '12px', padding: '6px', minWidth: '180px', zIndex: 200, boxShadow: '0 8px 24px rgba(0,0,0,0.6)' }}>
+                <div className="user-dropdown" style={{ position: 'absolute', right: 0, top: 'calc(100% + 8px)', background: 'var(--md-sys-color-surface-container-lowest)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '12px', padding: '6px', minWidth: '180px', zIndex: 200, boxShadow: '0 8px 24px rgba(0,0,0,0.6)' }}>
                   <div style={{ padding: '0.5rem 0.75rem', color: 'var(--text-secondary)', fontSize: '0.8rem', borderBottom: '1px solid rgba(255,255,255,0.08)', marginBottom: '4px' }}>
                     {state.user.email}
                   </div>
@@ -84,13 +84,13 @@ export default function Navbar() {
                       style={{ width: '100%', textAlign: 'left', padding: '8px 12px', background: langMenuOpen ? 'rgba(255,255,255,0.06)' : 'none', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', borderRadius: '8px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'space-between' }}
                     >
                       <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#64748b' }}>language</span>
+                        <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--st-color-text-muted)' }}>language</span>
                         {availableLanguages.find(l => l.code === language)?.label || language}
                       </span>
-                      <span className="material-symbols-outlined" style={{ fontSize: '14px', color: '#64748b', transition: 'transform 0.2s', transform: langMenuOpen ? 'rotate(180deg)' : 'none' }}>expand_more</span>
+                      <span className="material-symbols-outlined" style={{ fontSize: '14px', color: 'var(--st-color-text-muted)', transition: 'transform 0.2s', transform: langMenuOpen ? 'rotate(180deg)' : 'none' }}>expand_more</span>
                     </button>
                     {langMenuOpen && (
-                      <div style={{ marginTop: '2px', background: '#13151c', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', overflow: 'hidden' }}>
+                      <div style={{ marginTop: '2px', background: 'var(--md-sys-color-surface-container-lowest)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', overflow: 'hidden' }}>
                         {availableLanguages.map(lang => (
                           <button
                             key={lang.code}
@@ -110,13 +110,13 @@ export default function Navbar() {
                       onClick={() => { setDropdownOpen(false); navigate('/admin'); }}
                       style={{ width: '100%', textAlign: 'left', padding: '8px 12px', background: 'none', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', borderRadius: '8px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px' }}
                     >
-                      <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#64748b' }}>admin_panel_settings</span>
+                      <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--st-color-text-muted)' }}>admin_panel_settings</span>
                       Admin Dashboard
                     </button>
                   )}
                   <button
                     onClick={handleLogout}
-                    style={{ width: '100%', textAlign: 'left', padding: '8px 12px', background: 'none', border: 'none', color: '#ff4d4f', cursor: 'pointer', borderRadius: '8px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px' }}
+                    style={{ width: '100%', textAlign: 'left', padding: '8px 12px', background: 'none', border: 'none', color: 'var(--md-sys-color-error)', cursor: 'pointer', borderRadius: '8px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px' }}
                   >
                     <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>logout</span>
                     {t('common.logout')}

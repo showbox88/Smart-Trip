@@ -152,7 +152,7 @@ export default function StopEditModal({ stop, onSave, onDelete, onClose }) {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <button
             onClick={handleDelete}
-            style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.9rem' }}
+            style={{ background: 'none', border: 'none', color: 'var(--md-sys-color-error)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.9rem' }}
           >
             <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>delete</span>
             {t('common.delete') || 'Delete'}

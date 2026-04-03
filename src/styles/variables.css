@@ -1,30 +1,5 @@
-:root {
-    --bg-primary: #0d111b;
-    --bg-secondary: #1e293b;
-    --bg-deep: #0d111b;
-    --bg-itinerary: #1a2333;
-    /* Core Colors - Inspired by Stitch */
-    --bg-dark: #0d111b;
-    --bg-light: #f5f7f8;
-
-    --accent-primary: #3c83f6;
-    /* Premium Blue */
-    --accent-secondary: #ff8c42;
-
-    --text-primary: #f8fafc;
-    /* Added back to fix black text issue */
-    --text-main: #ffffff;
-    --text-secondary: #cbd5e1;
-    /* Increased brightness (Slate 300) */
-    --text-muted: #94a3b8;
-    /* Increased brightness (Slate 400) */
-
-    /* Glassmorphism System */
-    --glass-bg: rgba(255, 255, 255, 0.03);
-    --glass-nav: rgba(13, 17, 27, 0.8);
-    --glass-border: rgba(255, 255, 255, 0.08);
-    --glass-blur: blur(12px);
-    --shadow-premium: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
-
-    --font-main: 'Plus Jakarta Sans', 'Outfit', 'Noto Sans SC', sans-serif;
-}
+/* Design tokens are now defined in the theme system.
+ * See src/theme/tokens.css for M3 + ST token definitions.
+ * See src/theme/tokens-compat.css for backward compatibility aliases. */
+@import '../theme/tokens.css';
+@import '../theme/tokens-compat.css';

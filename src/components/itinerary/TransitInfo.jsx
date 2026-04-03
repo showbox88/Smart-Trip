@@ -82,7 +82,7 @@ function TransitStepsPanel({ origin, dest, transit, onClose, t }) {
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          background: '#1a1d24',
+          background: 'var(--md-sys-color-surface-container-lowest)',
           borderRadius: '16px',
           width: '100%',
           maxWidth: '420px',
@@ -97,7 +97,7 @@ function TransitStepsPanel({ origin, dest, transit, onClose, t }) {
         <div style={{ padding: '16px 16px 12px', borderBottom: '1px solid rgba(255,255,255,0.06)', flexShrink: 0 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span className="material-symbols-outlined" style={{ color: '#4ade80', fontSize: '20px' }}>directions_transit</span>
+              <span className="material-symbols-outlined" style={{ color: 'var(--st-color-hotel-checkin)', fontSize: '20px' }}>directions_transit</span>
               <span style={{ color: 'white', fontWeight: 700, fontSize: '1rem' }}>
                 {t('itinerary.transit') || '公共交通'}
               </span>
@@ -123,9 +123,9 @@ function TransitStepsPanel({ origin, dest, transit, onClose, t }) {
                     style={{
                       padding: '6px 12px',
                       borderRadius: '20px',
-                      border: isActive ? '1.5px solid #4ade80' : '1px solid rgba(255,255,255,0.12)',
+                      border: isActive ? '1.5px solid var(--st-color-hotel-checkin)' : '1px solid rgba(255,255,255,0.12)',
                       background: isActive ? 'rgba(74,222,128,0.1)' : 'rgba(255,255,255,0.04)',
-                      color: isActive ? '#4ade80' : 'rgba(255,255,255,0.6)',
+                      color: isActive ? 'var(--st-color-hotel-checkin)' : 'rgba(255,255,255,0.6)',
                       fontSize: '0.75rem',
                       cursor: 'pointer',
                       whiteSpace: 'nowrap',
@@ -177,7 +177,7 @@ function TransitStepsPanel({ origin, dest, transit, onClose, t }) {
                 {(selectedRoute.steps || []).filter(s => s.travelMode === 'TRANSIT').map((step, i) => (
                   <span key={i} style={{
                     display: 'inline-flex', alignItems: 'center', gap: '4px',
-                    background: step.lineColor || '#4ade80',
+                    background: step.lineColor || 'var(--st-color-hotel-checkin)',
                     color: 'white', borderRadius: '6px', padding: '2px 8px',
                     fontSize: '0.72rem', fontWeight: 700,
                   }}>
@@ -191,7 +191,7 @@ function TransitStepsPanel({ origin, dest, transit, onClose, t }) {
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 {(selectedRoute.steps || []).map((step, i) => {
                   const isWalk = step.travelMode === 'WALKING';
-                  const lineColor = step.lineColor || (isWalk ? '#555' : '#4ade80');
+                  const lineColor = step.lineColor || (isWalk ? 'var(--st-color-text-muted)' : 'var(--st-color-hotel-checkin)');
                   const icon = getStepIcon(step);
                   const isLast = i === selectedRoute.steps.length - 1;
 
@@ -394,7 +394,7 @@ export default memo(function TransitInfo({ transit, transitMode, origin, dest, o
             position: 'fixed',
             top: menuPos.top,
             left: menuPos.left,
-            background: '#1a1d24',
+            background: 'var(--md-sys-color-surface-container-lowest)',
             border: '1px solid rgba(255,255,255,0.1)',
             borderRadius: '12px',
             padding: '6px',
@@ -424,7 +424,7 @@ export default memo(function TransitInfo({ transit, transitMode, origin, dest, o
             onClick={(e) => { e.stopPropagation(); onAddList?.(); setShowAddMenu(false); }}
             style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', color: 'white', fontSize: '0.85rem' }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#10b981' }}>check</span>
+            <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'var(--md-sys-color-tertiary)' }}>check</span>
             {t('itinerary.add_list') || 'Add Checklist'}
           </div>
           <div
@@ -445,7 +445,7 @@ export default memo(function TransitInfo({ transit, transitMode, origin, dest, o
           className="material-symbols-outlined"
           style={{
             fontSize: '18px', cursor: 'pointer',
-            color: (transitMode || 'DRIVE') === 'TRANSIT' ? '#4ade80' : (transitMode === 'WALK' ? '#60a5fa' : 'var(--text-bright)'),
+            color: (transitMode || 'DRIVE') === 'TRANSIT' ? 'var(--st-color-hotel-checkin)' : (transitMode === 'WALK' ? '#60a5fa' : 'var(--text-bright)'),
           }}
           onClick={onToggleMode}
           title={modeLabel}
@@ -459,7 +459,7 @@ export default memo(function TransitInfo({ transit, transitMode, origin, dest, o
       ) : hasData ? (
         <>
           {noRouteForMode && (
-            <span style={{ color: '#f87171', fontSize: '0.72rem' }}>
+            <span style={{ color: 'var(--md-sys-color-error)', fontSize: '0.72rem' }}>
               {t('itinerary.no_route') || '无路线'}
             </span>
           )}

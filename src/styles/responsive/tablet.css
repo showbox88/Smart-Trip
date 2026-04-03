@@ -8,13 +8,13 @@
 
 .sidebar {
     width: 72px; /* Auto-collapse on tablet height/width usually feels better */
-    border-right: 1px solid var(--glass-border);
+    border-right: 1px solid var(--md-sys-color-outline);
 }
 
 .main-itinerary {
     width: 50% !important;
     min-width: 400px;
-    border-right: 1px solid var(--glass-border);
+    border-right: 1px solid var(--md-sys-color-outline);
 }
 
 .map-view {

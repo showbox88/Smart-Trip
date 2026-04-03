@@ -64,7 +64,7 @@ function MapThumbnail({ url }) {
       display: 'flex', alignItems: 'center', justifyContent: 'center',
     }}>
       {status === 'error' ? (
-        <div style={{ color: '#ef4444', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '6px', padding: '1rem' }}>
+        <div style={{ color: 'var(--md-sys-color-error)', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '6px', padding: '1rem' }}>
           <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>error</span>
           Static Maps API 加载失败 — 请检查 Google Cloud Console 是否启用
         </div>
@@ -268,10 +268,10 @@ export default function TodayPage() {
           border: `1px solid ${checkedCount === totalCount && totalCount > 0 ? 'rgba(34,197,94,0.4)' : 'rgba(255,255,255,0.1)'}`,
           borderRadius: '20px', padding: '4px 12px',
         }}>
-          <span className="material-symbols-outlined" style={{ fontSize: '14px', color: checkedCount === totalCount && totalCount > 0 ? '#22c55e' : '#f97316' }}>
+          <span className="material-symbols-outlined" style={{ fontSize: '14px', color: checkedCount === totalCount && totalCount > 0 ? 'var(--st-color-hotel-checkin)' : 'var(--st-color-category-food)' }}>
             {checkedCount === totalCount && totalCount > 0 ? 'celebration' : 'route'}
           </span>
-          <span style={{ fontSize: '0.8rem', fontWeight: 700, color: checkedCount === totalCount && totalCount > 0 ? '#22c55e' : 'var(--text-primary)' }}>
+          <span style={{ fontSize: '0.8rem', fontWeight: 700, color: checkedCount === totalCount && totalCount > 0 ? 'var(--st-color-hotel-checkin)' : 'var(--text-primary)' }}>
             {checkedCount} / {totalCount} 站
           </span>
         </div>
@@ -282,7 +282,7 @@ export default function TodayPage() {
         <div style={{
           height: '100%',
           width: totalCount > 0 ? `${(checkedCount / totalCount) * 100}%` : '0%',
-          background: 'linear-gradient(90deg, #f97316, #22c55e)',
+          background: 'linear-gradient(90deg, var(--st-color-category-food), var(--st-color-hotel-checkin))',
           transition: 'width 0.5s ease',
         }} />
       </div>
@@ -318,7 +318,7 @@ export default function TodayPage() {
         }}>
           <style>{`@keyframes slideUp { from { transform: translateX(-50%) translateY(20px); opacity:0; } to { transform: translateX(-50%) translateY(0); opacity:1; } }`}</style>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '22px', color: '#f97316', flexShrink: 0, marginTop: '1px' }}>near_me</span>
+            <span className="material-symbols-outlined" style={{ fontSize: '22px', color: 'var(--st-color-category-food)', flexShrink: 0, marginTop: '1px' }}>near_me</span>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontWeight: 700, fontSize: '0.88rem', marginBottom: '2px' }}>
                 你好像到了附近
@@ -338,7 +338,7 @@ export default function TodayPage() {
                 dismissToast();
               }}
               style={{
-                background: '#f97316', color: 'white', border: 'none',
+                background: 'var(--st-color-category-food)', color: 'white', border: 'none',
                 borderRadius: '8px', padding: '6px 14px',
                 fontWeight: 800, fontSize: '0.82rem', cursor: 'pointer', flexShrink: 0,
               }}
@@ -347,7 +347,7 @@ export default function TodayPage() {
             </button>
             <button
               onClick={dismissToast}
-              style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: '4px', flexShrink: 0 }}
+              style={{ background: 'none', border: 'none', color: 'var(--st-color-text-muted)', cursor: 'pointer', padding: '4px', flexShrink: 0 }}
             >
               <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>close</span>
             </button>
@@ -358,16 +358,16 @@ export default function TodayPage() {
       {/* ── Bottom expense summary ── */}
       <div style={{
         position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 200,
-        background: 'rgba(10,12,16,0.95)', backdropFilter: 'blur(12px)',
+        background: 'color-mix(in srgb, var(--md-sys-color-surface-container-lowest) 95%, transparent)', backdropFilter: 'blur(12px)',
         borderTop: '1px solid var(--glass-border)',
         padding: '0.75rem 1.25rem',
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#10b981' }}>payments</span>
+          <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--md-sys-color-tertiary)' }}>payments</span>
           <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>今日总消费</span>
         </div>
-        <div style={{ fontWeight: 800, fontSize: '1.1rem', color: totalExpense > 0 ? '#10b981' : 'var(--text-muted)' }}>
+        <div style={{ fontWeight: 800, fontSize: '1.1rem', color: totalExpense > 0 ? 'var(--md-sys-color-tertiary)' : 'var(--text-muted)' }}>
           {formatCurrency(totalExpense, state.settings)}
         </div>
       </div>

@@ -8,7 +8,7 @@
 
 .sidebar {
     width: 210px;
-    border-right: 1px solid var(--glass-border);
+    border-right: 1px solid var(--md-sys-color-outline);
 }
 
 .sidebar.collapsed {
@@ -19,7 +19,7 @@
     width: 42%;
     max-width: 600px;
     min-width: 450px;
-    border-right: 1px solid var(--glass-border);
+    border-right: 1px solid var(--md-sys-color-outline);
 }
 
 .map-view {

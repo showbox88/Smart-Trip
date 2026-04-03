@@ -61,27 +61,27 @@
 }
 
 .map-placeholder>span {
-    background: var(--glass-bg);
+    background: var(--st-glass-bg);
     padding: 1rem;
     border-radius: 12px;
-    border: 1px solid var(--glass-border);
+    border: 1px solid var(--md-sys-color-outline);
 }
 
 /* --- Location Search AutoComplete --- */
 .location-search-input {
     width: 100%;
     padding: 1rem 1.5rem;
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
+    background: var(--st-glass-bg);
+    border: 1px solid var(--md-sys-color-outline);
     border-radius: 12px;
-    color: var(--text-primary);
+    color: var(--md-sys-color-on-surface);
     font-size: 1rem;
     transition: all 0.3s;
 }
 
 .location-search-input:focus {
     outline: none;
-    border-color: var(--accent-primary);
+    border-color: var(--md-sys-color-primary);
     box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2);
 }
 
@@ -90,8 +90,8 @@
     top: calc(100% + 5px);
     left: 0;
     width: 100%;
-    background: var(--bg-secondary);
-    border: 1px solid var(--glass-border);
+    background: var(--md-sys-color-surface-variant);
+    border: 1px solid var(--md-sys-color-outline);
     border-radius: 12px;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.8);
     z-index: 50;
@@ -110,7 +110,7 @@
 
 .location-autocomplete-dropdown li {
     padding: 1rem 1.5rem;
-    border-bottom: 1px solid var(--glass-border);
+    border-bottom: 1px solid var(--md-sys-color-outline);
     cursor: pointer;
     transition: background 0.2s;
 }
@@ -122,7 +122,7 @@
 .location-autocomplete-dropdown li:hover,
 .location-autocomplete-dropdown li.selected {
     background: rgba(255, 255, 255, 0.12);
-    border-left: 3px solid var(--accent-primary);
+    border-left: 3px solid var(--md-sys-color-primary);
 }
 
 /* --- Map Marker Adjustments --- */
@@ -165,7 +165,7 @@ gmp-advanced-marker::part(pin) {
 #map-dark-toggle:hover {
     transform: scale(1.1);
     background: #1a2235;
-    border-color: var(--accent-primary);
+    border-color: var(--md-sys-color-primary);
     box-shadow: 0 0 15px rgba(249, 115, 22, 0.4);
 }
 
@@ -265,8 +265,8 @@ gmp-advanced-marker::part(pin) {
     right: 65px;
     height: calc(50% - 14px);
     min-height: 250px;
-    background: #0d111b;
-    color: var(--text-primary, #e8eaf6);
+    background: var(--md-sys-color-surface);
+    color: var(--md-sys-color-on-surface);
     border-radius: 12px;
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.8);
     z-index: 500;

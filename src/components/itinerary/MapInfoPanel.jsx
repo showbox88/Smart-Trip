@@ -12,7 +12,7 @@ function StarRating({ rating }) {
   const full = Math.floor(rating);
   const half = rating - full >= 0.5;
   return (
-    <span style={{ color: '#f97316', fontSize: '0.9rem', letterSpacing: '1px' }}>
+    <span style={{ color: 'var(--st-color-category-food)', fontSize: '0.9rem', letterSpacing: '1px' }}>
       {'*'.repeat(full)}{half ? '+' : ''}{'*'.repeat(5 - full - (half ? 1 : 0))}
     </span>
   );
@@ -51,11 +51,11 @@ function renderAddress(address) {
 
 function FavoritesTab({ favorites, loading, trip, onSelectPlace, onAddToDay, onToggleFavorite, t }) {
   if (loading) {
-    return <div style={{ color: '#64748b', textAlign: 'center', padding: '2rem' }}>{t('common.loading')}</div>;
+    return <div style={{ color: 'var(--st-color-text-muted)', textAlign: 'center', padding: '2rem' }}>{t('common.loading')}</div>;
   }
   if (!favorites.length) {
     return (
-      <div style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
+      <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--st-color-text-muted)' }}>
         <span className="material-symbols-outlined" style={{ fontSize: '40px', marginBottom: '8px', display: 'block', opacity: 0.4 }}>favorite_border</span>
         <div style={{ fontSize: '0.85rem' }}>{t('map.favorites_empty') || '还没有收藏，心形按钮点一下就能保存'}</div>
       </div>
@@ -87,9 +87,9 @@ function FavoritesTab({ favorites, loading, trip, onSelectPlace, onAddToDay, onT
           {/* Info */}
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontWeight: 700, fontSize: '0.85rem', color: 'white', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{fav.name || fav.place_id}</div>
-            <div style={{ fontSize: '0.73rem', color: '#64748b', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{ fontSize: '0.73rem', color: 'var(--st-color-text-muted)', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
               {fav.category && <span>{fav.category}</span>}
-              {fav.rating && <span style={{ color: '#f59e0b' }}>★ {fav.rating}</span>}
+              {fav.rating && <span style={{ color: 'var(--st-color-status-soon)' }}>★ {fav.rating}</span>}
             </div>
           </div>
           {/* Add to trip */}
@@ -104,7 +104,7 @@ function FavoritesTab({ favorites, loading, trip, onSelectPlace, onAddToDay, onT
           <button
             onClick={e => { e.stopPropagation(); onToggleFavorite(fav.place_id, fav); }}
             title={t('map.unfavorite') || '取消收藏'}
-            style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '4px', flexShrink: 0 }}
+            style={{ background: 'none', border: 'none', color: 'var(--md-sys-color-error)', cursor: 'pointer', padding: '4px', flexShrink: 0 }}
           >
             <span className="material-symbols-outlined" style={{ fontSize: '18px', fontVariationSettings: "'FILL' 1" }}>favorite</span>
           </button>
@@ -222,10 +222,10 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay, onSelectPla
               onClick={() => setActiveTab(tab)}
               style={{
                 background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.8rem',
-                color: activeTab === tab ? 'white' : '#64748b',
+                color: activeTab === tab ? 'white' : 'var(--st-color-text-muted)',
                 fontWeight: 700,
                 padding: '14px 0',
-                borderBottom: activeTab === tab ? '2px solid #f97316' : '2px solid transparent',
+                borderBottom: activeTab === tab ? '2px solid var(--st-color-category-food)' : '2px solid transparent',
                 textTransform: 'uppercase',
                 letterSpacing: '0.05em',
                 transition: 'all 0.2s',
@@ -239,10 +239,10 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay, onSelectPla
             onClick={() => setActiveTab('favorites')}
             style={{
               background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.8rem',
-              color: activeTab === 'favorites' ? '#ef4444' : '#64748b',
+              color: activeTab === 'favorites' ? 'var(--md-sys-color-error)' : 'var(--st-color-text-muted)',
               fontWeight: 700,
               padding: '14px 0',
-              borderBottom: activeTab === 'favorites' ? '2px solid #ef4444' : '2px solid transparent',
+              borderBottom: activeTab === 'favorites' ? '2px solid var(--md-sys-color-error)' : '2px solid transparent',
               transition: 'all 0.2s',
               display: 'flex', alignItems: 'center', gap: '4px',
             }}
@@ -250,7 +250,7 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay, onSelectPla
             <span className="material-symbols-outlined" style={{ fontSize: '15px', fontVariationSettings: "'FILL' 1" }}>favorite</span>
             {t('map.tab_favorites') || '收藏'}
             {favorites.length > 0 && (
-              <span style={{ fontSize: '0.65rem', background: '#ef4444', color: 'white', borderRadius: '10px', padding: '0 5px', lineHeight: '16px', fontWeight: 800 }}>
+              <span style={{ fontSize: '0.65rem', background: 'var(--md-sys-color-error)', color: 'white', borderRadius: '10px', padding: '0 5px', lineHeight: '16px', fontWeight: 800 }}>
                 {favorites.length}
               </span>
             )}
@@ -258,7 +258,7 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay, onSelectPla
         </div>
         <button
           onClick={closePanel}
-          style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', flexShrink: 0 }}
+          style={{ background: 'none', border: 'none', color: 'var(--st-color-text-muted)', cursor: 'pointer', flexShrink: 0 }}
         >
           <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>close</span>
         </button>
@@ -276,7 +276,7 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay, onSelectPla
             padding: '4px 0', zIndex: 9999,
           }}>
             <div style={{ padding: '8px 14px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 800, textTransform: 'uppercase' }}>{t('map.select_date') || 'Add to Day'}</span>
+              <span style={{ fontSize: '0.75rem', color: 'var(--st-color-text-muted)', fontWeight: 800, textTransform: 'uppercase' }}>{t('map.select_date') || 'Add to Day'}</span>
             </div>
             <div style={{ maxHeight: '180px', overflowY: 'auto' }}>
               {trip?.days?.map((day, idx) => {
@@ -293,10 +293,10 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay, onSelectPla
                     onMouseOver={(e) => { e.currentTarget.style.background = isAdded ? 'rgba(16,185,129,0.12)' : 'rgba(255,255,255,0.05)'; }}
                     onMouseOut={(e) => { e.currentTarget.style.background = isAdded ? 'rgba(16,185,129,0.06)' : 'transparent'; }}
                   >
-                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: day.color || '#f97316', marginRight: '12px' }} />
-                    <span style={{ fontSize: '0.85rem', fontWeight: 700, color: isAdded ? '#10b981' : 'white', flex: 1 }}>{t('itinerary.day_label')}{idx + 1}{t('itinerary.day_suffix')}</span>
-                    <span style={{ fontSize: '0.75rem', color: isAdded ? '#10b981' : '#64748b', marginRight: isAdded ? '6px' : 0 }}>{day.date ? new Date(day.date.replace(/-/g, '/')).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''}</span>
-                    {isAdded && <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#10b981' }}>check_circle</span>}
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: day.color || 'var(--st-color-category-food)', marginRight: '12px' }} />
+                    <span style={{ fontSize: '0.85rem', fontWeight: 700, color: isAdded ? 'var(--md-sys-color-tertiary)' : 'white', flex: 1 }}>{t('itinerary.day_label')}{idx + 1}{t('itinerary.day_suffix')}</span>
+                    <span style={{ fontSize: '0.75rem', color: isAdded ? 'var(--md-sys-color-tertiary)' : 'var(--st-color-text-muted)', marginRight: isAdded ? '6px' : 0 }}>{day.date ? new Date(day.date.replace(/-/g, '/')).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''}</span>
+                    {isAdded && <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--md-sys-color-tertiary)' }}>check_circle</span>}
                   </div>
                 );
               })}
@@ -307,7 +307,7 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay, onSelectPla
 
         <div className="poi-content-scroll" style={{ flex: 1, overflowY: 'auto', padding: '1.25rem 1.5rem 1.5rem' }}>
           {loading ? (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#94a3b8' }}>{t('common.loading')}</div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--st-color-text-muted)' }}>{t('common.loading')}</div>
           ) : place && (
             <>
               <div style={{ marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
@@ -344,7 +344,7 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay, onSelectPla
                     toggleFavorite(placeId, snap);
                   }}
                   title={isFavorited(placeId) ? (t('map.unfavorite') || '取消收藏') : (t('map.favorite') || '收藏')}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', color: isFavorited(placeId) ? '#ef4444' : '#64748b', transition: 'color 0.2s' }}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', color: isFavorited(placeId) ? 'var(--md-sys-color-error)' : 'var(--st-color-text-muted)', transition: 'color 0.2s' }}
                 >
                   <span className="material-symbols-outlined" style={{ fontSize: '24px', fontVariationSettings: isFavorited(placeId) ? "'FILL' 1" : "'FILL' 0" }}>
                     favorite
@@ -363,14 +363,14 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay, onSelectPla
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         {category && (
                           <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(255,255,255,0.06)', padding: '3px 8px', borderRadius: '5px' }}>
-                            <span className="material-symbols-outlined" style={{ fontSize: '13px', color: '#94a3b8' }}>restaurant</span>
+                            <span className="material-symbols-outlined" style={{ fontSize: '13px', color: 'var(--st-color-text-muted)' }}>restaurant</span>
                             <span style={{ color: '#cbd5e1', fontSize: '0.7rem', fontWeight: 700 }}>{category}</span>
                           </div>
                         )}
 
                         {place.rating && (
                           <div style={{ display: 'flex', alignItems: 'center', gap: '3px', background: 'rgba(249,115,22,0.08)', padding: '3px 8px', borderRadius: '5px' }}>
-                            <span style={{ color: '#f97316', fontSize: '13px' }}>*</span>
+                            <span style={{ color: 'var(--st-color-category-food)', fontSize: '13px' }}>*</span>
                             <span style={{ color: 'white', fontWeight: 800, fontSize: '0.8rem' }}>{place.rating}</span>
                             <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.65rem' }}>({place.userRatingCount})</span>
                           </div>
@@ -381,7 +381,7 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay, onSelectPla
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '1rem' }}>
                       {place.formattedAddress && (
                         <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                          <span className="material-symbols-outlined" style={{ color: '#f97316', fontSize: '16px', flexShrink: 0, marginTop: '2px' }}>location_on</span>
+                          <span className="material-symbols-outlined" style={{ color: 'var(--st-color-category-food)', fontSize: '16px', flexShrink: 0, marginTop: '2px' }}>location_on</span>
                           <div style={{ fontSize: '0.82rem', color: '#cbd5e1', lineHeight: 1.4 }}>
                             {renderAddress(place.formattedAddress)}
                           </div>
@@ -390,8 +390,8 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay, onSelectPla
 
                       {place.internationalPhoneNumber && (
                         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                          <span className="material-symbols-outlined" style={{ color: '#3b82f6', fontSize: '16px', flexShrink: 0 }}>call</span>
-                          <a href={`tel:${place.internationalPhoneNumber}`} style={{ fontSize: '0.82rem', color: '#3b82f6', fontWeight: 700, textDecoration: 'none' }}>
+                          <span className="material-symbols-outlined" style={{ color: 'var(--md-sys-color-primary)', fontSize: '16px', flexShrink: 0 }}>call</span>
+                          <a href={`tel:${place.internationalPhoneNumber}`} style={{ fontSize: '0.82rem', color: 'var(--md-sys-color-primary)', fontWeight: 700, textDecoration: 'none' }}>
                             {place.internationalPhoneNumber}
                           </a>
                         </div>
@@ -399,8 +399,8 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay, onSelectPla
 
                       {place.websiteURI && (
                         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                          <span className="material-symbols-outlined" style={{ color: '#10b981', fontSize: '16px', flexShrink: 0 }}>public</span>
-                          <a href={place.websiteURI} target="_blank" rel="noreferrer" style={{ fontSize: '0.82rem', color: '#10b981', fontWeight: 700, textDecoration: 'none', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          <span className="material-symbols-outlined" style={{ color: 'var(--md-sys-color-tertiary)', fontSize: '16px', flexShrink: 0 }}>public</span>
+                          <a href={place.websiteURI} target="_blank" rel="noreferrer" style={{ fontSize: '0.82rem', color: 'var(--md-sys-color-tertiary)', fontWeight: 700, textDecoration: 'none', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {place.websiteURI.replace(/^https?:\/\//, '').replace(/\/$/, '')}
                           </a>
                         </div>
@@ -417,7 +417,7 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay, onSelectPla
                         onMouseLeave={() => setHoverHours(false)}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'help' }}>
-                          <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#f59e0b' }}>schedule</span>
+                          <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'var(--st-color-status-soon)' }}>schedule</span>
                           <span style={{ color: 'white', fontSize: '0.85rem', fontWeight: 700 }}>
                             {place.regularOpeningHours.weekdayDescriptions[new Date().getDay()] || 'Business Hours'}
                           </span>
@@ -464,7 +464,7 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay, onSelectPla
                         background: 'rgba(255,255,255,0.08)', borderRadius: '8px',
                         padding: '8px 14px', fontSize: '0.82rem', fontWeight: 800, color: 'white',
                       }}>
-                        <span className="material-symbols-outlined" style={{ fontSize: '15px', color: '#f97316' }}>event_note</span>
+                        <span className="material-symbols-outlined" style={{ fontSize: '15px', color: 'var(--st-color-category-food)' }}>event_note</span>
                         {t('itinerary.scheduled_time') || 'Scheduled'}: {matchedStop.time} {matchedStop.period || ''}
                       </div>
                     )}
@@ -509,7 +509,7 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay, onSelectPla
                           <div key={stars} style={{ display: 'flex', alignItems: 'center', gap: '8px', height: '8px' }}>
                             <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', minWidth: '10px' }}>{stars}</span>
                             <div style={{ flex: 1, height: '4px', background: 'rgba(255,255,255,0.1)', borderRadius: '2px', overflow: 'hidden' }}>
-                              <div style={{ width: `${pct || (stars <= (place.rating || 0) ? 80 - (5 - stars) * 15 : 20)}%`, height: '100%', background: '#f97316', borderRadius: '2px' }} />
+                              <div style={{ width: `${pct || (stars <= (place.rating || 0) ? 80 - (5 - stars) * 15 : 20)}%`, height: '100%', background: 'var(--st-color-category-food)', borderRadius: '2px' }} />
                             </div>
                           </div>
                         );
@@ -520,7 +520,7 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay, onSelectPla
                   {reviews.map((review, i) => (
                     <div key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '0.8rem', marginBottom: '0.8rem' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-                        <div style={{ width: '30px', height: '30px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 800, color: '#94a3b8' }}>
+                        <div style={{ width: '30px', height: '30px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 800, color: 'var(--st-color-text-muted)' }}>
                           {review.authorAttribution?.displayName?.[0] || 'U'}
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column' }}>

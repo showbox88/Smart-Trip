@@ -77,11 +77,11 @@
 }
 
 .login-logo span {
-    color: var(--accent-primary);
+    color: var(--md-sys-color-primary);
 }
 
 .login-tagline {
-    color: var(--text-secondary);
+    color: var(--md-sys-color-on-surface-variant);
     font-size: 1rem;
     margin-bottom: 2.5rem;
     opacity: 0.8;
@@ -110,7 +110,7 @@
     left: 16px;
     top: 50%;
     transform: translateY(-50%);
-    color: var(--accent-primary);
+    color: var(--md-sys-color-primary);
     font-size: 20px;
 }
 
@@ -128,13 +128,13 @@
 
 .auth-input:focus {
     background: rgba(255, 255, 255, 0.08);
-    border-color: var(--accent-primary);
+    border-color: var(--md-sys-color-primary);
     box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.15);
 }
 
 .auth-btn-main {
     width: 100%;
-    background: var(--accent-primary);
+    background: var(--md-sys-color-primary);
     color: white;
     border: none;
     padding: 1.1rem;
@@ -216,11 +216,11 @@
 .auth-footer {
     margin-top: 2rem;
     font-size: 0.85rem;
-    color: var(--text-muted);
+    color: var(--st-color-text-muted);
 }
 
 .auth-footer a {
-    color: var(--accent-primary);
+    color: var(--md-sys-color-primary);
     text-decoration: none;
     font-weight: 600;
 }

@@ -110,7 +110,7 @@ export default function DashboardPage() {
           <button
             className="btn-main"
             onClick={handleTodayCheckin}
-            style={{ background: 'linear-gradient(135deg, #f97316, #ea580c)' }}
+            style={{ background: 'linear-gradient(135deg, var(--st-color-category-food), #ea580c)' }}
             title={t('dashboard.today_checkin') || 'Check In'}
           >
             <span className="material-symbols-outlined">my_location</span>
@@ -145,7 +145,7 @@ export default function DashboardPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <div style={{
             width: 40, height: 40, borderRadius: '10px',
-            background: 'linear-gradient(135deg, #f97316, #ea580c)',
+            background: 'linear-gradient(135deg, var(--st-color-category-food), #ea580c)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
           }}>
             <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'white' }}>today</span>
@@ -157,7 +157,7 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
-        <span className="material-symbols-outlined" style={{ fontSize: '20px', color: '#f97316' }}>chevron_right</span>
+        <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'var(--st-color-category-food)' }}>chevron_right</span>
       </div>
 
       <DashboardFilters />

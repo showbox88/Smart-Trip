@@ -4,12 +4,12 @@
     justify-content: space-between;
     align-items: center;
     padding: 1.5rem 5%;
-    background: var(--bg-deep);
+    background: var(--md-sys-color-surface);
     /* Use solid deep blue */
     position: sticky;
     top: 0;
     z-index: 1000;
-    border-bottom: 1px solid var(--glass-border);
+    border-bottom: 1px solid var(--md-sys-color-outline);
 }
 
 .nav-search-bar {
@@ -30,7 +30,7 @@ body:not(.hero-active) .nav-search-bar {
     left: 14px;
     top: 50%;
     transform: translateY(-50%);
-    color: var(--text-muted);
+    color: var(--st-color-text-muted);
     font-size: 20px;
 }
 
@@ -48,7 +48,7 @@ body:not(.hero-active) .nav-search-bar {
 
 .nav-search-bar input:focus {
     background: rgba(255, 255, 255, 0.08);
-    border-color: var(--accent-primary);
+    border-color: var(--md-sys-color-primary);
     box-shadow: 0 0 0 4px rgba(60, 131, 246, 0.15);
 }
 
@@ -61,7 +61,7 @@ body:not(.hero-active) .nav-search-bar {
 .nav-icon-btn {
     background: transparent;
     border: none;
-    color: var(--text-secondary);
+    color: var(--md-sys-color-on-surface-variant);
     cursor: pointer;
     position: relative;
     padding: 10px;
@@ -83,9 +83,9 @@ body:not(.hero-active) .nav-search-bar {
     right: 10px;
     width: 8px;
     height: 8px;
-    background: var(--accent-primary);
+    background: var(--md-sys-color-primary);
     border-radius: 50%;
-    border: 2px solid var(--bg-deep);
+    border: 2px solid var(--md-sys-color-surface);
 }
 
 .user-avatar {
@@ -100,7 +100,7 @@ body:not(.hero-active) .nav-search-bar {
 
 .user-avatar:hover {
     transform: scale(1.05);
-    border-color: var(--accent-primary);
+    border-color: var(--md-sys-color-primary);
 }
 
 .user-avatar img {
@@ -120,8 +120,8 @@ body:not(.hero-active) .nav-search-bar {
     position: absolute;
     top: calc(100% + 15px);
     right: 0;
-    background: var(--bg-deep);
-    border: 1px solid var(--glass-border);
+    background: var(--md-sys-color-surface);
+    border: 1px solid var(--md-sys-color-outline);
     border-radius: 12px;
     padding: 0.5rem;
     min-width: 160px;
@@ -147,7 +147,7 @@ body:not(.hero-active) .nav-search-bar {
     align-items: center;
     gap: 10px;
     padding: 0.75rem 1rem;
-    color: var(--text-secondary);
+    color: var(--md-sys-color-on-surface-variant);
     text-decoration: none;
     border-radius: 8px;
     font-size: 0.9rem;
@@ -156,7 +156,7 @@ body:not(.hero-active) .nav-search-bar {
 
 .user-dropdown a:hover {
     background: rgba(255, 255, 255, 0.05);
-    color: var(--text-primary);
+    color: var(--md-sys-color-on-surface);
 }
 
 .user-dropdown a .material-symbols-outlined {
@@ -172,7 +172,7 @@ body:not(.hero-active) .nav-search-bar {
 }
 
 .logo span {
-    color: var(--accent-primary);
+    color: var(--md-sys-color-primary);
 }
 
 /* .logo span removed - using image logo */
@@ -186,13 +186,13 @@ nav ul {
 
 nav a {
     text-decoration: none;
-    color: var(--text-secondary);
+    color: var(--md-sys-color-on-surface-variant);
     font-weight: 500;
     transition: color 0.3s;
 }
 
 nav a:hover {
-    color: var(--text-primary);
+    color: var(--md-sys-color-on-surface);
 }
 
 /* --- Hero Section --- */
@@ -213,7 +213,7 @@ nav a:hover {
 }
 
 .hero-content h1 span {
-    background: linear-gradient(135deg, var(--accent-primary), #fbbf24);
+    background: linear-gradient(135deg, var(--md-sys-color-primary), #fbbf24);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -221,7 +221,7 @@ nav a:hover {
 
 .hero-content p {
     font-size: 1.25rem;
-    color: var(--text-secondary);
+    color: var(--md-sys-color-on-surface-variant);
     margin-bottom: 3rem;
     max-width: 600px;
 }
@@ -260,7 +260,7 @@ nav a:hover {
 
 /* --- Sidebar Layout & Transitions --- */
 .sidebar {
-    background: var(--bg-deep);
+    background: var(--md-sys-color-surface);
     padding: 0.5rem 0;
     overflow-y: auto;
     display: flex;
@@ -310,7 +310,7 @@ nav a:hover {
 
 /* Active item keeps a separate indicator, not a surface glow */
 .sidebar #sidebar-nav li.active {
-    /* border-left: 3px solid var(--accent-primary); */
+    /* border-left: 3px solid var(--md-sys-color-primary); */
     /* background: #1a1c1e; */
     /* Match standard dark background to keep backlight behind */
 }
@@ -335,7 +335,7 @@ nav a:hover {
 .sidebar-toggle {
     padding: 0.5rem 1.2rem;
     cursor: pointer;
-    color: var(--text-secondary);
+    color: var(--md-sys-color-on-surface-variant);
     display: flex;
     align-items: center;
     transition: all 0.3s;
@@ -389,15 +389,15 @@ nav a:hover {
     flex-direction: row;
     align-items: center;
     justify-content: center;
-    border: 1.5px dashed var(--glass-border);
+    border: 1.5px dashed var(--md-sys-color-outline);
     background: transparent;
     padding: 0.6rem 0;
-    color: var(--text-secondary);
+    color: var(--md-sys-color-on-surface-variant);
 }
 
 /* .add-day-btn:hover {
-    border-color: var(--accent-primary);
-    color: var(--accent-primary);
+    border-color: var(--md-sys-color-primary);
+    color: var(--md-sys-color-primary);
 } */
 
 .add-day-text {
@@ -407,11 +407,11 @@ nav a:hover {
 
 /* .sidebar #sidebar-nav li.active {
     background: rgba(91, 122, 153, 0.15);
-    border-left-color: var(--active-color, var(--accent-primary));
+    border-left-color: var(--active-color, var(--md-sys-color-primary));
 } */
 .sidebar #sidebar-nav li.active {
     /* border-left: none !important; */
-    box-shadow: inset 0 0 0 2px var(--active-color, var(--accent-primary)) !important;
+    box-shadow: inset 0 0 0 2px var(--active-color, var(--md-sys-color-primary)) !important;
 }
 
 .sidebar.collapsed #sidebar-nav li,
@@ -432,7 +432,7 @@ nav a:hover {
 
 .sidebar.collapsed #sidebar-nav li.active {
     /* background: rgba(91, 122, 153, 0.2) !important; */
-    box-shadow: inset 0 0 0 2px var(--active-color, var(--accent-primary)) !important;
+    box-shadow: inset 0 0 0 2px var(--active-color, var(--md-sys-color-primary)) !important;
 }
 
 /* --- Elements Visibility --- */
@@ -516,7 +516,7 @@ nav a:hover {
     font-size: 1.2rem;
     margin-bottom: 1.5rem;
     letter-spacing: 1px;
-    color: var(--text-primary);
+    color: var(--md-sys-color-on-surface);
 }
 
 .main-itinerary {

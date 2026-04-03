@@ -42,8 +42,8 @@ export default function StopCheckinCard({ stop, isCurrent, dayDate, onCheckin })
 
   const price = parseFloat(stop.price) || 0;
   const hotelBadge =
-    stop.type === 'hotel_checkin' ? { label: 'Check-in', color: '#22c55e' } :
-    stop.type === 'hotel_checkout' ? { label: 'Check-out', color: '#f59e0b' } : null;
+    stop.type === 'hotel_checkin' ? { label: 'Check-in', color: 'var(--st-color-hotel-checkin)' } :
+    stop.type === 'hotel_checkout' ? { label: 'Check-out', color: 'var(--st-color-status-soon)' } : null;
 
   const navUrl = stop.address
     ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(stop.address)}${stop.placeId ? `&destination_place_id=${stop.placeId}` : ''}`
@@ -91,18 +91,18 @@ export default function StopCheckinCard({ stop, isCurrent, dayDate, onCheckin })
           {stop.checkedIn ? (
             <div style={{
               width: 28, height: 28, borderRadius: '50%',
-              background: 'rgba(34,197,94,0.15)', border: '2px solid #22c55e',
+              background: 'rgba(34,197,94,0.15)', border: '2px solid var(--st-color-hotel-checkin)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#22c55e', fontVariationSettings: "'FILL' 1" }}>check</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--st-color-hotel-checkin)', fontVariationSettings: "'FILL' 1" }}>check</span>
             </div>
           ) : isCurrent ? (
             <div style={{
               width: 28, height: 28, borderRadius: '50%',
-              background: 'rgba(249,115,22,0.15)', border: '2px solid #f97316',
+              background: 'rgba(249,115,22,0.15)', border: '2px solid var(--st-color-category-food)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '14px', color: '#f97316' }}>near_me</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '14px', color: 'var(--st-color-category-food)' }}>near_me</span>
             </div>
           ) : (
             <div style={{
@@ -110,7 +110,7 @@ export default function StopCheckinCard({ stop, isCurrent, dayDate, onCheckin })
               background: 'rgba(255,255,255,0.04)', border: '2px solid rgba(255,255,255,0.12)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '14px', color: '#64748b' }}>radio_button_unchecked</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '14px', color: 'var(--st-color-text-muted)' }}>radio_button_unchecked</span>
             </div>
           )}
         </div>
@@ -126,7 +126,7 @@ export default function StopCheckinCard({ stop, isCurrent, dayDate, onCheckin })
               {getCategoryIcon(stop)}
             </span>
             <span style={{
-              fontWeight: 700, fontSize: '0.9rem', color: stop.checkedIn ? '#22c55e' : 'var(--text-primary)',
+              fontWeight: 700, fontSize: '0.9rem', color: stop.checkedIn ? 'var(--st-color-hotel-checkin)' : 'var(--text-primary)',
               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '200px',
             }}>
               {stop.location || stop.name || 'Unnamed'}
@@ -137,13 +137,13 @@ export default function StopCheckinCard({ stop, isCurrent, dayDate, onCheckin })
               </span>
             )}
             {isCurrent && !stop.checkedIn && (
-              <span style={{ fontSize: '0.6rem', fontWeight: 800, color: '#f97316', background: 'rgba(249,115,22,0.15)', border: '1px solid rgba(249,115,22,0.3)', borderRadius: '4px', padding: '1px 6px' }}>
+              <span style={{ fontSize: '0.6rem', fontWeight: 800, color: 'var(--st-color-category-food)', background: 'rgba(249,115,22,0.15)', border: '1px solid rgba(249,115,22,0.3)', borderRadius: '4px', padding: '1px 6px' }}>
                 当前站
               </span>
             )}
             {stop.rating && (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', flexShrink: 0 }}>
-                <span style={{ color: '#f59e0b', fontSize: '11px' }}>★</span>
+                <span style={{ color: 'var(--st-color-status-soon)', fontSize: '11px' }}>★</span>
                 <span style={{ color: 'var(--text-secondary)', fontSize: '0.7rem', fontWeight: 700 }}>{stop.rating}</span>
               </span>
             )}
@@ -152,7 +152,7 @@ export default function StopCheckinCard({ stop, isCurrent, dayDate, onCheckin })
           {/* Row 2: address */}
           {stop.address && (
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '3px', marginBottom: '0.4rem' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '11px', color: '#f97316', flexShrink: 0, marginTop: '2px' }}>location_on</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '11px', color: 'var(--st-color-category-food)', flexShrink: 0, marginTop: '2px' }}>location_on</span>
               <span style={{
                 color: 'var(--text-muted)', fontSize: '0.71rem', lineHeight: 1.45,
                 display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
@@ -177,7 +177,7 @@ export default function StopCheckinCard({ stop, isCurrent, dayDate, onCheckin })
                   style={{
                     ...btnBase,
                     background: stop.checkedIn ? 'rgba(34,197,94,0.1)' : stop.time ? 'rgba(249,115,22,0.1)' : 'rgba(255,255,255,0.05)',
-                    color: stop.checkedIn ? '#22c55e' : stop.time ? '#f97316' : '#64748b',
+                    color: stop.checkedIn ? 'var(--st-color-hotel-checkin)' : stop.time ? 'var(--st-color-category-food)' : 'var(--st-color-text-muted)',
                     border: `1px solid ${stop.checkedIn ? 'rgba(34,197,94,0.3)' : stop.time ? 'rgba(249,115,22,0.25)' : 'rgba(255,255,255,0.08)'}`,
                     cursor: 'pointer',
                   }}
@@ -196,7 +196,7 @@ export default function StopCheckinCard({ stop, isCurrent, dayDate, onCheckin })
                   style={{
                     ...btnBase,
                     background: price > 0 ? 'rgba(16,185,129,0.1)' : 'rgba(255,255,255,0.04)',
-                    color: price > 0 ? '#10b981' : '#475569',
+                    color: price > 0 ? 'var(--md-sys-color-tertiary)' : '#475569',
                     border: `1px solid ${price > 0 ? 'rgba(16,185,129,0.25)' : 'rgba(255,255,255,0.07)'}`,
                     cursor: 'pointer',
                   }}
@@ -213,7 +213,7 @@ export default function StopCheckinCard({ stop, isCurrent, dayDate, onCheckin })
                     href={navUrl} target="_blank" rel="noreferrer"
                     style={{
                       ...btnBase,
-                      background: 'rgba(59,130,246,0.1)', color: '#3b82f6',
+                      background: 'rgba(59,130,246,0.1)', color: 'var(--md-sys-color-primary)',
                       border: '1px solid rgba(59,130,246,0.25)', textDecoration: 'none',
                     }}
                   >
@@ -235,7 +235,7 @@ export default function StopCheckinCard({ stop, isCurrent, dayDate, onCheckin })
                 {stop.checkedIn ? (
                   <div style={{
                     ...btnBase,
-                    background: 'rgba(34,197,94,0.07)', color: '#22c55e',
+                    background: 'rgba(34,197,94,0.07)', color: 'var(--st-color-hotel-checkin)',
                     border: '1px solid rgba(34,197,94,0.2)',
                   }}>
                     <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>where_to_vote</span>
@@ -246,9 +246,9 @@ export default function StopCheckinCard({ stop, isCurrent, dayDate, onCheckin })
                     onClick={handleCheckin}
                     style={{
                       ...btnBase,
-                      background: isCurrent ? '#f97316' : 'rgba(249,115,22,0.12)',
-                      color: isCurrent ? 'white' : '#f97316',
-                      border: `1px solid ${isCurrent ? '#f97316' : 'rgba(249,115,22,0.3)'}`,
+                      background: isCurrent ? 'var(--st-color-category-food)' : 'rgba(249,115,22,0.12)',
+                      color: isCurrent ? 'white' : 'var(--st-color-category-food)',
+                      border: `1px solid ${isCurrent ? 'var(--st-color-category-food)' : 'rgba(249,115,22,0.3)'}`,
                       fontWeight: 800, cursor: 'pointer',
                     }}
                   >

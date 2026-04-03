@@ -146,7 +146,7 @@ export default function ShareModal({ trip, onClose }) {
                   flex: 1,
                   background: 'var(--bg-secondary)',
                   border: '1px solid var(--glass-border)',
-                  color: copied ? '#22c55e' : 'var(--text-primary)',
+                  color: copied ? 'var(--st-color-hotel-checkin)' : 'var(--text-primary)',
                   borderRadius: '8px',
                   padding: '0.55rem 1rem',
                   cursor: 'pointer',
@@ -169,9 +169,9 @@ export default function ShareModal({ trip, onClose }) {
                 onClick={handleRevoke}
                 disabled={loading}
                 style={{
-                  background: confirmRevoke ? '#ef4444' : 'transparent',
-                  border: `1px solid ${confirmRevoke ? '#ef4444' : 'var(--glass-border)'}`,
-                  color: confirmRevoke ? '#fff' : '#ef4444',
+                  background: confirmRevoke ? 'var(--md-sys-color-error)' : 'transparent',
+                  border: `1px solid ${confirmRevoke ? 'var(--md-sys-color-error)' : 'var(--glass-border)'}`,
+                  color: confirmRevoke ? '#fff' : 'var(--md-sys-color-error)',
                   borderRadius: '8px',
                   padding: '0.55rem 1rem',
                   cursor: loading ? 'not-allowed' : 'pointer',
@@ -194,7 +194,7 @@ export default function ShareModal({ trip, onClose }) {
             </div>
 
             {confirmRevoke && !loading && (
-              <p style={{ color: '#ef4444', fontSize: '0.82rem', margin: 0 }}>
+              <p style={{ color: 'var(--md-sys-color-error)', fontSize: '0.82rem', margin: 0 }}>
                 {t('share.revoke_warning') || 'The current link will stop working. This cannot be undone.'}
               </p>
             )}

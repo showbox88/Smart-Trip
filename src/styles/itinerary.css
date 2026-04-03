@@ -2,9 +2,9 @@
     position: sticky;
     top: 0;
     z-index: 100;
-    background: var(--bg-primary);
+    background: var(--md-sys-color-surface);
     /* Match deep blue of the sidebar */
-    border-bottom: 1px solid var(--glass-border);
+    border-bottom: 1px solid var(--md-sys-color-outline);
     padding: 1.5rem 2rem;
     margin-bottom: 1.5rem;
     transition: all 0.3s ease;
@@ -12,7 +12,7 @@
 
 .itinerary-header h2 {
     font-size: 1.8rem;
-    color: var(--text-primary);
+    color: var(--md-sys-color-on-surface);
 }
 
 .trip-navigation li {
@@ -29,7 +29,7 @@
 
 /* .trip-navigation li.active {
     background-color: rgba(255, 255, 255, 0.1);
-    border: 1px solid var(--glass-border);
+    border: 1px solid var(--md-sys-color-outline);
 } */
 
 .day-section {
@@ -52,7 +52,7 @@
 }
 
 .time {
-    color: var(--accent-secondary);
+    color: var(--md-sys-color-secondary);
     font-weight: 600;
     font-size: 0.9rem;
 }
@@ -68,15 +68,15 @@
 }
 
 .red {
-    background: #ef4444;
+    background: var(--md-sys-color-error);
 }
 
 .yellow {
-    background: #f59e0b;
+    background: var(--st-color-status-soon);
 }
 
 .green {
-    background: #10b981;
+    background: var(--md-sys-color-tertiary);
 }
 
 .stop-card {
@@ -93,13 +93,13 @@
 
 .stop-card:hover {
     background: rgba(255, 255, 255, 0.08) !important;
-    border-color: var(--glass-border);
+    border-color: var(--md-sys-color-outline);
     backdrop-filter: blur(8px) saturate(180%);
 }
 
 .stop-note {
     font-size: 0.85rem;
-    color: var(--text-secondary);
+    color: var(--md-sys-color-on-surface-variant);
     font-style: italic;
     margin-top: 0.5rem;
     display: block;
@@ -110,7 +110,7 @@
     top: 1.5rem;
     right: 1.5rem;
     font-weight: 700;
-    color: #10b981;
+    color: var(--md-sys-color-tertiary);
     font-size: 0.9rem;
 }
 
@@ -140,12 +140,12 @@
 
 /* For non-hotel cards, still show the glass border on hover */
 .rich-stop-card:not(.comfy-node-link):hover {
-    border-color: var(--glass-border) !important;
+    border-color: var(--md-sys-color-outline) !important;
 }
 
 /* Hotel specific hover: Keep border and add glow */
 .comfy-node-link:hover {
-    border-color: #f59e0b !important;
+    border-color: var(--st-color-status-soon) !important;
     box-shadow: 0 0 15px rgba(245, 158, 11, 0.4), 0 5px 15px rgba(0, 0, 0, 0.4) !important;
 }
 
@@ -155,7 +155,7 @@
 }
 .list-card-item .list-item-delete:hover {
     opacity: 1 !important;
-    color: #ef4444 !important;
+    color: var(--md-sys-color-error) !important;
 }
 /* Address Card Image Scaling */
 .rich-stop-card-media {
@@ -251,18 +251,18 @@
 .back-action-item:hover {
     background: rgba(255, 255, 255, 0.08);
     transform: translateY(-2px);
-    border-color: var(--accent-primary);
+    border-color: var(--md-sys-color-primary);
 }
 
 .back-action-item span {
     font-size: 24px;
-    color: var(--accent-primary);
+    color: var(--md-sys-color-primary);
 }
 
 .back-action-item label {
     font-size: 0.7rem;
     font-weight: 600;
-    color: var(--text-secondary);
+    color: var(--md-sys-color-on-surface-variant);
     cursor: pointer;
 }
 
@@ -320,7 +320,7 @@
 }
 
 .back-section textarea:focus, .back-section input:focus {
-    border-color: var(--accent-primary) !important;
+    border-color: var(--md-sys-color-primary) !important;
     background: rgba(0,0,0,0.3) !important;
     box-shadow: 0 0 10px rgba(60, 131, 246, 0.2);
 }
@@ -437,7 +437,7 @@
 
 .back-icon-side span {
     font-size: 28px;
-    color: var(--accent-primary);
+    color: var(--md-sys-color-primary);
     opacity: 0.5;
 }
 
@@ -499,7 +499,7 @@
     align-items: center;
     gap: 0.75rem;
     padding: 0 1rem;
-    color: var(--text-muted);
+    color: var(--st-color-text-muted);
     font-size: 0.75rem;
     opacity: 0.5;
 }
