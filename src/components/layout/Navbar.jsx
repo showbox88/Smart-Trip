@@ -3,10 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../hooks/useAuth';
 import { useI18n } from '../../context/I18nContext';
+import { useTheme } from '../../theme';
 import { isAdmin } from '../../utils/admin';
 
 export default function Navbar() {
   const { state } = useApp();
+  const { layoutVariant } = useTheme();
+
+  // Hide navbar in clean layout (bottom nav replaces it)
+  if (layoutVariant === 'clean') return null;
   const { signOut } = useAuth();
   const { t, language, setLanguage, availableLanguages } = useI18n();
   const navigate = useNavigate();

@@ -4,10 +4,10 @@
  * Consumer hook for the ThemeContext.
  *
  * Usage:
- *   const { currentTheme, themeId, setTheme, resetTheme } = useTheme();
+ *   const { currentTheme, themeId, layoutVariant, setTheme, resetTheme } = useTheme();
  */
 
-import { useContext } from 'react';
+import { useContext, useMemo } from 'react';
 import { ThemeContext } from './ThemeContext';
 
 export function useTheme() {
@@ -15,5 +15,20 @@ export function useTheme() {
   if (!ctx) {
     throw new Error('useTheme() must be used within a <ThemeProvider>');
   }
-  return ctx;
+
+  const layoutVariant = useMemo(
+    () => ctx.currentTheme?.layout?.variant || 'glass',
+    [ctx.currentTheme?.layout?.variant]
+  );
+
+  const layout = useMemo(
+    () => ctx.currentTheme?.layout || {},
+    [ctx.currentTheme?.layout]
+  );
+
+  return useMemo(() => ({
+    ...ctx,
+    layoutVariant,
+    layout,
+  }), [ctx, layoutVariant, layout]);
 }

@@ -118,6 +118,11 @@ export function validateTheme(theme) {
     }
   }
 
+  // Layout (optional but validated if present)
+  if (theme.layout) {
+    validateLayout(theme.layout, errors);
+  }
+
   return { valid: errors.length === 0, errors };
 }
 
@@ -141,6 +146,59 @@ function validateExtended(extended, errors) {
   }
   if (extended.timelineDefault && !isValidCSSValue(extended.timelineDefault)) {
     errors.push('Invalid extended.timelineDefault value');
+  }
+}
+
+// ── Layout Variant Validation ──
+const VALID_LAYOUT_VARIANTS = ['glass', 'clean'];
+const VALID_ELEVATIONS = ['none', 'sm', 'md'];
+const VALID_DOT_STYLES = ['filled', 'hollow'];
+const VALID_LINE_STYLES = ['dashed', 'solid'];
+const VALID_TRANSIT_DISPLAYS = ['collapsible', 'inline'];
+const VALID_NAV_POSITIONS = ['top', 'bottom'];
+const VALID_NAV_STYLES = ['glass', 'flat'];
+const VALID_HEADER_STYLES = ['sticky-bar', 'transparent'];
+
+function validateLayout(layout, errors) {
+  if (layout.variant && !VALID_LAYOUT_VARIANTS.includes(layout.variant)) {
+    errors.push(`Invalid layout.variant: "${layout.variant}" (expected: ${VALID_LAYOUT_VARIANTS.join(', ')})`);
+  }
+  if (layout.card) {
+    if (layout.card.elevation && !VALID_ELEVATIONS.includes(layout.card.elevation)) {
+      errors.push(`Invalid layout.card.elevation: "${layout.card.elevation}"`);
+    }
+  }
+  if (layout.timeline) {
+    if (layout.timeline.dotStyle && !VALID_DOT_STYLES.includes(layout.timeline.dotStyle)) {
+      errors.push(`Invalid layout.timeline.dotStyle: "${layout.timeline.dotStyle}"`);
+    }
+    if (layout.timeline.lineStyle && !VALID_LINE_STYLES.includes(layout.timeline.lineStyle)) {
+      errors.push(`Invalid layout.timeline.lineStyle: "${layout.timeline.lineStyle}"`);
+    }
+    if (layout.timeline.dotSize && !isValidCSSValue(layout.timeline.dotSize)) {
+      errors.push('Invalid layout.timeline.dotSize value');
+    }
+    if (layout.timeline.lineWidth && !isValidCSSValue(layout.timeline.lineWidth)) {
+      errors.push('Invalid layout.timeline.lineWidth value');
+    }
+  }
+  if (layout.transit) {
+    if (layout.transit.display && !VALID_TRANSIT_DISPLAYS.includes(layout.transit.display)) {
+      errors.push(`Invalid layout.transit.display: "${layout.transit.display}"`);
+    }
+  }
+  if (layout.navigation) {
+    if (layout.navigation.position && !VALID_NAV_POSITIONS.includes(layout.navigation.position)) {
+      errors.push(`Invalid layout.navigation.position: "${layout.navigation.position}"`);
+    }
+    if (layout.navigation.style && !VALID_NAV_STYLES.includes(layout.navigation.style)) {
+      errors.push(`Invalid layout.navigation.style: "${layout.navigation.style}"`);
+    }
+  }
+  if (layout.header) {
+    if (layout.header.style && !VALID_HEADER_STYLES.includes(layout.header.style)) {
+      errors.push(`Invalid layout.header.style: "${layout.header.style}"`);
+    }
   }
 }
 

@@ -1,0 +1,204 @@
+/**
+ * Layout Variants — Clean (Light M3)
+ *
+ * All overrides scoped under [data-layout="clean"].
+ * This file handles visual differences that can be achieved with CSS alone.
+ * Structural differences (3D flip, bottom nav) are handled in component JSX.
+ */
+
+/* ═══════════════════════════════════════════════════
+   1. STOP CARD — flat white card, no 3D flip shell
+   ═══════════════════════════════════════════════════ */
+
+/* Remove 3D perspective from container */
+[data-layout="clean"] .stop-card-container {
+  perspective: none;
+}
+
+/* Disable 3D transform on inner wrapper */
+[data-layout="clean"] .stop-card-inner {
+  transform-style: flat;
+  transform: none !important;  /* override inline rotateY */
+}
+
+/* Hide back face entirely (JSX also hides it, belt-and-suspenders) */
+[data-layout="clean"] .rich-stop-card-back {
+  display: none !important;
+}
+
+/* Flat card front face styling */
+[data-layout="clean"] .rich-stop-card {
+  background: var(--md-sys-color-surface-container-lowest) !important;
+  border: 1px solid var(--md-sys-color-outline-variant) !important;
+  border-radius: var(--md-sys-shape-corner-medium);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+[data-layout="clean"] .rich-stop-card:hover {
+  background: var(--md-sys-color-surface-container-low) !important;
+  backdrop-filter: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
+  border-color: var(--md-sys-color-outline) !important;
+}
+
+/* Hide flip button in clean layout */
+[data-layout="clean"] .stop-card-flip-container {
+  display: none;
+}
+
+/* Card media — slightly larger, rounded */
+[data-layout="clean"] .rich-stop-card-media {
+  border-radius: var(--md-sys-shape-corner-medium);
+}
+
+
+/* ═══════════════════════════════════════════════════
+   2. TIMELINE — hollow dots, adjusted line
+   ═══════════════════════════════════════════════════ */
+
+/* Timeline dots — hollow style with colored border */
+[data-layout="clean"] .dot {
+  width: var(--st-timeline-dot-size, 24px);
+  height: var(--st-timeline-dot-size, 24px);
+  background: var(--md-sys-color-surface-container-lowest) !important;
+  border: 2.5px solid currentColor;
+  box-shadow: none;
+}
+
+[data-layout="clean"] .dot.red {
+  color: var(--md-sys-color-error);
+  border-color: var(--md-sys-color-error);
+}
+
+[data-layout="clean"] .dot.yellow {
+  color: var(--st-color-status-soon);
+  border-color: var(--st-color-status-soon);
+}
+
+[data-layout="clean"] .dot.green {
+  color: var(--md-sys-color-tertiary);
+  border-color: var(--md-sys-color-tertiary);
+}
+
+/* Hotel line segment — subtle, no glow */
+[data-layout="clean"] .stay-line-segment {
+  background-color: var(--md-sys-color-outline-variant) !important;
+}
+
+[data-layout="clean"] .stay-line-segment.stay-hover {
+  background-color: var(--st-color-hotel-line) !important;
+  box-shadow: none !important;
+}
+
+/* Hotel node link — subtle border, no glow */
+[data-layout="clean"] .comfy-node-link {
+  --hotel-accent: var(--md-sys-color-outline);
+}
+
+[data-layout="clean"] .comfy-node-link:hover {
+  --hotel-accent: var(--st-color-hotel-line);
+  --hotel-glow: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+}
+
+
+/* ═══════════════════════════════════════════════════
+   3. NAVBAR — hidden in clean layout (bottom nav replaces it)
+   ═══════════════════════════════════════════════════ */
+
+[data-layout="clean"] .navbar {
+  display: none !important;
+}
+
+
+/* ═══════════════════════════════════════════════════
+   4. GLASS EFFECTS — remove backdrop blur, subtle shadows
+   ═══════════════════════════════════════════════════ */
+
+[data-layout="clean"] .glass-card,
+[data-layout="clean"] .login-card {
+  background: var(--md-sys-color-surface-container-lowest);
+  backdrop-filter: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+[data-layout="clean"] .login-glass-card {
+  background: var(--md-sys-color-surface-container-lowest);
+  backdrop-filter: blur(8px);
+  border-color: var(--md-sys-color-outline-variant);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+[data-layout="clean"] .modal-content {
+  background: var(--md-sys-color-surface-container-lowest);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+[data-layout="clean"] .modal-overlay {
+  background: rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(2px);
+}
+
+
+/* ═══════════════════════════════════════════════════
+   5. BODY & PAGE — light background adjustments
+   ═══════════════════════════════════════════════════ */
+
+/* Ensure page content has room for bottom nav */
+[data-layout="clean"] .app-main,
+[data-layout="clean"] main {
+  padding-bottom: 80px;
+}
+
+
+/* ═══════════════════════════════════════════════════
+   6. BUTTONS & INPUTS — M3 flat style
+   ═══════════════════════════════════════════════════ */
+
+[data-layout="clean"] .nav-search-bar input {
+  background: var(--md-sys-color-surface-container);
+  color: var(--md-sys-color-on-surface);
+  border-color: var(--md-sys-color-outline-variant);
+}
+
+[data-layout="clean"] .nav-search-bar input:focus {
+  background: var(--md-sys-color-surface-container-low);
+  border-color: var(--md-sys-color-primary);
+  box-shadow: 0 0 0 3px rgba(77, 85, 106, 0.12);
+}
+
+[data-layout="clean"] .nav-icon-btn:hover {
+  background: var(--md-sys-color-surface-container-high);
+  color: var(--md-sys-color-on-surface);
+}
+
+
+/* ═══════════════════════════════════════════════════
+   7. BACK CONTENT (when shown as sheet, not flip)
+   ═══════════════════════════════════════════════════ */
+
+[data-layout="clean"] .back-content-grid {
+  background: var(--md-sys-color-surface-container-low);
+  border-radius: var(--md-sys-shape-corner-medium);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  padding: 0.75rem;
+}
+
+[data-layout="clean"] .back-action-item {
+  background: var(--md-sys-color-surface-container-lowest);
+  border-color: var(--md-sys-color-outline-variant);
+}
+
+[data-layout="clean"] .back-action-item:hover {
+  background: var(--md-sys-color-surface-container);
+}
+
+
+/* ═══════════════════════════════════════════════════
+   8. TRANSITION for layout switching
+   ═══════════════════════════════════════════════════ */
+
+[data-layout] {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}

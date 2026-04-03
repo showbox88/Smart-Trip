@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, memo } from 'react';
 import { createPortal } from 'react-dom';
 import { useI18n } from '../../context/I18nContext';
 import { useApp } from '../../context/AppContext';
+import { useTheme } from '../../theme';
 import { formatDistance, formatDuration } from '../../utils/formatters';
 import { fetchTransitAlternatives } from '../../utils/transitHelpers';
 import HotelLine from './HotelLine';
@@ -289,6 +290,8 @@ function TransitStepsPanel({ origin, dest, transit, onClose, t }) {
 export default memo(function TransitInfo({ transit, transitMode, origin, dest, onToggleMode, onAddStop, onAddNote, onAddList, onAddTransport, hideAdd, inHotelStay }) {
   const { t } = useI18n();
   const { state } = useApp();
+  const { layout } = useTheme();
+  const isInlineTransit = layout?.transit?.display === 'inline';
   const [showAddMenu, setShowAddMenu] = useState(false);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
   const [showSteps, setShowSteps] = useState(false);
@@ -361,6 +364,34 @@ export default memo(function TransitInfo({ transit, transitMode, origin, dest, o
     : transitMode === 'WALK'
       ? (t('itinerary.walk') || '步行')
       : (t('itinerary.drive') || '驾车');
+
+  // ── Inline compact display for clean layout ──
+  if (isInlineTransit && hasData && !calculating) {
+    const modeEmoji = effectiveMode === 'WALK' ? '🚶' : effectiveMode === 'TRANSIT' ? '🚌' : '🚗';
+    return (
+      <div className="transit-info-row transit-inline" style={{
+        display: 'flex', alignItems: 'center', gap: '0.4rem',
+        padding: '0.25rem 0 0.25rem var(--transit-pl)',
+        color: 'var(--st-color-text-muted)', fontSize: '0.78rem',
+        position: 'relative',
+      }}>
+        {inHotelStay && <HotelLine top="0" bottom="0" />}
+        <span>{modeEmoji}</span>
+        {transit.duration && <span>{formatDuration(transit.duration, t)}</span>}
+        {transit.distance && <span style={{ opacity: 0.6 }}>· {formatDistance(transit.distance, state.settings, t)}</span>}
+        {isTransit && (hasSteps || (origin && dest)) && (
+          <span
+            className="material-symbols-outlined"
+            style={{ fontSize: '14px', cursor: 'pointer', opacity: 0.5 }}
+            onClick={() => setShowSteps(true)}
+          >info</span>
+        )}
+        {showSteps && (
+          <TransitStepsPanel origin={origin} dest={dest} transit={transit} onClose={() => setShowSteps(false)} t={t} />
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="transit-info-row" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0 0.4rem var(--transit-pl)', color: 'var(--st-color-text-muted)', fontSize: '0.8rem', position: 'relative' }}>

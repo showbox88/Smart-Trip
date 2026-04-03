@@ -10,7 +10,7 @@
  * Schema follows Material Design 3 naming conventions.
  */
 
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 export const DEFAULT_THEME = {
   schemaVersion: SCHEMA_VERSION,
@@ -136,5 +136,32 @@ export const DEFAULT_THEME = {
     cornerLarge:      '2rem',
     cornerExtraLarge: '3rem',
     cornerFull:       '9999px',
+  },
+
+  // ── Layout Variant ──
+  layout: {
+    variant: 'glass',
+    card: {
+      flip:      true,
+      elevation: 'none',
+      backdrop:  true,
+    },
+    timeline: {
+      dotSize:   '8px',
+      dotStyle:  'filled',
+      lineStyle: 'dashed',
+      lineWidth: '2px',
+    },
+    transit: {
+      display: 'collapsible',
+    },
+    navigation: {
+      position: 'top',
+      style:    'glass',
+    },
+    header: {
+      style:    'sticky-bar',
+      showHero: false,
+    },
   },
 };

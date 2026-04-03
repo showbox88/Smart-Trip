@@ -13,19 +13,23 @@ import { SCHEMA_VERSION } from './themeDefaults';
  * Registry of migration functions.
  * Key = source version, value = function that upgrades to next version.
  */
+/** Default glass layout — injected into v1 themes during migration */
+const DEFAULT_GLASS_LAYOUT = {
+  variant: 'glass',
+  card:       { flip: true, elevation: 'none', backdrop: true },
+  timeline:   { dotSize: '8px', dotStyle: 'filled', lineStyle: 'dashed', lineWidth: '2px' },
+  transit:    { display: 'collapsible' },
+  navigation: { position: 'top', style: 'glass' },
+  header:     { style: 'sticky-bar', showHero: false },
+};
+
 const migrations = {
-  // Example for future use:
-  // 1: (theme) => {
-  //   // v1 → v2: add new token "accent-hover"
-  //   return {
-  //     ...theme,
-  //     schemaVersion: 2,
-  //     colors: {
-  //       ...theme.colors,
-  //       'accent-hover': theme.colors.primary || '#2563eb',
-  //     },
-  //   };
-  // },
+  // v1 → v2: add layout variant system
+  1: (theme) => ({
+    ...theme,
+    schemaVersion: 2,
+    layout: theme.layout || { ...DEFAULT_GLASS_LAYOUT },
+  }),
 };
 
 /**

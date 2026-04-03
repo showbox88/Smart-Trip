@@ -83,6 +83,14 @@ export const OCEAN = {
     label: "'Lexend', 'Plus Jakarta Sans', sans-serif",
   },
   shape: { cornerMedium: '1rem', cornerLarge: '2rem', cornerExtraLarge: '3rem', cornerFull: '9999px' },
+  layout: {
+    variant: 'glass',
+    card: { flip: true, elevation: 'none', backdrop: true },
+    timeline: { dotSize: '8px', dotStyle: 'filled', lineStyle: 'dashed', lineWidth: '2px' },
+    transit: { display: 'collapsible' },
+    navigation: { position: 'top', style: 'glass' },
+    header: { style: 'sticky-bar', showHero: false },
+  },
 };
 
 // ── 🌸 Sakura ─────────────────────────────────────────────
@@ -160,6 +168,14 @@ export const SAKURA = {
     label: "'Lexend', 'Plus Jakarta Sans', sans-serif",
   },
   shape: { cornerMedium: '1rem', cornerLarge: '2rem', cornerExtraLarge: '3rem', cornerFull: '9999px' },
+  layout: {
+    variant: 'glass',
+    card: { flip: true, elevation: 'none', backdrop: true },
+    timeline: { dotSize: '8px', dotStyle: 'filled', lineStyle: 'dashed', lineWidth: '2px' },
+    transit: { display: 'collapsible' },
+    navigation: { position: 'top', style: 'glass' },
+    header: { style: 'sticky-bar', showHero: false },
+  },
 };
 
 // ── 🌿 Forest ─────────────────────────────────────────────
@@ -237,6 +253,14 @@ export const FOREST = {
     label: "'Lexend', 'Plus Jakarta Sans', sans-serif",
   },
   shape: { cornerMedium: '1rem', cornerLarge: '2rem', cornerExtraLarge: '3rem', cornerFull: '9999px' },
+  layout: {
+    variant: 'glass',
+    card: { flip: true, elevation: 'none', backdrop: true },
+    timeline: { dotSize: '8px', dotStyle: 'filled', lineStyle: 'dashed', lineWidth: '2px' },
+    transit: { display: 'collapsible' },
+    navigation: { position: 'top', style: 'glass' },
+    header: { style: 'sticky-bar', showHero: false },
+  },
 };
 
 // ── 🔥 Ember ──────────────────────────────────────────────
@@ -314,6 +338,14 @@ export const EMBER = {
     label: "'Lexend', 'Plus Jakarta Sans', sans-serif",
   },
   shape: { cornerMedium: '1rem', cornerLarge: '2rem', cornerExtraLarge: '3rem', cornerFull: '9999px' },
+  layout: {
+    variant: 'glass',
+    card: { flip: true, elevation: 'none', backdrop: true },
+    timeline: { dotSize: '8px', dotStyle: 'filled', lineStyle: 'dashed', lineWidth: '2px' },
+    transit: { display: 'collapsible' },
+    navigation: { position: 'top', style: 'glass' },
+    header: { style: 'sticky-bar', showHero: false },
+  },
 };
 
 // ── 🌙 Midnight ───────────────────────────────────────────
@@ -391,6 +423,99 @@ export const MIDNIGHT = {
     label: "'Lexend', 'Plus Jakarta Sans', sans-serif",
   },
   shape: { cornerMedium: '1rem', cornerLarge: '2rem', cornerExtraLarge: '3rem', cornerFull: '9999px' },
+  layout: {
+    variant: 'glass',
+    card: { flip: true, elevation: 'none', backdrop: true },
+    timeline: { dotSize: '8px', dotStyle: 'filled', lineStyle: 'dashed', lineWidth: '2px' },
+    transit: { display: 'collapsible' },
+    navigation: { position: 'top', style: 'glass' },
+    header: { style: 'sticky-bar', showHero: false },
+  },
+};
+
+// ── ☁️ Clean (Light M3 — Figma Tokyo Design) ──────────────
+export const CLEAN = {
+  schemaVersion: SCHEMA_VERSION,
+  name: 'Clean',
+  description: 'Minimal light theme with soft grays and teal accents',
+  author: 'system',
+  colors: {
+    'primary': '#4d556a',
+    'primary-container': '#656d84',
+    'primary-dim': '#3f465c',
+    'primary-fixed': '#dae2fd',
+    'primary-fixed-dim': '#bec6e0',
+    'on-primary': '#ffffff',
+    'on-primary-container': '#edf0ff',
+    'on-primary-fixed': '#131b2e',
+    'on-primary-fixed-variant': '#3f465c',
+    'secondary': '#515f74',
+    'secondary-container': '#d5e3fd',
+    'secondary-dim': '#3a485c',
+    'secondary-fixed': '#d5e3fd',
+    'secondary-fixed-dim': '#b9c7e0',
+    'on-secondary': '#ffffff',
+    'on-secondary-container': '#57657b',
+    'on-secondary-fixed': '#0d1c2f',
+    'on-secondary-fixed-variant': '#3a485c',
+    'tertiary': '#006058',
+    'tertiary-container': '#007b71',
+    'tertiary-dim': '#005049',
+    'tertiary-fixed': '#89f5e7',
+    'tertiary-fixed-dim': '#6bd8cb',
+    'on-tertiary': '#ffffff',
+    'on-tertiary-container': '#b3fff3',
+    'on-tertiary-fixed': '#00201d',
+    'on-tertiary-fixed-variant': '#005049',
+    'error': '#ba1a1a',
+    'error-container': '#ffdad6',
+    'error-dim': '#93000a',
+    'on-error': '#ffffff',
+    'on-error-container': '#93000a',
+    'surface': '#f7f9fb',
+    'surface-variant': '#e0e3e5',
+    'surface-dim': '#d8dadc',
+    'surface-bright': '#f7f9fb',
+    'surface-tint': '#565e74',
+    'surface-container': '#eceef0',
+    'surface-container-low': '#f2f4f6',
+    'surface-container-high': '#e6e8ea',
+    'surface-container-lowest': '#ffffff',
+    'surface-container-highest': '#e0e3e5',
+    'on-surface': '#191c1e',
+    'on-surface-variant': '#434655',
+    'background': '#f7f9fb',
+    'on-background': '#191c1e',
+    'outline': '#737686',
+    'outline-variant': '#c3c6d7',
+    'inverse-surface': '#2d3133',
+    'inverse-on-surface': '#eff1f3',
+    'inverse-primary': '#bec6e0',
+  },
+  extended: {
+    glass: { bg: 'rgba(77,85,106,0.04)', nav: 'rgba(247,249,251,0.85)', blur: 'blur(12px)' },
+    shadow: { premium: '0 4px 16px -4px rgba(25,28,30,0.08), 0 2px 6px -2px rgba(25,28,30,0.06)' },
+    status: { ongoing: '#4d556a', upcoming: '#006058', soon: '#ba6900', passed: '#737686' },
+    transit: { flight: '#006058', train: '#737686', bus: '#ba6900', ship: '#4d556a', drive: '#515f74', walk: '#006058' },
+    hotel: { checkin: '#006058', checkout: '#ba1a1a', line: '#ba6900' },
+    category: { food: '#ba6900', attraction: '#4d556a', nature: '#006058', shopping: '#7b5ea7' },
+    textMuted: '#737686',
+    timelineDefault: '#9296a5',
+  },
+  typography: {
+    headline: "'Manrope', 'Plus Jakarta Sans', sans-serif",
+    body: "'Inter', 'Plus Jakarta Sans', 'Noto Sans SC', sans-serif",
+    label: "'Inter', 'Plus Jakarta Sans', sans-serif",
+  },
+  shape: { cornerMedium: '0.75rem', cornerLarge: '1rem', cornerExtraLarge: '1.5rem', cornerFull: '9999px' },
+  layout: {
+    variant: 'clean',
+    card: { flip: false, elevation: 'sm', backdrop: false },
+    timeline: { dotSize: '24px', dotStyle: 'hollow', lineStyle: 'dashed', lineWidth: '2px' },
+    transit: { display: 'inline' },
+    navigation: { position: 'bottom', style: 'flat' },
+    header: { style: 'transparent', showHero: true },
+  },
 };
 
 // ── All Presets ────────────────────────────────────────────
@@ -400,4 +525,5 @@ export const PRESET_THEMES = [
   { id: 'forest',   theme: FOREST,   emoji: '🌿' },
   { id: 'ember',    theme: EMBER,    emoji: '🔥' },
   { id: 'midnight', theme: MIDNIGHT, emoji: '🌙' },
+  { id: 'clean',    theme: CLEAN,    emoji: '☁️' },
 ];

@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useI18n } from '../../context/I18nContext';
 import { useApp } from '../../context/AppContext';
+import { useTheme } from '../../theme';
 import { formatCurrency, calculateDays } from '../../utils/formatters';
 
 function formatDateShort(dateStr) {
@@ -22,6 +24,9 @@ function formatCheckinDate(dateStr) {
 export default function TripHeader({ trip, onDeleteTrip, onEditTrip, onShareTrip, onShowSchedule, isDayMode = false }) {
   const { t } = useI18n();
   const { state } = useApp();
+  const { layoutVariant } = useTheme();
+  const isClean = layoutVariant === 'clean';
+  const navigate = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef(null);
 
@@ -43,6 +48,68 @@ export default function TripHeader({ trip, onDeleteTrip, onEditTrip, onShareTrip
   }, []);
 
   if (!trip) return null;
+
+  // ── Clean layout: transparent top bar with back arrow + title ──
+  if (isClean) {
+    return (
+      <div
+        className="itinerary-header itinerary-header--clean"
+        id="trip-header-bar"
+        style={{
+          padding: '0.75rem 1rem',
+          background: 'transparent',
+          position: 'sticky', top: 0, zIndex: 100,
+          display: 'flex', alignItems: 'center', gap: '0.75rem',
+        }}
+      >
+        <button
+          onClick={() => navigate(-1)}
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            color: 'var(--md-sys-color-on-surface)', padding: '4px',
+            borderRadius: '8px', display: 'flex', alignItems: 'center',
+          }}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>arrow_back</span>
+        </button>
+        <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {isDayMode ? (() => { const d = formatCheckinDate(trip.startDate); return d.weekday; })() : trip.title}
+        </h2>
+        {!isDayMode && (
+          <div ref={menuRef} style={{ position: 'relative' }}>
+            <button
+              onClick={() => setShowMenu(v => !v)}
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                color: 'var(--md-sys-color-on-surface-variant)', padding: '4px',
+                borderRadius: '8px', display: 'flex', alignItems: 'center',
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>more_vert</span>
+            </button>
+            {showMenu && (
+              <div className="menu-dropdown active" style={{ top: '2rem', right: 0 }}>
+                <button onClick={() => { onShowSchedule?.(); setShowMenu(false); }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>today</span>
+                  {t('itinerary.today_schedule') || 'Schedule'}
+                </button>
+                <button onClick={() => { onEditTrip?.(); setShowMenu(false); }}>
+                  {t('itinerary.edit_trip') || 'Edit trip'}
+                </button>
+                <button onClick={() => { onShareTrip?.(); setShowMenu(false); }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>share</span>
+                  {t('itinerary.share_trip') || 'Share'}
+                </button>
+                <button className="danger" onClick={() => { onDeleteTrip?.(trip.id); setShowMenu(false); }}>
+                  {t('itinerary.delete_trip') || 'Delete'}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div

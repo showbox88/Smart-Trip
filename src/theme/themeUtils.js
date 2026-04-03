@@ -107,6 +107,24 @@ export function applyTheme(theme) {
     root.style.setProperty('--md-sys-shape-corner-extra-large', merged.shape.cornerExtraLarge);
     root.style.setProperty('--md-sys-shape-corner-full', merged.shape.cornerFull);
   }
+
+  // ── Layout Variant ──
+  const layout = merged.layout || {};
+  const variant = layout.variant || 'glass';
+  root.setAttribute('data-layout', variant);
+
+  // Timeline tokens
+  if (layout.timeline) {
+    root.style.setProperty('--st-timeline-dot-size', layout.timeline.dotSize || '8px');
+    root.style.setProperty('--st-timeline-dot-style', layout.timeline.dotStyle || 'filled');
+    root.style.setProperty('--st-timeline-line-style', layout.timeline.lineStyle || 'dashed');
+    root.style.setProperty('--st-timeline-line-width', layout.timeline.lineWidth || '2px');
+  }
+
+  // Card tokens
+  if (layout.card) {
+    root.style.setProperty('--st-card-elevation', layout.card.elevation || 'none');
+  }
 }
 
 /**
@@ -126,6 +144,9 @@ export function clearTheme() {
     }
   }
   propsToRemove.forEach(prop => style.removeProperty(prop));
+
+  // Remove layout attribute
+  root.removeAttribute('data-layout');
 }
 
 /**
