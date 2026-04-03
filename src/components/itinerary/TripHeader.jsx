@@ -57,7 +57,8 @@ export default function TripHeader({ trip, onDeleteTrip, onEditTrip, onShareTrip
         id="trip-header-bar"
         style={{
           padding: '0.75rem 1rem',
-          background: 'transparent',
+          background: 'var(--md-sys-color-surface)',
+          borderBottom: '1px solid var(--md-sys-color-outline-variant)',
           position: 'sticky', top: 0, zIndex: 100,
           display: 'flex', alignItems: 'center', gap: '0.75rem',
         }}

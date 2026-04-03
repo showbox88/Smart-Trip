@@ -99,10 +99,15 @@
 
 
 /* ═══════════════════════════════════════════════════
-   3. NAVBAR — hidden in clean layout (bottom nav replaces it)
+   3. NAVBAR & FLOATING BUTTONS — hidden in clean layout
    ═══════════════════════════════════════════════════ */
 
 [data-layout="clean"] .navbar {
+  display: none !important;
+}
+
+/* Hide floating map/itinerary toggle — replaced by bottom nav */
+[data-layout="clean"] .mobile-view-switcher {
   display: none !important;
 }
 

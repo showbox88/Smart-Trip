@@ -1,35 +1,47 @@
 /**
  * BottomNav — Clean layout bottom tab bar
  *
- * Only rendered when layout variant is 'clean'.
- * Provides mobile-friendly navigation with 4 tabs.
+ * Context-aware: shows different tabs depending on current page.
+ * - Dashboard/Today: Today | My Trips | Map | Profile
+ * - Trip page: Today | Itinerary | Map | Profile
  */
 
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { useI18n } from '../../context/I18nContext';
 
-const TABS = [
-  { key: 'today',     icon: 'today',       path: '/today'     },
-  { key: 'trips',     icon: 'luggage',     path: '/'          },
-  { key: 'map',       icon: 'map',         path: null         },
-  { key: 'profile',   icon: 'person',      path: null         },
-];
-
-export default function BottomNav({ onToggleMap }) {
+export default function BottomNav() {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useI18n();
 
-  const labels = {
-    today:   t('itinerary.today_schedule') || 'Today',
-    trips:   t('common.my_trips') || 'My Trips',
-    map:     t('common.map') || 'Map',
-    profile: t('common.you') || 'Profile',
-  };
+  // Detect if we're inside a trip page
+  const isTripPage = location.pathname.startsWith('/trip-v2/');
+
+  const tabs = isTripPage
+    ? [
+        { key: 'today',     icon: 'today',      label: t('common.today') || 'Today',         path: '/today' },
+        { key: 'itinerary', icon: 'event_note',  label: t('common.itinerary') || 'Itinerary', path: null, action: 'itinerary' },
+        { key: 'map',       icon: 'map',         label: t('common.map') || 'Map',             path: null, action: 'map' },
+        { key: 'profile',   icon: 'person',      label: t('common.you') || 'You',             path: null },
+      ]
+    : [
+        { key: 'today',   icon: 'today',   label: t('common.today') || 'Today',     path: '/today' },
+        { key: 'trips',   icon: 'luggage', label: t('common.my_trips') || 'My Trips', path: '/' },
+        { key: 'map',     icon: 'map',     label: t('common.map') || 'Map',         path: null },
+        { key: 'profile', icon: 'person',  label: t('common.you') || 'You',         path: null },
+      ];
 
   const handleTabClick = (tab) => {
-    if (tab.key === 'map' && onToggleMap) {
-      onToggleMap();
+    if (tab.action === 'map') {
+      // Toggle map view mode on trip page via body class
+      const isMapMode = document.body.classList.contains('mobile-mode-map');
+      document.body.classList.toggle('mobile-mode-map', !isMapMode);
+      document.body.classList.toggle('mobile-mode-plan', isMapMode);
+      return;
+    }
+    if (tab.action === 'itinerary') {
+      document.body.classList.remove('mobile-mode-map');
+      document.body.classList.add('mobile-mode-plan');
       return;
     }
     if (tab.path) {
@@ -38,6 +50,12 @@ export default function BottomNav({ onToggleMap }) {
   };
 
   const isActive = (tab) => {
+    if (tab.action === 'map') {
+      return document.body.classList.contains('mobile-mode-map');
+    }
+    if (tab.action === 'itinerary') {
+      return isTripPage && !document.body.classList.contains('mobile-mode-map');
+    }
     if (!tab.path) return false;
     if (tab.path === '/') return location.pathname === '/';
     return location.pathname.startsWith(tab.path);
@@ -57,12 +75,12 @@ export default function BottomNav({ onToggleMap }) {
       border: '1px solid var(--md-sys-color-outline-variant)',
       borderRadius: 'var(--md-sys-shape-corner-full)',
       boxShadow: '0 4px 16px -4px rgba(0,0,0,0.10), 0 2px 6px -2px rgba(0,0,0,0.06)',
-      zIndex: 1000,
+      zIndex: 2010,
       minWidth: '280px',
       maxWidth: '400px',
       width: 'calc(100% - 32px)',
     }}>
-      {TABS.map((tab) => {
+      {tabs.map((tab) => {
         const active = isActive(tab);
         return (
           <button
@@ -89,7 +107,7 @@ export default function BottomNav({ onToggleMap }) {
             <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>
               {tab.icon}
             </span>
-            <span>{labels[tab.key]}</span>
+            <span>{tab.label}</span>
           </button>
         );
       })}
