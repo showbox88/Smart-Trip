@@ -196,7 +196,55 @@
 
 
 /* ═══════════════════════════════════════════════════
-   8. TRANSITION for layout switching
+   8. SIDEBAR DAY NAVIGATION — light pills
+   ═══════════════════════════════════════════════════ */
+
+/* Collapsed day pills (D1, D2, etc.) */
+[data-layout="clean"] .sidebar.collapsed #sidebar-nav li {
+  background: var(--md-sys-color-surface-container-lowest);
+  border: 1px solid var(--md-sys-color-outline-variant);
+}
+
+[data-layout="clean"] .sidebar.collapsed #sidebar-nav li.active {
+  background: var(--md-sys-color-surface-container-low);
+  border-color: var(--md-sys-color-outline);
+}
+
+[data-layout="clean"] .sidebar.collapsed .nav-day-short {
+  color: var(--md-sys-color-on-surface);
+}
+
+/* Expanded sidebar */
+[data-layout="clean"] .sidebar {
+  background: var(--md-sys-color-surface-container-lowest);
+}
+
+/* Add day button */
+[data-layout="clean"] .sidebar.collapsed .add-day-btn {
+  background: var(--md-sys-color-surface-container-lowest);
+  border-color: var(--md-sys-color-outline-variant);
+}
+
+
+/* ═══════════════════════════════════════════════════
+   9. NOTE & TRANSPORT CARDS — light background
+   ═══════════════════════════════════════════════════ */
+
+/* Note, List, Transport card front faces — override hardcoded #0a0c10 */
+[data-layout="clean"] .note-list-card-front {
+  background: var(--md-sys-color-surface-container-lowest) !important;
+  border-color: var(--md-sys-color-outline-variant) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important;
+}
+
+[data-layout="clean"] .note-list-card-front:hover {
+  background: var(--md-sys-color-surface-container-low) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+}
+
+
+/* ═══════════════════════════════════════════════════
+   10. TRANSITION for layout switching
    ═══════════════════════════════════════════════════ */
 
 [data-layout] {

@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import { useI18n } from '../../context/I18nContext';
 import { useApp } from '../../context/AppContext';
+import { useTheme } from '../../theme';
 import HotelLine from './HotelLine';
 import DeleteConfirm from './DeleteConfirm';
 
@@ -16,6 +17,8 @@ export { TRANSPORT_CONFIG };
 export default memo(function TransportCard({ stop, dayId, dayColor, onDelete, onEdit, inHotelStay }) {
   const { t } = useI18n();
   const { state, dispatch } = useApp();
+  const { layoutVariant } = useTheme();
+  const isClean = layoutVariant === 'clean';
   const cfg = TRANSPORT_CONFIG[stop.transportType] || TRANSPORT_CONFIG.FLIGHT;
   const isHovered = state.hoveredStopId === stop.id;
 
@@ -24,19 +27,20 @@ export default memo(function TransportCard({ stop, dayId, dayColor, onDelete, on
       className={`timeline-item note-item id-${stop.id}`}
       style={{ position: 'relative', marginBottom: '0.75rem' }}
     >
-      {/* Timeline dot — transport-type color to indicate a travel node */}
+      {/* Timeline dot — hollow in clean, filled+glow in glass */}
       <div style={{
         position: 'absolute',
         left: 'var(--timeline-line-x)',
         top: '50%',
         transform: 'translate(-50%, -50%)',
-        width: 12,
-        height: 12,
+        width: isClean ? 20 : 12,
+        height: isClean ? 20 : 12,
         borderRadius: '50%',
-        background: cfg.color,
-        border: '2px solid var(--md-sys-color-surface)',
-        boxShadow: `0 0 0 3px ${cfg.color}44`,
+        background: isClean ? 'var(--md-sys-color-surface-container-lowest)' : cfg.color,
+        border: isClean ? `2.5px solid ${cfg.color}` : '2px solid var(--md-sys-color-surface)',
+        boxShadow: isClean ? 'none' : `0 0 0 3px ${cfg.color}44`,
         zIndex: 2,
+        transition: 'all 0.3s ease',
       }} />
 
       {inHotelStay && <HotelLine />}
@@ -51,16 +55,20 @@ export default memo(function TransportCard({ stop, dayId, dayColor, onDelete, on
           onMouseLeave={() => dispatch({ type: 'SET_HOVERED_STOP', payload: null })}
           onClick={() => onEdit?.(stop, dayId)}
           style={{
-            background: isHovered ? 'rgba(255,255,255,0.04)' : '#0a0c10',
+            background: isHovered
+              ? (isClean ? 'var(--md-sys-color-surface-container-low)' : 'rgba(255,255,255,0.04)')
+              : (isClean ? 'var(--md-sys-color-surface-container-lowest)' : '#0a0c10'),
             border: '1px dashed var(--md-sys-color-outline)',
-            borderColor: isHovered ? cfg.color : 'rgba(255,255,255,0.05)',
+            borderColor: isHovered ? cfg.color : (isClean ? 'var(--md-sys-color-outline-variant)' : 'rgba(255,255,255,0.05)'),
             borderRadius: '0.75rem',
             padding: '0.65rem 1rem',
             position: 'relative',
             cursor: 'pointer',
             transition: 'background 0.25s, border-color 0.25s, box-shadow 0.25s, transform 0.25s',
             transform: isHovered ? 'translateX(4px)' : 'none',
-            boxShadow: isHovered ? '0 20px 40px rgba(0,0,0,0.6)' : 'none',
+            boxShadow: isHovered
+              ? (isClean ? '0 4px 12px rgba(0,0,0,0.08)' : '0 20px 40px rgba(0,0,0,0.6)')
+              : (isClean ? '0 1px 3px rgba(0,0,0,0.06)' : 'none'),
             display: 'flex',
             alignItems: 'center',
             gap: '0.75rem',
