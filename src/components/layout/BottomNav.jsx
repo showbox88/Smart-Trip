@@ -6,56 +6,54 @@
  * - Trip page: Today | Itinerary | Map | Profile
  */
 
-import { useNavigate, useLocation, useParams } from 'react-router-dom';
+import { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useI18n } from '../../context/I18nContext';
 
 export default function BottomNav() {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useI18n();
+  const [mapMode, setMapMode] = useState(false);
 
-  // Detect if we're inside a trip page
   const isTripPage = location.pathname.startsWith('/trip-v2/');
 
   const tabs = isTripPage
     ? [
         { key: 'today',     icon: 'today',      label: t('common.today') || 'Today',         path: '/today' },
-        { key: 'itinerary', icon: 'event_note',  label: t('common.itinerary') || 'Itinerary', path: null, action: 'itinerary' },
-        { key: 'map',       icon: 'map',         label: t('common.map') || 'Map',             path: null, action: 'map' },
-        { key: 'profile',   icon: 'person',      label: t('common.you') || 'You',             path: null },
+        { key: 'itinerary', icon: 'event_note',  label: t('common.itinerary') || 'Itinerary', action: 'itinerary' },
+        { key: 'map',       icon: 'map',         label: t('common.map') || 'Map',             action: 'map' },
+        { key: 'profile',   icon: 'person',      label: t('common.you') || 'You' },
       ]
     : [
-        { key: 'today',   icon: 'today',   label: t('common.today') || 'Today',     path: '/today' },
+        { key: 'today',   icon: 'today',   label: t('common.today') || 'Today',       path: '/today' },
         { key: 'trips',   icon: 'luggage', label: t('common.my_trips') || 'My Trips', path: '/' },
-        { key: 'map',     icon: 'map',     label: t('common.map') || 'Map',         path: null },
-        { key: 'profile', icon: 'person',  label: t('common.you') || 'You',         path: null },
+        { key: 'map',     icon: 'map',     label: t('common.map') || 'Map' },
+        { key: 'profile', icon: 'person',  label: t('common.you') || 'You' },
       ];
 
   const handleTabClick = (tab) => {
     if (tab.action === 'map') {
-      // Toggle map view mode on trip page via body class
-      const isMapMode = document.body.classList.contains('mobile-mode-map');
-      document.body.classList.toggle('mobile-mode-map', !isMapMode);
-      document.body.classList.toggle('mobile-mode-plan', isMapMode);
+      document.body.classList.add('mobile-mode-map');
+      document.body.classList.remove('mobile-mode-plan');
+      setMapMode(true);
       return;
     }
     if (tab.action === 'itinerary') {
       document.body.classList.remove('mobile-mode-map');
       document.body.classList.add('mobile-mode-plan');
+      setMapMode(false);
       return;
     }
     if (tab.path) {
+      setMapMode(false);
       navigate(tab.path);
     }
   };
 
   const isActive = (tab) => {
-    if (tab.action === 'map') {
-      return document.body.classList.contains('mobile-mode-map');
-    }
-    if (tab.action === 'itinerary') {
-      return isTripPage && !document.body.classList.contains('mobile-mode-map');
-    }
+    if (tab.action === 'map') return mapMode;
+    if (tab.action === 'itinerary') return isTripPage && !mapMode;
     if (!tab.path) return false;
     if (tab.path === '/') return location.pathname === '/';
     return location.pathname.startsWith(tab.path);
