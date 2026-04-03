@@ -73,7 +73,6 @@ export default React.memo(function StopCard({
   const { t } = useI18n();
   const { layoutVariant, layout } = useTheme();
   const isClean = layoutVariant === 'clean';
-  const canFlip = layout?.card?.flip !== false;
   const [showPhotoPicker, setShowPhotoPicker] = useState(false);
   const [placePhotos, setPlacePhotos] = useState([]);
   const [loadingPhotos, setLoadingPhotos] = useState(false);
@@ -195,12 +194,11 @@ export default React.memo(function StopCard({
   const dotColor = isHotelType ? 'var(--st-color-hotel-line)' : (dayColor || 'var(--st-color-timeline-default)');
 
   const handleTouchStart = (e) => {
-    if (!canFlip) return;
     touchStart.current = e.touches[0].clientX;
   };
 
   const handleTouchEnd = (e) => {
-    if (!canFlip || !touchStart.current) return;
+    if (!touchStart.current) return;
     const touchEnd = e.changedTouches[0].clientX;
     const diff = touchStart.current - touchEnd;
 
@@ -279,11 +277,11 @@ export default React.memo(function StopCard({
       {/* Card Wrapper — 3D flip in glass, flat in clean */}
       <div
         className="stop-card-container"
-        onTouchStart={canFlip ? handleTouchStart : undefined}
-        onTouchEnd={canFlip ? handleTouchEnd : undefined}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
         style={{ marginLeft: 'var(--card-margin-l)' }}
       >
-        <div className="stop-card-inner" style={canFlip ? { transform: `rotateY(${rotation}deg)` } : undefined}>
+        <div className="stop-card-inner" style={{ transform: `rotateY(${rotation}deg)` }}>
           
           {/* Front Face */}
           <div
@@ -669,7 +667,7 @@ export default React.memo(function StopCard({
           </div>
 
           {/* Back Face — hidden in clean layout */}
-          {canFlip && <div className="rich-stop-card-back">
+          <div className="rich-stop-card-back">
             <h5 style={{ margin: '0 0 1rem 0', fontSize: '0.9rem', color: 'white', opacity: 0.8, display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'var(--md-sys-color-secondary)' }}>attachment</span>
               {t('itinerary.additional_docs')}
@@ -696,18 +694,18 @@ export default React.memo(function StopCard({
 
             {/* Empty space for flip button */}
             <div style={{ height: '2.5rem' }} />
-          </div>}
+          </div>
 
         </div>
 
-        {/* Flip Icon — hidden in clean layout */}
-        {canFlip && <div className="stop-card-flip-container">
+        {/* Flip Icon */}
+        <div className="stop-card-flip-container">
           <button
             className="stop-card-flip-btn"
             onClick={(e) => { e.stopPropagation(); setRotation(prev => prev + 180); }}
             title={t('itinerary.flip_card') || 'Explore Back'}
           />
-        </div>}
+        </div>
       </div>
 
       {/* Photo Bottom Sheet */}

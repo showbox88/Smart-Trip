@@ -21,9 +21,10 @@
   transform: none !important;  /* override inline rotateY */
 }
 
-/* Hide back face entirely (JSX also hides it, belt-and-suspenders) */
+/* Back face in clean layout — light surface instead of dark gradient */
 [data-layout="clean"] .rich-stop-card-back {
-  display: none !important;
+  background: var(--md-sys-color-surface-container-low) !important;
+  border-color: var(--md-sys-color-outline-variant) !important;
 }
 
 /* Flat card front face styling */
@@ -41,9 +42,10 @@
   border-color: var(--md-sys-color-outline) !important;
 }
 
-/* Hide flip button in clean layout */
-[data-layout="clean"] .stop-card-flip-container {
-  display: none;
+/* Flip button — subtle style in clean layout */
+[data-layout="clean"] .stop-card-flip-btn {
+  background: var(--md-sys-color-surface-container) !important;
+  border-color: var(--md-sys-color-outline-variant) !important;
 }
 
 /* Card media — slightly larger, rounded */
