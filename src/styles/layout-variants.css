@@ -15,10 +15,9 @@
   perspective: none;
 }
 
-/* Disable 3D transform on inner wrapper */
+/* Keep flip working but without 3D perspective */
 [data-layout="clean"] .stop-card-inner {
   transform-style: flat;
-  transform: none !important;  /* override inline rotateY */
 }
 
 /* Back face in clean layout — light surface instead of dark gradient */
