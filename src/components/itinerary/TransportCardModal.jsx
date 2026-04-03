@@ -77,8 +77,8 @@ export default memo(function TransportCardModal({ stop, dayId, onSave, onClose }
       onClick={e => { if (e.target === e.currentTarget) onClose?.(); }}
     >
       <div style={{
-        background: 'var(--bg-secondary)',
-        border: '1px solid var(--glass-border)',
+        background: 'var(--md-sys-color-surface-variant)',
+        border: '1px solid var(--md-sys-color-outline)',
         borderRadius: '20px',
         padding: '1.5rem',
         width: '100%',
@@ -91,10 +91,10 @@ export default memo(function TransportCardModal({ stop, dayId, onSave, onClose }
       }}>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+          <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: 'var(--md-sys-color-on-surface)' }}>
             {t('transport.edit') || '交通信息'}
           </h3>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '4px' }}>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--st-color-text-muted)', cursor: 'pointer', padding: '4px' }}>
             <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>close</span>
           </button>
         </div>
@@ -111,9 +111,9 @@ export default memo(function TransportCardModal({ stop, dayId, onSave, onClose }
                 style={{
                   padding: '0.6rem 0.3rem',
                   borderRadius: '10px',
-                  border: `2px solid ${active ? c.color : 'var(--glass-border)'}`,
-                  background: active ? c.bg : 'var(--bg-primary)',
-                  color: active ? c.color : 'var(--text-secondary)',
+                  border: `2px solid ${active ? c.color : 'var(--md-sys-color-outline)'}`,
+                  background: active ? c.bg : 'var(--md-sys-color-surface)',
+                  color: active ? c.color : 'var(--md-sys-color-on-surface-variant)',
                   cursor: 'pointer',
                   display: 'flex',
                   flexDirection: 'column',
@@ -168,7 +168,7 @@ export default memo(function TransportCardModal({ stop, dayId, onSave, onClose }
                 />
               </div>
             </div>
-            <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--text-muted)', marginBottom: '10px' }}>arrow_forward</span>
+            <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--st-color-text-muted)', marginBottom: '10px' }}>arrow_forward</span>
             <div style={{ flex: 1 }}>
               <label style={labelStyle}>{t('transport.arrival') || '到达时间'}</label>
               <input
@@ -181,7 +181,7 @@ export default memo(function TransportCardModal({ stop, dayId, onSave, onClose }
           </div>
 
           {/* Arrival next day toggle */}
-          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.82rem', color: 'var(--md-sys-color-on-surface-variant)' }}>
             <input
               type="checkbox"
               checked={form.arrivalNextDay}
@@ -209,7 +209,7 @@ export default memo(function TransportCardModal({ stop, dayId, onSave, onClose }
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
             {form.attachments.map((att, idx) => (
               <div key={idx} style={{ position: 'relative', width: 64, height: 64 }}>
-                <img src={att.url} alt="ticket" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px', border: '1px solid var(--glass-border)' }} />
+                <img src={att.url} alt="ticket" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px', border: '1px solid var(--md-sys-color-outline)' }} />
                 <button
                   onClick={() => removeAttachment(idx)}
                   style={{ position: 'absolute', top: -4, right: -4, width: 18, height: 18, borderRadius: '50%', background: '#ef4444', border: 'none', color: 'white', cursor: 'pointer', fontSize: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
@@ -218,10 +218,10 @@ export default memo(function TransportCardModal({ stop, dayId, onSave, onClose }
             ))}
             <label style={{
               width: 64, height: 64, borderRadius: '8px',
-              border: '1.5px dashed var(--glass-border)',
+              border: '1.5px dashed var(--md-sys-color-outline)',
               display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
               cursor: uploading ? 'not-allowed' : 'pointer',
-              color: 'var(--text-muted)', gap: '2px', fontSize: '0.7rem',
+              color: 'var(--st-color-text-muted)', gap: '2px', fontSize: '0.7rem',
               opacity: uploading ? 0.5 : 1,
             }}>
               <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>add_photo_alternate</span>
@@ -229,16 +229,16 @@ export default memo(function TransportCardModal({ stop, dayId, onSave, onClose }
             </label>
             <label style={{
               width: 64, height: 64, borderRadius: '8px',
-              border: '1.5px dashed var(--glass-border)',
+              border: '1.5px dashed var(--md-sys-color-outline)',
               display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
               cursor: uploading ? 'not-allowed' : 'pointer',
-              color: 'var(--text-muted)', gap: '2px', fontSize: '0.7rem',
+              color: 'var(--st-color-text-muted)', gap: '2px', fontSize: '0.7rem',
               opacity: uploading ? 0.5 : 1,
             }}>
               <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>photo_camera</span>
               <input ref={cameraRef} type="file" accept="image/*" capture="environment" onChange={e => handleFiles(e.target.files)} style={{ display: 'none' }} disabled={uploading} />
             </label>
-            {uploading && <span style={{ fontSize: '0.75rem', color: 'var(--accent-primary)' }}>上传中…</span>}
+            {uploading && <span style={{ fontSize: '0.75rem', color: 'var(--md-sys-color-primary)' }}>上传中…</span>}
           </div>
         </div>
 
@@ -246,7 +246,7 @@ export default memo(function TransportCardModal({ stop, dayId, onSave, onClose }
         <div style={{ display: 'flex', gap: '0.6rem', justifyContent: 'flex-end' }}>
           <button
             onClick={onClose}
-            style={{ padding: '0.5rem 1rem', borderRadius: '10px', background: 'var(--bg-primary)', border: '1px solid var(--glass-border)', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '0.85rem' }}
+            style={{ padding: '0.5rem 1rem', borderRadius: '10px', background: 'var(--md-sys-color-surface)', border: '1px solid var(--md-sys-color-outline)', color: 'var(--md-sys-color-on-surface-variant)', cursor: 'pointer', fontSize: '0.85rem' }}
           >
             {t('common.cancel') || '取消'}
           </button>
@@ -267,7 +267,7 @@ const labelStyle = {
   display: 'block',
   fontSize: '0.75rem',
   fontWeight: 600,
-  color: 'var(--text-secondary)',
+  color: 'var(--md-sys-color-on-surface-variant)',
   marginBottom: '5px',
   letterSpacing: '0.03em',
 };
@@ -276,9 +276,9 @@ const inputStyle = {
   width: '100%',
   padding: '0.45rem 0.7rem',
   borderRadius: '8px',
-  border: '1px solid var(--glass-border)',
-  background: 'var(--bg-primary)',
-  color: 'var(--text-primary)',
+  border: '1px solid var(--md-sys-color-outline)',
+  background: 'var(--md-sys-color-surface)',
+  color: 'var(--md-sys-color-on-surface)',
   fontSize: '0.85rem',
   outline: 'none',
   boxSizing: 'border-box',

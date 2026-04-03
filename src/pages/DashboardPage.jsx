@@ -102,7 +102,7 @@ export default function DashboardPage() {
           <h2 style={{ fontSize: '2.25rem', fontWeight: 800, marginBottom: '0.5rem', letterSpacing: '-0.02em' }}>
             {state.user?.name}{t('dashboard.title')}
           </h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', marginBottom: '1.5rem' }}>
+          <p style={{ color: 'var(--st-color-text-muted)', fontSize: '0.95rem', marginBottom: '1.5rem' }}>
             {t('dashboard.subtitle')}
           </p>
         </div>
@@ -151,8 +151,8 @@ export default function DashboardPage() {
             <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'white' }}>today</span>
           </div>
           <div>
-            <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-primary)' }}>今日行程</div>
-            <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '1px' }}>
+            <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--md-sys-color-on-surface)' }}>今日行程</div>
+            <div style={{ fontSize: '0.78rem', color: 'var(--st-color-text-muted)', marginTop: '1px' }}>
               {new Date().toLocaleDateString(undefined, { month: 'long', day: 'numeric', weekday: 'short' })}
             </div>
           </div>

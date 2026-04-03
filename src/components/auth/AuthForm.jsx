@@ -66,18 +66,18 @@ export default function AuthForm() {
             <span>{t('auth.or')}</span>
           </div>
 
-          <div className="auth-tabs" style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--glass-border)' }}>
+          <div className="auth-tabs" style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--md-sys-color-outline)' }}>
             <div
               className={`auth-tab${tab === 'signin' ? ' active' : ''}`}
               onClick={() => setTab('signin')}
-              style={{ padding: '0.5rem 0', cursor: 'pointer', flex: 1, textAlign: 'center', fontWeight: 600, color: tab === 'signin' ? 'var(--accent-blue)' : 'var(--text-muted)', borderBottom: tab === 'signin' ? '2px solid var(--accent-blue)' : '2px solid transparent', transition: '0.3s' }}
+              style={{ padding: '0.5rem 0', cursor: 'pointer', flex: 1, textAlign: 'center', fontWeight: 600, color: tab === 'signin' ? 'var(--md-sys-color-primary)' : 'var(--st-color-text-muted)', borderBottom: tab === 'signin' ? '2px solid var(--md-sys-color-primary)' : '2px solid transparent', transition: '0.3s' }}
             >
               {t('auth.login')}
             </div>
             <div
               className={`auth-tab${tab === 'signup' ? ' active' : ''}`}
               onClick={() => setTab('signup')}
-              style={{ padding: '0.5rem 0', cursor: 'pointer', flex: 1, textAlign: 'center', color: tab === 'signup' ? 'var(--accent-blue)' : 'var(--text-muted)', borderBottom: tab === 'signup' ? '2px solid var(--accent-blue)' : '2px solid transparent', transition: '0.3s' }}
+              style={{ padding: '0.5rem 0', cursor: 'pointer', flex: 1, textAlign: 'center', color: tab === 'signup' ? 'var(--md-sys-color-primary)' : 'var(--st-color-text-muted)', borderBottom: tab === 'signup' ? '2px solid var(--md-sys-color-primary)' : '2px solid transparent', transition: '0.3s' }}
             >
               {t('auth.register')}
             </div>
@@ -118,8 +118,8 @@ export default function AuthForm() {
               </div>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '1rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-              <input type="checkbox" id="stay-logged-in" defaultChecked style={{ accentColor: 'var(--accent-blue)' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '1rem', color: 'var(--st-color-text-muted)', fontSize: '0.85rem' }}>
+              <input type="checkbox" id="stay-logged-in" defaultChecked style={{ accentColor: 'var(--md-sys-color-primary)' }} />
               <label htmlFor="stay-logged-in" style={{ cursor: 'pointer', marginBottom: 0 }}>{t('auth.remember_me')}</label>
             </div>
 

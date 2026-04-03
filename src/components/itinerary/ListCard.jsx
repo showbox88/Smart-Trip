@@ -110,8 +110,8 @@ export default memo(function ListCard(props) {
             onMouseLeave={() => dispatch({ type: 'SET_HOVERED_STOP', payload: null })}
             style={{
               background: state.hoveredStopId === stop.id ? 'rgba(255,255,255,0.04)' : '#0a0c10',
-              border: '1px dashed var(--glass-border)',
-              borderColor: state.hoveredStopId === stop.id ? 'var(--accent-primary)' : 'rgba(255,255,255,0.05)',
+              border: '1px dashed var(--md-sys-color-outline)',
+              borderColor: state.hoveredStopId === stop.id ? 'var(--md-sys-color-primary)' : 'rgba(255,255,255,0.05)',
               borderRadius: '0.75rem',
               padding: '0.75rem var(--note-card-px) 2.5rem',
               position: 'relative',
@@ -131,7 +131,7 @@ export default memo(function ListCard(props) {
             <DeleteConfirm onDelete={() => onDelete?.(dayId, stop.id)} />
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '14px', color: 'var(--text-muted)' }}>checklist</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '14px', color: 'var(--st-color-text-muted)' }}>checklist</span>
               <input
                 ref={titleRef}
                 defaultValue={stop.title || ''}
@@ -148,7 +148,7 @@ export default memo(function ListCard(props) {
                     }
                   }
                 }}
-                style={{ background: 'none', border: 'none', outline: 'none', color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 600, flex: 1, fontFamily: 'inherit' }}
+                style={{ background: 'none', border: 'none', outline: 'none', color: 'var(--md-sys-color-on-surface-variant)', fontSize: '0.9rem', fontWeight: 600, flex: 1, fontFamily: 'inherit' }}
               />
             </div>
 
@@ -159,12 +159,12 @@ export default memo(function ListCard(props) {
                     onClick={() => onItemToggle?.(dayId, stop.id, idx)}
                     style={{
                       width: '16px', height: '16px', borderRadius: '4px', flexShrink: 0, cursor: 'pointer',
-                      border: '2px solid var(--text-secondary)',
-                      background: item.checked ? 'var(--text-secondary)' : 'transparent',
+                      border: '2px solid var(--md-sys-color-on-surface-variant)',
+                      background: item.checked ? 'var(--md-sys-color-on-surface-variant)' : 'transparent',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}
                   >
-                    {item.checked && <span style={{ color: 'var(--bg-primary)', fontSize: '10px', fontWeight: 700 }}>✓</span>}
+                    {item.checked && <span style={{ color: 'var(--md-sys-color-surface)', fontSize: '10px', fontWeight: 700 }}>✓</span>}
                   </div>
                   <textarea
                     rows={1}
@@ -184,7 +184,7 @@ export default memo(function ListCard(props) {
                     }}
                     style={{
                       flex: 1, background: 'none', border: 'none', outline: 'none',
-                      color: 'var(--text-secondary)', fontSize: '0.85rem', resize: 'none',
+                      color: 'var(--md-sys-color-on-surface-variant)', fontSize: '0.85rem', resize: 'none',
                       overflow: 'hidden', lineHeight: 1.4, fontFamily: 'inherit',
                       textDecoration: item.checked ? 'line-through' : 'none',
                       opacity: item.checked ? 0.5 : 1,
@@ -194,7 +194,7 @@ export default memo(function ListCard(props) {
                     className="list-item-delete"
                     onClick={() => onDeleteItem?.(dayId, stop.id, idx)}
                     style={{
-                      background: 'none', border: 'none', color: 'var(--text-muted)',
+                      background: 'none', border: 'none', color: 'var(--st-color-text-muted)',
                       cursor: 'pointer', padding: '2px', flexShrink: 0,
                       opacity: 0, transition: 'opacity 0.15s',
                       lineHeight: 1, display: 'flex', alignItems: 'center'
@@ -208,7 +208,7 @@ export default memo(function ListCard(props) {
 
             <button
               onClick={() => { onAddItem?.(dayId, stop.id); setFocusIndex((stop.items || []).length); }}
-              style={{ marginTop: '0.25rem', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px', padding: 0 }}
+              style={{ marginTop: '0.25rem', background: 'none', border: 'none', color: 'var(--st-color-text-muted)', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px', padding: 0 }}
             >
               <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>add</span>
               {t('itinerary.add_item') || 'Add item'}
@@ -241,7 +241,7 @@ export default memo(function ListCard(props) {
             </div>
 
             {uploading && (
-              <div style={{ textAlign: 'center', color: 'var(--accent-primary)', fontSize: '0.8rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}>
+              <div style={{ textAlign: 'center', color: 'var(--md-sys-color-primary)', fontSize: '0.8rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}>
                 <span className="material-symbols-outlined" style={{ fontSize: '14px', animation: 'spin 1s linear infinite' }}>sync</span>
                 {t('common.uploading') || '上传中...'}
               </div>

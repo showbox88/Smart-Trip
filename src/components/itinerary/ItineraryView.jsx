@@ -271,7 +271,7 @@ export default function ItineraryView({ tripId, isDayMode = false, date = null }
 
   if (!trip) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: 'var(--text-secondary)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: 'var(--md-sys-color-on-surface-variant)' }}>
         <div style={{ textAlign: 'center' }}>
           <span className="material-symbols-outlined" style={{ fontSize: '3rem', opacity: 0.3 }}>travel_explore</span>
           <p>Loading trip...</p>
@@ -298,7 +298,7 @@ export default function ItineraryView({ tripId, isDayMode = false, date = null }
 
         {pendingInsertion && (
           <div style={{
-            background: 'var(--accent-primary)',
+            background: 'var(--md-sys-color-primary)',
             color: 'white',
             padding: '8px 16px',
             borderRadius: '12px',

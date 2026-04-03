@@ -313,10 +313,10 @@ export default memo(function DaySection({
                 data-drag-id={`__empty_${day.id}`}
                 data-drag-day={day.id}
                 className="timeline-item-wrapper"
-                style={{ padding: '1.5rem 1rem', marginBottom: '1.5rem', textAlign: 'center', border: '1px dashed var(--glass-border)', borderRadius: '8px', background: 'rgba(255,255,255,0.02)', position: 'relative', zIndex: 2, transition: 'transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1)' }}
+                style={{ padding: '1.5rem 1rem', marginBottom: '1.5rem', textAlign: 'center', border: '1px dashed var(--md-sys-color-outline)', borderRadius: '8px', background: 'rgba(255,255,255,0.02)', position: 'relative', zIndex: 2, transition: 'transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1)' }}
               >
                 <span style={{ fontSize: '2rem', opacity: 0.5 }}>📅</span>
-                <p style={{ color: 'var(--text-secondary)', margin: '0.5rem 0 0 0', fontWeight: 500 }}>({t('itinerary.no_data') || 'No stops yet'})</p>
+                <p style={{ color: 'var(--md-sys-color-on-surface-variant)', margin: '0.5rem 0 0 0', fontWeight: 500 }}>({t('itinerary.no_data') || 'No stops yet'})</p>
               </div>
             )}
 

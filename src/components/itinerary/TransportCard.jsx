@@ -34,7 +34,7 @@ export default memo(function TransportCard({ stop, dayId, dayColor, onDelete, on
         height: 12,
         borderRadius: '50%',
         background: cfg.color,
-        border: '2px solid var(--bg-primary)',
+        border: '2px solid var(--md-sys-color-surface)',
         boxShadow: `0 0 0 3px ${cfg.color}44`,
         zIndex: 2,
       }} />
@@ -52,7 +52,7 @@ export default memo(function TransportCard({ stop, dayId, dayColor, onDelete, on
           onClick={() => onEdit?.(stop, dayId)}
           style={{
             background: isHovered ? 'rgba(255,255,255,0.04)' : '#0a0c10',
-            border: '1px dashed var(--glass-border)',
+            border: '1px dashed var(--md-sys-color-outline)',
             borderColor: isHovered ? cfg.color : 'rgba(255,255,255,0.05)',
             borderRadius: '0.75rem',
             padding: '0.65rem 1rem',
@@ -97,12 +97,12 @@ export default memo(function TransportCard({ stop, dayId, dayColor, onDelete, on
                 {cfg.label}
               </span>
               {stop.tripNumber && (
-                <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-primary)', background: 'rgba(255,255,255,0.07)', borderRadius: '5px', padding: '1px 6px' }}>
+                <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--md-sys-color-on-surface)', background: 'rgba(255,255,255,0.07)', borderRadius: '5px', padding: '1px 6px' }}>
                   {stop.tripNumber}
                 </span>
               )}
               {stop.carrier && (
-                <span style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
+                <span style={{ fontSize: '0.76rem', color: 'var(--md-sys-color-on-surface-variant)' }}>
                   {stop.carrier}
                 </span>
               )}
@@ -111,22 +111,22 @@ export default memo(function TransportCard({ stop, dayId, dayColor, onDelete, on
             {(stop.departureTime || stop.arrivalTime) ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginTop: '2px' }}>
                 {stop.departureTime && (
-                  <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                  <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--md-sys-color-on-surface)' }}>
                     {stop.departureTime}
                   </span>
                 )}
                 {stop.departureTime && stop.arrivalTime && (
-                  <span className="material-symbols-outlined" style={{ fontSize: '13px', color: 'var(--text-muted)' }}>arrow_forward</span>
+                  <span className="material-symbols-outlined" style={{ fontSize: '13px', color: 'var(--st-color-text-muted)' }}>arrow_forward</span>
                 )}
                 {stop.arrivalTime && (
-                  <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                  <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--md-sys-color-on-surface)' }}>
                     {stop.arrivalTime}
                     {stop.arrivalNextDay && <span style={{ fontSize: '0.68rem', color: cfg.color, marginLeft: '2px' }}>+1天</span>}
                   </span>
                 )}
               </div>
             ) : (
-              <div style={{ fontSize: '0.73rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+              <div style={{ fontSize: '0.73rem', color: 'var(--st-color-text-muted)', marginTop: '2px' }}>
                 {t('transport.tap_to_add') || '点击添加详情'}
               </div>
             )}
@@ -134,7 +134,7 @@ export default memo(function TransportCard({ stop, dayId, dayColor, onDelete, on
 
           {/* Ticket photo thumbnail */}
           {stop.attachments?.length > 0 && (
-            <div style={{ width: 36, height: 36, borderRadius: '6px', overflow: 'hidden', flexShrink: 0, border: '1px solid var(--glass-border)' }}
+            <div style={{ width: 36, height: 36, borderRadius: '6px', overflow: 'hidden', flexShrink: 0, border: '1px solid var(--md-sys-color-outline)' }}
               onClick={e => e.stopPropagation()}>
               <img src={stop.attachments[0].url} alt="ticket" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             </div>

@@ -93,8 +93,8 @@ export default function NearbyCheckinPanel({ mapInstance, userLocation, existing
         left: 0,
         right: 0,
         zIndex: 200,
-        background: 'var(--bg-deep, #0d0f14)',
-        borderTop: '1px solid var(--glass-border)',
+        background: 'var(--md-sys-color-surface)',
+        borderTop: '1px solid var(--md-sys-color-outline)',
         borderRadius: '20px 20px 0 0',
         boxShadow: '0 -8px 40px rgba(0,0,0,0.6)',
         maxHeight: '55vh',
@@ -110,13 +110,13 @@ export default function NearbyCheckinPanel({ mapInstance, userLocation, existing
           <span style={{ fontWeight: 700, fontSize: '1rem' }}>
             {t('map.nearby_checkin') || '附近打卡'}
           </span>
-          <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginLeft: '4px' }}>
+          <span style={{ fontSize: '0.78rem', color: 'var(--st-color-text-muted)', marginLeft: '4px' }}>
             {RADIUS}m
           </span>
         </div>
         <button
           onClick={onClose}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: '4px' }}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--st-color-text-muted)', padding: '4px' }}
         >
           <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>keyboard_arrow_down</span>
         </button>
@@ -132,7 +132,7 @@ export default function NearbyCheckinPanel({ mapInstance, userLocation, existing
               display: 'flex', alignItems: 'center', gap: '5px',
               padding: '5px 12px', borderRadius: '20px', border: 'none',
               background: activeCategory === cat.id ? 'var(--md-sys-color-primary)' : 'rgba(255,255,255,0.07)',
-              color: activeCategory === cat.id ? 'white' : 'var(--text-secondary)',
+              color: activeCategory === cat.id ? 'white' : 'var(--md-sys-color-on-surface-variant)',
               fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
               transition: 'all 0.2s',
               flexShrink: 0,
@@ -147,14 +147,14 @@ export default function NearbyCheckinPanel({ mapInstance, userLocation, existing
       {/* Place list */}
       <div style={{ overflowY: 'auto', flex: 1, padding: '0 0.75rem 1rem' }}>
         {loading && (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '2rem', color: 'var(--text-muted)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '2rem', color: 'var(--st-color-text-muted)' }}>
             <span className="material-symbols-outlined" style={{ fontSize: '18px', animation: 'spin 1s linear infinite' }}>progress_activity</span>
             <span style={{ fontSize: '0.9rem' }}>{t('common.loading') || '加载中...'}</span>
           </div>
         )}
 
         {!loading && places.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+          <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--st-color-text-muted)', fontSize: '0.9rem' }}>
             {t('map.no_nearby') || '附近暂无结果'}
           </div>
         )}
@@ -182,7 +182,7 @@ export default function NearbyCheckinPanel({ mapInstance, userLocation, existing
                 background: place.photos?.[0]
                   ? `url(${place.photos[0].getUrl({ maxWidth: 80 })}) center/cover`
                   : 'rgba(255,255,255,0.06)',
-                border: '1px solid var(--glass-border)',
+                border: '1px solid var(--md-sys-color-outline)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
                 {!place.photos?.[0] && (
@@ -202,7 +202,7 @@ export default function NearbyCheckinPanel({ mapInstance, userLocation, existing
                     </span>
                   )}
                   {place.vicinity && (
-                    <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <span style={{ fontSize: '0.72rem', color: 'var(--st-color-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {place.vicinity}
                     </span>
                   )}
@@ -219,7 +219,7 @@ export default function NearbyCheckinPanel({ mapInstance, userLocation, existing
                   borderRadius: '20px',
                   border: 'none',
                   background: added ? 'rgba(255,255,255,0.07)' : 'var(--md-sys-color-primary)',
-                  color: added ? 'var(--text-muted)' : 'white',
+                  color: added ? 'var(--st-color-text-muted)' : 'white',
                   fontSize: '0.8rem', fontWeight: 700,
                   cursor: added ? 'default' : 'pointer',
                   display: 'flex', alignItems: 'center', gap: '4px',

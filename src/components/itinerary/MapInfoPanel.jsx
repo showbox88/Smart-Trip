@@ -209,7 +209,7 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay, onSelectPla
         backdropFilter: 'blur(12px)',
         borderTop: '1px solid rgba(255,255,255,0.1)',
         display: 'flex', flexDirection: 'column', zIndex: 2000,
-        fontFamily: 'var(--font-main, inherit)',
+        fontFamily: 'var(--md-sys-typescale-body-font)',
         color: 'white',
         overflow: 'visible',
       }}
@@ -315,7 +315,7 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay, onSelectPla
                   ref={addBtnRef}
                   onClick={() => openDayPicker(null, addBtnRef.current)}
                   style={{
-                    background: 'var(--accent-primary)', color: 'white', border: 'none', borderRadius: '8px',
+                    background: 'var(--md-sys-color-primary)', color: 'white', border: 'none', borderRadius: '8px',
                     padding: '0.4rem 14px', fontWeight: 800, fontSize: '0.75rem', cursor: 'pointer',
                     display: 'flex', alignItems: 'center', gap: '6px',
                     boxShadow: '0 3px 10px rgba(60, 131, 246, 0.25)',
@@ -499,7 +499,7 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay, onSelectPla
                     <div style={{ textAlign: 'center' }}>
                       <div style={{ fontSize: '2.5rem', fontWeight: 800, color: 'white', lineHeight: 1 }}>{place.rating || '-'}</div>
                       <div style={{ margin: '0.4rem 0' }}><StarRating rating={place.rating} /></div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{place.userRatingCount || 0} {t('map.tab_reviews') || 'Reviews'}</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--st-color-text-muted)' }}>{place.userRatingCount || 0} {t('map.tab_reviews') || 'Reviews'}</div>
                     </div>
                     <div style={{ flex: 1, minWidth: '160px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
                       {[5, 4, 3, 2, 1].map((stars) => {
@@ -507,7 +507,7 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay, onSelectPla
                         const pct = reviews.length > 0 ? (val / reviews.length) * 100 : 0;
                         return (
                           <div key={stars} style={{ display: 'flex', alignItems: 'center', gap: '8px', height: '8px' }}>
-                            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', minWidth: '10px' }}>{stars}</span>
+                            <span style={{ fontSize: '0.7rem', color: 'var(--st-color-text-muted)', minWidth: '10px' }}>{stars}</span>
                             <div style={{ flex: 1, height: '4px', background: 'rgba(255,255,255,0.1)', borderRadius: '2px', overflow: 'hidden' }}>
                               <div style={{ width: `${pct || (stars <= (place.rating || 0) ? 80 - (5 - stars) * 15 : 20)}%`, height: '100%', background: 'var(--st-color-category-food)', borderRadius: '2px' }} />
                             </div>

@@ -58,7 +58,7 @@ function MapThumbnail({ url }) {
   return (
     <div style={{
       borderRadius: '14px', overflow: 'hidden',
-      border: '1px solid var(--glass-border)',
+      border: '1px solid var(--md-sys-color-outline)',
       marginBottom: '1.25rem', background: '#1a1a2e',
       minHeight: status === 'error' ? '60px' : '180px',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -185,8 +185,8 @@ export default function TodayPage() {
   // ── Loading ───────────────────────────────────────────────────
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
+      <div style={{ minHeight: '100vh', background: 'var(--md-sys-color-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ textAlign: 'center', color: 'var(--st-color-text-muted)' }}>
           <span className="material-symbols-outlined" style={{ fontSize: '3rem', display: 'block', marginBottom: '0.75rem', opacity: 0.4 }}>today</span>
           <p style={{ margin: 0 }}>加载今日行程...</p>
         </div>
@@ -198,16 +198,16 @@ export default function TodayPage() {
   if (!dayData || stops.length === 0) {
     return (
       <div style={{
-        minHeight: '100vh', background: 'var(--bg-primary)',
+        minHeight: '100vh', background: 'var(--md-sys-color-surface)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         padding: '2rem',
       }}>
         <div style={{ textAlign: 'center', maxWidth: '320px' }}>
-          <span className="material-symbols-outlined" style={{ fontSize: '56px', display: 'block', marginBottom: '1rem', opacity: 0.25, color: 'var(--text-primary)' }}>
+          <span className="material-symbols-outlined" style={{ fontSize: '56px', display: 'block', marginBottom: '1rem', opacity: 0.25, color: 'var(--md-sys-color-on-surface)' }}>
             event_available
           </span>
-          <h2 style={{ margin: '0 0 0.5rem', fontSize: '1.25rem', color: 'var(--text-primary)' }}>今天没有行程安排</h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', marginBottom: '1.5rem', lineHeight: 1.6 }}>
+          <h2 style={{ margin: '0 0 0.5rem', fontSize: '1.25rem', color: 'var(--md-sys-color-on-surface)' }}>今天没有行程安排</h2>
+          <p style={{ color: 'var(--st-color-text-muted)', fontSize: '0.88rem', marginBottom: '1.5rem', lineHeight: 1.6 }}>
             今天还没有规划行程，可以进入随意打卡模式，随时记录你去过的地方。
           </p>
           <button
@@ -227,7 +227,7 @@ export default function TodayPage() {
           <button
             onClick={() => navigate('/')}
             style={{
-              background: 'none', border: '1px solid var(--glass-border)', color: 'var(--text-muted)',
+              background: 'none', border: '1px solid var(--md-sys-color-outline)', color: 'var(--st-color-text-muted)',
               borderRadius: '10px', padding: '0.6rem 1.2rem', cursor: 'pointer', fontSize: '0.85rem', width: '100%',
             }}
           >
@@ -240,25 +240,25 @@ export default function TodayPage() {
 
   // ── Main page ─────────────────────────────────────────────────
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', color: 'var(--text-primary)', paddingBottom: '100px' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--md-sys-color-surface)', color: 'var(--md-sys-color-on-surface)', paddingBottom: '100px' }}>
 
       {/* ── Top bar ── */}
       <div style={{
         position: 'sticky', top: 0, zIndex: 100,
-        background: 'var(--bg-primary)', borderBottom: '1px solid var(--glass-border)',
+        background: 'var(--md-sys-color-surface)', borderBottom: '1px solid var(--md-sys-color-outline)',
         padding: '0.75rem 1.25rem',
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
           <button
             onClick={() => navigate('/')}
-            style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '4px', display: 'flex' }}
+            style={{ background: 'none', border: 'none', color: 'var(--st-color-text-muted)', cursor: 'pointer', padding: '4px', display: 'flex' }}
           >
             <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>arrow_back</span>
           </button>
           <div>
             <div style={{ fontWeight: 800, fontSize: '1rem', lineHeight: 1.2 }}>今日行程</div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{formatTodayLabel()}</div>
+            <div style={{ fontSize: '0.75rem', color: 'var(--st-color-text-muted)' }}>{formatTodayLabel()}</div>
           </div>
         </div>
         {/* Progress badge */}
@@ -271,7 +271,7 @@ export default function TodayPage() {
           <span className="material-symbols-outlined" style={{ fontSize: '14px', color: checkedCount === totalCount && totalCount > 0 ? 'var(--st-color-hotel-checkin)' : 'var(--st-color-category-food)' }}>
             {checkedCount === totalCount && totalCount > 0 ? 'celebration' : 'route'}
           </span>
-          <span style={{ fontSize: '0.8rem', fontWeight: 700, color: checkedCount === totalCount && totalCount > 0 ? 'var(--st-color-hotel-checkin)' : 'var(--text-primary)' }}>
+          <span style={{ fontSize: '0.8rem', fontWeight: 700, color: checkedCount === totalCount && totalCount > 0 ? 'var(--st-color-hotel-checkin)' : 'var(--md-sys-color-on-surface)' }}>
             {checkedCount} / {totalCount} 站
           </span>
         </div>
@@ -323,7 +323,7 @@ export default function TodayPage() {
               <div style={{ fontWeight: 700, fontSize: '0.88rem', marginBottom: '2px' }}>
                 你好像到了附近
               </div>
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <div style={{ fontSize: '0.8rem', color: 'var(--md-sys-color-on-surface-variant)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {gpsToast.location || gpsToast.name}
               </div>
             </div>
@@ -359,15 +359,15 @@ export default function TodayPage() {
       <div style={{
         position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 200,
         background: 'color-mix(in srgb, var(--md-sys-color-surface-container-lowest) 95%, transparent)', backdropFilter: 'blur(12px)',
-        borderTop: '1px solid var(--glass-border)',
+        borderTop: '1px solid var(--md-sys-color-outline)',
         padding: '0.75rem 1.25rem',
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--md-sys-color-tertiary)' }}>payments</span>
-          <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>今日总消费</span>
+          <span style={{ fontSize: '0.82rem', color: 'var(--st-color-text-muted)' }}>今日总消费</span>
         </div>
-        <div style={{ fontWeight: 800, fontSize: '1.1rem', color: totalExpense > 0 ? 'var(--md-sys-color-tertiary)' : 'var(--text-muted)' }}>
+        <div style={{ fontWeight: 800, fontSize: '1.1rem', color: totalExpense > 0 ? 'var(--md-sys-color-tertiary)' : 'var(--st-color-text-muted)' }}>
           {formatCurrency(totalExpense, state.settings)}
         </div>
       </div>

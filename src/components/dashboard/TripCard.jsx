@@ -61,7 +61,7 @@ export default function TripCard({ trip, isList = false, onEdit, onShare }) {
       <div
         className="trip-card-list"
         onClick={handleOpen}
-        style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '16px', padding: '12px', transition: 'all 0.3s', cursor: 'pointer', marginBottom: '1rem', position: 'relative' }}
+        style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', background: 'var(--st-glass-bg)', border: '1px solid var(--md-sys-color-outline)', borderRadius: '16px', padding: '12px', transition: 'all 0.3s', cursor: 'pointer', marginBottom: '1rem', position: 'relative' }}
       >
         <div style={{ width: '120px', height: '80px', borderRadius: '12px', background: '#000', overflow: 'hidden', position: 'relative', flexShrink: 0 }}>
           <div className="thumb-blur-bg" style={{ backgroundImage: `url('${trip.thumb}')`, opacity: 0.3, filter: 'blur(10px)' }} />
@@ -69,7 +69,7 @@ export default function TripCard({ trip, isList = false, onEdit, onShare }) {
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <h4 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: '4px' }}>{trip.title}</h4>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: cities.length ? '6px' : 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: 'var(--st-color-text-muted)', fontSize: '0.85rem', marginBottom: cities.length ? '6px' : 0 }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
               <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>calendar_today</span>
               {trip.startDate} - {trip.endDate}
@@ -82,7 +82,7 @@ export default function TripCard({ trip, isList = false, onEdit, onShare }) {
           {cities.length > 0 && (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
               {cities.map(city => (
-                <span key={city} style={{ fontSize: '0.72rem', padding: '2px 8px', borderRadius: '20px', background: 'rgba(255,255,255,0.07)', color: 'var(--text-muted)', border: '1px solid rgba(255,255,255,0.1)', whiteSpace: 'nowrap' }}>
+                <span key={city} style={{ fontSize: '0.72rem', padding: '2px 8px', borderRadius: '20px', background: 'rgba(255,255,255,0.07)', color: 'var(--st-color-text-muted)', border: '1px solid rgba(255,255,255,0.1)', whiteSpace: 'nowrap' }}>
                   {city}
                 </span>
               ))}
@@ -126,18 +126,18 @@ export default function TripCard({ trip, isList = false, onEdit, onShare }) {
       <div className="trip-content">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
           <h4 style={{ fontSize: '1.35rem', fontWeight: 800, letterSpacing: '-0.03em' }}>{trip.title}</h4>
-          <div style={{ color: 'var(--accent-primary)', fontSize: '0.8rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px', paddingTop: '4px' }}>
+          <div style={{ color: 'var(--md-sys-color-primary)', fontSize: '0.8rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px', paddingTop: '4px' }}>
             <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>location_on</span>
             {stopsCount} {t('itinerary.stops_count')}
           </div>
         </div>
-        <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2rem' }}>
+        <div style={{ color: 'var(--st-color-text-muted)', fontSize: '0.9rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2rem' }}>
           <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>calendar_today</span>
           {trip.startDate} - {trip.endDate}
         </div>
         <div className="trip-meta">
           <div>
-            <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 800, letterSpacing: '0.08em', marginBottom: '2px' }}>{t('dashboard.total_expenses')}</div>
+            <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--st-color-text-muted)', fontWeight: 800, letterSpacing: '0.08em', marginBottom: '2px' }}>{t('dashboard.total_expenses')}</div>
             <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'white' }}>{formatCurrency(totalCost, state.settings)}</div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

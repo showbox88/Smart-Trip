@@ -58,36 +58,36 @@ export default function ShareModal({ trip, onClose }) {
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span className="material-symbols-outlined" style={{ color: 'var(--accent-primary)', fontSize: '20px' }}>share</span>
-            <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-primary)' }}>
+            <span className="material-symbols-outlined" style={{ color: 'var(--md-sys-color-primary)', fontSize: '20px' }}>share</span>
+            <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--md-sys-color-on-surface)' }}>
               {t('itinerary.share_trip') || 'Share trip'}
             </h3>
           </div>
           <button
             onClick={onClose}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', padding: '4px' }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--st-color-text-muted)', display: 'flex', alignItems: 'center', padding: '4px' }}
           >
             <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>close</span>
           </button>
         </div>
 
         {/* Trip name */}
-        <p style={{ margin: '0 0 1.25rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+        <p style={{ margin: '0 0 1.25rem', color: 'var(--st-color-text-muted)', fontSize: '0.9rem' }}>
           {trip.title}
         </p>
 
         {!token ? (
           /* No token state */
           <div style={{ textAlign: 'center', padding: '1.5rem 0' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '3rem', color: 'var(--text-muted)', opacity: 0.4, display: 'block', marginBottom: '0.75rem' }}>link_off</span>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1.25rem' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '3rem', color: 'var(--st-color-text-muted)', opacity: 0.4, display: 'block', marginBottom: '0.75rem' }}>link_off</span>
+            <p style={{ color: 'var(--st-color-text-muted)', fontSize: '0.9rem', marginBottom: '1.25rem' }}>
               {t('share.no_link') || 'No share link yet. Generate one to let anyone view this trip.'}
             </p>
             <button
               onClick={handleGenerate}
               disabled={loading}
               style={{
-                background: 'var(--accent-primary)',
+                background: 'var(--md-sys-color-primary)',
                 color: '#fff',
                 border: 'none',
                 borderRadius: '8px',
@@ -108,19 +108,19 @@ export default function ShareModal({ trip, onClose }) {
         ) : (
           /* Token exists state */
           <div>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem', marginBottom: '0.5rem' }}>
+            <p style={{ color: 'var(--st-color-text-muted)', fontSize: '0.82rem', marginBottom: '0.5rem' }}>
               {t('share.anyone_with_link') || 'Anyone with this link can view this trip (read-only):'}
             </p>
 
             {/* URL box */}
             <div style={{
-              background: 'var(--bg-secondary)',
-              border: '1px solid var(--glass-border)',
+              background: 'var(--md-sys-color-surface-variant)',
+              border: '1px solid var(--md-sys-color-outline)',
               borderRadius: '8px',
               padding: '0.65rem 0.85rem',
               fontFamily: 'monospace',
               fontSize: '0.8rem',
-              color: 'var(--text-primary)',
+              color: 'var(--md-sys-color-on-surface)',
               wordBreak: 'break-all',
               marginBottom: '0.85rem',
             }}>
@@ -132,7 +132,7 @@ export default function ShareModal({ trip, onClose }) {
               href={shareUrl}
               target="_blank"
               rel="noopener noreferrer"
-              style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', color: 'var(--accent-primary)', marginBottom: '0.85rem', textDecoration: 'none', width: 'fit-content' }}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', color: 'var(--md-sys-color-primary)', marginBottom: '0.85rem', textDecoration: 'none', width: 'fit-content' }}
             >
               <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>open_in_new</span>
               {t('share.open_link') || 'Open in new tab'}
@@ -144,9 +144,9 @@ export default function ShareModal({ trip, onClose }) {
                 onClick={handleCopy}
                 style={{
                   flex: 1,
-                  background: 'var(--bg-secondary)',
-                  border: '1px solid var(--glass-border)',
-                  color: copied ? 'var(--st-color-hotel-checkin)' : 'var(--text-primary)',
+                  background: 'var(--md-sys-color-surface-variant)',
+                  border: '1px solid var(--md-sys-color-outline)',
+                  color: copied ? 'var(--st-color-hotel-checkin)' : 'var(--md-sys-color-on-surface)',
                   borderRadius: '8px',
                   padding: '0.55rem 1rem',
                   cursor: 'pointer',
@@ -170,7 +170,7 @@ export default function ShareModal({ trip, onClose }) {
                 disabled={loading}
                 style={{
                   background: confirmRevoke ? 'var(--md-sys-color-error)' : 'transparent',
-                  border: `1px solid ${confirmRevoke ? 'var(--md-sys-color-error)' : 'var(--glass-border)'}`,
+                  border: `1px solid ${confirmRevoke ? 'var(--md-sys-color-error)' : 'var(--md-sys-color-outline)'}`,
                   color: confirmRevoke ? '#fff' : 'var(--md-sys-color-error)',
                   borderRadius: '8px',
                   padding: '0.55rem 1rem',

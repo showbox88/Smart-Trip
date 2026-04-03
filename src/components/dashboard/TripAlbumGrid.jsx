@@ -108,7 +108,7 @@ function AlbumCard({ trip, archiveTrip, archiveDb, getThumbnail, rootHandle }) {
 
       <div style={{ position: 'relative', zIndex: 2 }}>
         {trip.startDate && (
-          <p style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--accent-primary)', marginBottom: '4px', letterSpacing: '0.1em' }}>
+          <p style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--md-sys-color-primary)', marginBottom: '4px', letterSpacing: '0.1em' }}>
             {trip.startDate}
           </p>
         )}
@@ -171,12 +171,12 @@ export default function TripAlbumGrid({ trips }) {
 
   return (
     <div className="fade-in">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', padding: '16px 20px', borderRadius: '16px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', background: 'var(--st-glass-bg)', border: '1px solid var(--md-sys-color-outline)', padding: '16px 20px', borderRadius: '16px' }}>
         <div>
           <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'white', marginBottom: '4px' }}>
             {t('app.albums.title') || 'Local Memories'}
           </h3>
-          <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+          <p style={{ fontSize: '0.85rem', color: 'var(--st-color-text-muted)' }}>
             {isLinked ? t('app.albums.linked') : t('app.albums.not_linked')}
           </p>
         </div>
@@ -188,7 +188,7 @@ export default function TripAlbumGrid({ trips }) {
             alignItems: 'center',
             gap: '6px',
             padding: '8px 16px',
-            background: 'var(--accent-primary)',
+            background: 'var(--md-sys-color-primary)',
             color: 'white',
             border: 'none',
             borderRadius: '10px',
@@ -216,7 +216,7 @@ export default function TripAlbumGrid({ trips }) {
           })}
         </div>
       ) : (
-        <div style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-muted)' }}>
+        <div style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--st-color-text-muted)' }}>
           <span className="material-symbols-outlined" style={{ fontSize: '48px', marginBottom: '12px', display: 'block', opacity: 0.4 }}>photo_library</span>
           <p style={{ fontSize: '0.95rem', fontWeight: 600, marginBottom: '4px' }}>
             {t('app.albums.empty') || 'No albums yet'}

@@ -125,14 +125,14 @@ export default function TripEditModal({ trip, onSave, onClose, isCreating: isNew
           <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800 }}>
             {isNewTrip ? (t('dashboard.new_trip') || 'New Trip') : (t('itinerary.edit_trip') || 'Edit Trip')}
           </h3>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--st-color-text-muted)' }}>
             <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>close</span>
           </button>
         </div>
 
         {/* Title */}
         <div className="form-group" style={{ marginBottom: '1.2rem' }}>
-          <label style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.4rem', display: 'block', color: 'var(--text-secondary)' }}>
+          <label style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.4rem', display: 'block', color: 'var(--md-sys-color-on-surface-variant)' }}>
             {t('dashboard.trip_title') || 'Trip Title'}
           </label>
           <input
@@ -140,24 +140,24 @@ export default function TripEditModal({ trip, onSave, onClose, isCreating: isNew
             value={form.title}
             onChange={set('title')}
             placeholder={t('dashboard.new_trip_default_title')}
-            style={{ width: '100%', padding: '0.8rem', background: 'transparent', border: '1px solid var(--glass-border)', borderRadius: '8px', color: 'var(--text-primary)', outline: 'none', boxSizing: 'border-box' }}
+            style={{ width: '100%', padding: '0.8rem', background: 'transparent', border: '1px solid var(--md-sys-color-outline)', borderRadius: '8px', color: 'var(--md-sys-color-on-surface)', outline: 'none', boxSizing: 'border-box' }}
           />
         </div>
 
         {/* Status */}
         <div className="form-group" style={{ marginBottom: '1.2rem' }}>
-          <label style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.4rem', display: 'block', color: 'var(--text-secondary)' }}>
+          <label style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.4rem', display: 'block', color: 'var(--md-sys-color-on-surface-variant)' }}>
             {t('dashboard.stat_trips') || 'Status'}
           </label>
-          <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', padding: '4px', borderRadius: '10px', border: '1px solid var(--glass-border)', gap: '4px' }}>
+          <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', padding: '4px', borderRadius: '10px', border: '1px solid var(--md-sys-color-outline)', gap: '4px' }}>
             {['ongoing', 'planned', 'completed'].map(s => (
               <button
                 key={s}
                 onClick={() => setForm(f => ({ ...f, status: s }))}
                 style={{
                   flex: 1, padding: '8px', border: 'none', borderRadius: '7px', cursor: 'pointer', fontSize: '0.8rem', transition: 'all 0.2s',
-                  background: form.status === s ? 'var(--accent-primary)' : 'transparent',
-                  color: form.status === s ? '#fff' : 'var(--text-muted)',
+                  background: form.status === s ? 'var(--md-sys-color-primary)' : 'transparent',
+                  color: form.status === s ? '#fff' : 'var(--st-color-text-muted)',
                   fontWeight: 600
                 }}
               >
@@ -170,25 +170,25 @@ export default function TripEditModal({ trip, onSave, onClose, isCreating: isNew
         {/* Dates */}
         <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.2rem' }}>
           <div className="form-group" style={{ flex: 1 }}>
-            <label style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.4rem', display: 'block', color: 'var(--text-secondary)' }}>
+            <label style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.4rem', display: 'block', color: 'var(--md-sys-color-on-surface-variant)' }}>
               {t('common.start_date') || 'Start Date'}
             </label>
             <input
               type="date"
               value={form.startDate}
               onChange={set('startDate')}
-              style={{ width: '100%', padding: '0.8rem', background: 'var(--bg-secondary)', border: '1px solid var(--glass-border)', borderRadius: '8px', color: 'var(--text-primary)', outline: 'none', boxSizing: 'border-box', colorScheme: 'dark' }}
+              style={{ width: '100%', padding: '0.8rem', background: 'var(--md-sys-color-surface-variant)', border: '1px solid var(--md-sys-color-outline)', borderRadius: '8px', color: 'var(--md-sys-color-on-surface)', outline: 'none', boxSizing: 'border-box', colorScheme: 'dark' }}
             />
           </div>
           <div className="form-group" style={{ flex: 1 }}>
-            <label style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.4rem', display: 'block', color: 'var(--text-secondary)' }}>
+            <label style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.4rem', display: 'block', color: 'var(--md-sys-color-on-surface-variant)' }}>
               {t('common.end_date') || 'End Date'}
             </label>
             <input
               type="date"
               value={form.endDate}
               onChange={set('endDate')}
-              style={{ width: '100%', padding: '0.8rem', background: 'var(--bg-secondary)', border: '1px solid var(--glass-border)', borderRadius: '8px', color: 'var(--text-primary)', outline: 'none', boxSizing: 'border-box', colorScheme: 'dark' }}
+              style={{ width: '100%', padding: '0.8rem', background: 'var(--md-sys-color-surface-variant)', border: '1px solid var(--md-sys-color-outline)', borderRadius: '8px', color: 'var(--md-sys-color-on-surface)', outline: 'none', boxSizing: 'border-box', colorScheme: 'dark' }}
             />
           </div>
         </div>
@@ -208,10 +208,10 @@ export default function TripEditModal({ trip, onSave, onClose, isCreating: isNew
                 <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fbbf24', marginBottom: '0.3rem' }}>
                   检测到 {existingDays.length} 天已有打卡记录
                 </div>
-                <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginBottom: '0.6rem' }}>
+                <div style={{ fontSize: '0.78rem', color: 'var(--md-sys-color-on-surface-variant)', marginBottom: '0.6rem' }}>
                   {existingDays.map(d => d.date).join('、')}
                 </div>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.83rem', color: 'var(--text-primary)' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.83rem', color: 'var(--md-sys-color-on-surface)' }}>
                   <input
                     type="checkbox"
                     checked={linkDays}
@@ -227,7 +227,7 @@ export default function TripEditModal({ trip, onSave, onClose, isCreating: isNew
 
         {/* Thumbnail Search */}
         <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-          <label style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.4rem', display: 'block', color: 'var(--text-secondary)' }}>
+          <label style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.4rem', display: 'block', color: 'var(--md-sys-color-on-surface-variant)' }}>
             {t('stops.change_img') || 'Cover Image'}
           </label>
           <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.8rem' }}>
@@ -237,7 +237,7 @@ export default function TripEditModal({ trip, onSave, onClose, isCreating: isNew
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               placeholder={t('common.search_placeholder')}
-              style={{ flex: 1, padding: '0.8rem', background: 'transparent', border: '1px solid var(--glass-border)', borderRadius: '8px', color: 'var(--text-primary)', outline: 'none' }}
+              style={{ flex: 1, padding: '0.8rem', background: 'transparent', border: '1px solid var(--md-sys-color-outline)', borderRadius: '8px', color: 'var(--md-sys-color-on-surface)', outline: 'none' }}
             />
             <button
               onClick={handleSearch}
@@ -256,10 +256,10 @@ export default function TripEditModal({ trip, onSave, onClose, isCreating: isNew
               gap: '8px', 
               padding: '0.6rem', 
               background: 'rgba(255,255,255,0.06)', 
-              border: '1px dashed var(--glass-border)', 
+              border: '1px dashed var(--md-sys-color-outline)', 
               borderRadius: '8px', 
               cursor: 'pointer',
-              color: 'var(--text-secondary)',
+              color: 'var(--md-sys-color-on-surface-variant)',
               fontSize: '0.85rem',
               fontWeight: 600
             }}>
@@ -282,7 +282,7 @@ export default function TripEditModal({ trip, onSave, onClose, isCreating: isNew
                   backgroundPosition: 'center',
                   borderRadius: '8px',
                   cursor: 'pointer',
-                  border: form.thumb === url ? '2px solid var(--accent-primary)' : '2px solid transparent'
+                  border: form.thumb === url ? '2px solid var(--md-sys-color-primary)' : '2px solid transparent'
                 }}
               />
             ))}
@@ -293,14 +293,14 @@ export default function TripEditModal({ trip, onSave, onClose, isCreating: isNew
           <button
             onClick={onClose}
             disabled={isSaving}
-            style={{ padding: '0.6rem 1.2rem', borderRadius: '8px', background: 'var(--bg-secondary)', border: '1px solid var(--glass-border)', color: 'var(--text-primary)', cursor: isSaving ? 'not-allowed' : 'pointer', opacity: isSaving ? 0.5 : 1 }}
+            style={{ padding: '0.6rem 1.2rem', borderRadius: '8px', background: 'var(--md-sys-color-surface-variant)', border: '1px solid var(--md-sys-color-outline)', color: 'var(--md-sys-color-on-surface)', cursor: isSaving ? 'not-allowed' : 'pointer', opacity: isSaving ? 0.5 : 1 }}
           >
             {t('common.cancel') || 'Cancel'}
           </button>
           <button
             onClick={() => handleSave()}
             disabled={isSaving}
-            style={{ padding: '0.6rem 1.2rem', borderRadius: '8px', background: 'var(--accent-primary)', border: 'none', color: '#fff', cursor: isSaving ? 'not-allowed' : 'pointer', fontWeight: 600, opacity: isSaving ? 0.7 : 1 }}
+            style={{ padding: '0.6rem 1.2rem', borderRadius: '8px', background: 'var(--md-sys-color-primary)', border: 'none', color: '#fff', cursor: isSaving ? 'not-allowed' : 'pointer', fontWeight: 600, opacity: isSaving ? 0.7 : 1 }}
           >
             {isSaving ? (t('common.loading') || 'Saving...') : (t('common.save') || 'Save')}
           </button>

@@ -48,7 +48,7 @@ export default function TripHeader({ trip, onDeleteTrip, onEditTrip, onShareTrip
     <div
       className="itinerary-header"
       id="trip-header-bar"
-      style={{ padding: '0.75rem 1.5rem', background: 'var(--bg-primary)', borderBottom: '1px solid var(--glass-border)', position: 'sticky', top: 0, zIndex: 100 }}
+      style={{ padding: '0.75rem 1.5rem', background: 'var(--md-sys-color-surface)', borderBottom: '1px solid var(--md-sys-color-outline)', position: 'sticky', top: 0, zIndex: 100 }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -61,7 +61,7 @@ export default function TripHeader({ trip, onDeleteTrip, onEditTrip, onShareTrip
                   <>
                     <h2 style={{ margin: 0, fontSize: '1.25rem', lineHeight: 1.2 }}>{dateInfo.weekday}</h2>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginTop: '0.3rem', flexWrap: 'wrap' }}>
-                      <span style={{ color: 'var(--text-secondary)', fontSize: '0.82rem' }}>{dateInfo.full}</span>
+                      <span style={{ color: 'var(--md-sys-color-on-surface-variant)', fontSize: '0.82rem' }}>{dateInfo.full}</span>
                       {totalCost > 0 && (
                         <span className="header-badge">{formatCurrency(totalCost, state.settings)}</span>
                       )}
@@ -79,7 +79,7 @@ export default function TripHeader({ trip, onDeleteTrip, onEditTrip, onShareTrip
                   height: '56px',
                   borderRadius: '12px',
                   background: trip.thumb ? `url(${trip.thumb}) center/cover no-repeat` : 'rgba(255,255,255,0.05)',
-                  border: '1px solid var(--glass-border)',
+                  border: '1px solid var(--md-sys-color-outline)',
                   flexShrink: 0,
                   display: 'flex',
                   alignItems: 'center',
@@ -94,7 +94,7 @@ export default function TripHeader({ trip, onDeleteTrip, onEditTrip, onShareTrip
               <div>
                 <h2 style={{ margin: 0, fontSize: '1.25rem', lineHeight: 1.2 }}>{trip.title}</h2>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginTop: '0.3rem', flexWrap: 'wrap' }}>
-                  <span style={{ color: 'var(--text-secondary)', fontSize: '0.82rem' }}>
+                  <span style={{ color: 'var(--md-sys-color-on-surface-variant)', fontSize: '0.82rem' }}>
                     {formatDateShort(trip.startDate)} - {formatDateShort(trip.endDate)}
                   </span>
                   {dayCount > 0 && (

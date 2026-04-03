@@ -70,18 +70,18 @@ export default function Navbar() {
                     referrerPolicy="no-referrer"
                   />
                 ) : (
-                  <span className="material-symbols-outlined" style={{ fontSize: '1.8rem', color: 'var(--text-secondary)' }}>account_circle</span>
+                  <span className="material-symbols-outlined" style={{ fontSize: '1.8rem', color: 'var(--md-sys-color-on-surface-variant)' }}>account_circle</span>
                 )}
               </div>
               {dropdownOpen && (
                 <div className="user-dropdown" style={{ position: 'absolute', right: 0, top: 'calc(100% + 8px)', background: 'var(--md-sys-color-surface-container-lowest)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '12px', padding: '6px', minWidth: '180px', zIndex: 200, boxShadow: '0 8px 24px rgba(0,0,0,0.6)' }}>
-                  <div style={{ padding: '0.5rem 0.75rem', color: 'var(--text-secondary)', fontSize: '0.8rem', borderBottom: '1px solid rgba(255,255,255,0.08)', marginBottom: '4px' }}>
+                  <div style={{ padding: '0.5rem 0.75rem', color: 'var(--md-sys-color-on-surface-variant)', fontSize: '0.8rem', borderBottom: '1px solid rgba(255,255,255,0.08)', marginBottom: '4px' }}>
                     {state.user.email}
                   </div>
                   <div style={{ position: 'relative' }}>
                     <button
                       onClick={() => setLangMenuOpen(v => !v)}
-                      style={{ width: '100%', textAlign: 'left', padding: '8px 12px', background: langMenuOpen ? 'rgba(255,255,255,0.06)' : 'none', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', borderRadius: '8px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'space-between' }}
+                      style={{ width: '100%', textAlign: 'left', padding: '8px 12px', background: langMenuOpen ? 'rgba(255,255,255,0.06)' : 'none', border: 'none', color: 'var(--md-sys-color-on-surface)', cursor: 'pointer', borderRadius: '8px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'space-between' }}
                     >
                       <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--st-color-text-muted)' }}>language</span>
@@ -95,7 +95,7 @@ export default function Navbar() {
                           <button
                             key={lang.code}
                             onClick={() => { setLanguage(lang.code); setLangMenuOpen(false); setDropdownOpen(false); }}
-                            style={{ width: '100%', textAlign: 'left', padding: '7px 14px', background: lang.code === language ? 'rgba(99,179,237,0.12)' : 'none', border: 'none', color: lang.code === language ? '#63b3ed' : 'var(--text-primary)', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px' }}
+                            style={{ width: '100%', textAlign: 'left', padding: '7px 14px', background: lang.code === language ? 'rgba(99,179,237,0.12)' : 'none', border: 'none', color: lang.code === language ? '#63b3ed' : 'var(--md-sys-color-on-surface)', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px' }}
                           >
                             {lang.code === language && <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>check</span>}
                             {lang.code !== language && <span style={{ width: '14px' }} />}
@@ -108,7 +108,7 @@ export default function Navbar() {
                   {isAdmin(state.user) && (
                     <button
                       onClick={() => { setDropdownOpen(false); navigate('/admin'); }}
-                      style={{ width: '100%', textAlign: 'left', padding: '8px 12px', background: 'none', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', borderRadius: '8px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px' }}
+                      style={{ width: '100%', textAlign: 'left', padding: '8px 12px', background: 'none', border: 'none', color: 'var(--md-sys-color-on-surface)', cursor: 'pointer', borderRadius: '8px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px' }}
                     >
                       <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--st-color-text-muted)' }}>admin_panel_settings</span>
                       Admin Dashboard

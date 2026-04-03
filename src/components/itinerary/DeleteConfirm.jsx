@@ -25,10 +25,10 @@ export default memo(function DeleteConfirm({ onDelete }) {
         <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>close</span>
       </button>
       {confirming && (
-        <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: '4px', background: 'var(--bg-secondary)', border: '1px solid var(--glass-border)', borderRadius: '10px', padding: '0.6rem 0.8rem', boxShadow: '0 8px 24px rgba(0,0,0,0.5)', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '0.5rem', zIndex: 10 }}>
+        <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: '4px', background: 'var(--md-sys-color-surface-variant)', border: '1px solid var(--md-sys-color-outline)', borderRadius: '10px', padding: '0.6rem 0.8rem', boxShadow: '0 8px 24px rgba(0,0,0,0.5)', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '0.5rem', zIndex: 10 }}>
           <button
             onClick={(e) => { e.stopPropagation(); setConfirming(false); }}
-            style={{ padding: '0.25rem 0.6rem', borderRadius: '6px', background: 'var(--bg-primary)', border: '1px solid var(--glass-border)', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '0.78rem' }}
+            style={{ padding: '0.25rem 0.6rem', borderRadius: '6px', background: 'var(--md-sys-color-surface)', border: '1px solid var(--md-sys-color-outline)', color: 'var(--md-sys-color-on-surface-variant)', cursor: 'pointer', fontSize: '0.78rem' }}
           >{t('common.cancel') || 'Cancel'}</button>
           <button
             onClick={(e) => { e.stopPropagation(); onDelete?.(); setConfirming(false); }}

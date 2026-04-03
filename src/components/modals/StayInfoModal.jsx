@@ -40,13 +40,13 @@ function TimePicker({ value, onChange }) {
     <div style={{
       display: 'flex',
       alignItems: 'stretch',
-      background: 'var(--bg-secondary)',
-      border: '1px solid var(--glass-border)',
+      background: 'var(--md-sys-color-surface-variant)',
+      border: '1px solid var(--md-sys-color-outline)',
       borderRadius: '8px',
       height: '100%',
       fontSize: '0.95rem',
       fontWeight: 600,
-      color: 'var(--text-primary)',
+      color: 'var(--md-sys-color-on-surface)',
       overflow: 'hidden',
       flex: 1,
     }}>
@@ -78,10 +78,10 @@ function PeriodToggle({ value, onChange }) {
     <button
       onClick={() => onChange(value === 'AM' ? 'PM' : 'AM')}
       style={{
-        background: 'var(--bg-secondary)',
-        border: '1px solid var(--glass-border)',
+        background: 'var(--md-sys-color-surface-variant)',
+        border: '1px solid var(--md-sys-color-outline)',
         borderRadius: '8px',
-        color: 'var(--text-primary)',
+        color: 'var(--md-sys-color-on-surface)',
         fontSize: '0.85rem',
         fontWeight: 700,
         padding: '0 0.75rem',
@@ -92,7 +92,7 @@ function PeriodToggle({ value, onChange }) {
         minWidth: '52px',
       }}
       onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; }}
-      onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--bg-secondary)'; }}
+      onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--md-sys-color-surface-variant)'; }}
     >
       {value}
     </button>
@@ -130,9 +130,9 @@ export default function StayInfoModal({ trip, stopId, onSave, onClose }) {
   const selectStyle = {
     width: '100%',
     height: '48px',
-    background: 'var(--bg-secondary)',
-    border: '1px solid var(--glass-border)',
-    color: 'var(--text-primary)',
+    background: 'var(--md-sys-color-surface-variant)',
+    border: '1px solid var(--md-sys-color-outline)',
+    color: 'var(--md-sys-color-on-surface)',
     borderRadius: '8px',
     padding: '0 0.75rem',
     fontSize: '0.95rem',
@@ -153,7 +153,7 @@ export default function StayInfoModal({ trip, stopId, onSave, onClose }) {
     fontSize: '0.72rem',
     fontWeight: 700,
     letterSpacing: '0.08em',
-    color: 'var(--text-secondary)',
+    color: 'var(--md-sys-color-on-surface-variant)',
     textTransform: 'uppercase',
     padding: '0 6px',
   };
@@ -164,14 +164,14 @@ export default function StayInfoModal({ trip, stopId, onSave, onClose }) {
       onClick={onClose}
     >
       <div
-        style={{ background: 'var(--bg-secondary)', border: '1px solid var(--glass-border)', borderRadius: '20px', padding: '1.5rem', width: '400px', maxWidth: '95vw', boxShadow: '0 24px 64px rgba(0,0,0,0.6)' }}
+        style={{ background: 'var(--md-sys-color-surface-variant)', border: '1px solid var(--md-sys-color-outline)', borderRadius: '20px', padding: '1.5rem', width: '400px', maxWidth: '95vw', boxShadow: '0 24px 64px rgba(0,0,0,0.6)' }}
         onClick={(e) => e.stopPropagation()}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-          <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+          <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: 'var(--md-sys-color-on-surface)' }}>
             {t('itinerary.stay_modal_title') || 'Stay Information Management'}
           </h3>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.1rem', lineHeight: 1, padding: '4px' }}>x</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--st-color-text-muted)', cursor: 'pointer', fontSize: '1.1rem', lineHeight: 1, padding: '4px' }}>x</button>
         </div>
 
         <fieldset style={fieldsetStyle}>
@@ -213,13 +213,13 @@ export default function StayInfoModal({ trip, stopId, onSave, onClose }) {
         <div style={{ display: 'flex', gap: '10px' }}>
           <button
             onClick={onClose}
-            style={{ flex: 1, padding: '0.75rem', borderRadius: '12px', background: 'var(--bg-primary)', border: '1px solid var(--glass-border)', color: 'var(--text-primary)', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem' }}
+            style={{ flex: 1, padding: '0.75rem', borderRadius: '12px', background: 'var(--md-sys-color-surface)', border: '1px solid var(--md-sys-color-outline)', color: 'var(--md-sys-color-on-surface)', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem' }}
           >
             {t('common.cancel') || 'Cancel'}
           </button>
           <button
             onClick={handleSubmit}
-            style={{ flex: 2, padding: '0.75rem', borderRadius: '12px', background: 'var(--accent-primary)', border: 'none', color: 'white', cursor: 'pointer', fontWeight: 700, fontSize: '0.9rem' }}
+            style={{ flex: 2, padding: '0.75rem', borderRadius: '12px', background: 'var(--md-sys-color-primary)', border: 'none', color: 'white', cursor: 'pointer', fontWeight: 700, fontSize: '0.9rem' }}
           >
             {t('itinerary.stay_submit') || 'Complete Setup'}
           </button>

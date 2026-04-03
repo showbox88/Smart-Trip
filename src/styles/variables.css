@@ -1,5 +1,3 @@
 /* Design tokens are now defined in the theme system.
- * See src/theme/tokens.css for M3 + ST token definitions.
- * See src/theme/tokens-compat.css for backward compatibility aliases. */
+ * See src/theme/tokens.css for M3 + ST token definitions. */
 @import '../theme/tokens.css';
-@import '../theme/tokens-compat.css';

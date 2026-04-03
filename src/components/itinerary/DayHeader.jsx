@@ -88,33 +88,33 @@ export default memo(function DayHeader({
       >
         {/* Date column: 3 rows centered */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minWidth: '85px', flexShrink: 0, borderRight: '1px solid rgba(255,255,255,0.1)', paddingRight: '15px', marginRight: '15px' }}>
-          <span style={{ color: 'var(--accent-primary)', fontWeight: 800, fontSize: '1.1rem', lineHeight: 1.1 }}>{dayLabel}</span>
+          <span style={{ color: 'var(--md-sys-color-primary)', fontWeight: 800, fontSize: '1.1rem', lineHeight: 1.1 }}>{dayLabel}</span>
           {date && (
-            <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', fontWeight: 600, marginTop: '2px', whiteSpace: 'nowrap' }}>
+            <span style={{ color: 'var(--md-sys-color-on-surface-variant)', fontSize: '0.85rem', fontWeight: 600, marginTop: '2px', whiteSpace: 'nowrap' }}>
               {date}
             </span>
           )}
           {weekday && (
-            <span style={{ color: 'var(--text-secondary)', fontSize: '0.72rem', fontWeight: 500, opacity: 0.6, whiteSpace: 'nowrap' }}>
+            <span style={{ color: 'var(--md-sys-color-on-surface-variant)', fontSize: '0.72rem', fontWeight: 500, opacity: 0.6, whiteSpace: 'nowrap' }}>
               {weekday}
             </span>
           )}
         </div>
 
         <div className="day-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '10px', flex: 1, overflow: 'hidden' }}>
-          <span style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: '1.1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{day.name || ''}</span>
+          <span style={{ color: 'var(--md-sys-color-on-surface)', fontWeight: 600, fontSize: '1.1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{day.name || ''}</span>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
             {/* Stop Count */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.82rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '14px', color: 'var(--accent-primary)', opacity: 0.8 }}>location_on</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.82rem', color: 'var(--st-color-text-muted)', fontWeight: 600 }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '14px', color: 'var(--md-sys-color-primary)', opacity: 0.8 }}>location_on</span>
               <span>{stopCount} {t('itinerary.stops_count') || 'Stops'}</span>
             </div>
 
             {/* Total Duration */}
             {totalDuration && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.82rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '14px', color: 'var(--accent-primary)', opacity: 0.8 }}>directions_car</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.82rem', color: 'var(--st-color-text-muted)', fontWeight: 600 }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '14px', color: 'var(--md-sys-color-primary)', opacity: 0.8 }}>directions_car</span>
                 <span>{formatDuration(totalDuration, t)}</span>
               </div>
             )}
@@ -138,18 +138,18 @@ export default memo(function DayHeader({
           >
             <div
               onClick={() => setShowColorPicker(v => !v)}
-              style={{ width: '14px', height: '14px', borderRadius: '50%', background: activeColor, cursor: 'pointer', border: '2px solid var(--glass-border)', boxShadow: '0 1px 3px rgba(0,0,0,0.3)', transition: 'transform 0.1s', marginRight: '15px' }}
+              style={{ width: '14px', height: '14px', borderRadius: '50%', background: activeColor, cursor: 'pointer', border: '2px solid var(--md-sys-color-outline)', boxShadow: '0 1px 3px rgba(0,0,0,0.3)', transition: 'transform 0.1s', marginRight: '15px' }}
               title={t('itinerary.change_color') || 'Change color'}
             />
             {showColorPicker && (
               <div
-                style={{ position: 'absolute', top: '1.5rem', right: '0.5rem', display: 'flex', flexDirection: 'row', padding: '0.4rem', gap: '6px', background: 'var(--bg-secondary)', border: '1px solid var(--glass-border)', borderRadius: '30px', zIndex: 100, boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}
+                style={{ position: 'absolute', top: '1.5rem', right: '0.5rem', display: 'flex', flexDirection: 'row', padding: '0.4rem', gap: '6px', background: 'var(--md-sys-color-surface-variant)', border: '1px solid var(--md-sys-color-outline)', borderRadius: '30px', zIndex: 100, boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}
               >
                 {DAY_COLORS.map(c => (
                   <div
                     key={c}
                     onClick={() => { onColorChange?.(day.id, c); setShowColorPicker(false); }}
-                    style={{ width: '18px', height: '18px', borderRadius: '50%', background: c, cursor: 'pointer', border: `2px solid ${activeColor === c ? 'var(--text-primary)' : 'transparent'}`, boxShadow: '0 2px 5px rgba(0,0,0,0.3)', transition: 'transform 0.1s' }}
+                    style={{ width: '18px', height: '18px', borderRadius: '50%', background: c, cursor: 'pointer', border: `2px solid ${activeColor === c ? 'var(--md-sys-color-on-surface)' : 'transparent'}`, boxShadow: '0 2px 5px rgba(0,0,0,0.3)', transition: 'transform 0.1s' }}
                   />
                 ))}
               </div>
@@ -161,7 +161,7 @@ export default memo(function DayHeader({
             <button
               className="menu-dots"
               onClick={() => setShowMenu(v => !v)}
-              style={{ position: 'static', transform: 'none', padding: '0 5px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', fontSize: '1.2rem' }}
+              style={{ position: 'static', transform: 'none', padding: '0 5px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--md-sys-color-on-surface-variant)', fontSize: '1.2rem' }}
             >⋮</button>
             {showMenu && (
               <div className="menu-dropdown active" style={{ top: '2rem', right: 0 }}>
@@ -176,7 +176,7 @@ export default memo(function DayHeader({
                   </>
                 ) : (
                   <div style={{ padding: '0.4rem 0.2rem' }}>
-                    <p style={{ margin: '0 0 0.6rem', fontSize: '0.82rem', color: 'var(--text-secondary)', whiteSpace: 'normal', maxWidth: '180px', lineHeight: 1.4 }}>
+                    <p style={{ margin: '0 0 0.6rem', fontSize: '0.82rem', color: 'var(--md-sys-color-on-surface-variant)', whiteSpace: 'normal', maxWidth: '180px', lineHeight: 1.4 }}>
                       {t('common.clear_day_confirm') || 'Clear all items for this day?'}
                     </p>
                     <div style={{ display: 'flex', gap: '0.4rem' }}>
@@ -196,7 +196,7 @@ export default memo(function DayHeader({
       </div>
 
       {/* Subtitle row */}
-      <div className="day-subtitle-container" style={{ color: 'var(--text-secondary)', paddingLeft: '2.375rem', paddingRight: '1.5rem', marginBottom: '0.3rem', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <div className="day-subtitle-container" style={{ color: 'var(--md-sys-color-on-surface-variant)', paddingLeft: '2.375rem', paddingRight: '1.5rem', marginBottom: '0.3rem', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
         <span
           onClick={onToggleCollapse}
           style={{ cursor: 'pointer', display: 'inline-block', transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)', marginRight: '4px', transition: 'transform 0.2s', flexShrink: 0 }}
@@ -214,9 +214,9 @@ export default memo(function DayHeader({
               style={{
                 background: 'transparent',
                 border: 'none',
-                borderBottom: '1px solid var(--accent-primary)',
+                borderBottom: '1px solid var(--md-sys-color-primary)',
                 outline: 'none',
-                color: 'var(--text-primary)',
+                color: 'var(--md-sys-color-on-surface)',
                 fontSize: 'inherit',
                 fontFamily: 'inherit',
                 padding: 0,
@@ -226,7 +226,7 @@ export default memo(function DayHeader({
           ) : (
             <span
               onClick={handleSubtitleClick}
-              style={{ fontSize: '0.95rem', color: 'var(--text-secondary)', opacity: 0.8, fontWeight: 500, minHeight: '1em', cursor: 'text', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+              style={{ fontSize: '0.95rem', color: 'var(--md-sys-color-on-surface-variant)', opacity: 0.8, fontWeight: 500, minHeight: '1em', cursor: 'text', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
             >
               {day.subtitle || t('itinerary.add_subtitle') || 'Add subtitle'}
             </span>
@@ -239,14 +239,14 @@ export default memo(function DayHeader({
           style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', flexShrink: 0, userSelect: 'none' }}
           title={t('itinerary.show_return') || 'Show Return'}
         >
-          <span style={{ fontSize: '0.7rem', fontWeight: 600, color: day.showReturnRoute ? 'var(--accent-primary)' : 'var(--text-muted)', letterSpacing: '0.04em', transition: 'color 0.2s' }}>
+          <span style={{ fontSize: '0.7rem', fontWeight: 600, color: day.showReturnRoute ? 'var(--md-sys-color-primary)' : 'var(--st-color-text-muted)', letterSpacing: '0.04em', transition: 'color 0.2s' }}>
             {t('itinerary.show_return') || 'SHOW RETURN'}
           </span>
           {/* Mini iOS-style switch */}
           <div style={{
             width: '28px', height: '16px',
             borderRadius: '8px',
-            background: day.showReturnRoute ? 'var(--accent-primary)' : 'rgba(255,255,255,0.15)',
+            background: day.showReturnRoute ? 'var(--md-sys-color-primary)' : 'rgba(255,255,255,0.15)',
             position: 'relative',
             transition: 'background 0.2s',
             flexShrink: 0,

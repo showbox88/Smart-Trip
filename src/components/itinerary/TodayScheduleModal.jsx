@@ -99,15 +99,15 @@ export default function TodayScheduleModal({ trip, onUpdateStop, onClose }) {
           {/* ── Sticky header ── */}
           <div style={{
             position: 'sticky', top: 0, zIndex: 10,
-            background: 'var(--bg-primary)',
-            borderBottom: '1px solid var(--glass-border)',
+            background: 'var(--md-sys-color-surface)',
+            borderBottom: '1px solid var(--md-sys-color-outline)',
             padding: '0.75rem 1.5rem',
             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
             borderRadius: '16px 16px 0 0',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span className="material-symbols-outlined" style={{ color: 'var(--accent-primary)', fontSize: '20px' }}>travel_explore</span>
-              <span style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text-primary)' }}>
+              <span className="material-symbols-outlined" style={{ color: 'var(--md-sys-color-primary)', fontSize: '20px' }}>travel_explore</span>
+              <span style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--md-sys-color-on-surface)' }}>
                 {t('itinerary.today_schedule') || '今日行程表'}
               </span>
             </div>
@@ -121,14 +121,14 @@ export default function TodayScheduleModal({ trip, onUpdateStop, onClose }) {
 
           {/* ── Content ── */}
           <div style={{
-            background: 'var(--bg-primary)',
+            background: 'var(--md-sys-color-surface)',
             borderRadius: '0 0 16px 16px',
             padding: '0 1.5rem 1.5rem',
           }}>
             {/* Trip header card */}
             <div style={{
-              background: 'var(--bg-secondary)',
-              border: '1px solid var(--glass-border)',
+              background: 'var(--md-sys-color-surface-variant)',
+              border: '1px solid var(--md-sys-color-outline)',
               borderRadius: '16px',
               padding: '1.25rem',
               display: 'flex', alignItems: 'center', gap: '1.25rem',
@@ -137,25 +137,25 @@ export default function TodayScheduleModal({ trip, onUpdateStop, onClose }) {
               <div style={{
                 width: '64px', height: '64px', borderRadius: '12px', flexShrink: 0,
                 background: trip?.thumb ? `url(${trip.thumb}) center/cover no-repeat` : 'rgba(255,255,255,0.05)',
-                border: '1px solid var(--glass-border)',
+                border: '1px solid var(--md-sys-color-outline)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
                 {!trip?.thumb && <span className="material-symbols-outlined" style={{ opacity: 0.2 }}>image</span>}
               </div>
               <div>
-                <h2 style={{ margin: '0 0 0.35rem', fontSize: '1.25rem', lineHeight: 1.2, color: 'var(--text-primary)' }}>
+                <h2 style={{ margin: '0 0 0.35rem', fontSize: '1.25rem', lineHeight: 1.2, color: 'var(--md-sys-color-on-surface)' }}>
                   {trip?.title}
                 </h2>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                   {(trip?.startDate || trip?.endDate) && (
-                    <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                    <span style={{ color: 'var(--st-color-text-muted)', fontSize: '0.85rem' }}>
                       {formatDateShort(trip.startDate)}{trip.endDate ? ` — ${formatDateShort(trip.endDate)}` : ''}
                     </span>
                   )}
                   {dayCount > 0 && (
                     <span style={{
-                      background: 'rgba(255,255,255,0.07)', border: '1px solid var(--glass-border)',
-                      borderRadius: '6px', padding: '1px 8px', fontSize: '0.8rem', color: 'var(--text-muted)',
+                      background: 'rgba(255,255,255,0.07)', border: '1px solid var(--md-sys-color-outline)',
+                      borderRadius: '6px', padding: '1px 8px', fontSize: '0.8rem', color: 'var(--st-color-text-muted)',
                     }}>
                       {dayCount} days
                     </span>
@@ -182,20 +182,20 @@ export default function TodayScheduleModal({ trip, onUpdateStop, onClose }) {
                   <div style={{
                     display: 'flex', alignItems: 'center', gap: '0.6rem',
                     marginBottom: '0.75rem', padding: '0.6rem 1rem',
-                    background: 'var(--bg-secondary)', border: '1px solid var(--glass-border)',
+                    background: 'var(--md-sys-color-surface-variant)', border: '1px solid var(--md-sys-color-outline)',
                     borderRadius: '10px',
                   }}>
-                    <div style={{ width: 10, height: 10, borderRadius: '50%', background: day.color || 'var(--accent-primary)', flexShrink: 0 }} />
-                    <span style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
+                    <div style={{ width: 10, height: 10, borderRadius: '50%', background: day.color || 'var(--md-sys-color-primary)', flexShrink: 0 }} />
+                    <span style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--md-sys-color-on-surface)' }}>
                       Day {tripDayIndex + 1}
                     </span>
                     {day.date && (
-                      <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                      <span style={{ color: 'var(--st-color-text-muted)', fontSize: '0.85rem' }}>
                         — {formatDateShort(day.date)}
                       </span>
                     )}
                     {day.title && (
-                      <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontStyle: 'italic' }}>
+                      <span style={{ color: 'var(--st-color-text-muted)', fontSize: '0.85rem', fontStyle: 'italic' }}>
                         · {day.title}
                       </span>
                     )}
@@ -215,8 +215,8 @@ export default function TodayScheduleModal({ trip, onUpdateStop, onClose }) {
                       <div
                         key={stop.id || stopIdx}
                         style={{
-                          background: 'var(--bg-secondary)',
-                          border: '1px solid var(--glass-border)',
+                          background: 'var(--md-sys-color-surface-variant)',
+                          border: '1px solid var(--md-sys-color-outline)',
                           borderRadius: '12px',
                           padding: '0.75rem 0.85rem',
                           marginBottom: '0.45rem',
@@ -229,12 +229,12 @@ export default function TodayScheduleModal({ trip, onUpdateStop, onClose }) {
                           {/* Row 1: icon + name + badge + rating */}
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', marginBottom: '0.2rem', flexWrap: 'wrap' }}>
                             <span className="material-symbols-outlined" style={{
-                              fontSize: '14px', color: 'var(--accent-primary)',
+                              fontSize: '14px', color: 'var(--md-sys-color-primary)',
                               fontVariationSettings: "'FILL' 1", flexShrink: 0, lineHeight: 1,
                             }}>
                               {getCategoryIcon(stop)}
                             </span>
-                            <span style={{ fontWeight: 700, fontSize: '0.88rem', lineHeight: 1.3, color: 'var(--text-primary)' }}>
+                            <span style={{ fontWeight: 700, fontSize: '0.88rem', lineHeight: 1.3, color: 'var(--md-sys-color-on-surface)' }}>
                               {stop.location || stop.name || 'Unnamed stop'}
                             </span>
                             {hotelBadge && (
@@ -245,7 +245,7 @@ export default function TodayScheduleModal({ trip, onUpdateStop, onClose }) {
                             {stop.rating && (
                               <span style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', flexShrink: 0 }}>
                                 <span style={{ color: 'var(--st-color-status-soon)', fontSize: '11px', lineHeight: 1 }}>★</span>
-                                <span style={{ color: 'var(--text-secondary)', fontSize: '0.7rem', fontWeight: 700 }}>{stop.rating}</span>
+                                <span style={{ color: 'var(--md-sys-color-on-surface-variant)', fontSize: '0.7rem', fontWeight: 700 }}>{stop.rating}</span>
                               </span>
                             )}
                           </div>
@@ -255,7 +255,7 @@ export default function TodayScheduleModal({ trip, onUpdateStop, onClose }) {
                             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '3px', marginBottom: '0.35rem' }}>
                               <span className="material-symbols-outlined" style={{ fontSize: '11px', color: 'var(--st-color-category-food)', flexShrink: 0, marginTop: '2px' }}>location_on</span>
                               <span style={{
-                                color: 'var(--text-muted)', fontSize: '0.71rem', lineHeight: 1.45,
+                                color: 'var(--st-color-text-muted)', fontSize: '0.71rem', lineHeight: 1.45,
                                 display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
                               }}>
                                 {stop.address}
@@ -310,7 +310,7 @@ export default function TodayScheduleModal({ trip, onUpdateStop, onClose }) {
 
                         {/* Right: thumbnail */}
                         {stop.photo && (
-                          <div style={{ width: '64px', height: '64px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0, border: '1px solid var(--glass-border)' }}>
+                          <div style={{ width: '64px', height: '64px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0, border: '1px solid var(--md-sys-color-outline)' }}>
                             <img src={stop.photo} alt={stop.location || stop.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                           </div>
                         )}

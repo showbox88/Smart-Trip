@@ -363,7 +363,7 @@ export default memo(function TransitInfo({ transit, transitMode, origin, dest, o
       : (t('itinerary.drive') || '驾车');
 
   return (
-    <div className="transit-info-row" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0 0.4rem var(--transit-pl)', color: 'var(--text-muted)', fontSize: '0.8rem', position: 'relative' }}>
+    <div className="transit-info-row" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0 0.4rem var(--transit-pl)', color: 'var(--st-color-text-muted)', fontSize: '0.8rem', position: 'relative' }}>
       {inHotelStay && <HotelLine top="0" bottom="0" />}
       {!hideAdd && (
         <button
@@ -375,7 +375,7 @@ export default memo(function TransitInfo({ transit, transitMode, origin, dest, o
             borderRadius: '50%',
             border: '1px solid rgba(255,255,255,0.2)',
             background: 'rgba(255,255,255,0.05)',
-            color: 'var(--text-bright)',
+            color: 'var(--md-sys-color-on-surface)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -445,7 +445,7 @@ export default memo(function TransitInfo({ transit, transitMode, origin, dest, o
           className="material-symbols-outlined"
           style={{
             fontSize: '18px', cursor: 'pointer',
-            color: (transitMode || 'DRIVE') === 'TRANSIT' ? 'var(--st-color-hotel-checkin)' : (transitMode === 'WALK' ? '#60a5fa' : 'var(--text-bright)'),
+            color: (transitMode || 'DRIVE') === 'TRANSIT' ? 'var(--st-color-hotel-checkin)' : (transitMode === 'WALK' ? '#60a5fa' : 'var(--md-sys-color-on-surface)'),
           }}
           onClick={onToggleMode}
           title={modeLabel}

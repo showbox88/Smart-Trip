@@ -286,8 +286,8 @@ export default React.memo(function StopCard({
             onMouseLeave={() => dispatch({ type: 'SET_HOVERED_STOP', payload: null })}
             style={{
               background: state.hoveredStopId === stop.id ? 'rgba(255,255,255,0.04)' : 'var(--md-sys-color-surface-container-lowest)',
-              border: isClosed ? '1px solid rgba(239,68,68,0.35)' : '1px solid var(--glass-border)',
-              borderColor: isClosed ? 'rgba(239,68,68,0.35)' : state.hoveredStopId === stop.id ? 'var(--accent-primary)' : 'rgba(255,255,255,0.05)',
+              border: isClosed ? '1px solid rgba(239,68,68,0.35)' : '1px solid var(--md-sys-color-outline)',
+              borderColor: isClosed ? 'rgba(239,68,68,0.35)' : state.hoveredStopId === stop.id ? 'var(--md-sys-color-primary)' : 'rgba(255,255,255,0.05)',
               borderRadius: '1.2rem',
               padding: 'var(--stop-card-p) var(--stop-card-p) 2.8rem',
               transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -337,10 +337,10 @@ export default React.memo(function StopCard({
                 <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>close</span>
               </button>
               {confirmingDelete && (
-                <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: '4px', background: 'var(--bg-secondary)', border: '1px solid var(--glass-border)', borderRadius: '10px', padding: '0.6rem 0.8rem', boxShadow: '0 8px 24px rgba(0,0,0,0.5)', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '0.5rem', zIndex: 10 }}>
+                <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: '4px', background: 'var(--md-sys-color-surface-variant)', border: '1px solid var(--md-sys-color-outline)', borderRadius: '10px', padding: '0.6rem 0.8rem', boxShadow: '0 8px 24px rgba(0,0,0,0.5)', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '0.5rem', zIndex: 10 }}>
                   <button
                     onClick={(e) => { e.stopPropagation(); setConfirmingDelete(false); }}
-                    style={{ padding: '0.25rem 0.6rem', borderRadius: '6px', background: 'var(--bg-primary)', border: '1px solid var(--glass-border)', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '0.78rem' }}
+                    style={{ padding: '0.25rem 0.6rem', borderRadius: '6px', background: 'var(--md-sys-color-surface)', border: '1px solid var(--md-sys-color-outline)', color: 'var(--md-sys-color-on-surface-variant)', cursor: 'pointer', fontSize: '0.78rem' }}
                   >{t('common.cancel') || 'Cancel'}</button>
                   <button
                     onClick={handleConfirmDelete}
@@ -420,7 +420,7 @@ export default React.memo(function StopCard({
                       zIndex: 2
                     }}>{index + 1}</span>
                   </div>
-                  <h4 className="rich-stop-card-title" style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-bright)', letterSpacing: '-0.02em' }}>
+                  <h4 className="rich-stop-card-title" style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: 'var(--md-sys-color-on-surface)', letterSpacing: '-0.02em' }}>
                     {stop.location}
                   </h4>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginLeft: '4px', flexShrink: 0 }} title={stop.category ? (t(stop.category) !== stop.category ? t(stop.category) : stop.category) : t('map.place_default')}>
@@ -432,7 +432,7 @@ export default React.memo(function StopCard({
                   {stop.rating && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '3px', flexShrink: 0 }}>
                       <span style={{ color: 'var(--st-color-status-soon)', fontSize: '13px' }}>★</span>
-                      <span style={{ color: 'var(--text-secondary)', fontSize: '0.82rem', fontWeight: 700 }}>{stop.rating}</span>
+                      <span style={{ color: 'var(--md-sys-color-on-surface-variant)', fontSize: '0.82rem', fontWeight: 700 }}>{stop.rating}</span>
                     </div>
                   )}
                 </div>
@@ -443,7 +443,7 @@ export default React.memo(function StopCard({
                   {stop.address && (
                     <div className="rich-stop-card-address" style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
                       <span className="material-symbols-outlined" style={{ color: 'var(--st-color-category-food)', fontSize: '15px', flexShrink: 0, marginTop: '2px' }}>location_on</span>
-                      <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
+                      <div style={{ fontSize: '0.82rem', color: 'var(--st-color-text-muted)', lineHeight: 1.4 }}>
                         {(() => {
                           const addr = stop.address;
                           if (addr.includes(',')) {
@@ -589,7 +589,7 @@ export default React.memo(function StopCard({
                         className="stop-chip"
                         style={{
                           background: 'rgba(255, 255, 255, 0.05)',
-                          color: 'var(--text-bright)',
+                          color: 'var(--md-sys-color-on-surface)',
                           padding: '4px 10px',
                           borderRadius: '8px',
                           fontSize: '0.78rem',
@@ -633,13 +633,13 @@ export default React.memo(function StopCard({
                 className="rich-stop-card-media"
                 ref={thumbRef}
                 onClick={handlePhotoClick}
-                style={{ borderRadius: '10px', overflow: 'hidden', flexShrink: 0, border: '1px solid var(--glass-border)', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', cursor: 'pointer', background: 'rgba(255,255,255,0.03)', display: 'flex', alignItems: 'center', justifyContent: 'center', alignSelf: 'stretch' }}
+                style={{ borderRadius: '10px', overflow: 'hidden', flexShrink: 0, border: '1px solid var(--md-sys-color-outline)', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', cursor: 'pointer', background: 'rgba(255,255,255,0.03)', display: 'flex', alignItems: 'center', justifyContent: 'center', alignSelf: 'stretch' }}
                 title={t('itinerary.change_photo') || 'Change photo'}
               >
                 {stop.photo ? (
                   <img src={stop.photo} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={stop.location} />
                 ) : (
-                  <span className="material-symbols-outlined" style={{ fontSize: '24px', color: 'var(--text-muted)', opacity: 0.4 }}>add_photo_alternate</span>
+                  <span className="material-symbols-outlined" style={{ fontSize: '24px', color: 'var(--st-color-text-muted)', opacity: 0.4 }}>add_photo_alternate</span>
                 )}
               </div>
 
@@ -664,7 +664,7 @@ export default React.memo(function StopCard({
           {/* Back Face */}
           <div className="rich-stop-card-back">
             <h5 style={{ margin: '0 0 1rem 0', fontSize: '0.9rem', color: 'white', opacity: 0.8, display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'var(--accent-secondary)' }}>attachment</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'var(--md-sys-color-secondary)' }}>attachment</span>
               {t('itinerary.additional_docs')}
             </h5>
             
@@ -803,7 +803,7 @@ function PhotoSheet({ stop, userId, tripId, onUpdateStop, onClose, t }) {
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
       style={{ position: 'fixed', inset: 0, zIndex: 99999, background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'flex-end', animation: 'fadeIn 0.2s ease' }}
     >
-      <div className="sheet-panel" style={{ width: '100%', maxHeight: '88vh', background: 'var(--bg-secondary)', borderRadius: '1.4rem 1.4rem 0 0', display: 'flex', flexDirection: 'column', animation: 'slideUp 0.28s cubic-bezier(0.32, 0.72, 0, 1)', boxShadow: '0 -20px 60px rgba(0,0,0,0.5)' }}>
+      <div className="sheet-panel" style={{ width: '100%', maxHeight: '88vh', background: 'var(--md-sys-color-surface-variant)', borderRadius: '1.4rem 1.4rem 0 0', display: 'flex', flexDirection: 'column', animation: 'slideUp 0.28s cubic-bezier(0.32, 0.72, 0, 1)', boxShadow: '0 -20px 60px rgba(0,0,0,0.5)' }}>
         {/* Drag handle */}
         <div className="sheet-drag-handle" style={{ display: 'flex', justifyContent: 'center', padding: '0.7rem 0 0' }}>
           <div style={{ width: '36px', height: '4px', borderRadius: '99px', background: 'rgba(255,255,255,0.15)' }} />
@@ -812,13 +812,13 @@ function PhotoSheet({ stop, userId, tripId, onUpdateStop, onClose, t }) {
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.8rem 1.2rem 0.5rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'var(--accent-primary)' }}>photo_library</span>
+            <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'var(--md-sys-color-primary)' }}>photo_library</span>
             <div>
-              <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text-bright)' }}>{t('itinerary.back_photos')}</div>
-              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '1px' }}>📍 {stop.location}</div>
+              <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--md-sys-color-on-surface)' }}>{t('itinerary.back_photos')}</div>
+              <div style={{ fontSize: '0.72rem', color: 'var(--st-color-text-muted)', marginTop: '1px' }}>📍 {stop.location}</div>
             </div>
           </div>
-          <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.06)', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.06)', border: 'none', color: 'var(--st-color-text-muted)', cursor: 'pointer', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>close</span>
           </button>
         </div>
@@ -843,7 +843,7 @@ function PhotoSheet({ stop, userId, tripId, onUpdateStop, onClose, t }) {
         </div>
 
         {uploading && (
-          <div style={{ textAlign: 'center', color: 'var(--accent-primary)', fontSize: '0.85rem', paddingBottom: '0.4rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+          <div style={{ textAlign: 'center', color: 'var(--md-sys-color-primary)', fontSize: '0.85rem', paddingBottom: '0.4rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
             <span className="material-symbols-outlined" style={{ fontSize: '16px', animation: 'spin 1s linear infinite' }}>sync</span>
             {t('common.uploading') || '上传中...'}
           </div>
@@ -852,7 +852,7 @@ function PhotoSheet({ stop, userId, tripId, onUpdateStop, onClose, t }) {
         {/* Grid of attachments */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '0 1.2rem 1.6rem' }}>
           {attachments.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+            <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--st-color-text-muted)', fontSize: '0.85rem' }}>
               <span className="material-symbols-outlined" style={{ fontSize: '40px', display: 'block', marginBottom: '0.5rem', opacity: 0.4 }}>image_not_supported</span>
               {t('itinerary.no_attachments') || '还没有附件，点上方按钮添加'}
             </div>
@@ -927,7 +927,7 @@ function PrivateNoteSheet({ stop, dayId, onSave, onClose, t }) {
       <div className="sheet-panel" style={{
         width: '100%',
         maxHeight: '85vh',
-        background: 'var(--bg-secondary)',
+        background: 'var(--md-sys-color-surface-variant)',
         borderRadius: '1.4rem 1.4rem 0 0',
         display: 'flex',
         flexDirection: 'column',
@@ -945,19 +945,19 @@ function PrivateNoteSheet({ stop, dayId, onSave, onClose, t }) {
           padding: '0.8rem 1.2rem 0.6rem'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'var(--accent-secondary)' }}>lock</span>
+            <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'var(--md-sys-color-secondary)' }}>lock</span>
             <div>
-              <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text-bright)' }}>
+              <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--md-sys-color-on-surface)' }}>
                 {t('itinerary.back_private_note')}
               </div>
-              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '1px' }}>
+              <div style={{ fontSize: '0.72rem', color: 'var(--st-color-text-muted)', marginTop: '1px' }}>
                 📍 {stop.location}
               </div>
             </div>
           </div>
           <button
             onClick={onClose}
-            style={{ background: 'rgba(255,255,255,0.06)', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            style={{ background: 'rgba(255,255,255,0.06)', border: 'none', color: 'var(--st-color-text-muted)', cursor: 'pointer', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
             <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>close</span>
           </button>
@@ -970,7 +970,7 @@ function PrivateNoteSheet({ stop, dayId, onSave, onClose, t }) {
         <div style={{ padding: '0 1.2rem', flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
           {/* Title input */}
           <div>
-            <label style={{ display: 'block', fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '6px', letterSpacing: '0.05em' }}>
+            <label style={{ display: 'block', fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--st-color-text-muted)', marginBottom: '6px', letterSpacing: '0.05em' }}>
               {t('itinerary.private_note_title_label') || '标题'}
             </label>
             <input
@@ -980,18 +980,18 @@ function PrivateNoteSheet({ stop, dayId, onSave, onClose, t }) {
               placeholder={t('itinerary.private_note_title_placeholder') || '如：酒店确认号、取票信息...'}
               style={{
                 width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
-                borderRadius: '10px', color: 'var(--text-bright)', padding: '10px 12px', fontSize: '0.95rem',
+                borderRadius: '10px', color: 'var(--md-sys-color-on-surface)', padding: '10px 12px', fontSize: '0.95rem',
                 outline: 'none', fontFamily: 'inherit', fontWeight: 600,
                 boxSizing: 'border-box'
               }}
-              onFocus={(e) => e.target.style.borderColor = 'var(--accent-primary)'}
+              onFocus={(e) => e.target.style.borderColor = 'var(--md-sys-color-primary)'}
               onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.08)'}
             />
           </div>
 
           {/* Content area */}
           <div style={{ flex: 1 }}>
-            <label style={{ display: 'block', fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '6px', letterSpacing: '0.05em' }}>
+            <label style={{ display: 'block', fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--st-color-text-muted)', marginBottom: '6px', letterSpacing: '0.05em' }}>
               {t('itinerary.private_note_content_label') || '内容'}
             </label>
             <textarea
@@ -1001,11 +1001,11 @@ function PrivateNoteSheet({ stop, dayId, onSave, onClose, t }) {
               rows={7}
               style={{
                 width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
-                borderRadius: '10px', color: 'var(--text-secondary)', padding: '10px 12px', fontSize: '0.9rem',
+                borderRadius: '10px', color: 'var(--md-sys-color-on-surface-variant)', padding: '10px 12px', fontSize: '0.9rem',
                 outline: 'none', fontFamily: 'inherit', lineHeight: 1.6, resize: 'none',
                 boxSizing: 'border-box'
               }}
-              onFocus={(e) => e.target.style.borderColor = 'var(--accent-primary)'}
+              onFocus={(e) => e.target.style.borderColor = 'var(--md-sys-color-primary)'}
               onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.08)'}
             />
           </div>
@@ -1018,7 +1018,7 @@ function PrivateNoteSheet({ stop, dayId, onSave, onClose, t }) {
             style={{
               flex: 1, padding: '0.8rem', borderRadius: '12px',
               background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)',
-              color: 'var(--text-secondary)', fontSize: '0.95rem', fontWeight: 600, cursor: 'pointer'
+              color: 'var(--md-sys-color-on-surface-variant)', fontSize: '0.95rem', fontWeight: 600, cursor: 'pointer'
             }}
           >
             {t('common.cancel') || '取消'}
@@ -1027,7 +1027,7 @@ function PrivateNoteSheet({ stop, dayId, onSave, onClose, t }) {
             onClick={handleSave}
             style={{
               flex: 2, padding: '0.8rem', borderRadius: '12px',
-              background: 'var(--accent-primary)', border: 'none',
+              background: 'var(--md-sys-color-primary)', border: 'none',
               color: 'white', fontSize: '0.95rem', fontWeight: 700, cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px'
             }}
@@ -1058,8 +1058,8 @@ const PhotoPickerDropdown = forwardRef(function PhotoPickerDropdown(
           position: 'fixed',
           top, right,
           zIndex: 10000,
-          background: 'var(--bg-secondary)',
-          border: '1px solid var(--glass-border)',
+          background: 'var(--md-sys-color-surface-variant)',
+          border: '1px solid var(--md-sys-color-outline)',
           borderRadius: '12px',
           padding: '0.5rem',
           boxShadow: '0 12px 40px rgba(0,0,0,0.6)',
@@ -1077,10 +1077,10 @@ const PhotoPickerDropdown = forwardRef(function PhotoPickerDropdown(
             gap: '8px', 
             padding: '0.6rem', 
             background: 'rgba(255,255,255,0.06)', 
-            border: '1px dashed var(--glass-border)', 
+            border: '1px dashed var(--md-sys-color-outline)', 
             borderRadius: '8px', 
             cursor: 'pointer',
-            color: 'var(--text-secondary)',
+            color: 'var(--md-sys-color-on-surface-variant)',
             fontSize: '0.85rem',
             transition: 'all 0.2s',
             fontWeight: 600
@@ -1095,7 +1095,7 @@ const PhotoPickerDropdown = forwardRef(function PhotoPickerDropdown(
         {currentPhoto && (
           <div
             onClick={() => setPreviewUrl(currentPhoto)}
-            style={{ marginBottom: '0.5rem', borderRadius: '8px', overflow: 'hidden', cursor: 'zoom-in', border: '1px solid var(--glass-border)', position: 'relative' }}
+            style={{ marginBottom: '0.5rem', borderRadius: '8px', overflow: 'hidden', cursor: 'zoom-in', border: '1px solid var(--md-sys-color-outline)', position: 'relative' }}
           >
             <img src={currentPhoto} style={{ width: '100%', height: '120px', objectFit: 'cover', display: 'block' }} alt="" />
             <div style={{ position: 'absolute', bottom: '4px', right: '6px', background: 'rgba(0,0,0,0.6)', borderRadius: '4px', padding: '1px 6px', fontSize: '0.7rem', color: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', gap: '3px' }}>
@@ -1105,16 +1105,16 @@ const PhotoPickerDropdown = forwardRef(function PhotoPickerDropdown(
         )}
 
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '1rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>Loading...</div>
+          <div style={{ textAlign: 'center', padding: '1rem', color: 'var(--st-color-text-muted)', fontSize: '0.85rem' }}>Loading...</div>
         ) : photos.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '1rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>{noPhotosText}</div>
+          <div style={{ textAlign: 'center', padding: '1rem', color: 'var(--st-color-text-muted)', fontSize: '0.85rem' }}>{noPhotosText}</div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '4px' }}>
             {photos.map((p, i) => (
               <div
                 key={i}
                 onClick={() => onSelect(p.urlFull)}
-                style={{ cursor: 'pointer', borderRadius: '6px', overflow: 'hidden', aspectRatio: '1', border: p.urlFull === currentPhoto ? '2px solid var(--accent-primary)' : '1px solid transparent' }}
+                style={{ cursor: 'pointer', borderRadius: '6px', overflow: 'hidden', aspectRatio: '1', border: p.urlFull === currentPhoto ? '2px solid var(--md-sys-color-primary)' : '1px solid transparent' }}
               >
                 <img src={p.url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" loading="lazy" />
               </div>

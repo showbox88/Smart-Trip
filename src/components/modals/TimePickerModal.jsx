@@ -231,7 +231,7 @@ export default function TimePickerModal({ stop, dayDate, onSave, onClose }) {
 
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {loadingHours ? (
-                <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Loading hours...</div>
+                <div style={{ color: 'var(--st-color-text-muted)', fontSize: '0.9rem' }}>Loading hours...</div>
               ) : (openingHours && openingHours.length > 0) ? (
                 openingHours.map((line, i) => {
                   const isClosedLine = /closed/i.test(line);

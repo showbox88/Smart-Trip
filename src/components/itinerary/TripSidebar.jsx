@@ -121,13 +121,13 @@ export default function TripSidebar({ trip, activeDayId, onAddDay, onRemoveLastD
               <div className="nav-day-main" style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, width: '100%' }}>
                 <div className="sidebar-color-dot" style={{ width: '10px', height: '10px', borderRadius: '50%', background: activeColor, flexShrink: 0 }} />
                 <span className="nav-day-short">D{index + 1}</span>
-                <span className="nav-day-title" style={{ whiteSpace: 'nowrap', fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 600 }}>{dayLabel}</span>
-                <span className="nav-day-date" style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginLeft: 'auto' }}>
+                <span className="nav-day-title" style={{ whiteSpace: 'nowrap', fontSize: '0.9rem', color: 'var(--md-sys-color-on-surface)', fontWeight: 600 }}>{dayLabel}</span>
+                <span className="nav-day-date" style={{ fontSize: '0.75rem', color: 'var(--md-sys-color-on-surface-variant)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginLeft: 'auto' }}>
                   {formatDayDate(day.date)}
                 </span>
               </div>
               <div className="nav-day-info" style={{ paddingLeft: '20px', marginTop: '4px' }}>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--md-sys-color-on-surface-variant)', whiteSpace: 'nowrap' }}>
                   {stopsCount} {t('itinerary.stops_count') || 'stops'}
                 </span>
               </div>
@@ -155,7 +155,7 @@ export default function TripSidebar({ trip, activeDayId, onAddDay, onRemoveLastD
       </ul>
 
       <div className="sidebar-footer">
-        <div className="footer-icon" style={{ cursor: 'pointer', color: 'var(--text-secondary)' }}>
+        <div className="footer-icon" style={{ cursor: 'pointer', color: 'var(--md-sys-color-on-surface-variant)' }}>
           <span className="material-symbols-outlined">settings</span>
         </div>
       </div>

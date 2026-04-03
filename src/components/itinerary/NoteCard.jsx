@@ -103,8 +103,8 @@ export default memo(function NoteCard({ stop, dayId, dayColor, onDelete, onConte
             onMouseLeave={() => dispatch({ type: 'SET_HOVERED_STOP', payload: null })}
             style={{
               background: state.hoveredStopId === stop.id ? 'rgba(255,255,255,0.04)' : '#0a0c10',
-              border: '1px dashed var(--glass-border)',
-              borderColor: state.hoveredStopId === stop.id ? 'var(--accent-primary)' : 'rgba(255,255,255,0.05)',
+              border: '1px dashed var(--md-sys-color-outline)',
+              borderColor: state.hoveredStopId === stop.id ? 'var(--md-sys-color-primary)' : 'rgba(255,255,255,0.05)',
               borderRadius: '0.75rem',
               padding: '0.75rem var(--note-card-px) 2.5rem',
               position: 'relative',
@@ -121,7 +121,7 @@ export default memo(function NoteCard({ stop, dayId, dayColor, onDelete, onConte
             </div>
 
             <DeleteConfirm onDelete={() => onDelete?.(dayId, stop.id)} />
-            <span className="material-symbols-outlined" style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '0.25rem', display: 'block' }}>sticky_note_2</span>
+            <span className="material-symbols-outlined" style={{ fontSize: '14px', color: 'var(--st-color-text-muted)', marginBottom: '0.25rem', display: 'block' }}>sticky_note_2</span>
             <textarea
               ref={textareaRef}
               defaultValue={stop.content || ''}
@@ -137,7 +137,7 @@ export default memo(function NoteCard({ stop, dayId, dayColor, onDelete, onConte
                 background: 'none',
                 border: 'none',
                 outline: 'none',
-                color: 'var(--text-secondary)',
+                color: 'var(--md-sys-color-on-surface-variant)',
                 fontSize: '0.9rem',
                 resize: 'none',
                 lineHeight: 1.5,
@@ -173,7 +173,7 @@ export default memo(function NoteCard({ stop, dayId, dayColor, onDelete, onConte
             </div>
 
             {uploading && (
-              <div style={{ textAlign: 'center', color: 'var(--accent-primary)', fontSize: '0.8rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}>
+              <div style={{ textAlign: 'center', color: 'var(--md-sys-color-primary)', fontSize: '0.8rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}>
                 <span className="material-symbols-outlined" style={{ fontSize: '14px', animation: 'spin 1s linear infinite' }}>sync</span>
                 {t('common.uploading') || '上传中...'}
               </div>

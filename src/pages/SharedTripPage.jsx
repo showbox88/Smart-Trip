@@ -117,8 +117,8 @@ export default function SharedTripPage() {
 
   if (loadingPage) {
     return (
-      <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
+      <div style={{ minHeight: '100vh', background: 'var(--md-sys-color-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ textAlign: 'center', color: 'var(--st-color-text-muted)' }}>
           <span className="material-symbols-outlined" style={{ fontSize: '3rem', display: 'block', marginBottom: '0.75rem', opacity: 0.4 }}>travel_explore</span>
           <p style={{ margin: 0 }}>Loading trip...</p>
         </div>
@@ -128,10 +128,10 @@ export default function SharedTripPage() {
 
   if (error) {
     return (
-      <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem' }}>
+      <div style={{ minHeight: '100vh', background: 'var(--md-sys-color-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ textAlign: 'center', color: 'var(--st-color-text-muted)', padding: '2rem' }}>
           <span className="material-symbols-outlined" style={{ fontSize: '3.5rem', display: 'block', marginBottom: '1rem', opacity: 0.35 }}>link_off</span>
-          <h2 style={{ margin: '0 0 0.5rem', color: 'var(--text-primary)', fontSize: '1.25rem' }}>Trip not available</h2>
+          <h2 style={{ margin: '0 0 0.5rem', color: 'var(--md-sys-color-on-surface)', fontSize: '1.25rem' }}>Trip not available</h2>
           <p style={{ margin: 0, fontSize: '0.9rem' }}>This trip is no longer available or the link has been revoked.</p>
         </div>
       </div>
@@ -141,7 +141,7 @@ export default function SharedTripPage() {
   const dayCount = calculateDays(tripData?.startDate, tripData?.endDate);
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--md-sys-color-surface)', color: 'var(--md-sys-color-on-surface)' }}>
       <style>{`
         .shared-import-top-btn { display: flex; }
         .shared-import-bottom-bar { display: none; }
@@ -156,16 +156,16 @@ export default function SharedTripPage() {
         position: 'sticky',
         top: 0,
         zIndex: 100,
-        background: 'var(--bg-primary)',
-        borderBottom: '1px solid var(--glass-border)',
+        background: 'var(--md-sys-color-surface)',
+        borderBottom: '1px solid var(--md-sys-color-outline)',
         padding: '0.75rem 1.5rem',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <span className="material-symbols-outlined" style={{ color: 'var(--accent-primary)', fontSize: '22px' }}>travel_explore</span>
-          <span style={{ fontWeight: 700, fontSize: '1.05rem', color: 'var(--text-primary)' }}>Smart Trip</span>
+          <span className="material-symbols-outlined" style={{ color: 'var(--md-sys-color-primary)', fontSize: '22px' }}>travel_explore</span>
+          <span style={{ fontWeight: 700, fontSize: '1.05rem', color: 'var(--md-sys-color-on-surface)' }}>Smart Trip</span>
         </div>
 
         {state.user && (
@@ -174,7 +174,7 @@ export default function SharedTripPage() {
             onClick={handleImport}
             disabled={importing}
             style={{
-              background: 'var(--accent-primary)',
+              background: 'var(--md-sys-color-primary)',
               color: '#fff',
               border: 'none',
               borderRadius: '8px',
@@ -200,8 +200,8 @@ export default function SharedTripPage() {
         padding: '0 1.5rem',
       }}>
         <div style={{
-          background: 'var(--bg-secondary)',
-          border: '1px solid var(--glass-border)',
+          background: 'var(--md-sys-color-surface-variant)',
+          border: '1px solid var(--md-sys-color-outline)',
           borderRadius: '16px',
           padding: '1.5rem',
           display: 'flex',
@@ -215,7 +215,7 @@ export default function SharedTripPage() {
             borderRadius: '14px',
             flexShrink: 0,
             background: tripData.thumb ? `url(${tripData.thumb}) center/cover no-repeat` : 'rgba(255,255,255,0.05)',
-            border: '1px solid var(--glass-border)',
+            border: '1px solid var(--md-sys-color-outline)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -226,18 +226,18 @@ export default function SharedTripPage() {
             <h1 style={{ margin: '0 0 0.4rem', fontSize: '1.4rem', lineHeight: 1.2 }}>{tripData.title}</h1>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
               {(tripData.startDate || tripData.endDate) && (
-                <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                <span style={{ color: 'var(--st-color-text-muted)', fontSize: '0.85rem' }}>
                   {formatDateShort(tripData.startDate)}{tripData.endDate ? ` — ${formatDateShort(tripData.endDate)}` : ''}
                 </span>
               )}
               {dayCount > 0 && (
                 <span style={{
                   background: 'rgba(255,255,255,0.07)',
-                  border: '1px solid var(--glass-border)',
+                  border: '1px solid var(--md-sys-color-outline)',
                   borderRadius: '6px',
                   padding: '1px 8px',
                   fontSize: '0.8rem',
-                  color: 'var(--text-muted)',
+                  color: 'var(--st-color-text-muted)',
                 }}>
                   {dayCount} days
                 </span>
@@ -256,27 +256,27 @@ export default function SharedTripPage() {
               gap: '0.6rem',
               marginBottom: '0.75rem',
               padding: '0.6rem 1rem',
-              background: 'var(--bg-secondary)',
-              border: '1px solid var(--glass-border)',
+              background: 'var(--md-sys-color-surface-variant)',
+              border: '1px solid var(--md-sys-color-outline)',
               borderRadius: '10px',
             }}>
               <div style={{
                 width: '10px',
                 height: '10px',
                 borderRadius: '50%',
-                background: day.color || 'var(--accent-primary)',
+                background: day.color || 'var(--md-sys-color-primary)',
                 flexShrink: 0,
               }} />
               <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>
                 Day {dayIndex + 1}
               </span>
               {day.date && (
-                <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                <span style={{ color: 'var(--st-color-text-muted)', fontSize: '0.85rem' }}>
                   — {formatDateShort(day.date)}
                 </span>
               )}
               {day.label && (
-                <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontStyle: 'italic' }}>
+                <span style={{ color: 'var(--st-color-text-muted)', fontSize: '0.85rem', fontStyle: 'italic' }}>
                   · {day.label}
                 </span>
               )}
@@ -288,8 +288,8 @@ export default function SharedTripPage() {
               if (stop.type === 'note') {
                 return (
                   <div key={stop.id || stopIndex} style={{
-                    background: 'var(--bg-secondary)',
-                    border: '1px dashed var(--glass-border)',
+                    background: 'var(--md-sys-color-surface-variant)',
+                    border: '1px dashed var(--md-sys-color-outline)',
                     borderRadius: '12px',
                     padding: '0.85rem 1rem',
                     marginBottom: '0.5rem',
@@ -297,8 +297,8 @@ export default function SharedTripPage() {
                     alignItems: 'flex-start',
                     gap: '0.6rem',
                   }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--text-muted)', flexShrink: 0, marginTop: '2px' }}>sticky_note_2</span>
-                    <p style={{ margin: 0, fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--st-color-text-muted)', flexShrink: 0, marginTop: '2px' }}>sticky_note_2</span>
+                    <p style={{ margin: 0, fontSize: '0.88rem', color: 'var(--md-sys-color-on-surface-variant)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
                       {stop.content || ''}
                     </p>
                   </div>
@@ -309,27 +309,27 @@ export default function SharedTripPage() {
               if (stop.type === 'list') {
                 return (
                   <div key={stop.id || stopIndex} style={{
-                    background: 'var(--bg-secondary)',
-                    border: '1px dashed var(--glass-border)',
+                    background: 'var(--md-sys-color-surface-variant)',
+                    border: '1px dashed var(--md-sys-color-outline)',
                     borderRadius: '12px',
                     padding: '0.85rem 1rem',
                     marginBottom: '0.5rem',
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                      <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--text-muted)' }}>checklist</span>
-                      {stop.title && <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-secondary)' }}>{stop.title}</span>}
+                      <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--st-color-text-muted)' }}>checklist</span>
+                      {stop.title && <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--md-sys-color-on-surface-variant)' }}>{stop.title}</span>}
                     </div>
                     {(stop.items || []).map((item, idx) => (
                       <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.3rem' }}>
                         <div style={{
                           width: '15px', height: '15px', borderRadius: '4px', flexShrink: 0,
-                          border: '2px solid var(--text-muted)',
-                          background: item.checked ? 'var(--text-muted)' : 'transparent',
+                          border: '2px solid var(--st-color-text-muted)',
+                          background: item.checked ? 'var(--st-color-text-muted)' : 'transparent',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                         }}>
-                          {item.checked && <span style={{ color: 'var(--bg-primary)', fontSize: '9px', fontWeight: 700 }}>✓</span>}
+                          {item.checked && <span style={{ color: 'var(--md-sys-color-surface)', fontSize: '9px', fontWeight: 700 }}>✓</span>}
                         </div>
-                        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', textDecoration: item.checked ? 'line-through' : 'none', opacity: item.checked ? 0.5 : 1 }}>
+                        <span style={{ fontSize: '0.85rem', color: 'var(--md-sys-color-on-surface-variant)', textDecoration: item.checked ? 'line-through' : 'none', opacity: item.checked ? 0.5 : 1 }}>
                           {item.text}
                         </span>
                       </div>
@@ -356,8 +356,8 @@ export default function SharedTripPage() {
               );
               return (
                 <div key={stop.id || stopIndex} style={{
-                  background: 'var(--bg-secondary)',
-                  border: '1px solid var(--glass-border)',
+                  background: 'var(--md-sys-color-surface-variant)',
+                  border: '1px solid var(--md-sys-color-outline)',
                   borderRadius: '12px',
                   padding: '0.75rem 0.85rem',
                   marginBottom: '0.45rem',
@@ -371,7 +371,7 @@ export default function SharedTripPage() {
                     {/* Row 1: icon + name + hotel badge + rating */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', marginBottom: '0.2rem', flexWrap: 'wrap' }}>
                       <span className="material-symbols-outlined" style={{
-                        fontSize: '14px', color: 'var(--accent-primary)',
+                        fontSize: '14px', color: 'var(--md-sys-color-primary)',
                         fontVariationSettings: "'FILL' 1", flexShrink: 0, lineHeight: 1,
                       }}>
                         {getCategoryIcon(stop)}
@@ -387,7 +387,7 @@ export default function SharedTripPage() {
                       {stop.rating && (
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', flexShrink: 0 }}>
                           <span style={{ color: 'var(--st-color-status-soon)', fontSize: '11px', lineHeight: 1 }}>★</span>
-                          <span style={{ color: 'var(--text-secondary)', fontSize: '0.7rem', fontWeight: 700 }}>{stop.rating}</span>
+                          <span style={{ color: 'var(--md-sys-color-on-surface-variant)', fontSize: '0.7rem', fontWeight: 700 }}>{stop.rating}</span>
                         </span>
                       )}
                     </div>
@@ -397,7 +397,7 @@ export default function SharedTripPage() {
                       <div style={{ display: 'flex', alignItems: 'flex-start', gap: '3px', marginBottom: '0.35rem' }}>
                         <span className="material-symbols-outlined" style={{ fontSize: '11px', color: 'var(--st-color-category-food)', flexShrink: 0, marginTop: '2px' }}>location_on</span>
                         <span style={{
-                          color: 'var(--text-muted)', fontSize: '0.71rem', lineHeight: 1.45,
+                          color: 'var(--st-color-text-muted)', fontSize: '0.71rem', lineHeight: 1.45,
                           display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
                         }}>{stop.address}</span>
                       </div>
@@ -407,7 +407,7 @@ export default function SharedTripPage() {
                     {(stop.time || stop.reservationTime || (!isNaN(price) && price > 0) || navUrl) && (
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', flexWrap: 'wrap' }}>
                         {stop.time && chip('rgba(249,115,22,0.1)', 'var(--st-color-category-food)', 'rgba(249,115,22,0.25)', 'schedule', `${stop.time}${stop.period ? ` ${stop.period}` : ''}`)}
-                        {stop.reservationTime && chip('rgba(255,255,255,0.06)', 'var(--text-primary)', 'rgba(255,255,255,0.12)', 'event_available', stop.reservationTime)}
+                        {stop.reservationTime && chip('rgba(255,255,255,0.06)', 'var(--md-sys-color-on-surface)', 'rgba(255,255,255,0.12)', 'event_available', stop.reservationTime)}
                         {!isNaN(price) && price > 0 && chip('rgba(16,185,129,0.1)', 'var(--md-sys-color-tertiary)', 'rgba(16,185,129,0.25)', 'payments', stop.price)}
                         {navUrl && (
                           <a href={navUrl} target="_blank" rel="noreferrer" style={{
@@ -427,7 +427,7 @@ export default function SharedTripPage() {
 
                   {/* Right: thumbnail */}
                   {stop.photo && (
-                    <div style={{ width: '64px', height: '64px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0, border: '1px solid var(--glass-border)' }}>
+                    <div style={{ width: '64px', height: '64px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0, border: '1px solid var(--md-sys-color-outline)' }}>
                       <img src={stop.photo} alt={stop.name || stop.location} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     </div>
                   )}
@@ -436,7 +436,7 @@ export default function SharedTripPage() {
             })}
 
             {(day.stops || []).length === 0 && (
-              <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', padding: '0.5rem 1rem', fontStyle: 'italic' }}>
+              <div style={{ color: 'var(--st-color-text-muted)', fontSize: '0.85rem', padding: '0.5rem 1rem', fontStyle: 'italic' }}>
                 No stops for this day.
               </div>
             )}
@@ -447,9 +447,9 @@ export default function SharedTripPage() {
         <div style={{
           textAlign: 'center',
           padding: '2rem 0',
-          color: 'var(--text-muted)',
+          color: 'var(--st-color-text-muted)',
           fontSize: '0.82rem',
-          borderTop: '1px solid var(--glass-border)',
+          borderTop: '1px solid var(--md-sys-color-outline)',
           marginTop: '1rem',
         }}>
           <span className="material-symbols-outlined" style={{ fontSize: '14px', verticalAlign: 'middle', marginRight: '4px', opacity: 0.6 }}>travel_explore</span>
@@ -465,8 +465,8 @@ export default function SharedTripPage() {
           left: 0,
           right: 0,
           padding: '0.75rem 1rem',
-          background: 'var(--bg-primary)',
-          borderTop: '1px solid var(--glass-border)',
+          background: 'var(--md-sys-color-surface)',
+          borderTop: '1px solid var(--md-sys-color-outline)',
           zIndex: 200,
           justifyContent: 'center',
         }}>
@@ -474,7 +474,7 @@ export default function SharedTripPage() {
             onClick={handleImport}
             disabled={importing}
             style={{
-              background: 'var(--accent-primary)',
+              background: 'var(--md-sys-color-primary)',
               color: '#fff',
               border: 'none',
               borderRadius: '10px',

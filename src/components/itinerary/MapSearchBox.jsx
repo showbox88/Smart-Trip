@@ -211,8 +211,8 @@ export default function MapSearchBox({ mapInstance, onPlaceSelect, onCategoryRes
           onKeyDown={handleKeyDown}
           style={{
             width: '100%', padding: '0.75rem 2.5rem 0.75rem 2.8rem',
-            background: 'var(--bg-deep)', backdropFilter: 'blur(12px)',
-            border: '1px solid var(--glass-border)', borderRadius: '12px',
+            background: 'var(--md-sys-color-surface)', backdropFilter: 'blur(12px)',
+            border: '1px solid var(--md-sys-color-outline)', borderRadius: '12px',
             color: 'white', fontSize: '0.85rem', outline: 'none',
             boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
           }}
@@ -221,7 +221,7 @@ export default function MapSearchBox({ mapInstance, onPlaceSelect, onCategoryRes
           className="material-symbols-outlined"
           style={{
             position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)',
-            color: 'var(--text-muted)', fontSize: '18px',
+            color: 'var(--st-color-text-muted)', fontSize: '18px',
           }}
         >
           search
@@ -238,7 +238,7 @@ export default function MapSearchBox({ mapInstance, onPlaceSelect, onCategoryRes
             style={{
               position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)',
               background: 'none', border: 'none', cursor: 'pointer', padding: '2px',
-              display: 'flex', alignItems: 'center', color: 'var(--text-muted)',
+              display: 'flex', alignItems: 'center', color: 'var(--st-color-text-muted)',
             }}
           >
             <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>close</span>

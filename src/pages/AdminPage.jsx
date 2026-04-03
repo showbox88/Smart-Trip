@@ -482,7 +482,7 @@ export default function AdminPage() {
           style={{ 
             background: showSql ? 'rgba(56, 189, 248, 0.2)' : 'rgba(255,255,255,0.05)', 
             border: `1px solid ${showSql ? '#38bdf8' : 'rgba(255,255,255,0.1)'}`, 
-            color: showSql ? '#38bdf8' : 'var(--text-secondary)',
+            color: showSql ? '#38bdf8' : 'var(--md-sys-color-on-surface-variant)',
             padding: '0.6rem 1rem',
             borderRadius: '10px',
             fontSize: '0.85rem',
@@ -568,7 +568,7 @@ export default function AdminPage() {
           {/* Repair log */}
           {repairLog.length > 0 && (
             <div style={{ marginTop: '1rem' }}>
-              <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>修复日志</div>
+              <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--st-color-text-muted)', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>修复日志</div>
               <pre style={{ background: 'rgba(0,0,0,0.4)', borderRadius: '8px', padding: '1rem', fontSize: '0.78rem', color: 'var(--st-color-text-muted)', maxHeight: '240px', overflowY: 'auto', whiteSpace: 'pre-wrap' }}>
                 {repairLog.join('\n')}
               </pre>
@@ -580,7 +580,7 @@ export default function AdminPage() {
       {activeTab === 'cleanup' && (
         <section style={{ padding: '1.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '12px' }}>
           <h2 style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>Storage Optimizer</h2>
-          <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.85rem' }}>
+          <p style={{ color: 'var(--md-sys-color-on-surface-variant)', marginBottom: '1.5rem', fontSize: '0.85rem' }}>
             扫描 Supabase 存储桶中不再被任何行程引用的孤立文件（含附件子目录）。勾选要删除的文件后点击删除。
           </p>
 
@@ -656,7 +656,7 @@ export default function AdminPage() {
                         />
                       ) : (
                         <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <span className="material-symbols-outlined" style={{ fontSize: '36px', color: 'var(--text-muted)' }}>insert_drive_file</span>
+                          <span className="material-symbols-outlined" style={{ fontSize: '36px', color: 'var(--st-color-text-muted)' }}>insert_drive_file</span>
                         </div>
                       )}
                     </div>
@@ -677,7 +677,7 @@ export default function AdminPage() {
                     </div>
 
                     {/* Filename */}
-                    <div style={{ padding: '4px 6px', fontSize: '0.65rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', background: 'rgba(0,0,0,0.4)' }}>
+                    <div style={{ padding: '4px 6px', fontSize: '0.65rem', color: 'var(--st-color-text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', background: 'rgba(0,0,0,0.4)' }}>
                       {fileName}
                     </div>
                   </div>
@@ -706,7 +706,7 @@ export default function AdminPage() {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: allOn ? 'rgba(34,197,94,0.08)' : 'rgba(239,68,68,0.08)', border: `1px solid ${allOn ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`, borderRadius: '14px', padding: '1rem 1.4rem', marginBottom: '1.5rem' }}>
                 <div>
                   <div style={{ fontWeight: 700, fontSize: '1rem' }}>总开关</div>
-                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--st-color-text-muted)', marginTop: '2px' }}>
                     {allOn ? '所有 Google API 已开启' : allOff ? '所有 Google API 已关闭' : '部分 API 已开启'}
                   </div>
                 </div>
@@ -744,7 +744,7 @@ export default function AdminPage() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem' }}>
                     <div>
                       <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{label}</div>
-                      <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginTop: '2px' }}>{desc}</div>
+                      <div style={{ color: 'var(--st-color-text-muted)', fontSize: '0.75rem', marginTop: '2px' }}>{desc}</div>
                     </div>
                     {/* Toggle switch */}
                     <div
@@ -756,15 +756,15 @@ export default function AdminPage() {
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem', fontSize: '0.78rem' }}>
                     <div style={{ textAlign: 'center' }}>
-                      <div style={{ color: 'var(--text-muted)' }}>今日</div>
+                      <div style={{ color: 'var(--st-color-text-muted)' }}>今日</div>
                       <div style={{ fontWeight: 700, fontSize: '1.1rem', color: '#60a5fa' }}>{stats.today ?? '—'}</div>
                     </div>
                     <div style={{ textAlign: 'center' }}>
-                      <div style={{ color: 'var(--text-muted)' }}>近2分钟</div>
+                      <div style={{ color: 'var(--st-color-text-muted)' }}>近2分钟</div>
                       <div style={{ fontWeight: 700, fontSize: '1.1rem', color: '#a78bfa' }}>{stats.recent ?? '—'}</div>
                     </div>
                     <div style={{ textAlign: 'center' }}>
-                      <div style={{ color: 'var(--text-muted)' }}>今日拦截</div>
+                      <div style={{ color: 'var(--st-color-text-muted)' }}>今日拦截</div>
                       <div style={{ fontWeight: 700, fontSize: '1.1rem', color: '#f87171' }}>{stats.blocked ?? '—'}</div>
                     </div>
                   </div>
@@ -778,7 +778,7 @@ export default function AdminPage() {
             <div style={{ fontWeight: 600, marginBottom: '1rem' }}>限额设置</div>
             <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '4px' }}>每日最大调用次数（所有类型合计）</label>
+                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--st-color-text-muted)', marginBottom: '4px' }}>每日最大调用次数（所有类型合计）</label>
                 <input
                   type="number" min="1"
                   value={apiLimitInputs.daily_api_limit ?? ''}
@@ -787,7 +787,7 @@ export default function AdminPage() {
                 />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '4px' }}>2分钟内最大次数（超限自动切断）</label>
+                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--st-color-text-muted)', marginBottom: '4px' }}>2分钟内最大次数（超限自动切断）</label>
                 <input
                   type="number" min="1"
                   value={apiLimitInputs.per_2min_api_limit ?? ''}
@@ -799,13 +799,13 @@ export default function AdminPage() {
                 保存
               </button>
             </div>
-            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.8rem' }}>超限时对应 API 开关会被自动关闭，需手动重新开启。</p>
+            <p style={{ fontSize: '0.75rem', color: 'var(--st-color-text-muted)', marginTop: '0.8rem' }}>超限时对应 API 开关会被自动关闭，需手动重新开启。</p>
           </div>
 
           {/* Recent log */}
           {apiLogs.length > 0 && (
             <div>
-              <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>最近 50 条记录</div>
+              <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--st-color-text-muted)', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>最近 50 条记录</div>
               <div style={{ background: 'rgba(0,0,0,0.3)', borderRadius: '8px', overflow: 'hidden', maxHeight: '300px', overflowY: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.78rem' }}>
                   <thead style={{ background: 'rgba(255,255,255,0.05)', position: 'sticky', top: 0 }}>
@@ -818,7 +818,7 @@ export default function AdminPage() {
                   <tbody>
                     {apiLogs.map((log, i) => (
                       <tr key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                        <td style={{ padding: '0.4rem 0.8rem', color: 'var(--text-muted)' }}>{new Date(log.created_at).toLocaleTimeString()}</td>
+                        <td style={{ padding: '0.4rem 0.8rem', color: 'var(--st-color-text-muted)' }}>{new Date(log.created_at).toLocaleTimeString()}</td>
                         <td style={{ padding: '0.4rem 0.8rem' }}>{log.api_type}</td>
                         <td style={{ padding: '0.4rem 0.8rem' }}>
                           <span style={{ color: log.status === 'success' ? 'var(--st-color-hotel-checkin)' : log.status === 'blocked' ? '#f87171' : '#fbbf24', fontWeight: 600 }}>

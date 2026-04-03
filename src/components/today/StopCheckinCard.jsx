@@ -64,13 +64,13 @@ export default function StopCheckinCard({ stop, isCurrent, dayDate, onCheckin })
     ? 'rgba(34,197,94,0.35)'
     : isCurrent
       ? 'rgba(249,115,22,0.5)'
-      : 'var(--glass-border)';
+      : 'var(--md-sys-color-outline)';
 
   const bgColor = stop.checkedIn
     ? 'rgba(34,197,94,0.04)'
     : isCurrent
       ? 'rgba(249,115,22,0.05)'
-      : 'var(--bg-secondary)';
+      : 'var(--md-sys-color-surface-variant)';
 
   return (
     <>
@@ -120,13 +120,13 @@ export default function StopCheckinCard({ stop, isCurrent, dayDate, onCheckin })
           {/* Row 1: icon + name + badges */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', marginBottom: '0.2rem', flexWrap: 'wrap' }}>
             <span className="material-symbols-outlined" style={{
-              fontSize: '14px', color: 'var(--accent-primary)',
+              fontSize: '14px', color: 'var(--md-sys-color-primary)',
               fontVariationSettings: "'FILL' 1", flexShrink: 0,
             }}>
               {getCategoryIcon(stop)}
             </span>
             <span style={{
-              fontWeight: 700, fontSize: '0.9rem', color: stop.checkedIn ? 'var(--st-color-hotel-checkin)' : 'var(--text-primary)',
+              fontWeight: 700, fontSize: '0.9rem', color: stop.checkedIn ? 'var(--st-color-hotel-checkin)' : 'var(--md-sys-color-on-surface)',
               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '200px',
             }}>
               {stop.location || stop.name || 'Unnamed'}
@@ -144,7 +144,7 @@ export default function StopCheckinCard({ stop, isCurrent, dayDate, onCheckin })
             {stop.rating && (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', flexShrink: 0 }}>
                 <span style={{ color: 'var(--st-color-status-soon)', fontSize: '11px' }}>★</span>
-                <span style={{ color: 'var(--text-secondary)', fontSize: '0.7rem', fontWeight: 700 }}>{stop.rating}</span>
+                <span style={{ color: 'var(--md-sys-color-on-surface-variant)', fontSize: '0.7rem', fontWeight: 700 }}>{stop.rating}</span>
               </span>
             )}
           </div>
@@ -154,7 +154,7 @@ export default function StopCheckinCard({ stop, isCurrent, dayDate, onCheckin })
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '3px', marginBottom: '0.4rem' }}>
               <span className="material-symbols-outlined" style={{ fontSize: '11px', color: 'var(--st-color-category-food)', flexShrink: 0, marginTop: '2px' }}>location_on</span>
               <span style={{
-                color: 'var(--text-muted)', fontSize: '0.71rem', lineHeight: 1.45,
+                color: 'var(--st-color-text-muted)', fontSize: '0.71rem', lineHeight: 1.45,
                 display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
               }}>
                 {stop.address}
@@ -263,7 +263,7 @@ export default function StopCheckinCard({ stop, isCurrent, dayDate, onCheckin })
 
         {/* Thumbnail */}
         {stop.photo && (
-          <div style={{ width: 56, height: 56, borderRadius: '8px', overflow: 'hidden', flexShrink: 0, border: '1px solid var(--glass-border)', opacity: stop.checkedIn ? 0.7 : 1 }}>
+          <div style={{ width: 56, height: 56, borderRadius: '8px', overflow: 'hidden', flexShrink: 0, border: '1px solid var(--md-sys-color-outline)', opacity: stop.checkedIn ? 0.7 : 1 }}>
             <img src={stop.photo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           </div>
         )}

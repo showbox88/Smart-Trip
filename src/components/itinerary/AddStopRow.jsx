@@ -56,14 +56,14 @@ export default memo(function AddStopRow({ dayId, onAddStop, onAddNote, onAddList
       style={{ paddingLeft: '2.25rem', display: 'flex', gap: '0.5rem' }}
     >
       <div style={{ flex: 1, position: 'relative' }}>
-        <span style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)', fontSize: '1rem', pointerEvents: 'none' }}>
+        <span style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--md-sys-color-on-surface-variant)', fontSize: '1rem', pointerEvents: 'none' }}>
           📍
         </span>
         <input
           ref={inputRef}
           type="text"
           className="location-search-input"
-          style={{ paddingLeft: '2.8rem', background: 'var(--bg-secondary)', border: 'none' }}
+          style={{ paddingLeft: '2.8rem', background: 'var(--md-sys-color-surface-variant)', border: 'none' }}
           placeholder={`${t('itinerary.add_stop') || 'Add a stop'}...`}
           value={query}
           onChange={(e) => {
@@ -99,18 +99,18 @@ export default memo(function AddStopRow({ dayId, onAddStop, onAddNote, onAddList
                   selectPlace(p.place_id);
                 }}
               >
-                <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-primary)' }}>
+                <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--md-sys-color-on-surface)' }}>
                   {p.main_text}
                 </div>
                 {p.secondary_text && (
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--st-color-text-muted)', marginTop: '2px' }}>
                     {p.secondary_text}
                   </div>
                 )}
               </li>
             ))}
             {isLoading && (
-              <li style={{ color: 'var(--text-muted)', fontSize: '0.85rem', cursor: 'default' }}>
+              <li style={{ color: 'var(--st-color-text-muted)', fontSize: '0.85rem', cursor: 'default' }}>
                 {t('common.loading') || 'Loading...'}
               </li>
             )}
@@ -123,7 +123,7 @@ export default memo(function AddStopRow({ dayId, onAddStop, onAddNote, onAddList
         <button
           onClick={onClose}
           title={t('common.cancel') || 'Cancel'}
-          style={{ width: '45px', height: '45px', borderRadius: '50%', background: 'var(--bg-secondary)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', cursor: 'pointer', flexShrink: 0 }}
+          style={{ width: '45px', height: '45px', borderRadius: '50%', background: 'var(--md-sys-color-surface-variant)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--st-color-text-muted)', cursor: 'pointer', flexShrink: 0 }}
         >
           <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>close</span>
         </button>
@@ -132,7 +132,7 @@ export default memo(function AddStopRow({ dayId, onAddStop, onAddNote, onAddList
           <button
             onClick={() => onAddNote?.(dayId)}
             title={t('itinerary.add_note') || 'Add note'}
-            style={{ width: '45px', height: '45px', borderRadius: '50%', background: 'var(--bg-secondary)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-primary)', cursor: 'pointer', flexShrink: 0 }}
+            style={{ width: '45px', height: '45px', borderRadius: '50%', background: 'var(--md-sys-color-surface-variant)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--md-sys-color-on-surface)', cursor: 'pointer', flexShrink: 0 }}
           >
             <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>sticky_note_2</span>
           </button>
@@ -140,7 +140,7 @@ export default memo(function AddStopRow({ dayId, onAddStop, onAddNote, onAddList
           <button
             onClick={() => onAddList?.(dayId)}
             title={t('itinerary.add_list') || 'Add list'}
-            style={{ width: '45px', height: '45px', borderRadius: '50%', background: 'var(--bg-secondary)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-primary)', cursor: 'pointer', flexShrink: 0 }}
+            style={{ width: '45px', height: '45px', borderRadius: '50%', background: 'var(--md-sys-color-surface-variant)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--md-sys-color-on-surface)', cursor: 'pointer', flexShrink: 0 }}
           >
             <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>checklist</span>
           </button>
@@ -148,7 +148,7 @@ export default memo(function AddStopRow({ dayId, onAddStop, onAddNote, onAddList
           <button
             onClick={() => onAddTransport?.(dayId)}
             title={t('itinerary.add_transport') || '添加交通'}
-            style={{ width: '45px', height: '45px', borderRadius: '50%', background: 'var(--bg-secondary)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4FC3F7', cursor: 'pointer', flexShrink: 0 }}
+            style={{ width: '45px', height: '45px', borderRadius: '50%', background: 'var(--md-sys-color-surface-variant)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4FC3F7', cursor: 'pointer', flexShrink: 0 }}
           >
             <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>flight</span>
           </button>
