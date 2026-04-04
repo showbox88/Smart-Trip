@@ -113,6 +113,11 @@ export function applyTheme(theme) {
   const variant = layout.variant || 'glass';
   root.setAttribute('data-layout', variant);
 
+  // ── Theme ID (for theme-specific CSS scoping) ──
+  if (merged.name) {
+    root.setAttribute('data-theme-id', merged.name.toLowerCase());
+  }
+
   // Timeline tokens
   if (layout.timeline) {
     root.style.setProperty('--st-timeline-dot-size', layout.timeline.dotSize || '8px');

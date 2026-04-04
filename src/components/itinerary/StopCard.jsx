@@ -71,8 +71,9 @@ export default React.memo(function StopCard({
 }) {
   const { state, dispatch } = useApp();
   const { t } = useI18n();
-  const { layoutVariant, layout } = useTheme();
+  const { layoutVariant, layout, themeId } = useTheme();
   const isClean = layoutVariant === 'clean';
+  const isBlossom = themeId === 'blossom';
   const [showPhotoPicker, setShowPhotoPicker] = useState(false);
   const [placePhotos, setPlacePhotos] = useState([]);
   const [loadingPhotos, setLoadingPhotos] = useState(false);
@@ -217,22 +218,23 @@ export default React.memo(function StopCard({
         <div style={{
           position: 'absolute',
           left: 'var(--timeline-line-x)',
-          top: '1.2rem',
+          top: isBlossom ? 'calc(1.7rem + 2px)' : '1.2rem',
           transform: 'translateX(-50%)',
-          width: '40px',
-          height: '40px',
+          width: isBlossom ? '26px' : '40px',
+          height: isBlossom ? '26px' : '40px',
           borderRadius: '50%',
-          background: 'var(--md-sys-color-surface-container-lowest)',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+          background: isBlossom ? '#ffffff' : 'var(--md-sys-color-surface-container-lowest)',
+          border: isBlossom ? `2.5px solid ${dotColor}` : 'none',
+          boxShadow: isBlossom ? 'none' : '0 4px 12px rgba(0,0,0,0.08)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          zIndex: 2,
+          zIndex: 3,
           transition: 'transform 0.2s ease',
         }}>
           <div style={{
-            width: '34px',
-            height: '34px',
+            width: isBlossom ? '22px' : '34px',
+            height: isBlossom ? '22px' : '34px',
             borderRadius: '50%',
             background: `${dotColor}20`,
             display: 'flex',
@@ -241,7 +243,7 @@ export default React.memo(function StopCard({
           }}>
             {(() => {
               const Icon = getCategoryIcon(stop.category);
-              return <Icon size={18} strokeWidth={2.2} style={{ color: dotColor }} />;
+              return <Icon size={isBlossom ? 13 : 18} strokeWidth={2.2} style={{ color: dotColor }} />;
             })()}
           </div>
         </div>
@@ -281,7 +283,7 @@ export default React.memo(function StopCard({
           borderTop: 'var(--hotel-line-width) solid var(--hotel-line-color)',
           borderLeft: 'var(--hotel-line-width) solid var(--hotel-line-color)',
           borderTopLeftRadius: '8px',
-          zIndex: 1,
+          zIndex: 0,
           boxSizing: 'border-box',
         }} />
       )}
@@ -295,7 +297,7 @@ export default React.memo(function StopCard({
           borderBottom: 'var(--hotel-line-width) solid var(--hotel-line-color)',
           borderLeft: 'var(--hotel-line-width) solid var(--hotel-line-color)',
           borderBottomLeftRadius: '8px',
-          zIndex: 1,
+          zIndex: 0,
           boxSizing: 'border-box',
         }} />
       )}
@@ -433,35 +435,60 @@ export default React.memo(function StopCard({
                     justifyContent: 'center',
                     flexShrink: 0
                   }}>
-                    <div style={{
-                      position: 'absolute',
-                      top: '4px',
-                      width: '14px',
-                      height: '14px',
-                      borderRadius: '50%',
-                      background: isHotelType ? 'var(--st-color-hotel-line)' : (dayColor || 'var(--st-color-hotel-checkin)'),
-                      zIndex: 0
-                    }} />
-                    <span className="material-symbols-outlined" style={{
-                      fontSize: '32px',
-                      color: isHotelType ? 'var(--st-color-hotel-line)' : (dayColor || 'var(--st-color-hotel-checkin)'),
-                      position: 'absolute',
-                      fontVariationSettings: "'FILL' 1",
-                      zIndex: 1
-                    }}>location_on</span>
-                    <span style={{
-                      position: 'relative',
-                      color: 'white',
-                      fontSize: '0.75rem',
-                      fontWeight: 900,
-                      marginTop: '-6px',
-                      zIndex: 2
-                    }}>{index + 1}</span>
+                    {isBlossom ? (
+                      /* Blossom: circle outline with number */
+                      <>
+                        <div style={{
+                          width: '26px',
+                          height: '26px',
+                          borderRadius: '50%',
+                          border: `2.5px solid ${isHotelType ? 'var(--st-color-hotel-line)' : (dayColor || 'var(--md-sys-color-primary)')}`,
+                          background: 'var(--md-sys-color-surface-container-lowest)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}>
+                          <span style={{
+                            color: isHotelType ? 'var(--st-color-hotel-line)' : (dayColor || 'var(--md-sys-color-primary)'),
+                            fontSize: '0.72rem',
+                            fontWeight: 800,
+                          }}>{index + 1}</span>
+                        </div>
+                      </>
+                    ) : (
+                      /* Default: filled map pin */
+                      <>
+                        <div style={{
+                          position: 'absolute',
+                          top: '4px',
+                          width: '14px',
+                          height: '14px',
+                          borderRadius: '50%',
+                          background: isHotelType ? 'var(--st-color-hotel-line)' : (dayColor || 'var(--st-color-hotel-checkin)'),
+                          zIndex: 0
+                        }} />
+                        <span className="material-symbols-outlined" style={{
+                          fontSize: '32px',
+                          color: isHotelType ? 'var(--st-color-hotel-line)' : (dayColor || 'var(--st-color-hotel-checkin)'),
+                          position: 'absolute',
+                          fontVariationSettings: "'FILL' 1",
+                          zIndex: 1
+                        }}>location_on</span>
+                        <span style={{
+                          position: 'relative',
+                          color: 'white',
+                          fontSize: '0.75rem',
+                          fontWeight: 900,
+                          marginTop: '-6px',
+                          zIndex: 2
+                        }}>{index + 1}</span>
+                      </>
+                    )}
                   </div>
                   <h4 className="rich-stop-card-title" style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: 'var(--md-sys-color-on-surface)', letterSpacing: '-0.02em' }}>
                     {stop.location}
                   </h4>
-                  {isClean ? (
+                  {isBlossom ? null : isClean ? (
                     /* Clean layout: colored pill badge */
                     <span style={{
                       background: `${dotColor}15`,

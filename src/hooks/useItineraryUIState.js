@@ -72,7 +72,9 @@ export function useItineraryUIState(trip) {
         const container = document.getElementById('itinerary-scroll-container');
         const el = document.getElementById(dayId);
         if (container && el) {
-          const scrollMargin = 75;
+          // Use actual sticky header height if available, fallback to 75
+          const stickyHeader = container.querySelector('[style*="sticky"]') || document.getElementById('trip-header-bar')?.parentElement;
+          const scrollMargin = (stickyHeader?.offsetHeight || 75) + 20;
           const targetTop =
             el.getBoundingClientRect().top -
             container.getBoundingClientRect().top +

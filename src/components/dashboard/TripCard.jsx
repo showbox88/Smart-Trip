@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useI18n } from '../../context/I18nContext';
 import { useApp } from '../../context/AppContext';
 import { useTrips } from '../../hooks/useTrips';
+import { useTheme } from '../../theme';
 import { calculateDays, formatCurrency } from '../../utils/formatters';
 
 function getStatus(trip, t) {
@@ -23,6 +24,8 @@ export default function TripCard({ trip, isList = false, onEdit, onShare }) {
   const { t } = useI18n();
   const { state } = useApp();
   const { deleteTrip } = useTrips();
+  const { themeId } = useTheme();
+  const isBlossom = themeId === 'blossom';
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -57,6 +60,83 @@ export default function TripCard({ trip, isList = false, onEdit, onShare }) {
 
   if (isList) {
     const cities = trip.cities || [];
+
+    // ── Blossom list card ──
+    if (isBlossom) {
+      return (
+        <div
+          className="trip-card-list"
+          onClick={handleOpen}
+          style={{
+            position: 'relative',
+            display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', gap: '0.75rem',
+            background: 'var(--md-sys-color-surface-container-lowest)',
+            border: '1px solid var(--md-sys-color-outline-variant)',
+            borderRadius: '16px', padding: '0.75rem',
+            transition: 'all 0.3s', cursor: 'pointer', marginBottom: '0.75rem',
+          }}
+        >
+          {/* Menu dots — top right */}
+          <div style={{ position: 'absolute', top: 'calc(0.5rem + 10px)', right: 'calc(0.5rem - 19px)' }}>
+            <button className="menu-dots" onClick={handleMenuToggle} style={{
+              background: 'rgba(131,75,88,0.08)', border: 'none', borderRadius: '50%',
+              width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: 'var(--md-sys-color-primary)', cursor: 'pointer', fontSize: '16px',
+            }}>⋮</button>
+            {menuOpen && (
+              <div className="menu-dropdown" style={{ right: 0, top: '2rem', transform: 'none', zIndex: 100, display: 'block' }}>
+                <button onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onEdit?.(trip); }}>{t('itinerary.edit_trip')}</button>
+                <button onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onShare?.(trip); }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>share</span>
+                  {t('itinerary.share_trip') || 'Share trip'}
+                </button>
+                <button className="danger" onClick={handleDelete}>{t('itinerary.delete_trip')}</button>
+              </div>
+            )}
+          </div>
+
+          {/* Thumbnail */}
+          <div style={{ width: '100px', height: '70px', borderRadius: '10px', background: 'var(--md-sys-color-surface-container)', overflow: 'hidden', position: 'relative', flexShrink: 0 }}>
+            <div className="thumb-blur-bg" style={{ backgroundImage: `url('${trip.thumb}')`, opacity: 0.3, filter: 'blur(10px)' }} />
+            <img src={trip.thumb} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'contain', position: 'relative', zIndex: 1 }} alt={trip.title} />
+          </div>
+
+          {/* Info */}
+          <div style={{ flex: 1, minWidth: 0, paddingRight: '2rem' }}>
+            <h4 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{trip.title}</h4>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--md-sys-color-on-surface-variant)', fontSize: '0.8rem', flexWrap: 'wrap' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>calendar_today</span>
+                {trip.startDate} - {trip.endDate}
+              </span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>location_on</span>
+                {stopsCount} {t('itinerary.stops_count')}
+              </span>
+            </div>
+            {cities.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '4px' }}>
+                {cities.map(city => (
+                  <span key={city} style={{ fontSize: '0.68rem', padding: '1px 7px', borderRadius: '20px', background: 'var(--md-sys-color-surface-container-low)', color: 'var(--md-sys-color-on-surface-variant)', border: '1px solid var(--md-sys-color-outline-variant)', whiteSpace: 'nowrap' }}>
+                    {city}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Bottom row: cost left, status right */}
+          <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.25rem', borderTop: '1px solid var(--md-sys-color-outline-variant)' }}>
+            <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--md-sys-color-on-surface)' }}>
+              {formatCurrency(totalCost, state.settings)}
+            </div>
+            <span className={`status-badge ${status.cls}`} style={{ position: 'static', padding: '3px 10px', borderRadius: '20px', fontSize: '0.68rem' }}>{status.label}</span>
+          </div>
+        </div>
+      );
+    }
+
+    // ── Default list card ──
     return (
       <div
         className="trip-card-list"

@@ -278,7 +278,92 @@
 
 
 /* ═══════════════════════════════════════════════════
-   10. TRANSITION for layout switching
+   10. BLOSSOM THEME — scrapbook-style overrides
+   ═══════════════════════════════════════════════════ */
+
+/* Scrapbook dot-grid background */
+[data-theme-id="blossom"] body,
+[data-theme-id="blossom"] .main-itinerary {
+  background-image: radial-gradient(var(--md-sys-color-primary-container) 0.5px, transparent 0.5px);
+  background-size: 24px 24px;
+}
+
+/* Timeline line — gradient from primary-container to secondary-container */
+[data-theme-id="blossom"] .timeline-main-line {
+  border-left-style: solid !important;
+  border-left-width: 3px !important;
+  border-image: linear-gradient(
+    to bottom,
+    var(--md-sys-color-primary-container),
+    var(--md-sys-color-secondary-container),
+    transparent
+  ) 1 !important;
+  opacity: 0.8 !important;
+}
+
+/* Stop cards — white background with soft pink shadow */
+[data-theme-id="blossom"] .rich-stop-card {
+  background: var(--md-sys-color-surface-container-lowest) !important;
+  border: 1px solid var(--md-sys-color-outline-variant) !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 8px 30px rgba(131, 75, 88, 0.04) !important;
+}
+
+[data-theme-id="blossom"] .rich-stop-card:hover {
+  box-shadow: 0 12px 40px rgba(131, 75, 88, 0.08) !important;
+  transform: translateY(-1px);
+}
+
+/* Timeline dot — bubble icon style */
+[data-theme-id="blossom"] .dot {
+  width: var(--st-timeline-dot-size, 24px);
+  height: var(--st-timeline-dot-size, 24px);
+  background: var(--md-sys-color-surface-container-lowest) !important;
+  border: 2.5px solid currentColor;
+  box-shadow: 0 2px 8px rgba(131, 75, 88, 0.1);
+}
+
+/* Transit inline — uppercase small text */
+[data-theme-id="blossom"] .transit-inline {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--md-sys-color-primary);
+  opacity: 0.65;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* Menu dropdown — light warm background */
+[data-theme-id="blossom"] .menu-dropdown {
+  background: var(--md-sys-color-surface-container-lowest);
+  border-color: var(--md-sys-color-outline-variant);
+  box-shadow: 0 8px 24px rgba(131, 75, 88, 0.12);
+}
+
+
+/* Filter tabs — warm hover for Blossom */
+[data-theme-id="blossom"] .filter-tab {
+  background: var(--md-sys-color-surface-container-lowest);
+  border-color: var(--md-sys-color-outline-variant);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+[data-theme-id="blossom"] .filter-tab:hover {
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-primary);
+  border-color: var(--md-sys-color-primary-container);
+  transform: translateY(-1px);
+}
+
+[data-theme-id="blossom"] .filter-tab.active {
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+  border-color: var(--md-sys-color-primary);
+  box-shadow: 0 4px 15px rgba(131, 75, 88, 0.25);
+}
+
+/* ═══════════════════════════════════════════════════
+   11. TRANSITION for layout switching
    ═══════════════════════════════════════════════════ */
 
 [data-layout] {

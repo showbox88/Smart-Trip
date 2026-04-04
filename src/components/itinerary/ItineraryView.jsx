@@ -4,6 +4,7 @@ import { useTripEditor } from '../../hooks/useTripEditor';
 import { useTimelineDrag } from '../../hooks/useTimelineDrag';
 import { useTrips } from '../../hooks/useTrips';
 import { useItineraryUIState } from '../../hooks/useItineraryUIState';
+import { useTheme } from '../../theme';
 import TripHeader from './TripHeader';
 import TripSidebar from './TripSidebar';
 import DaySection from './DaySection';
@@ -30,6 +31,8 @@ function scrollToNewStop(id, attempts = 0) {
 
 export default function ItineraryView({ tripId, isDayMode = false, date = null }) {
   const { t } = useI18n();
+  const { themeId } = useTheme();
+  const isBlossom = themeId === 'blossom';
   const navigate = useNavigate();
   const { deleteTrip } = useTrips();
   const [showShareModal, setShowShareModal] = useState(false);
@@ -282,7 +285,8 @@ export default function ItineraryView({ tripId, isDayMode = false, date = null }
 
   return (
     <div className="dashboard-view fade-in">
-      {!isDayMode && (
+      {/* Default sidebar (vertical, left side) — hidden for Blossom */}
+      {!isDayMode && !isBlossom && (
         <TripSidebar
           trip={trip}
           activeDayId={activeDayId}
@@ -294,7 +298,24 @@ export default function ItineraryView({ tripId, isDayMode = false, date = null }
       )}
 
       <section className="main-itinerary" id="itinerary-scroll-container">
-        <TripHeader trip={trip} onDeleteTrip={handleDeleteTrip} onEditTrip={() => setTripEditModal(true)} onShareTrip={() => setShowShareModal(true)} onShowSchedule={() => setShowScheduleModal(true)} isDayMode={isDayMode} />
+        {/* Blossom: sticky block wrapping header + day strip */}
+        {isBlossom ? (
+          <div style={{ position: 'sticky', top: 0, zIndex: 100, background: 'var(--md-sys-color-surface)' }}>
+            <TripHeader trip={trip} onDeleteTrip={handleDeleteTrip} onEditTrip={() => setTripEditModal(true)} onShareTrip={() => setShowShareModal(true)} onShowSchedule={() => setShowScheduleModal(true)} isDayMode={isDayMode} />
+            {!isDayMode && (
+              <TripSidebar
+                trip={trip}
+                activeDayId={activeDayId}
+                onAddDay={addDay}
+                onRemoveLastDay={handleRemoveLastDay}
+                onDayClick={handleSidebarDayClick}
+                moveDay={moveDay}
+              />
+            )}
+          </div>
+        ) : (
+          <TripHeader trip={trip} onDeleteTrip={handleDeleteTrip} onEditTrip={() => setTripEditModal(true)} onShareTrip={() => setShowShareModal(true)} onShowSchedule={() => setShowScheduleModal(true)} isDayMode={isDayMode} />
+        )}
 
         {pendingInsertion && (
           <div style={{

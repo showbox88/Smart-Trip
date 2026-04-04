@@ -11,7 +11,7 @@ export default function HotelLine({ top = '-1rem', bottom = '-1rem' }) {
       bottom,
       width: 'var(--hotel-line-width)',
       background: 'var(--hotel-line-color)',
-      zIndex: 1,
+      zIndex: 0,
     }} />
   );
 }
