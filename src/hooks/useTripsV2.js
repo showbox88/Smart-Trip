@@ -115,6 +115,10 @@ export function useTripsV2() {
     if (updates.startDate !== undefined) dbUpdates.start_date = updates.startDate;
     if (updates.endDate !== undefined)   dbUpdates.end_date = updates.endDate;
     if (updates.settings !== undefined)  dbUpdates.settings = updates.settings;
+    if (updates.status !== undefined) {
+      const existing = state.tripsV2.find(t => t.id === tripId);
+      dbUpdates.settings = { ...(existing?.settings || {}), status: updates.status };
+    }
 
     let query = supabase
       .from('trips')
@@ -310,6 +314,7 @@ function normalizeTripRow(row) {
     startDate: row.start_date || null,
     endDate: row.end_date || null,
     settings: row.settings || {},
+    status: row.settings?.status || null,
     share_token: row.share_token || null,
     created_at: row.created_at,
     stopsCount,

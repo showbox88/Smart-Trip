@@ -204,30 +204,64 @@ export default function TripCard({ trip, isList = false, onEdit, onShare }) {
         )}
       </div>
       <div className="trip-content">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
-          <h4 style={{ fontSize: '1.35rem', fontWeight: 800, letterSpacing: '-0.03em' }}>{trip.title}</h4>
-          <div style={{ color: 'var(--md-sys-color-primary)', fontSize: '0.8rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px', paddingTop: '4px' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>location_on</span>
-            {stopsCount} {t('itinerary.stops_count')}
-          </div>
-        </div>
-        <div style={{ color: 'var(--st-color-text-muted)', fontSize: '0.9rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2rem' }}>
-          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>calendar_today</span>
-          {trip.startDate} - {trip.endDate}
-        </div>
-        <div className="trip-meta">
-          <div>
-            <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--st-color-text-muted)', fontWeight: 800, letterSpacing: '0.08em', marginBottom: '2px' }}>{t('dashboard.total_expenses')}</div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--md-sys-color-on-surface)' }}>{formatCurrency(totalCost, state.settings)}</div>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div className="meta-item" style={{ background: 'rgba(255,255,255,0.05)', padding: '4px 10px', borderRadius: '8px' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>schedule</span>
-              {duration} {t('itinerary.days')}
+        {isBlossom ? (
+          <>
+            {/* Blossom: title only */}
+            <h4 style={{ fontSize: '1.35rem', fontWeight: 800, letterSpacing: '-0.03em', marginBottom: '0.5rem' }}>{trip.title}</h4>
+            {/* Date + Days + Stops on same row */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+              <div style={{ color: 'var(--md-sys-color-on-surface-variant)', fontSize: '0.85rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>calendar_today</span>
+                {trip.startDate} - {trip.endDate}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.78rem', fontWeight: 700, color: 'var(--md-sys-color-primary)' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>schedule</span>
+                  {duration} {t('itinerary.days')}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.78rem', fontWeight: 700, color: 'var(--md-sys-color-primary)' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>location_on</span>
+                  {stopsCount} {t('itinerary.stops_count')}
+                </div>
+              </div>
             </div>
-            <span className={`status-badge ${status.cls}`} style={{ position: 'static', padding: '4px 10px', borderRadius: '8px', backdropFilter: 'none' }}>{status.label}</span>
-          </div>
-        </div>
+            {/* Meta: cost left, status right */}
+            <div className="trip-meta">
+              <div>
+                <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--md-sys-color-on-surface-variant)', fontWeight: 800, letterSpacing: '0.08em', marginBottom: '2px' }}>{t('dashboard.total_expenses')}</div>
+                <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--md-sys-color-on-surface)' }}>{formatCurrency(totalCost, state.settings)}</div>
+              </div>
+              <span className={`status-badge ${status.cls}`} style={{ position: 'static', padding: '4px 10px', borderRadius: '8px', backdropFilter: 'none', marginLeft: 'auto' }}>{status.label}</span>
+            </div>
+          </>
+        ) : (
+          <>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+              <h4 style={{ fontSize: '1.35rem', fontWeight: 800, letterSpacing: '-0.03em' }}>{trip.title}</h4>
+              <div style={{ color: 'var(--md-sys-color-primary)', fontSize: '0.8rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px', paddingTop: '4px' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>location_on</span>
+                {stopsCount} {t('itinerary.stops_count')}
+              </div>
+            </div>
+            <div style={{ color: 'var(--st-color-text-muted)', fontSize: '0.9rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2rem' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>calendar_today</span>
+              {trip.startDate} - {trip.endDate}
+            </div>
+            <div className="trip-meta">
+              <div>
+                <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--st-color-text-muted)', fontWeight: 800, letterSpacing: '0.08em', marginBottom: '2px' }}>{t('dashboard.total_expenses')}</div>
+                <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--md-sys-color-on-surface)' }}>{formatCurrency(totalCost, state.settings)}</div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div className="meta-item" style={{ background: 'rgba(255,255,255,0.05)', padding: '4px 10px', borderRadius: '8px' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>schedule</span>
+                  {duration} {t('itinerary.days')}
+                </div>
+                <span className={`status-badge ${status.cls}`} style={{ position: 'static', padding: '4px 10px', borderRadius: '8px', backdropFilter: 'none' }}>{status.label}</span>
+              </div>
+            </div>
+          </>
+        )}
       </div>
       {menuOpen && (
         <div className="menu-dropdown" style={{ right: '1rem', top: '3.5rem', transform: 'none', display: 'block', zIndex: 20 }}>

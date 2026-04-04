@@ -364,6 +364,12 @@
   color: white;
 }
 
+/* Trip grid card — Blossom meta border */
+[data-theme-id="blossom"] .trip-dashboard-container .trip-meta {
+  display: flex;
+  border-top-color: var(--md-sys-color-outline-variant);
+}
+
 /* Filter tabs — warm hover for Blossom */
 [data-theme-id="blossom"] .filter-tab {
   background: var(--md-sys-color-surface-container-lowest);

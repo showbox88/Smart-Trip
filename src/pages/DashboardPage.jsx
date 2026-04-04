@@ -85,6 +85,7 @@ export default function DashboardPage() {
         startDate: patch.startDate || null,
         endDate: patch.endDate || null,
         thumb: patch.thumb,
+        status: patch.status,
       });
       if (patch._dayIdsToLink?.length) {
         await linkDaysToTrip(editingTrip.id, patch._dayIdsToLink);
