@@ -341,6 +341,29 @@
 }
 
 
+/* Trip placeholder card — Blossom: rounded card size */
+[data-theme-id="blossom"] .trip-dashboard-container .trip-card-placeholder {
+  border: 2px dashed var(--md-sys-color-outline-variant);
+  border-radius: 20px;
+  min-height: 480px;
+  background: var(--md-sys-color-surface-container-lowest);
+}
+
+[data-theme-id="blossom"] .trip-dashboard-container .trip-card-placeholder:hover {
+  border-color: var(--md-sys-color-primary);
+  background: rgba(131, 75, 88, 0.04);
+}
+
+[data-theme-id="blossom"] .trip-dashboard-container .placeholder-icon {
+  background: rgba(131, 75, 88, 0.08);
+  color: var(--md-sys-color-primary);
+}
+
+[data-theme-id="blossom"] .trip-dashboard-container .trip-card-placeholder:hover .placeholder-icon {
+  background: var(--md-sys-color-primary);
+  color: white;
+}
+
 /* Filter tabs — warm hover for Blossom */
 [data-theme-id="blossom"] .filter-tab {
   background: var(--md-sys-color-surface-container-lowest);
