@@ -393,6 +393,23 @@
         "ticket_photo": "票据照片",
         "tap_to_add": "点击添加详情"
     },
+    "climate": {
+        "destination_label": "目的地城市",
+        "destination_placeholder": "搜索城市...",
+        "precipitation": "降水量",
+        "per_day": "天",
+        "days_suffix": "天",
+        "rainy_days": "雨天",
+        "based_on_history": "基于近5年平均",
+        "clothing_hot": "轻薄透气衣物、防晒",
+        "clothing_warm": "T恤、薄外套",
+        "clothing_mild": "多层穿搭、夹克",
+        "clothing_cool": "保暖外套、毛衣",
+        "clothing_cold": "羽绒服、手套、帽子",
+        "climate_info": "气候信息",
+        "loading": "加载气候数据...",
+        "no_dates": "设置日期以查看气候信息"
+    },
     "planb": {
         "title": "Plan B",
         "current": "当前",

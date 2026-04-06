@@ -728,7 +728,14 @@ export function useTripEditor(tripId) {
   const updateTripMetadata = useCallback((patch) => {
     withTripUpdate((updated) => {
       const oldStartDate = updated.startDate;
-      Object.assign(updated, patch);
+      // Extract destinations before assigning
+      const { _destinations, _dayIdsToLink, ...rest } = patch;
+      Object.assign(updated, rest);
+      // Store destinations in settings
+      if (_destinations) {
+        if (!updated.settings) updated.settings = {};
+        updated.settings.destinations = _destinations;
+      }
       // If startDate changed, recalculate each day's date
       if (patch.startDate && patch.startDate !== oldStartDate && updated.days) {
         updated.days.forEach((day, index) => {

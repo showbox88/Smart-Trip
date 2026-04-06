@@ -392,6 +392,23 @@
         "ticket_photo": "Ticket Photo",
         "tap_to_add": "Tap to add details"
     },
+    "climate": {
+        "destination_label": "Destination Cities",
+        "destination_placeholder": "Search city...",
+        "precipitation": "Rainfall",
+        "per_day": "day",
+        "days_suffix": "d",
+        "rainy_days": "rainy days",
+        "based_on_history": "Based on 5-year average",
+        "clothing_hot": "Light, breathable clothes, sunscreen",
+        "clothing_warm": "T-shirts, light layers",
+        "clothing_mild": "Layers, light jacket",
+        "clothing_cool": "Warm coat, sweater",
+        "clothing_cold": "Heavy winter coat, gloves, hat",
+        "climate_info": "Climate Info",
+        "loading": "Loading climate data...",
+        "no_dates": "Set dates to see climate info"
+    },
     "planb": {
         "title": "Plan B",
         "current": "Current",

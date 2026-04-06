@@ -3,6 +3,9 @@ import { useI18n } from '../../context/I18nContext';
 import { useApp } from '../../context/AppContext';
 import { supabase } from '../../lib/supabase';
 import { uploadToSupabase } from '../../utils/uploadHelpers';
+import DestinationInput from '../climate/DestinationInput';
+import ClimateCard from '../climate/ClimateCard';
+import { useClimateData } from '../../hooks/useClimateData';
 
 /* ────────────────────────────────────────────────────────────
  *  Blossom-themed Create / Edit Trip Modal
@@ -33,8 +36,11 @@ export default function TripEditModal({ trip, onSave, onClose, isCreating: isNew
   const [existingDays, setExistingDays] = useState([]);
   const [linkDays, setLinkDays] = useState(true);
   const [showImageSection, setShowImageSection] = useState(false);
+  const [destinations, setDestinations] = useState(trip.settings?.destinations || []);
   const debounceRef = useRef(null);
   const overlayRef = useRef(null);
+
+  const { climateByCity, loading: climateLoading } = useClimateData(destinations, form.startDate, form.endDate);
 
   // ── Detect existing days_v2 records when date range changes ──
   useEffect(() => {
@@ -100,7 +106,7 @@ export default function TripEditModal({ trip, onSave, onClose, isCreating: isNew
     try {
       const thumb = await resolveThumb(thumbOverride ?? form.thumb);
       const dayIdsToLink = (linkDays && existingDays.length) ? existingDays.map(d => d.id) : [];
-      onSave?.({ ...form, thumb, _dayIdsToLink: dayIdsToLink });
+      onSave?.({ ...form, thumb, _dayIdsToLink: dayIdsToLink, _destinations: destinations });
       onClose?.();
     } catch (e) {
       console.error('[TripEditModal] save error:', e);
@@ -238,6 +244,42 @@ export default function TripEditModal({ trip, onSave, onClose, isCreating: isNew
                       />
                     </div>
                   </div>
+
+                  {/* ── Destination Cities ── */}
+                  <div className="blossom-field">
+                    <label className="blossom-label">
+                      <span className="material-symbols-outlined" style={{ fontSize: 16, verticalAlign: -3 }}>location_city</span>
+                      {' '}{t('climate.destination_label') || 'Destination Cities'}
+                    </label>
+                    <DestinationInput
+                      destinations={destinations}
+                      onAdd={(dest) => setDestinations(prev => [...prev, dest])}
+                      onRemove={(idx) => setDestinations(prev => prev.filter((_, i) => i !== idx))}
+                    />
+                  </div>
+
+                  {/* ── Climate Preview ── */}
+                  {destinations.length > 0 && form.startDate && form.endDate && form.startDate <= form.endDate && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                      {climateLoading ? (
+                        <div style={{ fontSize: '0.78rem', color: 'var(--md-sys-color-on-surface-variant)', padding: '0.5rem 0', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: 16, animation: 'spin 1s linear infinite' }}>progress_activity</span>
+                          {t('climate.loading') || 'Loading climate data...'}
+                        </div>
+                      ) : (
+                        destinations.map(dest => (
+                          climateByCity[dest.name] && (
+                            <ClimateCard
+                              key={dest.placeId || dest.name}
+                              cityName={dest.name}
+                              climateData={climateByCity[dest.name]}
+                              compact
+                            />
+                          )
+                        ))
+                      )}
+                    </div>
+                  )}
 
                   {/* ── Existing days detection ── */}
                   {existingDays.length > 0 && (
@@ -441,6 +483,20 @@ const blossomModalCSS = `
     --blossom-on-surface-variant: #5e5b5b;
     --blossom-outline: #797676;
     --blossom-outline-variant: #b1acac;
+
+    /* Remap M3 tokens so child components (ClimateCard, DestinationInput) use blossom palette */
+    --md-sys-color-primary: #834b58;
+    --md-sys-color-primary-container: #feb6c4;
+    --md-sys-color-on-primary-container: #3b1520;
+    --md-sys-color-secondary-container: #fed9b8;
+    --md-sys-color-on-secondary-container: #3d2e1c;
+    --md-sys-color-surface: #fbf5f5;
+    --md-sys-color-surface-container: #ede7e7;
+    --md-sys-color-surface-container-low: #f5efef;
+    --md-sys-color-surface-container-lowest: #ffffff;
+    --md-sys-color-on-surface: #302e2e;
+    --md-sys-color-on-surface-variant: #5e5b5b;
+    --md-sys-color-outline-variant: #b1acac;
     --blossom-radius: 1rem;
     --blossom-radius-lg: 2rem;
     --blossom-radius-xl: 3rem;
