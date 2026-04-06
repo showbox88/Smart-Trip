@@ -425,6 +425,30 @@ export function useTripEditor(tripId) {
     return insertStop(dayId, { id: `tr${Date.now()}`, type: 'transport', transportType, carrier: '', tripNumber: '', departureTime: '', arrivalTime: '', note: '', attachments: [] }, afterStopId);
   }, [insertStop]);
 
+  const addActivity = useCallback((dayId, afterStopId = null) => {
+    return insertStop(dayId, {
+      id: `a${Date.now()}`,
+      type: 'activity',
+      location: '',
+      address: '',
+      city: '',
+      lat: null, lng: null,
+      time: '', period: '',
+      photo: '', rating: null,
+      phone: '', note: '',
+      price: '0',
+      category: '活动',
+      categoryIcon: '🎯',
+      placeTypes: [],
+      activityInfo: {
+        activityCategory: 'tour',
+        provider: '', contactPerson: '', contactPhone: '',
+        meetingPoint: '', bookingRef: '', bookingUrl: '',
+        duration: null, groupSize: null, difficulty: null, equipment: '',
+      },
+    }, afterStopId);
+  }, [insertStop]);
+
   const updateNoteContent = useCallback((dayId, stopId, content) => {
     updateStop(dayId, stopId, { content });
   }, [updateStop]);
@@ -1006,6 +1030,7 @@ export function useTripEditor(tripId) {
     addListItem,
     deleteListItem,
     addStopFromPlace,
+    addActivity,
     updateTripMetadata,
     toggleTransitMode,
     toggleHotelTransitMode,

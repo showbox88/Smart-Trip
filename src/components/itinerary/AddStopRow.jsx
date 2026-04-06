@@ -4,7 +4,7 @@ import { useI18n } from '../../context/I18nContext';
 import { useStopSearch } from '../../hooks/useStopSearch';
 import HotelLine from './HotelLine';
 
-export default memo(function AddStopRow({ dayId, onAddStop, onAddNote, onAddList, onAddTransport, autoFocus, onClose, inHotelStay }) {
+export default memo(function AddStopRow({ dayId, onAddStop, onAddNote, onAddList, onAddTransport, onAddActivity, autoFocus, onClose, inHotelStay }) {
   const { t } = useI18n();
   const inputRef = useRef(null);
   const dropdownRef = useRef(null);
@@ -151,6 +151,14 @@ export default memo(function AddStopRow({ dayId, onAddStop, onAddNote, onAddList
             style={{ width: '45px', height: '45px', borderRadius: '50%', background: 'var(--md-sys-color-surface-variant)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4FC3F7', cursor: 'pointer', flexShrink: 0 }}
           >
             <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>flight</span>
+          </button>
+
+          <button
+            onClick={() => onAddActivity?.(dayId)}
+            title={t('activity.add_activity') || 'Add Activity'}
+            style={{ width: '45px', height: '45px', borderRadius: '50%', background: 'var(--md-sys-color-surface-variant)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#26a69a', cursor: 'pointer', flexShrink: 0 }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>local_activity</span>
           </button>
         </>
       )}

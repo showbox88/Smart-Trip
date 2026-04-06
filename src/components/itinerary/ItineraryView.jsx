@@ -41,7 +41,7 @@ export default function ItineraryView({ tripId, isDayMode = false, date = null }
     trip,
     addDay, deleteDay, removeDay, setDayColor, updateDay,
     deleteStop, updateStop, updateStopAndSort, moveStop, moveDay,
-    addNote, addList, addTransport,
+    addNote, addList, addTransport, addActivity,
     updateNoteContent, updateListTitle, updateListItem, toggleListItem, addListItem, deleteListItem,
     addStopFromPlace, updateTripMetadata, toggleTransitMode, toggleHotelTransitMode,
     computeTransitData, saveStayInfo,
@@ -265,6 +265,11 @@ export default function ItineraryView({ tripId, isDayMode = false, date = null }
     if (newId) scrollToNewStop(newId);
   }, [addTransport, scrollToNewStop]);
 
+  const handleAddActivity = useCallback(async (dayId, afterId) => {
+    const newId = await addActivity(dayId, afterId);
+    if (newId) scrollToNewStop(newId);
+  }, [addActivity, scrollToNewStop]);
+
   const handleChangePhoto = useCallback((dayId, stopId, photoUrl) => {
     updateStop(dayId, stopId, { photo: photoUrl });
   }, [updateStop]);
@@ -363,6 +368,7 @@ export default function ItineraryView({ tripId, isDayMode = false, date = null }
               onAddNote={handleAddNote}
               onAddList={handleAddList}
               onAddTransport={handleAddTransport}
+              onAddActivity={handleAddActivity}
               onDeleteNote={handleDeleteNote}
               onUpdateNoteContent={updateNoteContent}
               onUpdateListTitle={updateListTitle}

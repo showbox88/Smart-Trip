@@ -14,6 +14,8 @@ import { formatCurrency } from '../../utils/formatters';
 import HotelLine from './HotelLine';
 import TransitInfo from './TransitInfo';
 import PlanBPanel from './PlanBPanel';
+import ActivityDetailModal from '../modals/ActivityDetailModal';
+import { getActivityIcon, getActivityLabel, formatDuration } from '../../utils/activityHelpers';
 import { uploadToSupabase } from '../../utils/uploadHelpers';
 import { supabase } from '../../lib/supabase';
 
@@ -77,6 +79,8 @@ export default React.memo(function StopCard({
   const isClean = layoutVariant === 'clean';
   const isBlossom = themeId === 'blossom';
   const [showPlanB, setShowPlanB] = useState(false);
+  const [showActivityDetail, setShowActivityDetail] = useState(false);
+  const isActivity = stop.type === 'activity';
   const [showPhotoPicker, setShowPhotoPicker] = useState(false);
   const [placePhotos, setPlacePhotos] = useState([]);
   const [loadingPhotos, setLoadingPhotos] = useState(false);
@@ -331,6 +335,7 @@ export default React.memo(function StopCard({
               background: state.hoveredStopId === stop.id ? 'rgba(255,255,255,0.04)' : 'var(--md-sys-color-surface-container-lowest)',
               border: isClosed ? '1px solid rgba(239,68,68,0.35)' : '1px solid var(--md-sys-color-outline)',
               borderColor: isClosed ? 'rgba(239,68,68,0.35)' : state.hoveredStopId === stop.id ? 'var(--md-sys-color-primary)' : 'rgba(255,255,255,0.05)',
+              borderLeft: isActivity ? '3px solid #26a69a' : undefined,
               borderRadius: '1.2rem',
               padding: 'var(--stop-card-p) var(--stop-card-p) 2.8rem',
               transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -400,6 +405,23 @@ export default React.memo(function StopCard({
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '2px 8px', fontSize: '0.75rem', color: 'white', marginBottom: '0.5rem' }}>
                   <Hotel size={13} strokeWidth={2.5} />
                   {typeLabel}
+                </div>
+              )}
+
+              {/* Activity badge */}
+              {isActivity && (
+                <div style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '5px',
+                  background: 'rgba(38,166,154,0.1)',
+                  border: '1px solid rgba(38,166,154,0.3)',
+                  borderRadius: '8px', padding: '3px 10px',
+                  fontSize: '0.72rem', fontWeight: 700, color: '#26a69a',
+                  marginBottom: '0.4rem',
+                }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+                    {getActivityIcon(stop.activityInfo?.activityCategory)}
+                  </span>
+                  {getActivityLabel(stop.activityInfo?.activityCategory, t)}
                 </div>
               )}
 
@@ -711,6 +733,55 @@ export default React.memo(function StopCard({
                       );
                     })()}
 
+                    {/* Activity chips */}
+                    {isActivity && stop.activityInfo?.duration && (
+                      <div
+                        className="stop-chip"
+                        style={{
+                          background: 'rgba(99,102,241,0.08)', color: '#6366f1',
+                          padding: '4px 10px', borderRadius: '8px', fontSize: '0.78rem', fontWeight: 800,
+                          display: 'flex', alignItems: 'center', gap: '5px',
+                          border: '1px solid rgba(99,102,241,0.25)',
+                        }}
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: 14 }}>timer</span>
+                        {formatDuration(stop.activityInfo.duration)}
+                      </div>
+                    )}
+
+                    {isActivity && stop.activityInfo?.bookingRef && (
+                      <div
+                        className="stop-chip"
+                        style={{
+                          background: 'rgba(255,255,255,0.05)', color: 'var(--md-sys-color-on-surface)',
+                          padding: '4px 10px', borderRadius: '8px', fontSize: '0.78rem', fontWeight: 700,
+                          display: 'flex', alignItems: 'center', gap: '5px',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                        }}
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: 14 }}>confirmation_number</span>
+                        {stop.activityInfo.bookingRef}
+                      </div>
+                    )}
+
+                    {isActivity && (
+                      <div
+                        className="stop-chip editable"
+                        onClick={(e) => { e.stopPropagation(); setShowActivityDetail(true); }}
+                        style={{
+                          background: 'rgba(38,166,154,0.08)', color: '#26a69a',
+                          padding: '4px 10px', borderRadius: '8px', fontSize: '0.78rem', fontWeight: 800,
+                          display: 'flex', alignItems: 'center', gap: '5px',
+                          border: '1px solid rgba(38,166,154,0.25)',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: 14 }}>info</span>
+                        {t('activity.details') || 'Details'}
+                      </div>
+                    )}
+
                     {/* Plan B button */}
                     <div
                       className="stop-chip editable"
@@ -855,6 +926,16 @@ export default React.memo(function StopCard({
           t={t}
         />,
         document.body
+      )}
+
+      {/* Activity Detail Modal */}
+      {showActivityDetail && (
+        <ActivityDetailModal
+          stop={stop}
+          dayId={dayId}
+          onSave={(updatedStop) => onUpdateStop?.(dayId, stop.id, updatedStop)}
+          onClose={() => setShowActivityDetail(false)}
+        />
       )}
 
       {/* Plan B Panel */}

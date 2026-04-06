@@ -17,7 +17,7 @@ export default memo(function DaySection({
   day, dayIndex, trip,
   isCollapsed, onToggleCollapse,
   onAddStop, onDeleteStop, onToggleTransitMode,
-  onAddNote, onAddList, onAddTransport,
+  onAddNote, onAddList, onAddTransport, onAddActivity,
   onDeleteNote, onUpdateNoteContent,
   onDeleteList, onUpdateListTitle, onUpdateListItem, onToggleListItem, onAddListItem, onDeleteListItem,
   onColorChange, onEditDay, onDeleteDay, onUpdateDay, onUpdateStop,
@@ -116,8 +116,8 @@ export default memo(function DaySection({
   };
 
   const renderStop = (stop, index) => {
-    const isPoi = stop.type === 'location' || !stop.type || stop.type === 'hotel_checkin' || stop.type === 'hotel_checkout';
-    const nextPoiStop = stops.slice(index + 1).find(s => s.type === 'location' || !s.type || s.type === 'hotel_checkin' || s.type === 'hotel_checkout' || s.type === 'transport');
+    const isPoi = stop.type === 'location' || !stop.type || stop.type === 'hotel_checkin' || stop.type === 'hotel_checkout' || stop.type === 'activity';
+    const nextPoiStop = stops.slice(index + 1).find(s => s.type === 'location' || !s.type || s.type === 'hotel_checkin' || s.type === 'hotel_checkout' || s.type === 'transport' || s.type === 'activity');
     const showTransit = isPoi && !!nextPoiStop;
 
     // Calculate display index for POI (location/hotel) reset per day
@@ -217,6 +217,7 @@ export default memo(function DaySection({
               }}
               onAddNote={onAddNote}
               onAddList={onAddList}
+              onAddActivity={onAddActivity}
               autoFocus
               onClose={() => setInsertingAfterStopId(null)}
               inHotelStay={inHotelStay}
@@ -304,6 +305,7 @@ export default memo(function DaySection({
                   }}
                   onAddNote={(dayId) => { onAddNote?.(dayId, '__prepend__'); setInsertingAfterStopId(null); }}
                   onAddList={(dayId) => { onAddList?.(dayId, '__prepend__'); setInsertingAfterStopId(null); }}
+                  onAddActivity={onAddActivity}
                   autoFocus
                   onClose={() => setInsertingAfterStopId(null)}
                   inHotelStay={!!hotelContext.stay}
@@ -356,6 +358,7 @@ export default memo(function DaySection({
               onAddNote={onAddNote}
               onAddList={onAddList}
               onAddTransport={onAddTransport}
+              onAddActivity={onAddActivity}
               inHotelStay={!!(hotelContext.stay && (hotelContext.isCinOnly || hotelContext.isBetween))}
             />
           </div>
