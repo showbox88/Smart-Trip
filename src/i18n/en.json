@@ -391,5 +391,20 @@
         "note_placeholder": "Seat number, booking reference… (optional)",
         "ticket_photo": "Ticket Photo",
         "tap_to_add": "Tap to add details"
+    },
+    "planb": {
+        "title": "Plan B",
+        "current": "Current",
+        "my_alternatives": "My Alternatives",
+        "nearby_recommendations": "Nearby Recommendations",
+        "swap": "Swap",
+        "remove": "Remove",
+        "add_short": "Add",
+        "search_placeholder": "Search for a place...",
+        "empty_hint": "Search above to add alternative places",
+        "no_recommendations": "No nearby recommendations found",
+        "swapped_to": "Swapped to",
+        "undo": "Undo",
+        "max_reached": "Maximum 4 alternatives reached"
     }
 }

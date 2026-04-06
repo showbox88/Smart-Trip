@@ -29,7 +29,8 @@ export default memo(function DaySection({
   draggingStopId,
   onDragPointerDown, onDragPointerMove, onDragPointerUp,
   onFocusStop,
-  pendingFocusId, setPendingFocusId
+  pendingFocusId, setPendingFocusId,
+  onSwapPlanB, onAddPlanBAlternative, onRemovePlanBAlternative,
 }) {
   const { t, language } = useI18n();
   const [insertingAfterStopId, setInsertingAfterStopId] = useState(null);
@@ -182,6 +183,9 @@ export default memo(function DaySection({
           onAddList={onAddList}
           onAddTransport={onAddTransport}
           onFocusStop={onFocusStop}
+          onSwapPlanB={onSwapPlanB}
+          onAddPlanBAlternative={onAddPlanBAlternative}
+          onRemovePlanBAlternative={onRemovePlanBAlternative}
           inHotelStay={inHotelStay}
         />
       );

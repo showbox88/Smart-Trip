@@ -13,6 +13,7 @@ import {
 import { formatCurrency } from '../../utils/formatters';
 import HotelLine from './HotelLine';
 import TransitInfo from './TransitInfo';
+import PlanBPanel from './PlanBPanel';
 import { uploadToSupabase } from '../../utils/uploadHelpers';
 import { supabase } from '../../lib/supabase';
 
@@ -67,6 +68,7 @@ export default React.memo(function StopCard({
   onDelete, onToggleTransitMode, onOpenTimePicker, onOpenExpense, onOpenStayInfo,
   onChangePhoto, onAddStop, onAddNote, onAddList, onAddTransport, onFocusStop,
   onUpdateStop,
+  onSwapPlanB, onAddPlanBAlternative, onRemovePlanBAlternative,
   inHotelStay,
 }) {
   const { state, dispatch } = useApp();
@@ -74,6 +76,7 @@ export default React.memo(function StopCard({
   const { layoutVariant, layout, themeId } = useTheme();
   const isClean = layoutVariant === 'clean';
   const isBlossom = themeId === 'blossom';
+  const [showPlanB, setShowPlanB] = useState(false);
   const [showPhotoPicker, setShowPhotoPicker] = useState(false);
   const [placePhotos, setPlacePhotos] = useState([]);
   const [loadingPhotos, setLoadingPhotos] = useState(false);
@@ -707,6 +710,46 @@ export default React.memo(function StopCard({
                         </div>
                       );
                     })()}
+
+                    {/* Plan B button */}
+                    <div
+                      className="stop-chip editable"
+                      onClick={(e) => { e.stopPropagation(); setShowPlanB(true); }}
+                      style={{
+                        background: 'rgba(139, 92, 246, 0.08)',
+                        color: '#8b5cf6',
+                        padding: '4px 10px',
+                        borderRadius: '8px',
+                        fontSize: '0.78rem',
+                        fontWeight: 800,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                        border: '1px solid rgba(139, 92, 246, 0.25)',
+                        cursor: 'pointer',
+                        position: 'relative',
+                      }}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>alt_route</span>
+                      Plan B
+                      {stop.planB?.length > 0 && (
+                        <span style={{
+                          background: '#8b5cf6',
+                          color: '#fff',
+                          fontSize: '0.6rem',
+                          fontWeight: 800,
+                          minWidth: '16px',
+                          height: '16px',
+                          borderRadius: '8px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          lineHeight: 1,
+                        }}>
+                          {stop.planB.length}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -813,6 +856,17 @@ export default React.memo(function StopCard({
         />,
         document.body
       )}
+
+      {/* Plan B Panel */}
+      <PlanBPanel
+        stop={stop}
+        dayId={dayId}
+        open={showPlanB}
+        onClose={() => setShowPlanB(false)}
+        onSwap={onSwapPlanB}
+        onAddAlternative={onAddPlanBAlternative}
+        onRemoveAlternative={onRemovePlanBAlternative}
+      />
 
       {/* Transit info */}
       {showTransit && (

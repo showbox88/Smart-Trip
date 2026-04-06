@@ -392,5 +392,20 @@
         "note_placeholder": "座位号、订单号等（可选）",
         "ticket_photo": "票据照片",
         "tap_to_add": "点击添加详情"
+    },
+    "planb": {
+        "title": "Plan B",
+        "current": "当前",
+        "my_alternatives": "我的备选",
+        "nearby_recommendations": "附近推荐",
+        "swap": "替换",
+        "remove": "移除",
+        "add_short": "添加",
+        "search_placeholder": "搜索备选地点...",
+        "empty_hint": "搜索上方添加备选地点",
+        "no_recommendations": "未找到附近推荐",
+        "swapped_to": "已替换为",
+        "undo": "撤销",
+        "max_reached": "最多添加4个备选"
     }
 }

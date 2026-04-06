@@ -45,6 +45,7 @@ export default function ItineraryView({ tripId, isDayMode = false, date = null }
     updateNoteContent, updateListTitle, updateListItem, toggleListItem, addListItem, deleteListItem,
     addStopFromPlace, updateTripMetadata, toggleTransitMode, toggleHotelTransitMode,
     computeTransitData, saveStayInfo,
+    addPlanBAlternative, removePlanBAlternative, swapPlanB,
   } = useTripEditor(tripId);
   const {
     mapPanelRef,
@@ -387,6 +388,9 @@ export default function ItineraryView({ tripId, isDayMode = false, date = null }
               onFocusStop={handleFocusStop}
               pendingFocusId={pendingFocusId}
               setPendingFocusId={setPendingFocusId}
+              onSwapPlanB={swapPlanB}
+              onAddPlanBAlternative={addPlanBAlternative}
+              onRemovePlanBAlternative={removePlanBAlternative}
             />
           ))}
         </div>
