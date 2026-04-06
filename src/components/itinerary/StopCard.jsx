@@ -68,7 +68,7 @@ export default React.memo(function StopCard({
   stop, dayId, dayColor, index, showTransit, dayWeekdayIdx, isToday,
   nextStop,
   onDelete, onToggleTransitMode, onOpenTimePicker, onOpenExpense, onOpenStayInfo,
-  onChangePhoto, onAddStop, onAddNote, onAddList, onAddTransport, onFocusStop,
+  onChangePhoto, onAddStop, onAddNote, onAddList, onAddTransport, onAddActivity, onFocusStop,
   onUpdateStop,
   onSwapPlanB, onAddPlanBAlternative, onRemovePlanBAlternative,
   inHotelStay,
@@ -331,11 +331,14 @@ export default React.memo(function StopCard({
             onClick={() => onFocusStop?.(stop.id)}
             onMouseEnter={() => dispatch({ type: 'SET_HOVERED_STOP', payload: stop.id })}
             onMouseLeave={() => dispatch({ type: 'SET_HOVERED_STOP', payload: null })}
-            style={{
+            style={(() => {
+              const baseColor = isClosed ? 'rgba(239,68,68,0.35)' : state.hoveredStopId === stop.id ? 'var(--md-sys-color-primary)' : 'rgba(255,255,255,0.05)';
+              return {
               background: state.hoveredStopId === stop.id ? 'rgba(255,255,255,0.04)' : 'var(--md-sys-color-surface-container-lowest)',
-              border: isClosed ? '1px solid rgba(239,68,68,0.35)' : '1px solid var(--md-sys-color-outline)',
-              borderColor: isClosed ? 'rgba(239,68,68,0.35)' : state.hoveredStopId === stop.id ? 'var(--md-sys-color-primary)' : 'rgba(255,255,255,0.05)',
-              borderLeft: isActivity ? '3px solid #26a69a' : undefined,
+              borderTop: `1px solid ${baseColor}`,
+              borderRight: `1px solid ${baseColor}`,
+              borderBottom: `1px solid ${baseColor}`,
+              borderLeft: isActivity ? '3px solid #26a69a' : `1px solid ${baseColor}`,
               borderRadius: '1.2rem',
               padding: 'var(--stop-card-p) var(--stop-card-p) 2.8rem',
               transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -345,7 +348,7 @@ export default React.memo(function StopCard({
               display: 'flex',
               flexDirection: 'column',
               minHeight: '100px'
-            }}
+            }; })()}
           >
             {/* 移动端专用的拖拽边缘把手（左右各一个，方便双手操作） */}
             <div className="drag-handle left-handle" title={t('common.drag_to_reorder') || 'Drag to reorder'}>
@@ -961,6 +964,7 @@ export default React.memo(function StopCard({
           onAddNote={() => onAddNote?.(dayId, stop.id)}
           onAddList={() => onAddList?.(dayId, stop.id)}
           onAddTransport={() => onAddTransport?.(dayId, stop.id)}
+          onAddActivity={() => onAddActivity?.(dayId, stop.id)}
         />
       )}
 

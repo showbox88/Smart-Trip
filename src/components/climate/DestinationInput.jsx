@@ -18,6 +18,7 @@ export default memo(function DestinationInput({ destinations = [], onAdd, onRemo
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [focusIdx, setFocusIdx] = useState(-1);
   const debounceRef = useRef(null);
 
   const searchCities = useCallback(async (text) => {
@@ -62,6 +63,7 @@ export default memo(function DestinationInput({ destinations = [], onAdd, onRemo
   const handleInput = useCallback((e) => {
     const val = e.target.value;
     setQuery(val);
+    setFocusIdx(-1);
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => searchCities(val), 250);
   }, [searchCities]);
@@ -106,7 +108,27 @@ export default memo(function DestinationInput({ destinations = [], onAdd, onRemo
 
     setQuery('');
     setResults([]);
+    setFocusIdx(-1);
   }, [state.user?.id, destinations, onAdd]);
+
+  const handleKeyDown = useCallback((e) => {
+    if (!results.length) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setFocusIdx(i => (i + 1) % results.length);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setFocusIdx(i => (i <= 0 ? results.length - 1 : i - 1));
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (focusIdx >= 0 && focusIdx < results.length) {
+        handleSelect(results[focusIdx]);
+      }
+    } else if (e.key === 'Escape') {
+      setResults([]);
+      setFocusIdx(-1);
+    }
+  }, [results, focusIdx, handleSelect]);
 
   useEffect(() => {
     return () => {
@@ -169,6 +191,7 @@ export default memo(function DestinationInput({ destinations = [], onAdd, onRemo
             type="text"
             value={query}
             onChange={handleInput}
+            onKeyDown={handleKeyDown}
             placeholder={t('climate.destination_placeholder') || 'Search city...'}
             autoComplete="off"
             style={{
@@ -209,18 +232,18 @@ export default memo(function DestinationInput({ destinations = [], onAdd, onRemo
             maxHeight: '200px',
             overflowY: 'auto',
           }}>
-            {results.map((r) => (
+            {results.map((r, idx) => (
               <div
                 key={r.placeId}
                 onClick={() => handleSelect(r)}
+                onMouseEnter={() => setFocusIdx(idx)}
                 style={{
                   padding: '0.55rem 0.75rem',
                   cursor: 'pointer',
                   borderBottom: '1px solid var(--md-sys-color-outline-variant)',
                   transition: 'background 0.15s',
+                  background: idx === focusIdx ? 'var(--md-sys-color-surface-container-low)' : 'transparent',
                 }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'var(--md-sys-color-surface-container-low)'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
               >
                 <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--md-sys-color-on-surface)' }}>
                   {r.mainText}

@@ -1,6 +1,7 @@
 import { useCallback, useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { useTrips } from './useTrips';
+import { useTripsV2 } from './useTripsV2';
 import { useI18n } from '../context/I18nContext';
 import { getCategoryFromTypes } from '../utils/tripHelpers';
 import { supabase } from '../lib/supabase';
@@ -64,6 +65,7 @@ function extractCityFromAddressComponents(addressComponents) {
 export function useTripEditor(tripId) {
   const { state, dispatch } = useApp();
   const { saveTrip } = useTrips();
+  const { updateTrip: updateTripV2 } = useTripsV2();
   const { t } = useI18n();
   const saveTimerRef = useRef(null);
 
@@ -768,7 +770,27 @@ export function useTripEditor(tripId) {
       }
       return updated;
     });
-  }, [withTripUpdate]);
+
+    // Persist trip metadata (title, dates, settings) to trips table for V2 trips
+    const realTripId = trip?._realTripId;
+    if (realTripId) {
+      const { _destinations, _dayIdsToLink, ...rest } = patch;
+      const dbPatch = {};
+      if (rest.title !== undefined) dbPatch.title = rest.title;
+      if (rest.startDate !== undefined) dbPatch.startDate = rest.startDate;
+      if (rest.endDate !== undefined) dbPatch.endDate = rest.endDate;
+      if (rest.thumb !== undefined) dbPatch.thumb = rest.thumb;
+      if (rest.status !== undefined) dbPatch.status = rest.status;
+      // Always persist settings with destinations
+      const mergedSettings = { ...(trip?.settings || {}) };
+      if (_destinations) mergedSettings.destinations = _destinations;
+      if (rest.status) mergedSettings.status = rest.status;
+      dbPatch.settings = mergedSettings;
+      updateTripV2(realTripId, dbPatch).catch(err =>
+        console.error('[useTripEditor] updateTripV2 metadata failed:', err)
+      );
+    }
+  }, [withTripUpdate, trip, updateTripV2]);
 
   const saveStayInfo = useCallback((dayId, stopId, { cinDate, cinTime, cinPeriod, coutDate, coutTime, coutPeriod }) => {
     const updateResult = withTripUpdate((updated) => {

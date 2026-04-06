@@ -182,6 +182,7 @@ export default memo(function DaySection({
           onAddNote={onAddNote}
           onAddList={onAddList}
           onAddTransport={onAddTransport}
+          onAddActivity={onAddActivity}
           onFocusStop={onFocusStop}
           onSwapPlanB={onSwapPlanB}
           onAddPlanBAlternative={onAddPlanBAlternative}
@@ -288,6 +289,7 @@ export default memo(function DaySection({
                   onAddNote={() => onAddNote?.(day.id, '__prepend__')}
                   onAddList={() => onAddList?.(day.id, '__prepend__')}
                   onAddTransport={() => onAddTransport?.(day.id, '__prepend__')}
+                  onAddActivity={() => onAddActivity?.(day.id, '__prepend__')}
                   inHotelStay
                 />
               </>
@@ -339,6 +341,7 @@ export default memo(function DaySection({
                   onAddNote={() => onAddNote?.(day.id, lastPlainStop?.id)}
                   onAddList={() => onAddList?.(day.id, lastPlainStop?.id)}
                   onAddTransport={() => onAddTransport?.(day.id, lastPlainStop?.id)}
+                  onAddActivity={() => onAddActivity?.(day.id, lastPlainStop?.id)}
                   inHotelStay
                 />
                 <div style={{ paddingLeft: '2.25rem', marginTop: '0.2rem', color: 'var(--st-color-hotel-line)', fontSize: '0.85rem', fontWeight: 600, display: 'flex', flexDirection: 'column', gap: '4px', position: 'relative', cursor: 'pointer' }}>

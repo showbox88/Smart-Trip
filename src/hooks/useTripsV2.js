@@ -115,9 +115,11 @@ export function useTripsV2() {
     if (updates.startDate !== undefined) dbUpdates.start_date = updates.startDate;
     if (updates.endDate !== undefined)   dbUpdates.end_date = updates.endDate;
     if (updates.settings !== undefined)  dbUpdates.settings = updates.settings;
-    if (updates.status !== undefined) {
+    if (updates.status !== undefined && !dbUpdates.settings) {
       const existing = state.tripsV2.find(t => t.id === tripId);
       dbUpdates.settings = { ...(existing?.settings || {}), status: updates.status };
+    } else if (updates.status !== undefined && dbUpdates.settings) {
+      dbUpdates.settings.status = updates.status;
     }
 
     let query = supabase

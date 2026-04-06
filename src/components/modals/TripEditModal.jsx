@@ -4,8 +4,9 @@ import { useApp } from '../../context/AppContext';
 import { supabase } from '../../lib/supabase';
 import { uploadToSupabase } from '../../utils/uploadHelpers';
 import DestinationInput from '../climate/DestinationInput';
-import ClimateCard from '../climate/ClimateCard';
 import { useClimateData } from '../../hooks/useClimateData';
+import { formatTemp } from '../../utils/formatters';
+import { getClothingSuggestion } from '../../utils/climateApi';
 
 /* ────────────────────────────────────────────────────────────
  *  Blossom-themed Create / Edit Trip Modal
@@ -37,6 +38,7 @@ export default function TripEditModal({ trip, onSave, onClose, isCreating: isNew
   const [linkDays, setLinkDays] = useState(true);
   const [showImageSection, setShowImageSection] = useState(false);
   const [destinations, setDestinations] = useState(trip.settings?.destinations || []);
+  const [climateIdx, setClimateIdx] = useState(0);
   const debounceRef = useRef(null);
   const overlayRef = useRef(null);
 
@@ -258,28 +260,7 @@ export default function TripEditModal({ trip, onSave, onClose, isCreating: isNew
                     />
                   </div>
 
-                  {/* ── Climate Preview ── */}
-                  {destinations.length > 0 && form.startDate && form.endDate && form.startDate <= form.endDate && (
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                      {climateLoading ? (
-                        <div style={{ fontSize: '0.78rem', color: 'var(--md-sys-color-on-surface-variant)', padding: '0.5rem 0', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <span className="material-symbols-outlined" style={{ fontSize: 16, animation: 'spin 1s linear infinite' }}>progress_activity</span>
-                          {t('climate.loading') || 'Loading climate data...'}
-                        </div>
-                      ) : (
-                        destinations.map(dest => (
-                          climateByCity[dest.name] && (
-                            <ClimateCard
-                              key={dest.placeId || dest.name}
-                              cityName={dest.name}
-                              climateData={climateByCity[dest.name]}
-                              compact
-                            />
-                          )
-                        ))
-                      )}
-                    </div>
-                  )}
+                  {/* Climate preview moved to right column inspo card */}
 
                   {/* ── Existing days detection ── */}
                   {existingDays.length > 0 && (
@@ -431,14 +412,106 @@ export default function TripEditModal({ trip, onSave, onClose, isCreating: isNew
                 </div>
               </div>
 
-              {/* Inspiration card */}
-              <div className="blossom-inspo-card">
-                <div className="blossom-inspo-bg" />
-                <div className="blossom-inspo-content">
-                  <span className="blossom-inspo-tag">{t('common.inspiration') || 'Inspiration'}</span>
-                  <h4 className="blossom-inspo-title">Tokyo Neon Dreams</h4>
-                </div>
-              </div>
+              {/* Inspiration / Climate card */}
+              {(() => {
+                const climateDestinations = destinations.filter(d => climateByCity[d.name]);
+                const hasClimate = climateDestinations.length > 0 && !climateLoading;
+                const activeIdx = Math.min(climateIdx, climateDestinations.length - 1);
+                const activeDest = hasClimate ? climateDestinations[Math.max(0, activeIdx)] : null;
+                const activeData = activeDest ? climateByCity[activeDest.name] : null;
+
+                if (!hasClimate) {
+                  // Fallback: original inspiration card
+                  return (
+                    <div className="blossom-inspo-card">
+                      <div className="blossom-inspo-bg" />
+                      <div className="blossom-inspo-content">
+                        {climateLoading && destinations.length > 0 ? (
+                          <>
+                            <span className="blossom-inspo-tag">{t('climate.title') || 'Climate'}</span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <span className="material-symbols-outlined" style={{ fontSize: 16, animation: 'spin 1s linear infinite', color: 'var(--blossom-primary)' }}>progress_activity</span>
+                              <h4 className="blossom-inspo-title" style={{ fontSize: '0.82rem' }}>{t('climate.loading') || 'Loading climate data...'}</h4>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <span className="blossom-inspo-tag">{t('common.inspiration') || 'Inspiration'}</span>
+                            <h4 className="blossom-inspo-title">Tokyo Neon Dreams</h4>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  );
+                }
+
+                const { avgHigh, avgLow, avgPrecipMm, rainyDays } = activeData;
+                const clothing = getClothingSuggestion(avgHigh, t);
+
+                return (
+                  <div className="blossom-inspo-card" style={{ height: 'auto', minHeight: '130px', padding: 0 }}>
+                    <div className="blossom-inspo-bg" />
+                    <div style={{ position: 'relative', zIndex: 1, padding: '0.85rem 1rem 0.7rem' }}>
+                      {/* Header */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '0.55rem' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'var(--blossom-primary)' }}>thermostat</span>
+                        <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--blossom-on-surface)' }}>{activeDest.name}</span>
+                        {activeDest.country && <span style={{ fontSize: '0.72rem', color: 'var(--blossom-on-surface-variant)', fontWeight: 400 }}>, {activeDest.country}</span>}
+                      </div>
+
+                      {/* Temperature */}
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', marginBottom: '0.4rem' }}>
+                        <span style={{ fontSize: '1.4rem', fontWeight: 800, color: '#ef4444' }}>{formatTemp(avgHigh, state.settings)}</span>
+                        <span style={{ fontSize: '0.82rem', color: 'var(--blossom-on-surface-variant)' }}>/</span>
+                        <span style={{ fontSize: '1.1rem', fontWeight: 700, color: '#3b82f6' }}>{formatTemp(avgLow, state.settings)}</span>
+                      </div>
+
+                      {/* Precipitation + rain days */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.75rem', color: 'var(--blossom-on-surface-variant)', marginBottom: '0.4rem' }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>water_drop</span>
+                          {avgPrecipMm}mm
+                        </span>
+                        {rainyDays > 0 && (
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                            <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>umbrella</span>
+                            ~{rainyDays}{t('climate.days_suffix') || 'd'}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Clothing */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.73rem', color: 'var(--blossom-on-surface-variant)' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>checkroom</span>
+                        {clothing}
+                      </div>
+
+                      {/* Dot indicators */}
+                      {climateDestinations.length > 1 && (
+                        <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', marginTop: '0.65rem' }}>
+                          {climateDestinations.map((d, i) => (
+                            <button
+                              key={d.placeId || d.name}
+                              onClick={() => setClimateIdx(i)}
+                              title={d.name}
+                              style={{
+                                width: i === activeIdx ? '18px' : '8px',
+                                height: '8px',
+                                borderRadius: '4px',
+                                border: 'none',
+                                background: i === activeIdx ? 'var(--blossom-primary)' : 'rgba(131, 75, 88, 0.25)',
+                                cursor: 'pointer',
+                                padding: 0,
+                                transition: 'all 0.3s ease',
+                              }}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Quick stats placeholder */}
               <div className="blossom-stats-card">
