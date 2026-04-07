@@ -49,56 +49,103 @@ export default function EmergencyModal({ onClose }) {
 
     let cancelled = false;
 
-    // Wait for Google Maps API to be ready
+    // Wait for Google Maps core API to be loaded
     const waitForGoogleMaps = () => new Promise((resolve) => {
-      if (window.google?.maps?.Geocoder) { resolve(); return; }
-      // Listen for the ready callback
+      if (window.google?.maps) { resolve(true); return; }
+      // Hook into the loader callback
       const prev = window._dispatchGoogleMapsReady;
       window._dispatchGoogleMapsReady = () => {
         if (prev) prev();
-        resolve();
+        resolve(true);
       };
-      // Timeout fallback — don't wait forever
-      setTimeout(resolve, 6000);
+      // Also poll as a safety net (callback may have already fired)
+      const interval = setInterval(() => {
+        if (window.google?.maps) { clearInterval(interval); resolve(true); }
+      }, 200);
+      // Don't wait forever
+      setTimeout(() => { clearInterval(interval); resolve(false); }, 8000);
     });
 
     (async () => {
       try {
-        // Get GPS position
+        // Step 1: Get GPS position
+        console.log('[SOS] Requesting GPS position...');
         const pos = await new Promise((resolve, reject) => {
           navigator.geolocation.getCurrentPosition(resolve, reject, {
             enableHighAccuracy: false,
-            timeout: 8000,
+            timeout: 10000,
             maximumAge: 300000,
           });
         });
 
         if (cancelled) return;
         const { latitude: lat, longitude: lng } = pos.coords;
+        console.log('[SOS] GPS position:', lat, lng);
 
-        // Ensure Google Maps is loaded
-        await waitForGoogleMaps();
-        if (cancelled || !window.google?.maps?.Geocoder) return;
+        // Step 2: Wait for Google Maps API
+        const mapsReady = await waitForGoogleMaps();
+        if (cancelled) return;
+        if (!mapsReady || !window.google?.maps) {
+          console.warn('[SOS] Google Maps API not available');
+          return;
+        }
 
-        const geocoder = new google.maps.Geocoder();
-        const { results } = await geocoder.geocode({ location: { lat, lng } });
-        if (cancelled || !results?.length) return;
+        // Step 3: Reverse geocode — use fetch API as fallback if Geocoder class isn't available
+        let countryCode = null;
+        let countryName = null;
 
-        // Find country from geocoded results
-        for (const result of results) {
-          const countryComp = result.address_components?.find(c =>
-            c.types?.includes('country')
-          );
-          if (countryComp) {
-            const code = countryComp.short_name; // ISO alpha-2
-            const name = countryComp.long_name;
-            if (code && emergencyData[code]) {
-              setSelectedCountry({ name, code, lat, lng });
+        if (window.google.maps.Geocoder) {
+          // Classic Geocoder API
+          console.log('[SOS] Using google.maps.Geocoder...');
+          const geocoder = new google.maps.Geocoder();
+          const response = await geocoder.geocode({ location: { lat, lng } });
+          const results = response?.results || response;
+          if (results?.length) {
+            for (const result of results) {
+              const comp = (result.address_components || []).find(c =>
+                (c.types || []).includes('country')
+              );
+              if (comp) {
+                countryCode = comp.short_name;
+                countryName = comp.long_name;
+                break;
+              }
             }
-            return;
           }
         }
-      } catch {
+
+        // Fallback: use Google Geocoding REST API directly
+        if (!countryCode) {
+          console.log('[SOS] Geocoder class unavailable, using REST API fallback...');
+          const apiKey = import.meta.env.VITE_GOOGLE_MAPS_KEY;
+          if (apiKey) {
+            const resp = await fetch(
+              `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&result_type=country&key=${apiKey}`
+            );
+            const data = await resp.json();
+            if (data.results?.length) {
+              const comp = data.results[0].address_components?.find(c =>
+                (c.types || []).includes('country')
+              );
+              if (comp) {
+                countryCode = comp.short_name;
+                countryName = comp.long_name;
+              }
+            }
+          }
+        }
+
+        if (cancelled) return;
+
+        // Step 4: Set country
+        if (countryCode && emergencyData[countryCode]) {
+          console.log('[SOS] Detected country:', countryName, countryCode);
+          setSelectedCountry({ name: countryName, code: countryCode, lat, lng });
+        } else {
+          console.warn('[SOS] Could not determine country from', lat, lng);
+        }
+      } catch (err) {
+        console.warn('[SOS] Auto-detect failed:', err.message || err);
         // GPS denied or geocoding failed — user picks manually
       }
     })();
