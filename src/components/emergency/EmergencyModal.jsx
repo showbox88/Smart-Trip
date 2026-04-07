@@ -52,21 +52,7 @@ export default function EmergencyModal({ onClose }) {
     }
 
     let cancelled = false;
-    setDetectStatus('Step 1: Requesting GPS...');
-
-    // Wait for Google Maps core API to be loaded
-    const waitForGoogleMaps = () => new Promise((resolve) => {
-      if (window.google?.maps) { resolve(true); return; }
-      const prev = window._dispatchGoogleMapsReady;
-      window._dispatchGoogleMapsReady = () => {
-        if (prev) prev();
-        resolve(true);
-      };
-      const interval = setInterval(() => {
-        if (window.google?.maps) { clearInterval(interval); resolve(true); }
-      }, 200);
-      setTimeout(() => { clearInterval(interval); resolve(false); }, 8000);
-    });
+    setDetectStatus('Requesting GPS...');
 
     (async () => {
       try {
@@ -81,102 +67,37 @@ export default function EmergencyModal({ onClose }) {
 
         if (cancelled) return;
         const { latitude: lat, longitude: lng } = pos.coords;
-        setDetectStatus(`Step 2: GPS OK (${lat.toFixed(4)}, ${lng.toFixed(4)}), waiting for Maps API...`);
+        setDetectStatus(`GPS OK (${lat.toFixed(4)}, ${lng.toFixed(4)}), detecting country...`);
 
-        // Step 2: Wait for Google Maps API
-        const mapsReady = await waitForGoogleMaps();
-        if (cancelled) return;
-        if (!mapsReady || !window.google?.maps) {
-          setDetectStatus('Step 2 FAIL: Google Maps API timeout');
-          return;
-        }
-        setDetectStatus(`Step 3: Maps API ready, geocoding (${lat.toFixed(4)}, ${lng.toFixed(4)})...`);
-
-        // Step 3: Reverse geocode
-        let countryCode = null;
-        let countryName = null;
-        let debugLog = `GPS: ${lat.toFixed(4)},${lng.toFixed(4)}`;
-
-        // 3a: Try Google Maps Geocoder
-        if (window.google.maps.Geocoder) {
-          try {
-            const geocoder = new google.maps.Geocoder();
-            const response = await geocoder.geocode({ location: { lat, lng } });
-            const results = response?.results || response;
-            debugLog += ` | 3a: ${results?.length || 0} results`;
-            if (results?.length) {
-              // Search all results for country component
-              for (const result of results) {
-                const types = (result.types || []).join(',');
-                const comp = (result.address_components || []).find(c =>
-                  (c.types || []).includes('country')
-                );
-                if (comp) {
-                  countryCode = comp.short_name;
-                  countryName = comp.long_name;
-                  debugLog += ` → ${countryName}(${countryCode})`;
-                  break;
-                }
-              }
-              if (!countryCode) {
-                // Show first result's types for debugging
-                const firstTypes = results[0]?.types?.join(',') || 'none';
-                const firstComps = (results[0]?.address_components || []).map(c => c.short_name).join('/');
-                debugLog += ` noCountry types=${firstTypes} comps=${firstComps}`;
-              }
-            }
-          } catch (geoErr) {
-            debugLog += ` | 3a ERR: ${geoErr.message}`;
-          }
-        } else {
-          debugLog += ' | 3a: no Geocoder class';
-        }
-
-        // 3b: REST API fallback
-        if (!countryCode) {
-          const apiKey = import.meta.env.VITE_GOOGLE_MAPS_KEY;
-          if (!apiKey) {
-            debugLog += ' | 3b: no API key';
-          } else {
-            try {
-              const resp = await fetch(
-                `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`
-              );
-              const data = await resp.json();
-              debugLog += ` | 3b: status=${data.status} ${data.results?.length || 0}results`;
-              if (data.error_message) {
-                debugLog += ` err=${data.error_message}`;
-              }
-              if (data.status === 'OK' && data.results?.length) {
-                for (const result of data.results) {
-                  const comp = (result.address_components || []).find(c =>
-                    (c.types || []).includes('country')
-                  );
-                  if (comp) {
-                    countryCode = comp.short_name;
-                    countryName = comp.long_name;
-                    debugLog += ` → ${countryName}(${countryCode})`;
-                    break;
-                  }
-                }
-              }
-            } catch (restErr) {
-              debugLog += ` | 3b ERR: ${restErr.message}`;
-            }
-          }
-        }
+        // Step 2: Reverse geocode using free BigDataCloud API (no key needed)
+        const resp = await fetch(
+          `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`
+        );
+        const data = await resp.json();
 
         if (cancelled) return;
 
-        // Step 4: Set country
+        const countryCode = data.countryCode;
+        const countryName = data.countryName;
+
         if (countryCode && emergencyData[countryCode]) {
-          setDetectStatus(`OK: ${countryName} (${countryCode})`);
+          setDetectStatus('');
           setSelectedCountry({ name: countryName, code: countryCode, lat, lng });
+        } else if (countryCode) {
+          setDetectStatus(`Country "${countryName}" (${countryCode}) not in emergency database`);
         } else {
-          setDetectStatus(debugLog);
+          setDetectStatus(`Could not determine country from (${lat.toFixed(4)}, ${lng.toFixed(4)})`);
         }
       } catch (err) {
-        setDetectStatus(`FAIL: ${err.code ? 'GPS error code=' + err.code + ' ' : ''}${err.message || String(err)}`);
+        if (err.code === 1) {
+          setDetectStatus('GPS permission denied');
+        } else if (err.code === 2) {
+          setDetectStatus('GPS unavailable');
+        } else if (err.code === 3) {
+          setDetectStatus('GPS timeout');
+        } else {
+          setDetectStatus(`Error: ${err.message || String(err)}`);
+        }
       }
     })();
 
