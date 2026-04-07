@@ -13,6 +13,9 @@ import {
 import { formatCurrency } from '../../utils/formatters';
 import HotelLine from './HotelLine';
 import TransitInfo from './TransitInfo';
+import PlanBPanel from './PlanBPanel';
+import ActivityDetailModal from '../modals/ActivityDetailModal';
+import { getActivityIcon, getActivityLabel, formatDuration } from '../../utils/activityHelpers';
 import { uploadToSupabase } from '../../utils/uploadHelpers';
 import { supabase } from '../../lib/supabase';
 
@@ -65,8 +68,9 @@ export default React.memo(function StopCard({
   stop, dayId, dayColor, index, showTransit, dayWeekdayIdx, isToday,
   nextStop,
   onDelete, onToggleTransitMode, onOpenTimePicker, onOpenExpense, onOpenStayInfo,
-  onChangePhoto, onAddStop, onAddNote, onAddList, onAddTransport, onFocusStop,
+  onChangePhoto, onAddStop, onAddNote, onAddList, onAddTransport, onAddActivity, onFocusStop,
   onUpdateStop,
+  onSwapPlanB, onAddPlanBAlternative, onRemovePlanBAlternative,
   inHotelStay,
 }) {
   const { state, dispatch } = useApp();
@@ -74,6 +78,9 @@ export default React.memo(function StopCard({
   const { layoutVariant, layout, themeId } = useTheme();
   const isClean = layoutVariant === 'clean';
   const isBlossom = themeId === 'blossom';
+  const [showPlanB, setShowPlanB] = useState(false);
+  const [showActivityDetail, setShowActivityDetail] = useState(false);
+  const isActivity = stop.type === 'activity';
   const [showPhotoPicker, setShowPhotoPicker] = useState(false);
   const [placePhotos, setPlacePhotos] = useState([]);
   const [loadingPhotos, setLoadingPhotos] = useState(false);
@@ -324,10 +331,14 @@ export default React.memo(function StopCard({
             onClick={() => onFocusStop?.(stop.id)}
             onMouseEnter={() => dispatch({ type: 'SET_HOVERED_STOP', payload: stop.id })}
             onMouseLeave={() => dispatch({ type: 'SET_HOVERED_STOP', payload: null })}
-            style={{
+            style={(() => {
+              const baseColor = isClosed ? 'rgba(239,68,68,0.35)' : state.hoveredStopId === stop.id ? 'var(--md-sys-color-primary)' : 'rgba(255,255,255,0.05)';
+              return {
               background: state.hoveredStopId === stop.id ? 'rgba(255,255,255,0.04)' : 'var(--md-sys-color-surface-container-lowest)',
-              border: isClosed ? '1px solid rgba(239,68,68,0.35)' : '1px solid var(--md-sys-color-outline)',
-              borderColor: isClosed ? 'rgba(239,68,68,0.35)' : state.hoveredStopId === stop.id ? 'var(--md-sys-color-primary)' : 'rgba(255,255,255,0.05)',
+              borderTop: `1px solid ${baseColor}`,
+              borderRight: `1px solid ${baseColor}`,
+              borderBottom: `1px solid ${baseColor}`,
+              borderLeft: isActivity ? '3px solid #26a69a' : `1px solid ${baseColor}`,
               borderRadius: '1.2rem',
               padding: 'var(--stop-card-p) var(--stop-card-p) 2.8rem',
               transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -337,7 +348,7 @@ export default React.memo(function StopCard({
               display: 'flex',
               flexDirection: 'column',
               minHeight: '100px'
-            }}
+            }; })()}
           >
             {/* 移动端专用的拖拽边缘把手（左右各一个，方便双手操作） */}
             <div className="drag-handle left-handle" title={t('common.drag_to_reorder') || 'Drag to reorder'}>
@@ -397,6 +408,23 @@ export default React.memo(function StopCard({
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '2px 8px', fontSize: '0.75rem', color: 'white', marginBottom: '0.5rem' }}>
                   <Hotel size={13} strokeWidth={2.5} />
                   {typeLabel}
+                </div>
+              )}
+
+              {/* Activity badge */}
+              {isActivity && (
+                <div style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '5px',
+                  background: 'rgba(38,166,154,0.1)',
+                  border: '1px solid rgba(38,166,154,0.3)',
+                  borderRadius: '8px', padding: '3px 10px',
+                  fontSize: '0.72rem', fontWeight: 700, color: '#26a69a',
+                  marginBottom: '0.4rem',
+                }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+                    {getActivityIcon(stop.activityInfo?.activityCategory)}
+                  </span>
+                  {getActivityLabel(stop.activityInfo?.activityCategory, t)}
                 </div>
               )}
 
@@ -707,6 +735,95 @@ export default React.memo(function StopCard({
                         </div>
                       );
                     })()}
+
+                    {/* Activity chips */}
+                    {isActivity && stop.activityInfo?.duration && (
+                      <div
+                        className="stop-chip"
+                        style={{
+                          background: 'rgba(99,102,241,0.08)', color: '#6366f1',
+                          padding: '4px 10px', borderRadius: '8px', fontSize: '0.78rem', fontWeight: 800,
+                          display: 'flex', alignItems: 'center', gap: '5px',
+                          border: '1px solid rgba(99,102,241,0.25)',
+                        }}
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: 14 }}>timer</span>
+                        {formatDuration(stop.activityInfo.duration)}
+                      </div>
+                    )}
+
+                    {isActivity && stop.activityInfo?.bookingRef && (
+                      <div
+                        className="stop-chip"
+                        style={{
+                          background: 'rgba(255,255,255,0.05)', color: 'var(--md-sys-color-on-surface)',
+                          padding: '4px 10px', borderRadius: '8px', fontSize: '0.78rem', fontWeight: 700,
+                          display: 'flex', alignItems: 'center', gap: '5px',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                        }}
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: 14 }}>confirmation_number</span>
+                        {stop.activityInfo.bookingRef}
+                      </div>
+                    )}
+
+                    {isActivity && (
+                      <div
+                        className="stop-chip editable"
+                        onClick={(e) => { e.stopPropagation(); setShowActivityDetail(true); }}
+                        style={{
+                          background: 'rgba(38,166,154,0.08)', color: '#26a69a',
+                          padding: '4px 10px', borderRadius: '8px', fontSize: '0.78rem', fontWeight: 800,
+                          display: 'flex', alignItems: 'center', gap: '5px',
+                          border: '1px solid rgba(38,166,154,0.25)',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: 14 }}>info</span>
+                        {t('activity.details') || 'Details'}
+                      </div>
+                    )}
+
+                    {/* Plan B button */}
+                    <div
+                      className="stop-chip editable"
+                      onClick={(e) => { e.stopPropagation(); setShowPlanB(true); }}
+                      style={{
+                        background: 'rgba(139, 92, 246, 0.08)',
+                        color: '#8b5cf6',
+                        padding: '4px 10px',
+                        borderRadius: '8px',
+                        fontSize: '0.78rem',
+                        fontWeight: 800,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                        border: '1px solid rgba(139, 92, 246, 0.25)',
+                        cursor: 'pointer',
+                        position: 'relative',
+                      }}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>alt_route</span>
+                      Plan B
+                      {stop.planB?.length > 0 && (
+                        <span style={{
+                          background: '#8b5cf6',
+                          color: '#fff',
+                          fontSize: '0.6rem',
+                          fontWeight: 800,
+                          minWidth: '16px',
+                          height: '16px',
+                          borderRadius: '8px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          lineHeight: 1,
+                        }}>
+                          {stop.planB.length}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -814,6 +931,27 @@ export default React.memo(function StopCard({
         document.body
       )}
 
+      {/* Activity Detail Modal */}
+      {showActivityDetail && (
+        <ActivityDetailModal
+          stop={stop}
+          dayId={dayId}
+          onSave={(updatedStop) => onUpdateStop?.(dayId, stop.id, updatedStop)}
+          onClose={() => setShowActivityDetail(false)}
+        />
+      )}
+
+      {/* Plan B Panel */}
+      <PlanBPanel
+        stop={stop}
+        dayId={dayId}
+        open={showPlanB}
+        onClose={() => setShowPlanB(false)}
+        onSwap={onSwapPlanB}
+        onAddAlternative={onAddPlanBAlternative}
+        onRemoveAlternative={onRemovePlanBAlternative}
+      />
+
       {/* Transit info */}
       {showTransit && (
         <TransitInfo
@@ -826,6 +964,7 @@ export default React.memo(function StopCard({
           onAddNote={() => onAddNote?.(dayId, stop.id)}
           onAddList={() => onAddList?.(dayId, stop.id)}
           onAddTransport={() => onAddTransport?.(dayId, stop.id)}
+          onAddActivity={() => onAddActivity?.(dayId, stop.id)}
         />
       )}
 

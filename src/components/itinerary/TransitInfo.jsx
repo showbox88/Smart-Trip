@@ -287,19 +287,17 @@ function TransitStepsPanel({ origin, dest, transit, onClose, t }) {
   );
 }
 
-export default memo(function TransitInfo({ transit, transitMode, origin, dest, onToggleMode, onAddStop, onAddNote, onAddList, onAddTransport, hideAdd, inHotelStay }) {
+export default memo(function TransitInfo({ transit, transitMode, origin, dest, onToggleMode, onAddStop, onAddNote, onAddList, onAddTransport, onAddActivity, hideAdd, inHotelStay }) {
   const { t } = useI18n();
   const { state } = useApp();
   const { layout } = useTheme();
   const isInlineTransit = layout?.transit?.display === 'inline';
   const [showAddMenu, setShowAddMenu] = useState(false);
-  const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
   const [showSteps, setShowSteps] = useState(false);
   const [calculating, setCalculating] = useState(false);
   const prevModeRef = useRef(transitMode);
   const calcTimerRef = useRef(null);
   const menuRef = useRef(null);
-  const btnRef = useRef(null);
 
   // 切换模式时进入 calculating 状态，避免短暂显示"无路线"
   useEffect(() => {
@@ -337,12 +335,17 @@ export default memo(function TransitInfo({ transit, transitMode, origin, dest, o
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showAddMenu]);
 
+  // Slide-out add menu items
+  const addMenuItems = [
+    { key: 'stop', icon: 'push_pin', color: '#ff4d4f', label: t('itinerary.add_stop') || 'Add Stop', action: onAddStop },
+    { key: 'note', icon: 'description', color: '#8b5cf6', label: t('itinerary.add_note') || 'Add Note', action: onAddNote },
+    { key: 'list', icon: 'check', color: 'var(--md-sys-color-tertiary)', label: t('itinerary.add_list') || 'Add Checklist', action: onAddList },
+    { key: 'transport', icon: 'flight', color: '#4FC3F7', label: t('itinerary.add_transport') || 'Add Transport', action: onAddTransport },
+    { key: 'activity', icon: 'local_activity', color: '#26a69a', label: t('activity.add_activity') || 'Add Activity', action: onAddActivity },
+  ];
+
   const handleOpenMenu = (e) => {
     e.stopPropagation();
-    if (!showAddMenu && btnRef.current) {
-      const rect = btnRef.current.getBoundingClientRect();
-      setMenuPos({ top: rect.bottom + 4, left: rect.left });
-    }
     setShowAddMenu(v => !v);
   };
 
@@ -394,80 +397,74 @@ export default memo(function TransitInfo({ transit, transitMode, origin, dest, o
   }
 
   return (
-    <div className="transit-info-row" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0 0.4rem var(--transit-pl)', color: 'var(--st-color-text-muted)', fontSize: '0.8rem', position: 'relative' }}>
+    <div className="transit-info-row" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 0 0.6rem var(--transit-pl)', color: 'var(--st-color-text-muted)', fontSize: '0.8rem', position: 'relative' }}>
       {inHotelStay && <HotelLine top="0" bottom="0" />}
       {!hideAdd && (
-        <button
-          ref={btnRef}
-          onClick={handleOpenMenu}
-          style={{
-            width: '24px',
-            height: '24px',
-            borderRadius: '50%',
-            border: '1px solid rgba(255,255,255,0.2)',
-            background: 'rgba(255,255,255,0.05)',
-            color: 'var(--md-sys-color-on-surface)',
+        <div ref={menuRef} style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
+          <button
+            onClick={handleOpenMenu}
+            style={{
+              width: '32px',
+              height: '32px',
+              borderRadius: '50%',
+              border: '1.5px solid rgba(255,255,255,0.15)',
+              background: showAddMenu ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.05)',
+              color: 'var(--md-sys-color-on-surface)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              padding: 0,
+              transition: 'transform 0.3s ease, background 0.2s',
+              transform: showAddMenu ? 'rotate(45deg)' : 'none',
+              flexShrink: 0,
+              zIndex: 2,
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add</span>
+          </button>
+
+          {/* Slide-out icon bar */}
+          <div style={{
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            padding: 0,
-          }}
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>add</span>
-        </button>
-      )}
-
-      {showAddMenu && createPortal(
-        <div
-          ref={menuRef}
-          style={{
-            position: 'fixed',
-            top: menuPos.top,
-            left: menuPos.left,
-            background: 'var(--md-sys-color-surface-container-lowest)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: '12px',
-            padding: '6px',
-            boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
-            zIndex: 9999,
-            minWidth: '150px'
-          }}
-        >
-          <div
-            className="menu-item"
-            onClick={(e) => { e.stopPropagation(); onAddStop?.(); setShowAddMenu(false); }}
-            style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', color: 'white', fontSize: '0.85rem' }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#ff4d4f' }}>push_pin</span>
-            {t('itinerary.add_stop') || 'Add Stop'}
+            gap: '4px',
+            overflow: 'hidden',
+            maxWidth: showAddMenu ? `${addMenuItems.length * 42}px` : '0px',
+            opacity: showAddMenu ? 1 : 0,
+            transition: 'max-width 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease',
+            marginLeft: showAddMenu ? '6px' : '0px',
+          }}>
+            {addMenuItems.map((item, idx) => (
+              <button
+                key={item.key}
+                onClick={(e) => { e.stopPropagation(); item.action?.(); setShowAddMenu(false); }}
+                title={item.label}
+                style={{
+                  width: '34px',
+                  height: '34px',
+                  borderRadius: '50%',
+                  border: 'none',
+                  background: 'rgba(255,255,255,0.06)',
+                  color: item.color,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  padding: 0,
+                  flexShrink: 0,
+                  transition: `transform 0.25s ease ${idx * 0.04}s, opacity 0.2s ease ${idx * 0.04}s`,
+                  transform: showAddMenu ? 'scale(1)' : 'scale(0.5)',
+                  opacity: showAddMenu ? 1 : 0,
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.18)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>{item.icon}</span>
+              </button>
+            ))}
           </div>
-          <div
-            className="menu-item"
-            onClick={(e) => { e.stopPropagation(); onAddNote?.(); setShowAddMenu(false); }}
-            style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', color: 'white', fontSize: '0.85rem' }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#8b5cf6' }}>description</span>
-            {t('itinerary.add_note') || 'Add Note'}
-          </div>
-          <div
-            className="menu-item"
-            onClick={(e) => { e.stopPropagation(); onAddList?.(); setShowAddMenu(false); }}
-            style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', color: 'white', fontSize: '0.85rem' }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'var(--md-sys-color-tertiary)' }}>check</span>
-            {t('itinerary.add_list') || 'Add Checklist'}
-          </div>
-          <div
-            className="menu-item"
-            onClick={(e) => { e.stopPropagation(); onAddTransport?.(); setShowAddMenu(false); }}
-            style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', color: 'white', fontSize: '0.85rem' }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#4FC3F7' }}>flight</span>
-            {t('itinerary.add_transport') || '添加交通'}
-          </div>
-        </div>,
-        document.body
+        </div>
       )}
 
       {/* Mode icon — always show if toggleable */}

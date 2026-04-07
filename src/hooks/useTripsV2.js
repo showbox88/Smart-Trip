@@ -115,9 +115,11 @@ export function useTripsV2() {
     if (updates.startDate !== undefined) dbUpdates.start_date = updates.startDate;
     if (updates.endDate !== undefined)   dbUpdates.end_date = updates.endDate;
     if (updates.settings !== undefined)  dbUpdates.settings = updates.settings;
-    if (updates.status !== undefined) {
+    if (updates.status !== undefined && !dbUpdates.settings) {
       const existing = state.tripsV2.find(t => t.id === tripId);
       dbUpdates.settings = { ...(existing?.settings || {}), status: updates.status };
+    } else if (updates.status !== undefined && dbUpdates.settings) {
+      dbUpdates.settings.status = updates.status;
     }
 
     let query = supabase
@@ -296,6 +298,8 @@ function normalizeTripRow(row) {
   let totalCost = 0;
   const citySet = new Set();
 
+  const cityCoordMap = {};
+
   for (const td of tripDays) {
     const stops = td.days_v2?.stops_data;
     if (!Array.isArray(stops)) continue;
@@ -303,7 +307,12 @@ function normalizeTripRow(row) {
     for (const stop of stops) {
       const price = parseFloat(stop.price);
       if (!isNaN(price)) totalCost += price;
-      if (stop.city) citySet.add(stop.city);
+      if (stop.city) {
+        citySet.add(stop.city);
+        if (stop.lat && stop.lng && !cityCoordMap[stop.city]) {
+          cityCoordMap[stop.city] = { name: stop.city, lat: stop.lat, lng: stop.lng };
+        }
+      }
     }
   }
 
@@ -320,6 +329,7 @@ function normalizeTripRow(row) {
     stopsCount,
     totalCost,
     cities: [...citySet],
+    citiesWithCoords: Object.values(cityCoordMap),
   };
 }
 

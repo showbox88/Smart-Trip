@@ -73,6 +73,11 @@ export function formatTemp(c, settings) {
   return `${Math.round(f)}°F`;
 }
 
+export function formatPrecipitation(mm) {
+  if (isNaN(mm)) return mm;
+  return `${mm} mm`;
+}
+
 export function generateId(prefix = 'id') {
   return prefix + '-' + Date.now() + Math.random().toString(36).substr(2, 5);
 }

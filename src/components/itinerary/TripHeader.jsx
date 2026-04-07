@@ -1,9 +1,11 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useI18n } from '../../context/I18nContext';
 import { useApp } from '../../context/AppContext';
 import { useTheme } from '../../theme';
 import { formatCurrency, calculateDays } from '../../utils/formatters';
+import ClimateCard from '../climate/ClimateCard';
+import { useClimateData } from '../../hooks/useClimateData';
 
 function formatDateShort(dateStr) {
   if (!dateStr) return '';
@@ -29,7 +31,28 @@ export default function TripHeader({ trip, onDeleteTrip, onEditTrip, onShareTrip
   const isBlossom = themeId === 'blossom';
   const navigate = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
+  const [showClimate, setShowClimate] = useState(false);
   const menuRef = useRef(null);
+
+  // Merge manually-added destinations with stop-derived cities (dedup by name)
+  const allDestinations = useMemo(() => {
+    const manual = trip?.settings?.destinations || [];
+    const fromStops = trip?.citiesWithCoords || [];
+    const seen = new Set(manual.map(d => d.name));
+    const merged = [...manual];
+    for (const c of fromStops) {
+      if (!seen.has(c.name)) {
+        merged.push(c);
+        seen.add(c.name);
+      }
+    }
+    return merged;
+  }, [trip?.settings?.destinations, trip?.citiesWithCoords]);
+
+  const { climateByCity, loading: climateLoading } = useClimateData(
+    allDestinations, trip?.startDate, trip?.endDate
+  );
+  const hasClimateData = !climateLoading && Object.keys(climateByCity).length > 0;
 
   const totalCost = trip?.days?.reduce((acc, day) => {
     return acc + (day.stops || []).reduce((sum, stop) => {
@@ -151,9 +174,59 @@ export default function TripHeader({ trip, onDeleteTrip, onEditTrip, onShareTrip
             </div>
           </div>
 
+          {/* Climate toggle */}
+          {allDestinations.length > 0 && trip?.startDate && trip?.endDate && (
+            <button
+              onClick={() => setShowClimate(v => !v)}
+              style={{
+                background: showClimate ? 'rgba(131,75,88,0.12)' : 'rgba(131,75,88,0.05)',
+                border: 'none', cursor: 'pointer',
+                color: 'var(--md-sys-color-primary)',
+                padding: '6px',
+                borderRadius: '10px',
+                display: 'flex', alignItems: 'center',
+                transition: 'background 0.2s',
+              }}
+              title={t('climate.climate_info') || 'Climate Info'}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>thermostat</span>
+            </button>
+          )}
+
           {/* Menu */}
           {renderMenu()}
         </div>
+
+        {/* Climate collapsible section */}
+        {showClimate && allDestinations.length > 0 && (
+          <div style={{
+            padding: '0.5rem 1rem 0.75rem',
+            display: 'flex', flexWrap: 'wrap', gap: '0.5rem',
+            animation: 'climateSlideDown 0.25s ease-out',
+          }}>
+            {climateLoading ? (
+              <div style={{ fontSize: '0.78rem', color: 'var(--md-sys-color-on-surface-variant)', padding: '0.25rem 0', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 16, animation: 'spin 1s linear infinite' }}>progress_activity</span>
+                {t('climate.loading') || 'Loading climate data...'}
+              </div>
+            ) : hasClimateData ? (
+              allDestinations.map(dest => (
+                climateByCity[dest.name] && (
+                  <ClimateCard
+                    key={dest.placeId || dest.name}
+                    cityName={dest.name}
+                    climateData={climateByCity[dest.name]}
+                    compact
+                  />
+                )
+              ))
+            ) : (
+              <div style={{ fontSize: '0.75rem', color: 'var(--md-sys-color-on-surface-variant)', padding: '0.25rem 0' }}>
+                {t('climate.no_dates') || 'Set dates to see climate info'}
+              </div>
+            )}
+          </div>
+        )}
       </>
     );
   }
@@ -245,30 +318,79 @@ export default function TripHeader({ trip, onDeleteTrip, onEditTrip, onShareTrip
             </>
           )}
         </div>
-        {!isDayMode && (
-          <div ref={menuRef} style={{ position: 'relative' }}>
-            <button className="menu-dots" onClick={() => setShowMenu(v => !v)}>⋮</button>
-            {showMenu && (
-              <div className="menu-dropdown active" style={{ top: '2rem', right: 0 }}>
-                <button onClick={() => { onShowSchedule?.(); setShowMenu(false); }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>today</span>
-                  {t('itinerary.today_schedule') || '今日行程表'}
-                </button>
-                <button onClick={() => { onEditTrip?.(); setShowMenu(false); }}>
-                  {t('itinerary.edit_trip') || 'Edit trip'}
-                </button>
-                <button onClick={() => { onShareTrip?.(); setShowMenu(false); }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>share</span>
-                  {t('itinerary.share_trip') || 'Share trip'}
-                </button>
-                <button className="danger" onClick={() => { onDeleteTrip?.(trip.id); setShowMenu(false); }}>
-                  {t('itinerary.delete_trip') || 'Delete trip'}
-                </button>
-              </div>
-            )}
-          </div>
-        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          {allDestinations.length > 0 && trip?.startDate && trip?.endDate && !isDayMode && (
+            <button
+              onClick={() => setShowClimate(v => !v)}
+              style={{
+                background: showClimate ? 'rgba(var(--md-sys-color-primary-rgb, 103,80,164), 0.12)' : 'none',
+                border: 'none', cursor: 'pointer',
+                color: 'var(--md-sys-color-on-surface-variant)',
+                padding: '6px', borderRadius: '8px',
+                display: 'flex', alignItems: 'center',
+                flexShrink: 0,
+              }}
+              title={t('climate.climate_info') || 'Climate Info'}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>thermostat</span>
+            </button>
+          )}
+          {!isDayMode && (
+            <div ref={menuRef} style={{ position: 'relative' }}>
+              <button className="menu-dots" onClick={() => setShowMenu(v => !v)} style={{ position: 'relative', right: 'auto', top: 'auto', transform: 'none' }}>⋮</button>
+              {showMenu && (
+                <div className="menu-dropdown active" style={{ top: '2rem', right: 0 }}>
+                  <button onClick={() => { onShowSchedule?.(); setShowMenu(false); }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>today</span>
+                    {t('itinerary.today_schedule') || '今日行程表'}
+                  </button>
+                  <button onClick={() => { onEditTrip?.(); setShowMenu(false); }}>
+                    {t('itinerary.edit_trip') || 'Edit trip'}
+                  </button>
+                  <button onClick={() => { onShareTrip?.(); setShowMenu(false); }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>share</span>
+                    {t('itinerary.share_trip') || 'Share trip'}
+                  </button>
+                  <button className="danger" onClick={() => { onDeleteTrip?.(trip.id); setShowMenu(false); }}>
+                    {t('itinerary.delete_trip') || 'Delete trip'}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Climate collapsible section */}
+      {showClimate && allDestinations.length > 0 && (
+        <div style={{
+          padding: '0.5rem 1.5rem 0.75rem',
+          display: 'flex', flexWrap: 'wrap', gap: '0.5rem',
+          borderTop: '1px solid var(--md-sys-color-outline-variant)',
+        }}>
+          {climateLoading ? (
+            <div style={{ fontSize: '0.78rem', color: 'var(--md-sys-color-on-surface-variant)', padding: '0.25rem 0', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 16, animation: 'spin 1s linear infinite' }}>progress_activity</span>
+              {t('climate.loading') || 'Loading climate data...'}
+            </div>
+          ) : hasClimateData ? (
+            allDestinations.map(dest => (
+              climateByCity[dest.name] && (
+                <ClimateCard
+                  key={dest.placeId || dest.name}
+                  cityName={dest.name}
+                  climateData={climateByCity[dest.name]}
+                  compact
+                />
+              )
+            ))
+          ) : (
+            <div style={{ fontSize: '0.75rem', color: 'var(--md-sys-color-on-surface-variant)', padding: '0.25rem 0' }}>
+              {t('climate.no_dates') || 'Set dates to see climate info'}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -400,6 +522,11 @@ const blossomHeaderCSS = `
     font-family: var(--md-sys-typescale-headline-font);
     font-weight: 700;
     font-size: 0.9rem;
+  }
+
+  @keyframes climateSlideDown {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
   @media (max-width: 600px) {

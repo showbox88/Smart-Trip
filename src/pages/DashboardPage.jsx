@@ -50,12 +50,16 @@ export default function DashboardPage() {
     setIsCreating(true);
     try {
       // 新架构：创建纯元数据 trip，不含 trip_data
+      const tripSettings = { ...(state.settings || {}) };
+      if (patch._destinations?.length) {
+        tripSettings.destinations = patch._destinations;
+      }
       const newTrip = await createTrip({
         title: patch.title || t('dashboard.new_trip_default_title') || '我的新旅行',
         startDate: patch.startDate || null,
         endDate: patch.endDate || null,
         thumb: patch.thumb || null,
-        settings: state.settings || {},
+        settings: tripSettings,
       });
 
       // 将已有 days_v2 记录归入此行程
@@ -80,12 +84,20 @@ export default function DashboardPage() {
   const handleSaveEditedTrip = useCallback(async (patch) => {
     if (!editingTrip) return;
     try {
+      const updatedSettings = { ...(editingTrip.settings || {}) };
+      if (patch._destinations) {
+        updatedSettings.destinations = patch._destinations;
+      }
+      if (patch.status) {
+        updatedSettings.status = patch.status;
+      }
       await updateTrip(editingTrip.id, {
         title: patch.title,
         startDate: patch.startDate || null,
         endDate: patch.endDate || null,
         thumb: patch.thumb,
         status: patch.status,
+        settings: updatedSettings,
       });
       if (patch._dayIdsToLink?.length) {
         await linkDaysToTrip(editingTrip.id, patch._dayIdsToLink);

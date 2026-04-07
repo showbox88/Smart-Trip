@@ -1,8 +1,12 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useI18n } from '../../context/I18nContext';
 import { useApp } from '../../context/AppContext';
 import { supabase } from '../../lib/supabase';
 import { uploadToSupabase } from '../../utils/uploadHelpers';
+import DestinationInput from '../climate/DestinationInput';
+import { useClimateData } from '../../hooks/useClimateData';
+import { formatTemp } from '../../utils/formatters';
+import { getClothingSuggestion } from '../../utils/climateApi';
 
 /* ────────────────────────────────────────────────────────────
  *  Blossom-themed Create / Edit Trip Modal
@@ -33,8 +37,150 @@ export default function TripEditModal({ trip, onSave, onClose, isCreating: isNew
   const [existingDays, setExistingDays] = useState([]);
   const [linkDays, setLinkDays] = useState(true);
   const [showImageSection, setShowImageSection] = useState(false);
+  const [destinations, setDestinations] = useState(trip.settings?.destinations || []);
+  const [climateIdx, setClimateIdx] = useState(0);
+  const [openSections, setOpenSections] = useState(() => {
+    // On mobile only one section can be open; on desktop CSS ignores this.
+    // Default to 'details' open.
+    return new Set(['details']);
+  });
   const debounceRef = useRef(null);
   const overlayRef = useRef(null);
+  const climateTouchRef = useRef(null);
+
+  // On mobile: exclusive accordion — open one, close all others
+  // On desktop: openSections is ignored (CSS always shows body)
+  const toggleSection = (key) => setOpenSections(prev => {
+    if (prev.has(key)) {
+      // closing the current one → nothing open
+      return new Set();
+    }
+    // open only this one
+    return new Set([key]);
+  });
+
+  const AccordionHeader = ({ id, icon, label }) => (
+    <button className="blossom-accordion-header" onClick={() => toggleSection(id)}>
+      <span className="material-symbols-outlined" style={{ fontSize: 18 }}>{icon}</span>
+      <span style={{ flex: 1, textAlign: 'left' }}>{label}</span>
+      <span className="material-symbols-outlined" style={{ fontSize: 18, transition: 'transform 0.2s ease', transform: openSections.has(id) ? 'rotate(180deg)' : 'none' }}>expand_more</span>
+    </button>
+  );
+
+  const { climateByCity, loading: climateLoading } = useClimateData(destinations, form.startDate, form.endDate);
+
+  // ── Swipe handlers for climate card (infinite loop) ──
+  const handleClimateTouchStart = useCallback((e) => {
+    climateTouchRef.current = { startX: e.touches[0].clientX, startY: e.touches[0].clientY };
+  }, []);
+
+  const handleClimateTouchEnd = useCallback((e, count) => {
+    if (!climateTouchRef.current || count <= 1) return;
+    const deltaX = e.changedTouches[0].clientX - climateTouchRef.current.startX;
+    const deltaY = e.changedTouches[0].clientY - climateTouchRef.current.startY;
+    // Only trigger if horizontal swipe is dominant and > 30px
+    if (Math.abs(deltaX) > 30 && Math.abs(deltaX) > Math.abs(deltaY)) {
+      if (deltaX < 0) {
+        // swipe left → next (loop)
+        setClimateIdx(prev => (prev + 1) % count);
+      } else {
+        // swipe right → prev (loop)
+        setClimateIdx(prev => (prev - 1 + count) % count);
+      }
+    }
+    climateTouchRef.current = null;
+  }, []);
+
+  // ── Reusable climate card renderer (used in both sidebar and mobile accordion) ──
+  const renderClimateCard = () => {
+    const climateDestinations = destinations.filter(d => climateByCity[d.name]);
+    const hasClimate = climateDestinations.length > 0 && !climateLoading;
+    const activeIdx = Math.min(climateIdx, climateDestinations.length - 1);
+    const activeDest = hasClimate ? climateDestinations[Math.max(0, activeIdx)] : null;
+    const activeData = activeDest ? climateByCity[activeDest.name] : null;
+
+    if (!hasClimate) {
+      if (climateLoading && destinations.length > 0) {
+        return (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.5rem 0' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 16, animation: 'spin 1s linear infinite', color: 'var(--blossom-primary)' }}>progress_activity</span>
+            <span style={{ fontSize: '0.82rem', color: 'var(--blossom-on-surface-variant)' }}>{t('climate.loading') || 'Loading climate data...'}</span>
+          </div>
+        );
+      }
+      return null;
+    }
+
+    const { avgHigh, avgLow, avgPrecipMm, rainyDays } = activeData;
+    const clothing = getClothingSuggestion(avgHigh, t);
+    const cdCount = climateDestinations.length;
+
+    return (
+      <div
+        style={{ padding: '0.75rem 0 0.25rem', touchAction: cdCount > 1 ? 'pan-y' : 'auto' }}
+        onTouchStart={cdCount > 1 ? handleClimateTouchStart : undefined}
+        onTouchEnd={cdCount > 1 ? (e) => handleClimateTouchEnd(e, cdCount) : undefined}
+      >
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '0.55rem' }}>
+          <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'var(--blossom-primary)' }}>thermostat</span>
+          <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--blossom-on-surface)' }}>{activeDest.name}</span>
+          {activeDest.country && <span style={{ fontSize: '0.72rem', color: 'var(--blossom-on-surface-variant)', fontWeight: 400 }}>, {activeDest.country}</span>}
+          {cdCount > 1 && (
+            <span style={{ marginLeft: 'auto', fontSize: '0.68rem', color: 'var(--blossom-on-surface-variant)', opacity: 0.6 }}>
+              {Math.max(0, activeIdx) + 1}/{cdCount}
+            </span>
+          )}
+        </div>
+        {/* Temperature */}
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', marginBottom: '0.4rem' }}>
+          <span style={{ fontSize: '1.4rem', fontWeight: 800, color: '#ef4444' }}>{formatTemp(avgHigh, state.settings)}</span>
+          <span style={{ fontSize: '0.82rem', color: 'var(--blossom-on-surface-variant)' }}>/</span>
+          <span style={{ fontSize: '1.1rem', fontWeight: 700, color: '#3b82f6' }}>{formatTemp(avgLow, state.settings)}</span>
+        </div>
+        {/* Precipitation */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.75rem', color: 'var(--blossom-on-surface-variant)', marginBottom: '0.4rem' }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>water_drop</span>
+            {avgPrecipMm}mm
+          </span>
+          {rainyDays > 0 && (
+            <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>umbrella</span>
+              ~{rainyDays}{t('climate.days_suffix') || 'd'}
+            </span>
+          )}
+        </div>
+        {/* Clothing */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.73rem', color: 'var(--blossom-on-surface-variant)' }}>
+          <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>checkroom</span>
+          {clothing}
+        </div>
+        {/* Dot indicators */}
+        {cdCount > 1 && (
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', marginTop: '0.65rem' }}>
+            {climateDestinations.map((d, i) => (
+              <button
+                key={d.placeId || d.name}
+                onClick={() => setClimateIdx(i)}
+                title={d.name}
+                style={{
+                  width: i === activeIdx ? '18px' : '8px',
+                  height: '8px',
+                  borderRadius: '4px',
+                  border: 'none',
+                  background: i === activeIdx ? 'var(--blossom-primary)' : 'rgba(131, 75, 88, 0.25)',
+                  cursor: 'pointer',
+                  padding: 0,
+                  transition: 'all 0.3s ease',
+                }}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   // ── Detect existing days_v2 records when date range changes ──
   useEffect(() => {
@@ -100,7 +246,7 @@ export default function TripEditModal({ trip, onSave, onClose, isCreating: isNew
     try {
       const thumb = await resolveThumb(thumbOverride ?? form.thumb);
       const dayIdsToLink = (linkDays && existingDays.length) ? existingDays.map(d => d.id) : [];
-      onSave?.({ ...form, thumb, _dayIdsToLink: dayIdsToLink });
+      onSave?.({ ...form, thumb, _dayIdsToLink: dayIdsToLink, _destinations: destinations });
       onClose?.();
     } catch (e) {
       console.error('[TripEditModal] save error:', e);
@@ -183,160 +329,217 @@ export default function TripEditModal({ trip, onSave, onClose, isCreating: isNew
                     </h3>
                   )}
 
-                  {/* ── Adventure Name ── */}
-                  <div className="blossom-field">
-                    <label className="blossom-label">
-                      {isNewTrip ? 'Adventure Name' : (t('dashboard.trip_title') || 'Trip Title')}
-                    </label>
-                    <div className="blossom-input-wrap">
-                      <input
-                        type="text"
-                        className="blossom-input"
-                        value={form.title}
-                        onChange={set('title')}
-                        placeholder={t('dashboard.new_trip_default_title') || 'e.g., Honeymoon in Hokkaido'}
-                      />
-                      <span className="material-symbols-outlined blossom-input-icon">auto_awesome</span>
-                    </div>
-                  </div>
-
-                  {/* ── Status ── */}
-                  <div className="blossom-field">
-                    <label className="blossom-label">{t('dashboard.stat_trips') || 'Status'}</label>
-                    <div className="blossom-status-group">
-                      {Object.entries(statusConfig).map(([key, cfg]) => (
-                        <button
-                          key={key}
-                          className={`blossom-status-btn ${form.status === key ? 'active' : ''}`}
-                          onClick={() => setForm(f => ({ ...f, status: key }))}
-                        >
-                          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>{cfg.icon}</span>
-                          {cfg.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* ── Dates ── */}
-                  <div className="blossom-dates-row">
-                    <div className="blossom-field" style={{ flex: 1 }}>
-                      <label className="blossom-label">{t('common.start_date') || 'Start Date'}</label>
-                      <input
-                        type="date"
-                        className="blossom-input blossom-date"
-                        value={form.startDate}
-                        onChange={set('startDate')}
-                      />
-                    </div>
-                    <div className="blossom-field" style={{ flex: 1 }}>
-                      <label className="blossom-label">{t('common.end_date') || 'End Date'}</label>
-                      <input
-                        type="date"
-                        className="blossom-input blossom-date"
-                        value={form.endDate}
-                        onChange={set('endDate')}
-                      />
-                    </div>
-                  </div>
-
-                  {/* ── Existing days detection ── */}
-                  {existingDays.length > 0 && (
-                    <div className="blossom-days-alert">
-                      <div className="blossom-days-alert-head">
-                        <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--md-sys-color-secondary, #71563d)' }}>info</span>
-                        <span className="blossom-days-alert-title">
-                          {existingDays.length} {existingDays.length > 1 ? 'days' : 'day'} with existing check-in records
-                        </span>
-                      </div>
-                      <div className="blossom-days-alert-dates">
-                        {existingDays.map(d => d.date).join(', ')}
-                      </div>
-                      <label className="blossom-days-checkbox">
-                        <input
-                          type="checkbox"
-                          checked={linkDays}
-                          onChange={e => setLinkDays(e.target.checked)}
-                        />
-                        Link these {existingDays.length} days to this trip
+                  {/* ═══ Section 1: Trip Details ═══ */}
+                  <AccordionHeader id="details" icon="edit_note" label={isNewTrip ? 'Adventure Name' : (t('dashboard.trip_title') || 'Trip Details')} />
+                  <div className={`blossom-accordion-body ${openSections.has('details') ? 'open' : ''}`}>
+                    <div className="blossom-field">
+                      <label className="blossom-label blossom-desktop-only">
+                        {isNewTrip ? 'Adventure Name' : (t('dashboard.trip_title') || 'Trip Title')}
                       </label>
-                    </div>
-                  )}
-
-                  {/* ── Budget Currency ── */}
-                  <div className="blossom-field">
-                    <label className="blossom-label">{t('itinerary.settings_currency') || 'Budget Currency'}</label>
-                    <div className="blossom-currency-group">
-                      {CURRENCIES.map(c => (
-                        <button
-                          key={c}
-                          className={`blossom-currency-btn ${form.currency === c ? 'active' : ''}`}
-                          onClick={() => setForm(f => ({ ...f, currency: c }))}
-                        >
-                          {form.currency === c && (
-                            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>payments</span>
-                          )}
-                          {c}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* ── Cover Image toggle ── */}
-                  <div className="blossom-field">
-                    <button
-                      className="blossom-image-toggle"
-                      onClick={() => setShowImageSection(!showImageSection)}
-                    >
-                      <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
-                        {showImageSection ? 'expand_less' : 'add_photo_alternate'}
-                      </span>
-                      <span>{t('stops.change_img') || 'Cover Image'}</span>
-                      {form.thumb && <span className="blossom-thumb-dot" />}
-                    </button>
-                  </div>
-
-                  {/* ── Cover Image section (expandable) ── */}
-                  {showImageSection && (
-                    <div className="blossom-image-section">
-                      <div className="blossom-search-row">
+                      <div className="blossom-input-wrap">
                         <input
                           type="text"
                           className="blossom-input"
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                          placeholder={t('common.search_placeholder') || 'Search...'}
-                          style={{ flex: 1 }}
+                          value={form.title}
+                          onChange={set('title')}
+                          placeholder={t('dashboard.new_trip_default_title') || 'e.g., Honeymoon in Hokkaido'}
                         />
-                        <button className="blossom-search-btn" onClick={handleSearch}>
-                          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>search</span>
-                          {isSearching ? '...' : (t('common.search') || 'Search')}
-                        </button>
+                        <span className="material-symbols-outlined blossom-input-icon">auto_awesome</span>
                       </div>
-
-                      <label className="blossom-upload-area">
-                        <span className="material-symbols-outlined" style={{ fontSize: 20 }}>upload</span>
-                        {t('stops.upload_local') || 'Upload Locally'}
-                        <input type="file" accept="image/*" onChange={handleFileUpload} style={{ display: 'none' }} />
-                      </label>
-
-                      {searchResults.length > 0 && (
-                        <div className="blossom-image-grid">
-                          {searchResults.map((url, i) => (
-                            <div
-                              key={i}
-                              className={`blossom-image-thumb ${form.thumb === url ? 'selected' : ''}`}
-                              onClick={() => setForm(f => ({ ...f, thumb: url }))}
-                              onDoubleClick={() => handleSave(url)}
-                              style={{ backgroundImage: `url('${url}')` }}
-                            />
-                          ))}
-                        </div>
-                      )}
                     </div>
-                  )}
 
-                  {/* ── Action button ── */}
+                    <div className="blossom-field">
+                      <label className="blossom-label">{t('dashboard.stat_trips') || 'Status'}</label>
+                      <div className="blossom-status-group">
+                        {Object.entries(statusConfig).map(([key, cfg]) => (
+                          <button
+                            key={key}
+                            className={`blossom-status-btn ${form.status === key ? 'active' : ''}`}
+                            onClick={() => setForm(f => ({ ...f, status: key }))}
+                          >
+                            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>{cfg.icon}</span>
+                            {cfg.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* ═══ Section 2: Dates & Schedule ═══ */}
+                  <AccordionHeader id="dates" icon="date_range" label={t('common.start_date') ? `${t('common.start_date')} & ${t('common.end_date')}` : 'Dates & Schedule'} />
+                  <div className={`blossom-accordion-body ${openSections.has('dates') ? 'open' : ''}`}>
+                    <div className="blossom-dates-row">
+                      <div className="blossom-field" style={{ flex: 1 }}>
+                        <label className="blossom-label">{t('common.start_date') || 'Start Date'}</label>
+                        <input
+                          type="date"
+                          className="blossom-input blossom-date"
+                          value={form.startDate}
+                          onChange={set('startDate')}
+                        />
+                      </div>
+                      <div className="blossom-field" style={{ flex: 1 }}>
+                        <label className="blossom-label">{t('common.end_date') || 'End Date'}</label>
+                        <input
+                          type="date"
+                          className="blossom-input blossom-date"
+                          value={form.endDate}
+                          onChange={set('endDate')}
+                        />
+                      </div>
+                    </div>
+
+                    {existingDays.length > 0 && (
+                      <div className="blossom-days-alert">
+                        <div className="blossom-days-alert-head">
+                          <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--md-sys-color-secondary, #71563d)' }}>info</span>
+                          <span className="blossom-days-alert-title">
+                            {existingDays.length} {existingDays.length > 1 ? 'days' : 'day'} with existing check-in records
+                          </span>
+                        </div>
+                        <div className="blossom-days-alert-dates">
+                          {existingDays.map(d => d.date).join(', ')}
+                        </div>
+                        <label className="blossom-days-checkbox">
+                          <input
+                            type="checkbox"
+                            checked={linkDays}
+                            onChange={e => setLinkDays(e.target.checked)}
+                          />
+                          Link these {existingDays.length} days to this trip
+                        </label>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* ═══ Section 3: Destinations & Climate ═══ */}
+                  <AccordionHeader id="destinations" icon="location_city" label={t('climate.destination_label') || 'Destinations & Climate'} />
+                  <div className={`blossom-accordion-body ${openSections.has('destinations') ? 'open' : ''}`}>
+                    <div className="blossom-field">
+                      <label className="blossom-label blossom-desktop-only">
+                        <span className="material-symbols-outlined" style={{ fontSize: 16, verticalAlign: -3 }}>location_city</span>
+                        {' '}{t('climate.destination_label') || 'Destination Cities'}
+                      </label>
+                      <DestinationInput
+                        destinations={destinations}
+                        onAdd={(dest) => setDestinations(prev => [...prev, dest])}
+                        onRemove={(idx) => setDestinations(prev => prev.filter((_, i) => i !== idx))}
+                      />
+                    </div>
+
+                    {/* Mobile-only climate card (same as right sidebar) */}
+                    <div className="blossom-mobile-only">
+                      {renderClimateCard()}
+                    </div>
+                  </div>
+
+                  {/* ═══ Section 4: Budget & Cover ═══ */}
+                  <AccordionHeader id="budget" icon="payments" label={t('itinerary.settings_currency') || 'Budget & Cover'} />
+                  <div className={`blossom-accordion-body ${openSections.has('budget') ? 'open' : ''}`}>
+                    <div className="blossom-field">
+                      <label className="blossom-label">{t('itinerary.settings_currency') || 'Budget Currency'}</label>
+                      <div className="blossom-currency-group">
+                        {CURRENCIES.map(c => (
+                          <button
+                            key={c}
+                            className={`blossom-currency-btn ${form.currency === c ? 'active' : ''}`}
+                            onClick={() => setForm(f => ({ ...f, currency: c }))}
+                          >
+                            {form.currency === c && (
+                              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>payments</span>
+                            )}
+                            {c}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="blossom-field">
+                      <button
+                        className="blossom-image-toggle"
+                        onClick={() => setShowImageSection(!showImageSection)}
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+                          {showImageSection ? 'expand_less' : 'add_photo_alternate'}
+                        </span>
+                        <span>{t('stops.change_img') || 'Cover Image'}</span>
+                        {form.thumb && <span className="blossom-thumb-dot" />}
+                      </button>
+                    </div>
+
+                    {showImageSection && (
+                      <div className="blossom-image-section">
+                        <div className="blossom-search-row">
+                          <input
+                            type="text"
+                            className="blossom-input"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                            placeholder={t('common.search_placeholder') || 'Search...'}
+                            style={{ flex: 1 }}
+                          />
+                          <button className="blossom-search-btn" onClick={handleSearch}>
+                            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>search</span>
+                            {isSearching ? '...' : (t('common.search') || 'Search')}
+                          </button>
+                        </div>
+
+                        <label className="blossom-upload-area">
+                          <span className="material-symbols-outlined" style={{ fontSize: 20 }}>upload</span>
+                          {t('stops.upload_local') || 'Upload Locally'}
+                          <input type="file" accept="image/*" onChange={handleFileUpload} style={{ display: 'none' }} />
+                        </label>
+
+                        {searchResults.length > 0 && (
+                          <div className="blossom-image-grid">
+                            {searchResults.map((url, i) => (
+                              <div
+                                key={i}
+                                className={`blossom-image-thumb ${form.thumb === url ? 'selected' : ''}`}
+                                onClick={() => setForm(f => ({ ...f, thumb: url }))}
+                                onDoubleClick={() => handleSave(url)}
+                                style={{ backgroundImage: `url('${url}')` }}
+                              />
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* ═══ Section 5: Trip Tips & Stats (mobile only) ═══ */}
+                  <div className="blossom-mobile-only">
+                    <AccordionHeader id="tips" icon="lightbulb" label="Trip Tips & Stats" />
+                    <div className={`blossom-accordion-body ${openSections.has('tips') ? 'open' : ''}`}>
+                      <div className="blossom-tip-item">
+                        <span className="material-symbols-outlined blossom-tip-icon">tips_and_updates</span>
+                        <p>Sakura peaks vary by region! Plan for late March in Tokyo.</p>
+                      </div>
+                      <div className="blossom-tip-item">
+                        <span className="material-symbols-outlined blossom-tip-icon">wb_sunny</span>
+                        <p>Spring evenings can be crisp. Pack a light cardigan.</p>
+                      </div>
+                      <div className="blossom-tip-item">
+                        <span className="material-symbols-outlined blossom-tip-icon">restaurant</span>
+                        <p>Try seasonal sakura-flavored treats at convenience stores!</p>
+                      </div>
+                      <div style={{ marginTop: '0.75rem' }}>
+                        <div className="blossom-stat-row">
+                          <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--blossom-primary)' }}>favorite</span>
+                          <span className="blossom-stat-label">Saved Places</span>
+                          <span className="blossom-stat-value">--</span>
+                        </div>
+                        <div className="blossom-stat-row" style={{ marginTop: '0.5rem' }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--blossom-primary)' }}>route</span>
+                          <span className="blossom-stat-label">Total Trips</span>
+                          <span className="blossom-stat-value">--</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* ── Action buttons (always visible, outside accordion) ── */}
                   <div className="blossom-actions">
                     {!isNewTrip && (
                       <button
@@ -389,14 +592,106 @@ export default function TripEditModal({ trip, onSave, onClose, isCreating: isNew
                 </div>
               </div>
 
-              {/* Inspiration card */}
-              <div className="blossom-inspo-card">
-                <div className="blossom-inspo-bg" />
-                <div className="blossom-inspo-content">
-                  <span className="blossom-inspo-tag">{t('common.inspiration') || 'Inspiration'}</span>
-                  <h4 className="blossom-inspo-title">Tokyo Neon Dreams</h4>
-                </div>
-              </div>
+              {/* Inspiration / Climate card */}
+              {(() => {
+                const climateDestinations = destinations.filter(d => climateByCity[d.name]);
+                const hasClimate = climateDestinations.length > 0 && !climateLoading;
+                const activeIdx = Math.min(climateIdx, climateDestinations.length - 1);
+                const activeDest = hasClimate ? climateDestinations[Math.max(0, activeIdx)] : null;
+                const activeData = activeDest ? climateByCity[activeDest.name] : null;
+
+                if (!hasClimate) {
+                  // Fallback: original inspiration card
+                  return (
+                    <div className="blossom-inspo-card">
+                      <div className="blossom-inspo-bg" />
+                      <div className="blossom-inspo-content">
+                        {climateLoading && destinations.length > 0 ? (
+                          <>
+                            <span className="blossom-inspo-tag">{t('climate.title') || 'Climate'}</span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <span className="material-symbols-outlined" style={{ fontSize: 16, animation: 'spin 1s linear infinite', color: 'var(--blossom-primary)' }}>progress_activity</span>
+                              <h4 className="blossom-inspo-title" style={{ fontSize: '0.82rem' }}>{t('climate.loading') || 'Loading climate data...'}</h4>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <span className="blossom-inspo-tag">{t('common.inspiration') || 'Inspiration'}</span>
+                            <h4 className="blossom-inspo-title">Tokyo Neon Dreams</h4>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  );
+                }
+
+                const { avgHigh, avgLow, avgPrecipMm, rainyDays } = activeData;
+                const clothing = getClothingSuggestion(avgHigh, t);
+
+                return (
+                  <div className="blossom-inspo-card" style={{ height: 'auto', minHeight: '130px', padding: 0 }}>
+                    <div className="blossom-inspo-bg" />
+                    <div style={{ position: 'relative', zIndex: 1, padding: '0.85rem 1rem 0.7rem' }}>
+                      {/* Header */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '0.55rem' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'var(--blossom-primary)' }}>thermostat</span>
+                        <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--blossom-on-surface)' }}>{activeDest.name}</span>
+                        {activeDest.country && <span style={{ fontSize: '0.72rem', color: 'var(--blossom-on-surface-variant)', fontWeight: 400 }}>, {activeDest.country}</span>}
+                      </div>
+
+                      {/* Temperature */}
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', marginBottom: '0.4rem' }}>
+                        <span style={{ fontSize: '1.4rem', fontWeight: 800, color: '#ef4444' }}>{formatTemp(avgHigh, state.settings)}</span>
+                        <span style={{ fontSize: '0.82rem', color: 'var(--blossom-on-surface-variant)' }}>/</span>
+                        <span style={{ fontSize: '1.1rem', fontWeight: 700, color: '#3b82f6' }}>{formatTemp(avgLow, state.settings)}</span>
+                      </div>
+
+                      {/* Precipitation + rain days */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.75rem', color: 'var(--blossom-on-surface-variant)', marginBottom: '0.4rem' }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>water_drop</span>
+                          {avgPrecipMm}mm
+                        </span>
+                        {rainyDays > 0 && (
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                            <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>umbrella</span>
+                            ~{rainyDays}{t('climate.days_suffix') || 'd'}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Clothing */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.73rem', color: 'var(--blossom-on-surface-variant)' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>checkroom</span>
+                        {clothing}
+                      </div>
+
+                      {/* Dot indicators */}
+                      {climateDestinations.length > 1 && (
+                        <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', marginTop: '0.65rem' }}>
+                          {climateDestinations.map((d, i) => (
+                            <button
+                              key={d.placeId || d.name}
+                              onClick={() => setClimateIdx(i)}
+                              title={d.name}
+                              style={{
+                                width: i === activeIdx ? '18px' : '8px',
+                                height: '8px',
+                                borderRadius: '4px',
+                                border: 'none',
+                                background: i === activeIdx ? 'var(--blossom-primary)' : 'rgba(131, 75, 88, 0.25)',
+                                cursor: 'pointer',
+                                padding: 0,
+                                transition: 'all 0.3s ease',
+                              }}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Quick stats placeholder */}
               <div className="blossom-stats-card">
@@ -441,6 +736,20 @@ const blossomModalCSS = `
     --blossom-on-surface-variant: #5e5b5b;
     --blossom-outline: #797676;
     --blossom-outline-variant: #b1acac;
+
+    /* Remap M3 tokens so child components (ClimateCard, DestinationInput) use blossom palette */
+    --md-sys-color-primary: #834b58;
+    --md-sys-color-primary-container: #feb6c4;
+    --md-sys-color-on-primary-container: #3b1520;
+    --md-sys-color-secondary-container: #fed9b8;
+    --md-sys-color-on-secondary-container: #3d2e1c;
+    --md-sys-color-surface: #fbf5f5;
+    --md-sys-color-surface-container: #ede7e7;
+    --md-sys-color-surface-container-low: #f5efef;
+    --md-sys-color-surface-container-lowest: #ffffff;
+    --md-sys-color-on-surface: #302e2e;
+    --md-sys-color-on-surface-variant: #5e5b5b;
+    --md-sys-color-outline-variant: #b1acac;
     --blossom-radius: 1rem;
     --blossom-radius-lg: 2rem;
     --blossom-radius-xl: 3rem;
@@ -1019,6 +1328,20 @@ const blossomModalCSS = `
     color: var(--blossom-primary);
   }
 
+  /* ── Accordion (hidden on desktop, visible on mobile) ── */
+  .blossom-accordion-header {
+    display: none;  /* hidden on desktop */
+  }
+  .blossom-accordion-body {
+    /* always visible on desktop — open/close class ignored */
+  }
+  .blossom-mobile-only {
+    display: none;  /* hidden on desktop */
+  }
+  .blossom-desktop-only {
+    display: block;  /* visible on desktop */
+  }
+
   /* ── Responsive: collapse to single column ── */
   @media (max-width: 700px) {
     .blossom-modal-shell {
@@ -1040,5 +1363,40 @@ const blossomModalCSS = `
     .blossom-tips-col { display: none; }
     .blossom-dates-row { flex-direction: column; gap: 0.75rem; }
     .blossom-status-group { flex-wrap: wrap; }
+
+    /* Accordion — visible on mobile */
+    .blossom-accordion-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      width: 100%;
+      padding: 0.7rem 0.85rem;
+      background: rgba(131, 75, 88, 0.06);
+      border: none;
+      border-left: 3px solid var(--blossom-primary);
+      border-radius: 0.5rem;
+      cursor: pointer;
+      font-family: var(--blossom-font-body);
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--blossom-on-surface);
+      transition: background 0.2s;
+    }
+    .blossom-accordion-header:hover {
+      background: rgba(131, 75, 88, 0.1);
+    }
+    .blossom-accordion-body {
+      display: none;
+      padding: 0.6rem 0 0;
+    }
+    .blossom-accordion-body.open {
+      display: block;
+    }
+    .blossom-mobile-only {
+      display: block;
+    }
+    .blossom-desktop-only {
+      display: none;
+    }
   }
 `;
