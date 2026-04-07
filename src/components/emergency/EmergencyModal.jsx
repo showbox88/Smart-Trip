@@ -48,36 +48,60 @@ export default function EmergencyModal({ onClose }) {
     if (!navigator.geolocation) return;
 
     let cancelled = false;
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
+
+    // Wait for Google Maps API to be ready
+    const waitForGoogleMaps = () => new Promise((resolve) => {
+      if (window.google?.maps?.Geocoder) { resolve(); return; }
+      // Listen for the ready callback
+      const prev = window._dispatchGoogleMapsReady;
+      window._dispatchGoogleMapsReady = () => {
+        if (prev) prev();
+        resolve();
+      };
+      // Timeout fallback — don't wait forever
+      setTimeout(resolve, 6000);
+    });
+
+    (async () => {
+      try {
+        // Get GPS position
+        const pos = await new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: false,
+            timeout: 8000,
+            maximumAge: 300000,
+          });
+        });
+
         if (cancelled) return;
         const { latitude: lat, longitude: lng } = pos.coords;
-        try {
-          const geocoder = new google.maps.Geocoder();
-          const { results } = await geocoder.geocode({ location: { lat, lng } });
-          if (cancelled || !results?.length) return;
 
-          // Find country component from geocoded results
-          for (const result of results) {
-            const countryComp = result.address_components?.find(c =>
-              c.types?.includes('country')
-            );
-            if (countryComp) {
-              const code = countryComp.short_name; // ISO alpha-2
-              const name = countryComp.long_name;
-              if (code && emergencyData[code]) {
-                setSelectedCountry({ name, code, lat, lng });
-              }
-              return;
+        // Ensure Google Maps is loaded
+        await waitForGoogleMaps();
+        if (cancelled || !window.google?.maps?.Geocoder) return;
+
+        const geocoder = new google.maps.Geocoder();
+        const { results } = await geocoder.geocode({ location: { lat, lng } });
+        if (cancelled || !results?.length) return;
+
+        // Find country from geocoded results
+        for (const result of results) {
+          const countryComp = result.address_components?.find(c =>
+            c.types?.includes('country')
+          );
+          if (countryComp) {
+            const code = countryComp.short_name; // ISO alpha-2
+            const name = countryComp.long_name;
+            if (code && emergencyData[code]) {
+              setSelectedCountry({ name, code, lat, lng });
             }
+            return;
           }
-        } catch {
-          // Geocoding failed — user can pick manually
         }
-      },
-      () => { /* GPS denied — user picks manually */ },
-      { enableHighAccuracy: false, timeout: 5000, maximumAge: 300000 }
-    );
+      } catch {
+        // GPS denied or geocoding failed — user picks manually
+      }
+    })();
 
     return () => { cancelled = true; };
   }, [location.pathname, state.trips]);
