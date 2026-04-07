@@ -95,58 +95,73 @@ export default function EmergencyModal({ onClose }) {
         // Step 3: Reverse geocode
         let countryCode = null;
         let countryName = null;
+        let debugLog = `GPS: ${lat.toFixed(4)},${lng.toFixed(4)}`;
 
+        // 3a: Try Google Maps Geocoder
         if (window.google.maps.Geocoder) {
           try {
             const geocoder = new google.maps.Geocoder();
             const response = await geocoder.geocode({ location: { lat, lng } });
             const results = response?.results || response;
+            debugLog += ` | 3a: ${results?.length || 0} results`;
             if (results?.length) {
+              // Search all results for country component
               for (const result of results) {
+                const types = (result.types || []).join(',');
                 const comp = (result.address_components || []).find(c =>
                   (c.types || []).includes('country')
                 );
                 if (comp) {
                   countryCode = comp.short_name;
                   countryName = comp.long_name;
+                  debugLog += ` → ${countryName}(${countryCode})`;
                   break;
                 }
               }
-            }
-            if (!countryCode) {
-              setDetectStatus('Step 3a: Geocoder returned no country, trying REST...');
+              if (!countryCode) {
+                // Show first result's types for debugging
+                const firstTypes = results[0]?.types?.join(',') || 'none';
+                const firstComps = (results[0]?.address_components || []).map(c => c.short_name).join('/');
+                debugLog += ` noCountry types=${firstTypes} comps=${firstComps}`;
+              }
             }
           } catch (geoErr) {
-            setDetectStatus(`Step 3a FAIL: Geocoder error: ${geoErr.message}, trying REST...`);
+            debugLog += ` | 3a ERR: ${geoErr.message}`;
           }
         } else {
-          setDetectStatus('Step 3a: No Geocoder class, trying REST...');
+          debugLog += ' | 3a: no Geocoder class';
         }
 
-        // Fallback: REST API
+        // 3b: REST API fallback
         if (!countryCode) {
           const apiKey = import.meta.env.VITE_GOOGLE_MAPS_KEY;
           if (!apiKey) {
-            setDetectStatus('Step 3b FAIL: No API key for REST fallback');
+            debugLog += ' | 3b: no API key';
           } else {
             try {
               const resp = await fetch(
-                `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&result_type=country&key=${apiKey}`
+                `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`
               );
               const data = await resp.json();
-              if (data.status !== 'OK') {
-                setDetectStatus(`Step 3b FAIL: REST status=${data.status} error=${data.error_message || 'none'}`);
-              } else if (data.results?.length) {
-                const comp = data.results[0].address_components?.find(c =>
-                  (c.types || []).includes('country')
-                );
-                if (comp) {
-                  countryCode = comp.short_name;
-                  countryName = comp.long_name;
+              debugLog += ` | 3b: status=${data.status} ${data.results?.length || 0}results`;
+              if (data.error_message) {
+                debugLog += ` err=${data.error_message}`;
+              }
+              if (data.status === 'OK' && data.results?.length) {
+                for (const result of data.results) {
+                  const comp = (result.address_components || []).find(c =>
+                    (c.types || []).includes('country')
+                  );
+                  if (comp) {
+                    countryCode = comp.short_name;
+                    countryName = comp.long_name;
+                    debugLog += ` → ${countryName}(${countryCode})`;
+                    break;
+                  }
                 }
               }
             } catch (restErr) {
-              setDetectStatus(`Step 3b FAIL: REST fetch error: ${restErr.message}`);
+              debugLog += ` | 3b ERR: ${restErr.message}`;
             }
           }
         }
@@ -155,12 +170,10 @@ export default function EmergencyModal({ onClose }) {
 
         // Step 4: Set country
         if (countryCode && emergencyData[countryCode]) {
-          setDetectStatus(`Done: ${countryName} (${countryCode})`);
+          setDetectStatus(`OK: ${countryName} (${countryCode})`);
           setSelectedCountry({ name: countryName, code: countryCode, lat, lng });
-        } else if (countryCode) {
-          setDetectStatus(`Step 4 FAIL: Country "${countryCode}" not in emergency data`);
         } else {
-          setDetectStatus(`Step 4 FAIL: No country resolved from (${lat.toFixed(4)}, ${lng.toFixed(4)})`);
+          setDetectStatus(debugLog);
         }
       } catch (err) {
         setDetectStatus(`FAIL: ${err.code ? 'GPS error code=' + err.code + ' ' : ''}${err.message || String(err)}`);
@@ -251,13 +264,14 @@ export default function EmergencyModal({ onClose }) {
           </div>
 
           {/* Debug: GPS detection status */}
-          {detectStatus && !selectedCountry && (
+          {detectStatus && (
             <div style={{
               padding: '0.5rem 1.25rem',
-              fontSize: '0.72rem',
+              fontSize: '0.65rem',
               fontFamily: 'monospace',
-              color: detectStatus.includes('FAIL') ? '#D32F2F' : '#1565C0',
-              background: detectStatus.includes('FAIL') ? '#FFEBEE' : '#E3F2FD',
+              lineHeight: 1.4,
+              color: detectStatus.startsWith('OK') ? '#2E7D32' : (detectStatus.includes('ERR') || detectStatus.includes('FAIL') ? '#D32F2F' : '#1565C0'),
+              background: detectStatus.startsWith('OK') ? '#E8F5E9' : (detectStatus.includes('ERR') || detectStatus.includes('FAIL') ? '#FFEBEE' : '#E3F2FD'),
               borderBottom: '1px solid var(--md-sys-color-outline-variant, #e0e0e0)',
               wordBreak: 'break-all',
             }}>
