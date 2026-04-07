@@ -25,13 +25,12 @@ export default function EmergencyModal({ onClose }) {
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [showCountryPicker, setShowCountryPicker] = useState(false);
 
-  // Try to detect country from current trip context
+  // Try to detect country: 1) from Trip destinations  2) from GPS reverse geocoding
   useEffect(() => {
-    // Check if we're on a trip page
+    // 1. Check if we're on a trip page
     const tripMatch = location.pathname.match(/\/trip-v2\/(.+)/);
     if (tripMatch && state.trips) {
       const tripId = tripMatch[1];
-      // Virtual V2 trips have id="v2-trip-{realId}" and _realTripId={realId}
       const trip = state.trips.find(t =>
         t.id === tripId || t._realTripId === tripId || t.id === `v2-trip-${tripId}`
       );
@@ -44,7 +43,43 @@ export default function EmergencyModal({ onClose }) {
         }
       }
     }
-    // No trip context — leave null, user can pick manually
+
+    // 2. No trip context — try GPS + reverse geocoding
+    if (!navigator.geolocation) return;
+
+    let cancelled = false;
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        if (cancelled) return;
+        const { latitude: lat, longitude: lng } = pos.coords;
+        try {
+          const geocoder = new google.maps.Geocoder();
+          const { results } = await geocoder.geocode({ location: { lat, lng } });
+          if (cancelled || !results?.length) return;
+
+          // Find country component from geocoded results
+          for (const result of results) {
+            const countryComp = result.address_components?.find(c =>
+              c.types?.includes('country')
+            );
+            if (countryComp) {
+              const code = countryComp.short_name; // ISO alpha-2
+              const name = countryComp.long_name;
+              if (code && emergencyData[code]) {
+                setSelectedCountry({ name, code, lat, lng });
+              }
+              return;
+            }
+          }
+        } catch {
+          // Geocoding failed — user can pick manually
+        }
+      },
+      () => { /* GPS denied — user picks manually */ },
+      { enableHighAccuracy: false, timeout: 5000, maximumAge: 300000 }
+    );
+
+    return () => { cancelled = true; };
   }, [location.pathname, state.trips]);
 
   // Entrance animation
