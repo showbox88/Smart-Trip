@@ -12,6 +12,7 @@ import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useI18n } from '../../context/I18nContext';
 import ProfilePanel from './ProfilePanel';
+import EmergencyModal from '../emergency/EmergencyModal';
 
 export default function BottomNav() {
   const navigate = useNavigate();
@@ -19,35 +20,51 @@ export default function BottomNav() {
   const { t } = useI18n();
   const [mapMode, setMapMode] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [sosOpen, setSosOpen] = useState(false);
 
   const isTripPage = location.pathname.startsWith('/trip-v2/');
 
   const tabs = isTripPage
     ? [
-        { key: 'today',     icon: 'today',      label: t('common.today') || 'Today',         path: '/today' },
-        { key: 'itinerary', icon: 'event_note',  label: t('common.itinerary') || 'Itinerary', action: 'itinerary' },
+        { key: 'trips',     icon: 'luggage',    label: t('common.my_trips') || 'My Trips',   path: '/' },
         { key: 'map',       icon: 'map',         label: t('common.map') || 'Map',             action: 'map' },
+        { key: 'today',     icon: 'today',       label: t('common.today') || 'Today',         path: '/today' },
         { key: 'profile',   icon: 'person',      label: t('common.you') || 'You',             action: 'profile' },
+        { key: 'sos',       icon: 'sos',         label: 'SOS',                                action: 'sos', emergency: true },
       ]
     : [
-        { key: 'today',   icon: 'today',   label: t('common.today') || 'Today',       path: '/today' },
         { key: 'trips',   icon: 'luggage', label: t('common.my_trips') || 'My Trips', path: '/' },
-        { key: 'map',     icon: 'map',     label: t('common.map') || 'Map' },
+        { key: 'map',     icon: 'map',     label: t('common.map') || 'Map',           action: 'map' },
+        { key: 'today',   icon: 'today',   label: t('common.today') || 'Today',       path: '/today' },
         { key: 'profile', icon: 'person',  label: t('common.you') || 'You',           action: 'profile' },
+        { key: 'sos',     icon: 'sos',     label: 'SOS',                              action: 'sos', emergency: true },
       ];
 
   const handleTabClick = (tab) => {
+    if (tab.action === 'sos') {
+      setProfileOpen(false);
+      setSosOpen(v => !v);
+      return;
+    }
     if (tab.action === 'profile') {
+      setSosOpen(false);
       setProfileOpen(v => !v);
       return;
     }
-    // Close profile panel when navigating elsewhere
+    // Close panels when navigating elsewhere
     setProfileOpen(false);
+    setSosOpen(false);
 
     if (tab.action === 'map') {
-      document.body.classList.add('mobile-mode-map');
-      document.body.classList.remove('mobile-mode-plan');
-      setMapMode(true);
+      if (isTripPage) {
+        // Inside a trip → toggle trip map panel
+        document.body.classList.add('mobile-mode-map');
+        document.body.classList.remove('mobile-mode-plan');
+        setMapMode(true);
+      } else {
+        // Outside trip → navigate to standalone GPS map page
+        navigate('/map');
+      }
       return;
     }
     if (tab.action === 'itinerary') {
@@ -63,6 +80,7 @@ export default function BottomNav() {
   };
 
   const isActive = (tab) => {
+    if (tab.action === 'sos') return sosOpen;
     if (tab.action === 'profile') return profileOpen;
     if (tab.action === 'map') return mapMode;
     if (tab.action === 'itinerary') return isTripPage && !mapMode;
@@ -74,6 +92,7 @@ export default function BottomNav() {
   return (
     <>
       <ProfilePanel open={profileOpen} onClose={() => setProfileOpen(false)} />
+      {sosOpen && <EmergencyModal onClose={() => setSosOpen(false)} />}
 
       <nav className="bottom-nav" style={{
         position: 'fixed',
@@ -89,12 +108,46 @@ export default function BottomNav() {
         borderRadius: 'var(--md-sys-shape-corner-full)',
         boxShadow: '0 4px 16px -4px rgba(0,0,0,0.10), 0 2px 6px -2px rgba(0,0,0,0.06)',
         zIndex: 2010,
-        minWidth: '280px',
-        maxWidth: '400px',
+        minWidth: '320px',
+        maxWidth: '440px',
         width: 'calc(100% - 32px)',
       }}>
         {tabs.map((tab) => {
           const active = isActive(tab);
+          const isSos = tab.emergency === true;
+
+          // SOS button: red accent, matches nav font/size style
+          if (isSos) {
+            return (
+              <button
+                key={tab.key}
+                onClick={() => handleTabClick(tab)}
+                style={{
+                  flex: 1,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '2px',
+                  padding: '6px 4px',
+                  background: active ? '#D32F2F' : 'transparent',
+                  color: active ? '#fff' : '#D32F2F',
+                  border: 'none',
+                  borderRadius: 'var(--md-sys-shape-corner-large)',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  fontSize: '0.65rem',
+                  fontWeight: 600,
+                  fontFamily: 'var(--md-sys-typescale-label-font)',
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>
+                  {tab.icon}
+                </span>
+                <span>{tab.label}</span>
+              </button>
+            );
+          }
+
           return (
             <button
               key={tab.key}

@@ -11,6 +11,7 @@ import AdminPage from './pages/AdminPage';
 import SharedTripPage from './pages/SharedTripPage';
 import CalendarPage from './pages/CalendarPage';
 import TodayPage from './pages/TodayPage';
+import MapPage from './pages/MapPage';
 import { isAdmin } from './utils/admin';
 import BottomNav from './components/layout/BottomNav';
 import EmergencyButton from './components/emergency/EmergencyButton';
@@ -54,13 +55,14 @@ export default function App() {
           <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/trip-v2/:tripId" element={<TripPageV2 />} />
           <Route path="/today" element={<TodayPage />} />
+          <Route path="/map" element={<MapPage />} />
           <Route path="/day/:date" element={<DayPage />} />
           {isAdmin(state.user) && <Route path="/admin" element={<AdminPage />} />}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
       {layoutVariant === 'clean' && <BottomNav />}
-      <EmergencyButton />
+      {layoutVariant !== 'clean' && <EmergencyButton />}
     </>
   );
 }

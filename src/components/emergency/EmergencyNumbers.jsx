@@ -1,11 +1,13 @@
 import emergencyData from '../../data/emergencyNumbers.json';
 import { getCountryCode } from '../../data/countryCodeMap';
+import { useI18n } from '../../context/I18nContext';
 
 /**
  * Tab 1: Emergency phone numbers for a given country.
  * One-tap calling via tel: links.
  */
 export default function EmergencyNumbers({ countryName, countryCode: codeProp }) {
+  const { t } = useI18n();
   const code = codeProp || getCountryCode(countryName);
   const data = code ? emergencyData[code] : null;
 
@@ -15,17 +17,17 @@ export default function EmergencyNumbers({ countryName, countryCode: codeProp })
         <span className="material-symbols-outlined" style={{ fontSize: 40, opacity: 0.4, display: 'block', marginBottom: 8 }}>help_center</span>
         <p style={{ fontSize: '0.85rem' }}>
           {countryName
-            ? `No emergency data for "${countryName}"`
-            : 'Select a country to view emergency numbers'}
+            ? `${t('emergency.no_data_for')} "${countryName}"`
+            : t('emergency.select_country')}
         </p>
       </div>
     );
   }
 
   const services = [
-    { key: 'police', icon: 'local_police', label: 'Police', labelZh: '报警', color: '#1565C0' },
-    { key: 'ambulance', icon: 'emergency', label: 'Ambulance', labelZh: '急救', color: '#D32F2F' },
-    { key: 'fire', icon: 'local_fire_department', label: 'Fire', labelZh: '消防', color: '#E65100' },
+    { key: 'police',    icon: 'local_police',          label: t('emergency.police'),    color: '#1565C0' },
+    { key: 'ambulance', icon: 'emergency',              label: t('emergency.ambulance'), color: '#D32F2F' },
+    { key: 'fire',      icon: 'local_fire_department',  label: t('emergency.fire'),      color: '#E65100' },
   ];
 
   return (
@@ -60,7 +62,7 @@ export default function EmergencyNumbers({ countryName, countryCode: codeProp })
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--md-sys-color-on-surface-variant, #666)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                {s.label} / {s.labelZh}
+                {s.label}
               </div>
               <div style={{ fontSize: '1.5rem', fontWeight: 800, color: s.color, letterSpacing: '0.05em' }}>
                 {number}
@@ -75,7 +77,7 @@ export default function EmergencyNumbers({ countryName, countryCode: codeProp })
         fontSize: '0.72rem', color: 'var(--md-sys-color-on-surface-variant, #888)',
         textAlign: 'center', marginTop: '0.5rem', opacity: 0.7,
       }}>
-        Tap to call directly
+        {t('emergency.tap_to_call')}
       </p>
     </div>
   );

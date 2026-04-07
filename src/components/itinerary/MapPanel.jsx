@@ -1221,32 +1221,26 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [], is
     mapInstanceRef.current.setZoom(16);
   }, [darkMode]);
 
-  const doGeolocate = useCallback(() => {
+  const doGeolocate = useCallback(async () => {
     setLocating(true);
-    // Force high accuracy on mobile, as low accuracy Wi-Fi lookup can hang
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        try {
-          await placeLocationMarker(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy);
-        } catch (err) {
-          console.error('[GPS] placement error:', err);
-          showGpsToast('error', '无法在地图上标记位置');
-        } finally {
-          setLocating(false);
-        }
-      },
-      (err) => {
-        setLocating(false);
-        console.warn('[GPS] code', err.code, err.message);
-        const msgs = {
-          1: '位置权限被拒绝，请在浏览器或系统设置中允许',
-          2: '无法获取位置，请检查设备定位是否已开启',
-          3: '定位超时，请移至开阔地带重试',
-        };
-        showGpsToast('error', msgs[err.code] || '定位失败，请稍后再试');
-      },
-      { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
-    );
+    try {
+      const { getCurrentPosition } = await import('../../utils/geolocation.js');
+      const { latitude, longitude, accuracy } = await getCurrentPosition({
+        enableHighAccuracy: true, timeout: 10000, maximumAge: 0,
+      });
+      await placeLocationMarker(latitude, longitude, accuracy);
+    } catch (err) {
+      console.warn('[GPS] doGeolocate error:', err);
+      const code = err?.code;
+      const msgs = {
+        1: '位置权限被拒绝，请在系统设置中允许',
+        2: '无法获取位置，请检查设备定位是否已开启',
+        3: '定位超时，请移至开阔地带重试',
+      };
+      showGpsToast('error', msgs[code] || '定位失败，请稍后再试');
+    } finally {
+      setLocating(false);
+    }
   }, [placeLocationMarker, showGpsToast]);
 
   // isDayMode: 地图 ready 后自动定位，并记录 userLocation 用于打卡面板
@@ -1254,44 +1248,40 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [], is
     if (!isDayMode || !mapReady || !mapInstanceRef.current) return;
 
     const autoLocate = async () => {
-      if (!navigator.geolocation) return;
-      if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') return;
+      const { isGeolocationAvailable, isCapacitorNative, getCurrentPosition } = await import('../../utils/geolocation.js');
+      if (!isGeolocationAvailable()) return;
+
+      const doLocate = async () => {
+        setLocating(true);
+        try {
+          const { latitude: lat, longitude: lng, accuracy } = await getCurrentPosition({
+            enableHighAccuracy: true, timeout: 10000, maximumAge: 0,
+          });
+          await placeLocationMarker(lat, lng, accuracy);
+          setUserLocation({ lat, lng });
+          setShowCheckinPanel(true);
+        } catch (e) {
+          console.warn('[MapPanel] autoLocate error:', e);
+        } finally {
+          setLocating(false);
+        }
+      };
+
+      // On Capacitor native: permission is handled by the plugin, skip custom prompt
+      if (isCapacitorNative()) {
+        doLocate();
+        return;
+      }
 
       try {
         const perm = navigator.permissions ? await navigator.permissions.query({ name: 'geolocation' }) : null;
         const state = perm?.state;
-
-        const doLocate = () => {
-          setLocating(true);
-          navigator.geolocation.getCurrentPosition(
-            async (pos) => {
-              try {
-                const { latitude: lat, longitude: lng, accuracy } = pos.coords;
-                await placeLocationMarker(lat, lng, accuracy);
-                setUserLocation({ lat, lng });
-                setShowCheckinPanel(true);
-              } catch (e) {
-                console.warn('[MapPanel] autoLocate marker error:', e);
-              } finally {
-                setLocating(false);
-              }
-            },
-            (err) => {
-              setLocating(false);
-              console.warn('[MapPanel] autoLocate error:', err.code);
-            },
-            { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
-          );
-        };
-
         if (state === 'granted') {
           doLocate();
         } else if (state !== 'denied') {
-          // 显示自定义提示，用户允许后定位并展示打卡面板
           setShowLocPrompt(true);
         }
       } catch {
-        // permissions API 不支持，直接尝试
         setShowLocPrompt(true);
       }
     };
@@ -1302,14 +1292,10 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [], is
   const handleLocate = useCallback(async () => {
     if (!mapInstanceRef.current) return;
 
-    // Reject HTTP connections (unless localhost) for geolocation
-    if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
-      showGpsToast('error', '定位功能需要 HTTPS 连接或本地环境');
-      return;
-    }
+    const { isGeolocationAvailable, isCapacitorNative } = await import('../../utils/geolocation.js');
 
-    if (!navigator.geolocation) {
-      showGpsToast('error', '当前浏览器不支持定位功能');
+    if (!isGeolocationAvailable()) {
+      showGpsToast('error', '定位功能需要 HTTPS 连接或本地环境');
       return;
     }
 
@@ -1321,6 +1307,12 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [], is
       return;
     }
 
+    // On native Capacitor, go straight to locate (permissions handled by plugin)
+    if (isCapacitorNative()) {
+      doGeolocate();
+      return;
+    }
+
     // Check existing permission state — skip prompt if already granted or explicitly denied
     try {
       if (navigator.permissions && navigator.permissions.query) {
@@ -1329,7 +1321,7 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [], is
           doGeolocate();
           return;
         } else if (perm.state === 'denied') {
-          showGpsToast('error', '定位已被拒绝，请到浏览器设置中开启');
+          showGpsToast('error', '定位已被拒绝，请到系统设置中开启');
           return;
         }
       }
@@ -1451,25 +1443,23 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [], is
               {/* Buttons */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', marginTop: '4px' }}>
                 <button
-                  onClick={() => {
+                  onClick={async () => {
                     setShowLocPrompt(false);
                     if (isDayMode) {
-                      // 定位后同时记录坐标用于打卡面板
                       setLocating(true);
-                      navigator.geolocation.getCurrentPosition(
-                        async (pos) => {
-                          try {
-                            const { latitude: lat, longitude: lng, accuracy } = pos.coords;
-                            await placeLocationMarker(lat, lng, accuracy);
-                            setUserLocation({ lat, lng });
-                            setShowCheckinPanel(true);
-                          } finally {
-                            setLocating(false);
-                          }
-                        },
-                        () => setLocating(false),
-                        { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
-                      );
+                      try {
+                        const { getCurrentPosition } = await import('../../utils/geolocation.js');
+                        const { latitude: lat, longitude: lng, accuracy } = await getCurrentPosition({
+                          enableHighAccuracy: true, timeout: 10000, maximumAge: 0,
+                        });
+                        await placeLocationMarker(lat, lng, accuracy);
+                        setUserLocation({ lat, lng });
+                        setShowCheckinPanel(true);
+                      } catch (e) {
+                        console.warn('[MapPanel] prompt locate error:', e);
+                      } finally {
+                        setLocating(false);
+                      }
                     } else {
                       doGeolocate();
                     }

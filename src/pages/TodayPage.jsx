@@ -40,6 +40,7 @@ function buildStaticMapUrl(stops, width = 680, height = 180) {
 
 function MapThumbnail({ url }) {
   const [status, setStatus] = useState('loading'); // loading | ok | error
+  const { t } = useI18n();
 
   if (!url) {
     return (
@@ -50,7 +51,7 @@ function MapThumbnail({ url }) {
         color: '#475569', fontSize: '0.78rem', gap: '6px',
       }}>
         <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>map</span>
-        地图需要 VITE_GOOGLE_MAPS_KEY 且站点有坐标
+        {t('today.map_no_key')}
       </div>
     );
   }
@@ -68,7 +69,7 @@ function MapThumbnail({ url }) {
       {(
         <img
           src={url}
-          alt="今日路线"
+          alt={t('today.route_alt')}
           style={{ width: '100%', display: 'block', opacity: status === 'loading' ? 0 : 1, transition: 'opacity 0.3s' }}
           onLoad={() => setStatus('ok')}
           onError={() => setStatus('error')}
@@ -203,9 +204,9 @@ export default function TodayPage() {
           <span className="material-symbols-outlined" style={{ fontSize: '56px', display: 'block', marginBottom: '1rem', opacity: 0.25, color: 'var(--md-sys-color-on-surface)' }}>
             event_available
           </span>
-          <h2 style={{ margin: '0 0 0.5rem', fontSize: '1.25rem', color: 'var(--md-sys-color-on-surface)' }}>今天没有行程安排</h2>
+          <h2 style={{ margin: '0 0 0.5rem', fontSize: '1.25rem', color: 'var(--md-sys-color-on-surface)' }}>{t('today.no_schedule_title')}</h2>
           <p style={{ color: 'var(--st-color-text-muted)', fontSize: '0.88rem', marginBottom: '1.5rem', lineHeight: 1.6 }}>
-            今天还没有规划行程，可以进入随意打卡模式，随时记录你去过的地方。
+            {t('today.no_schedule_desc')}
           </p>
           <button
             onClick={() => navigate(`/day/${today}`)}
@@ -219,7 +220,7 @@ export default function TodayPage() {
             }}
           >
             <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>my_location</span>
-            随意打卡模式
+            {t('today.free_checkin')}
           </button>
           <button
             onClick={() => navigate('/')}
@@ -228,7 +229,7 @@ export default function TodayPage() {
               borderRadius: '10px', padding: '0.6rem 1.2rem', cursor: 'pointer', fontSize: '0.85rem', width: '100%',
             }}
           >
-            返回主页
+            {t('today.back_home')}
           </button>
         </div>
       </div>
@@ -269,7 +270,7 @@ export default function TodayPage() {
             {checkedCount === totalCount && totalCount > 0 ? 'celebration' : 'route'}
           </span>
           <span style={{ fontSize: '0.8rem', fontWeight: 700, color: checkedCount === totalCount && totalCount > 0 ? 'var(--st-color-hotel-checkin)' : 'var(--md-sys-color-on-surface)' }}>
-            {checkedCount} / {totalCount} 站
+            {t('today.stops_progress').replace('{checked}', checkedCount).replace('{total}', totalCount)}
           </span>
         </div>
       </div>
@@ -337,7 +338,7 @@ export default function TodayPage() {
             <span className="material-symbols-outlined" style={{ fontSize: '22px', color: 'var(--st-color-category-food)', flexShrink: 0, marginTop: '1px' }}>near_me</span>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontWeight: 700, fontSize: '0.88rem', marginBottom: '2px' }}>
-                你好像到了附近
+                {t('today.nearby_toast_title')}
               </div>
               <div style={{ fontSize: '0.8rem', color: 'var(--md-sys-color-on-surface-variant)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {gpsToast.location || gpsToast.name}
@@ -359,7 +360,7 @@ export default function TodayPage() {
                 fontWeight: 800, fontSize: '0.82rem', cursor: 'pointer', flexShrink: 0,
               }}
             >
-              打卡
+              {t('today.checkin_btn')}
             </button>
             <button
               onClick={dismissToast}
@@ -381,7 +382,7 @@ export default function TodayPage() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--md-sys-color-tertiary)' }}>payments</span>
-          <span style={{ fontSize: '0.82rem', color: 'var(--st-color-text-muted)' }}>今日总消费</span>
+          <span style={{ fontSize: '0.82rem', color: 'var(--st-color-text-muted)' }}>{t('today.total_expense')}</span>
         </div>
         <div style={{ fontWeight: 800, fontSize: '1.1rem', color: totalExpense > 0 ? 'var(--md-sys-color-tertiary)' : 'var(--st-color-text-muted)' }}>
           {formatCurrency(totalExpense, state.settings)}

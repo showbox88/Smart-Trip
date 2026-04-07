@@ -1,16 +1,39 @@
 import { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
+import { useI18n } from '../../context/I18nContext';
 import { getCountryCode } from '../../data/countryCodeMap';
 import emergencyData from '../../data/emergencyNumbers.json';
 import EmergencyNumbers from './EmergencyNumbers';
 import EmergencyNearby from './EmergencyNearby';
 import EmergencyEmbassy from './EmergencyEmbassy';
 
-const TABS = [
-  { key: 'numbers', icon: 'call', label: 'Emergency', labelZh: '紧急电话' },
-  { key: 'nearby', icon: 'local_hospital', label: 'Nearby', labelZh: '附近' },
-  { key: 'embassy', icon: 'account_balance', label: 'Embassy', labelZh: '大使馆' },
+// Use @capacitor/geolocation on native, fallback to browser API on web
+async function getPosition() {
+  try {
+    const { Geolocation } = await import('@capacitor/geolocation');
+    await Geolocation.requestPermissions();
+    const pos = await Geolocation.getCurrentPosition({
+      enableHighAccuracy: false,
+      timeout: 15000,
+    });
+    return { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
+  } catch {
+    // Fallback to browser geolocation
+    return new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => resolve({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }),
+        reject,
+        { enableHighAccuracy: false, timeout: 15000, maximumAge: 300000 }
+      );
+    });
+  }
+}
+
+const TAB_KEYS = [
+  { key: 'numbers', icon: 'call',            i18nKey: 'emergency.tab_numbers' },
+  { key: 'nearby',  icon: 'local_hospital',  i18nKey: 'emergency.tab_nearby'  },
+  { key: 'embassy', icon: 'account_balance', i18nKey: 'emergency.tab_embassy' },
 ];
 
 /**
@@ -19,6 +42,7 @@ const TABS = [
  */
 export default function EmergencyModal({ onClose }) {
   const { state } = useApp();
+  const { t } = useI18n();
   const location = useLocation();
   const overlayRef = useRef(null);
   const [activeTab, setActiveTab] = useState('numbers');
@@ -46,27 +70,15 @@ export default function EmergencyModal({ onClose }) {
     }
 
     // 2. No trip context — try GPS + reverse geocoding
-    if (!navigator.geolocation) {
-      setDetectStatus('Step 1 FAIL: navigator.geolocation not available');
-      return;
-    }
-
     let cancelled = false;
     setDetectStatus('Requesting GPS...');
 
     (async () => {
       try {
-        // Step 1: Get GPS position
-        const pos = await new Promise((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject, {
-            enableHighAccuracy: false,
-            timeout: 10000,
-            maximumAge: 300000,
-          });
-        });
+        // Step 1: Get GPS position (Capacitor plugin or browser fallback)
+        const { latitude: lat, longitude: lng } = await getPosition();
 
         if (cancelled) return;
-        const { latitude: lat, longitude: lng } = pos.coords;
         setDetectStatus(`GPS OK (${lat.toFixed(4)}, ${lng.toFixed(4)}), detecting country...`);
 
         // Step 2: Reverse geocode using free BigDataCloud API (no key needed)
@@ -174,7 +186,7 @@ export default function EmergencyModal({ onClose }) {
                     }}
                   >
                     <span className="material-symbols-outlined" style={{ fontSize: 14 }}>add_location</span>
-                    Select country
+                    {t('emergency.select_country_label')}
                   </button>
                 )}
               </div>
@@ -207,7 +219,7 @@ export default function EmergencyModal({ onClose }) {
               {tripCountries.length > 0 && (
                 <>
                   <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--md-sys-color-on-surface-variant, #888)', textTransform: 'uppercase', padding: '0.4rem 0.75rem', letterSpacing: '0.04em' }}>
-                    Trip Destinations
+                    {t('emergency.trip_destinations')}
                   </div>
                   {tripCountries.map(c => (
                     <button
@@ -223,7 +235,7 @@ export default function EmergencyModal({ onClose }) {
                 </>
               )}
               <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--md-sys-color-on-surface-variant, #888)', textTransform: 'uppercase', padding: '0.4rem 0.75rem', letterSpacing: '0.04em' }}>
-                All Countries
+                {t('emergency.all_countries')}
               </div>
               <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
                 {countryOptions.map(c => (
@@ -242,14 +254,14 @@ export default function EmergencyModal({ onClose }) {
 
           {/* Tab bar */}
           <div className="sos-tab-bar">
-            {TABS.map(tab => (
+            {TAB_KEYS.map(tab => (
               <button
                 key={tab.key}
                 className={`sos-tab ${activeTab === tab.key ? 'active' : ''}`}
                 onClick={() => setActiveTab(tab.key)}
               >
                 <span className="material-symbols-outlined" style={{ fontSize: 18 }}>{tab.icon}</span>
-                <span>{tab.labelZh}</span>
+                <span>{t(tab.i18nKey)}</span>
               </button>
             ))}
           </div>

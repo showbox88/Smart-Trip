@@ -26,6 +26,7 @@ export default function ProfilePanel({ open, onClose }) {
   const { t, language, setLanguage, availableLanguages } = useI18n();
   const navigate = useNavigate();
   const [langMenuOpen, setLangMenuOpen] = useState(false);
+  const [themeOpen, setThemeOpen] = useState(false);
 
   const groupedThemes = useMemo(() => {
     const groups = {};
@@ -118,79 +119,94 @@ export default function ProfilePanel({ open, onClose }) {
 
         {/* ── Theme Picker ── */}
         <div style={{ marginBottom: '0.75rem' }}>
-          <div style={{
-            fontSize: '0.75rem', fontWeight: 700,
-            color: 'var(--md-sys-color-on-surface-variant)',
-            marginBottom: '0.5rem',
-            display: 'flex', alignItems: 'center', gap: '6px',
-          }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--md-sys-color-primary)' }}>palette</span>
-            Theme
-          </div>
+          {/* Collapsible header */}
+          <button
+            onClick={() => setThemeOpen(v => !v)}
+            style={{
+              width: '100%', textAlign: 'left', padding: '8px 10px',
+              background: themeOpen ? 'var(--md-sys-color-surface-container)' : 'transparent',
+              border: 'none', borderRadius: '8px',
+              cursor: 'pointer', display: 'flex', alignItems: 'center',
+              gap: '8px', justifyContent: 'space-between',
+            }}
+          >
+            <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--md-sys-color-primary)' }}>palette</span>
+              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--md-sys-color-on-surface)' }}>Theme</span>
+            </span>
+            <span className="material-symbols-outlined" style={{
+              fontSize: '14px', color: 'var(--md-sys-color-on-surface-variant)',
+              transition: 'transform 0.2s',
+              transform: themeOpen ? 'rotate(180deg)' : 'none',
+            }}>expand_more</span>
+          </button>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            {LAYOUT_GROUPS.map((group) => {
-              const themes = groupedThemes[group.key] || [];
-              if (!themes.length) return null;
-              return (
-                <div key={group.key}>
-                  <div style={{
-                    fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase',
-                    color: 'var(--md-sys-color-on-surface-variant)',
-                    letterSpacing: '0.05em', marginBottom: '0.3rem', paddingLeft: '0.2rem',
-                    display: 'flex', alignItems: 'center', gap: '4px',
-                  }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>{group.icon}</span>
-                    {group.label}
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                    {themes.map((preset) => {
-                      const isActive = themeId === preset.id;
-                      const colors = preset.theme.colors;
-                      return (
-                        <button
-                          key={preset.id}
-                          onClick={() => handleThemeSelect(preset)}
-                          style={{
-                            display: 'flex', alignItems: 'center', gap: '10px',
-                            padding: '0.5rem 0.6rem',
-                            borderRadius: 'var(--md-sys-shape-corner-medium)',
-                            border: isActive ? `2px solid ${colors.primary}` : '2px solid transparent',
-                            background: isActive ? `${colors.primary}15` : 'transparent',
-                            cursor: 'pointer', transition: 'all 0.15s ease', textAlign: 'left',
-                          }}
-                        >
-                          <div style={{ display: 'flex', gap: '3px', flexShrink: 0 }}>
-                            {[colors.primary, colors.secondary, colors.tertiary, colors.surface].map((c, i) => (
-                              <div key={i} style={{
-                                width: '14px', height: '14px', borderRadius: '50%',
-                                background: c,
-                                border: i === 3 ? '1px solid var(--md-sys-color-outline)' : 'none',
-                              }} />
-                            ))}
-                          </div>
-                          <div style={{ flex: 1 }}>
-                            <div style={{
-                              fontSize: '0.78rem', fontWeight: 600,
-                              color: isActive ? colors.primary : 'var(--md-sys-color-on-surface)',
-                            }}>
-                              {preset.emoji} {preset.theme.name}
+          {/* Expandable content */}
+          {themeOpen && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.4rem' }}>
+              {LAYOUT_GROUPS.map((group) => {
+                const themes = groupedThemes[group.key] || [];
+                if (!themes.length) return null;
+                return (
+                  <div key={group.key}>
+                    <div style={{
+                      fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase',
+                      color: 'var(--md-sys-color-on-surface-variant)',
+                      letterSpacing: '0.05em', marginBottom: '0.3rem', paddingLeft: '0.2rem',
+                      display: 'flex', alignItems: 'center', gap: '4px',
+                    }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>{group.icon}</span>
+                      {group.label}
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                      {themes.map((preset) => {
+                        const isActive = themeId === preset.id;
+                        const colors = preset.theme.colors;
+                        return (
+                          <button
+                            key={preset.id}
+                            onClick={() => handleThemeSelect(preset)}
+                            style={{
+                              display: 'flex', alignItems: 'center', gap: '10px',
+                              padding: '0.5rem 0.6rem',
+                              borderRadius: 'var(--md-sys-shape-corner-medium)',
+                              border: isActive ? `2px solid ${colors.primary}` : '2px solid transparent',
+                              background: isActive ? `${colors.primary}15` : 'transparent',
+                              cursor: 'pointer', transition: 'all 0.15s ease', textAlign: 'left',
+                            }}
+                          >
+                            <div style={{ display: 'flex', gap: '3px', flexShrink: 0 }}>
+                              {[colors.primary, colors.secondary, colors.tertiary, colors.surface].map((c, i) => (
+                                <div key={i} style={{
+                                  width: '14px', height: '14px', borderRadius: '50%',
+                                  background: c,
+                                  border: i === 3 ? '1px solid var(--md-sys-color-outline)' : 'none',
+                                }} />
+                              ))}
                             </div>
-                          </div>
-                          {isActive && (
-                            <span className="material-symbols-outlined" style={{
-                              fontSize: '16px', color: colors.primary,
-                              fontVariationSettings: "'FILL' 1",
-                            }}>check_circle</span>
-                          )}
-                        </button>
-                      );
-                    })}
+                            <div style={{ flex: 1 }}>
+                              <div style={{
+                                fontSize: '0.78rem', fontWeight: 600,
+                                color: isActive ? colors.primary : 'var(--md-sys-color-on-surface)',
+                              }}>
+                                {preset.emoji} {preset.theme.name}
+                              </div>
+                            </div>
+                            {isActive && (
+                              <span className="material-symbols-outlined" style={{
+                                fontSize: '16px', color: colors.primary,
+                                fontVariationSettings: "'FILL' 1",
+                              }}>check_circle</span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* ── Language Switcher ── */}
@@ -210,7 +226,7 @@ export default function ProfilePanel({ open, onClose }) {
           >
             <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--md-sys-color-on-surface-variant)' }}>language</span>
-              {availableLanguages.find(l => l.code === language)?.label || language}
+              {t('itinerary.settings_lang')}
             </span>
             <span className="material-symbols-outlined" style={{
               fontSize: '14px', color: 'var(--md-sys-color-on-surface-variant)',

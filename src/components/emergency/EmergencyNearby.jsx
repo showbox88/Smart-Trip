@@ -1,11 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useEmergencyNearby } from '../../hooks/useEmergencyNearby';
-
-const SERVICE_TYPES = [
-  { key: 'hospital', icon: 'local_hospital', label: 'Hospital', labelZh: '医院', color: '#D32F2F' },
-  { key: 'pharmacy', icon: 'local_pharmacy', label: 'Pharmacy', labelZh: '药店', color: '#2E7D32' },
-  { key: 'police', icon: 'local_police', label: 'Police', labelZh: '警察局', color: '#1565C0' },
-];
+import { useI18n } from '../../context/I18nContext';
 
 function formatDistance(meters) {
   if (meters < 1000) return `${Math.round(meters)}m`;
@@ -16,9 +11,16 @@ function formatDistance(meters) {
  * Tab 2: Nearby emergency services — hospitals, pharmacies, police stations.
  */
 export default function EmergencyNearby({ position, fallbackLat, fallbackLng }) {
+  const { t } = useI18n();
   const [activeType, setActiveType] = useState('hospital');
   const [gpsPos, setGpsPos] = useState(position || null);
   const [gpsError, setGpsError] = useState(null);
+
+  const SERVICE_TYPES = [
+    { key: 'hospital', icon: 'local_hospital', label: t('emergency.hospital'),       color: '#D32F2F' },
+    { key: 'pharmacy', icon: 'local_pharmacy',  label: t('emergency.pharmacy'),       color: '#2E7D32' },
+    { key: 'police',   icon: 'local_police',    label: t('emergency.police_station'), color: '#1565C0' },
+  ];
 
   // Try to get GPS if no position provided
   useEffect(() => {
@@ -89,13 +91,13 @@ export default function EmergencyNearby({ position, fallbackLat, fallbackLng }) 
           {loading && (
             <>
               <span className="material-symbols-outlined" style={{ fontSize: 14, animation: 'spin 1s linear infinite' }}>progress_activity</span>
-              Searching nearby...
+              {t('emergency.searching')}
             </>
           )}
           {fromCache && !loading && (
             <>
               <span className="material-symbols-outlined" style={{ fontSize: 14 }}>cloud_off</span>
-              Cached data (offline available)
+              {t('emergency.cached')}
             </>
           )}
           {(error || gpsError) && !loading && (
@@ -111,15 +113,15 @@ export default function EmergencyNearby({ position, fallbackLat, fallbackLng }) 
       {!loading && results.length === 0 && !error && gpsPos && (
         <div style={{ padding: '2rem 1rem', textAlign: 'center', color: 'var(--md-sys-color-on-surface-variant, #666)' }}>
           <span className="material-symbols-outlined" style={{ fontSize: 40, opacity: 0.4, display: 'block', marginBottom: 8 }}>{activeConfig.icon}</span>
-          <p style={{ fontSize: '0.85rem' }}>No {activeConfig.label.toLowerCase()} found within 5km</p>
+          <p style={{ fontSize: '0.85rem' }}>{t('emergency.no_results').replace('{type}', activeConfig.label.toLowerCase())}</p>
         </div>
       )}
 
       {!gpsPos && !loading && (
         <div style={{ padding: '2rem 1rem', textAlign: 'center', color: 'var(--md-sys-color-on-surface-variant, #666)' }}>
           <span className="material-symbols-outlined" style={{ fontSize: 40, opacity: 0.4, display: 'block', marginBottom: 8 }}>location_off</span>
-          <p style={{ fontSize: '0.85rem' }}>Unable to determine location</p>
-          <p style={{ fontSize: '0.75rem', opacity: 0.7 }}>Enable GPS or enter a trip to search nearby services</p>
+          <p style={{ fontSize: '0.85rem' }}>{t('emergency.location_unavailable')}</p>
+          <p style={{ fontSize: '0.75rem', opacity: 0.7 }}>{t('emergency.location_hint')}</p>
         </div>
       )}
 
@@ -223,7 +225,7 @@ export default function EmergencyNearby({ position, fallbackLat, fallbackLng }) 
           }}
         >
           <span className="material-symbols-outlined" style={{ fontSize: 16 }}>refresh</span>
-          Refresh / Update location
+          {t('emergency.refresh')}
         </button>
       )}
     </div>

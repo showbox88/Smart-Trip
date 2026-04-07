@@ -25,3 +25,13 @@ dist-ssr
 
 # Uploads (unused legacy folder)
 uploads/
+
+# Local Claude settings
+.claude/launch.json
+.claude/worktrees/
+.clone/
+
+# Android build artifacts (keep source, ignore build outputs)
+android/.gradle/
+android/app/build/
+android/build/

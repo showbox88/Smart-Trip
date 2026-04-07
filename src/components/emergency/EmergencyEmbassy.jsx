@@ -1,11 +1,13 @@
 import embassyData from '../../data/embassies.json';
 import { getCountryCode } from '../../data/countryCodeMap';
+import { useI18n } from '../../context/I18nContext';
 
 /**
  * Tab 3: Embassy / consulate info.
  * Shows the user's nationality embassy in the destination country.
  */
 export default function EmergencyEmbassy({ countryName, countryCode: codeProp, nationality }) {
+  const { t } = useI18n();
   const destCode = codeProp || getCountryCode(countryName);
   const natCode = getCountryCode(nationality) || nationality;
 
@@ -20,7 +22,7 @@ export default function EmergencyEmbassy({ countryName, countryCode: codeProp, n
     return (
       <div style={{ padding: '2rem 1rem', textAlign: 'center', color: 'var(--md-sys-color-on-surface-variant, #666)' }}>
         <span className="material-symbols-outlined" style={{ fontSize: 40, opacity: 0.4, display: 'block', marginBottom: 8 }}>account_balance</span>
-        <p style={{ fontSize: '0.85rem' }}>Select a country to view embassy info</p>
+        <p style={{ fontSize: '0.85rem' }}>{t('emergency.select_country_embassy')}</p>
       </div>
     );
   }
@@ -29,7 +31,7 @@ export default function EmergencyEmbassy({ countryName, countryCode: codeProp, n
     return (
       <div style={{ padding: '2rem 1rem', textAlign: 'center', color: 'var(--md-sys-color-on-surface-variant, #666)' }}>
         <span className="material-symbols-outlined" style={{ fontSize: 40, opacity: 0.4, display: 'block', marginBottom: 8 }}>account_balance</span>
-        <p style={{ fontSize: '0.85rem' }}>No embassy data available for this country</p>
+        <p style={{ fontSize: '0.85rem' }}>{t('emergency.no_embassy_data')}</p>
         <a
           href={`https://www.google.com/search?q=embassy+in+${encodeURIComponent(countryName || destCode)}`}
           target="_blank"
@@ -41,7 +43,7 @@ export default function EmergencyEmbassy({ countryName, countryCode: codeProp, n
           }}
         >
           <span className="material-symbols-outlined" style={{ fontSize: 16 }}>search</span>
-          Search on Google
+          {t('emergency.search_google')}
         </a>
       </div>
     );
@@ -138,7 +140,7 @@ export default function EmergencyEmbassy({ countryName, countryCode: codeProp, n
       {embassy && (
         <>
           <div style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--md-sys-color-on-surface-variant, #888)', textTransform: 'uppercase', letterSpacing: '0.04em', paddingLeft: 2 }}>
-            Your Embassy
+            {t('emergency.your_embassy')}
           </div>
           {renderEmbassy(embassy, natCode, true)}
         </>
@@ -148,7 +150,7 @@ export default function EmergencyEmbassy({ countryName, countryCode: codeProp, n
       {availableEmbassies.filter(([code]) => code !== natCode).length > 0 && (
         <>
           <div style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--md-sys-color-on-surface-variant, #888)', textTransform: 'uppercase', letterSpacing: '0.04em', paddingLeft: 2, marginTop: embassy ? '0.5rem' : 0 }}>
-            {embassy ? 'Other Embassies' : 'Available Embassies'}
+            {embassy ? t('emergency.other_embassies') : t('emergency.available_embassies')}
           </div>
           {availableEmbassies
             .filter(([code]) => code !== natCode)
@@ -162,7 +164,7 @@ export default function EmergencyEmbassy({ countryName, countryCode: codeProp, n
           fontSize: '0.72rem', color: 'var(--md-sys-color-on-surface-variant, #888)',
           textAlign: 'center', marginTop: '0.25rem', opacity: 0.7, fontStyle: 'italic',
         }}>
-          Set your nationality in Settings to highlight your embassy
+          {t('emergency.set_nationality')}
         </p>
       )}
     </div>
