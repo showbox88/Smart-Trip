@@ -1,0 +1,73 @@
+{
+  "JP": {
+    "CN": { "name": "中华人民共和国驻日本大使馆", "address": "东京都港区元麻布3-4-33", "phone": "+81-3-3403-3388", "emergency": "+81-3-3403-3065", "website": "http://www.china-embassy.or.jp", "lat": 35.6528, "lng": 139.7267 },
+    "US": { "name": "Embassy of the United States, Tokyo", "address": "1-10-5 Akasaka, Minato-ku, Tokyo", "phone": "+81-3-3224-5000", "emergency": "+81-3-3224-5000", "website": "https://jp.usembassy.gov", "lat": 35.6677, "lng": 139.7402 },
+    "GB": { "name": "British Embassy Tokyo", "address": "1 Ichiban-cho, Chiyoda-ku, Tokyo", "phone": "+81-3-5211-1100", "emergency": "+81-3-5211-1100", "website": "https://www.gov.uk/world/japan", "lat": 35.6886, "lng": 139.7414 },
+    "KR": { "name": "Embassy of the Republic of Korea, Tokyo", "address": "1-2-5 Minami-Azabu, Minato-ku, Tokyo", "phone": "+81-3-3452-7611", "emergency": "+81-3-3452-7611", "website": "https://overseas.mofa.go.kr/jp-ja/", "lat": 35.6507, "lng": 139.7364 },
+    "AU": { "name": "Australian Embassy Tokyo", "address": "2-1-14 Mita, Minato-ku, Tokyo", "phone": "+81-3-5232-4111", "emergency": "+81-3-5232-4111", "website": "https://japan.embassy.gov.au", "lat": 35.6502, "lng": 139.7437 },
+    "TW": { "name": "台北驻日经济文化代表处", "address": "东京都港区白金台5-20-2", "phone": "+81-3-3280-7811", "emergency": "+81-3-3280-7917", "website": "https://www.roc-taiwan.org/jp", "lat": 35.6393, "lng": 139.7215 }
+  },
+  "US": {
+    "CN": { "name": "中华人民共和国驻美国大使馆", "address": "3505 International Pl NW, Washington, DC", "phone": "+1-202-495-2266", "emergency": "+1-202-495-2216", "website": "http://www.china-embassy.org", "lat": 38.9274, "lng": -77.0634 },
+    "GB": { "name": "British Embassy Washington", "address": "3100 Massachusetts Ave NW, Washington, DC", "phone": "+1-202-588-6500", "emergency": "+1-202-588-6500", "website": "https://www.gov.uk/world/usa", "lat": 38.9279, "lng": -77.0538 },
+    "JP": { "name": "Embassy of Japan, Washington", "address": "2520 Massachusetts Ave NW, Washington, DC", "phone": "+1-202-238-6700", "emergency": "+1-202-238-6700", "website": "https://www.us.emb-japan.go.jp", "lat": 38.9176, "lng": -77.0525 },
+    "KR": { "name": "Embassy of the Republic of Korea, Washington", "address": "2450 Massachusetts Ave NW, Washington, DC", "phone": "+1-202-939-5600", "emergency": "+1-202-939-5600", "website": "https://overseas.mofa.go.kr/us-en/", "lat": 38.9164, "lng": -77.0519 },
+    "TW": { "name": "驻美国台北经济文化代表处", "address": "4201 Wisconsin Ave NW, Washington, DC", "phone": "+1-202-895-1800", "emergency": "+1-202-669-0180", "website": "https://www.roc-taiwan.org/us", "lat": 38.9503, "lng": -77.0798 }
+  },
+  "GB": {
+    "CN": { "name": "中华人民共和国驻英国大使馆", "address": "49-51 Portland Place, London W1B 1JL", "phone": "+44-20-7299-4049", "emergency": "+44-20-7631-1430", "website": "http://www.chinese-embassy.org.uk", "lat": 51.5198, "lng": -0.1453 },
+    "US": { "name": "Embassy of the United States, London", "address": "33 Nine Elms Lane, London SW11 7US", "phone": "+44-20-7499-9000", "emergency": "+44-20-7499-9000", "website": "https://uk.usembassy.gov", "lat": 51.4815, "lng": -0.1388 },
+    "JP": { "name": "Embassy of Japan, London", "address": "101-104 Piccadilly, London W1J 7JT", "phone": "+44-20-7465-6500", "emergency": "+44-20-7465-6500", "website": "https://www.uk.emb-japan.go.jp", "lat": 51.5074, "lng": -0.1399 }
+  },
+  "TH": {
+    "CN": { "name": "中华人民共和国驻泰国大使馆", "address": "57 Ratchadaphisek Road, Bangkok", "phone": "+66-2-245-7032", "emergency": "+66-2-245-7010", "website": "http://www.chinaembassy.or.th", "lat": 13.7328, "lng": 100.5745 },
+    "US": { "name": "Embassy of the United States, Bangkok", "address": "95 Wireless Road, Bangkok", "phone": "+66-2-205-4000", "emergency": "+66-2-205-4000", "website": "https://th.usembassy.gov", "lat": 13.7439, "lng": 100.5468 },
+    "GB": { "name": "British Embassy Bangkok", "address": "14 Wireless Road, Bangkok", "phone": "+66-2-305-8333", "emergency": "+66-2-305-8333", "website": "https://www.gov.uk/world/thailand", "lat": 13.7427, "lng": 100.5467 },
+    "TW": { "name": "驻泰国台北经济文化办事处", "address": "20th Fl, Empire Tower, 195 South Sathorn Road, Bangkok", "phone": "+66-2-670-0200", "emergency": "+66-81-666-4006", "website": "https://www.roc-taiwan.org/th", "lat": 13.7219, "lng": 100.5313 }
+  },
+  "KR": {
+    "CN": { "name": "中华人民共和国驻韩国大使馆", "address": "首尔特别市中区明洞2街27", "phone": "+82-2-738-1038", "emergency": "+82-10-8961-1237", "website": "http://kr.china-embassy.org", "lat": 37.5603, "lng": 126.9819 },
+    "US": { "name": "Embassy of the United States, Seoul", "address": "188 Sejong-daero, Jongno-gu, Seoul", "phone": "+82-2-397-4114", "emergency": "+82-2-397-4114", "website": "https://kr.usembassy.gov", "lat": 37.5728, "lng": 126.9745 },
+    "JP": { "name": "Embassy of Japan, Seoul", "address": "6 Yulgok-ro 2-gil, Jongno-gu, Seoul", "phone": "+82-2-2170-5200", "emergency": "+82-2-2170-5200", "website": "https://www.kr.emb-japan.go.jp", "lat": 37.5756, "lng": 126.9830 },
+    "TW": { "name": "驻韩国台北代表部", "address": "首尔钟路区世宗大路149 光化门大厦6楼", "phone": "+82-2-399-2780", "emergency": "+82-10-9080-2761", "website": "https://www.roc-taiwan.org/kr", "lat": 37.5718, "lng": 126.9769 }
+  },
+  "SG": {
+    "CN": { "name": "中华人民共和国驻新加坡大使馆", "address": "150 Tanglin Road, Singapore", "phone": "+65-6471-2117", "emergency": "+65-6471-2117", "website": "http://www.chinaembassy.org.sg", "lat": 1.3048, "lng": 103.8182 },
+    "US": { "name": "Embassy of the United States, Singapore", "address": "27 Napier Road, Singapore", "phone": "+65-6476-9100", "emergency": "+65-6476-9100", "website": "https://sg.usembassy.gov", "lat": 1.3058, "lng": 103.8195 }
+  },
+  "AU": {
+    "CN": { "name": "中华人民共和国驻澳大利亚大使馆", "address": "15 Coronation Drive, Yarralumla, Canberra", "phone": "+61-2-6228-3999", "emergency": "+61-2-6228-3999", "website": "http://au.china-embassy.org", "lat": -35.3058, "lng": 149.0820 },
+    "US": { "name": "Embassy of the United States, Canberra", "address": "Moonah Place, Yarralumla, Canberra", "phone": "+61-2-6214-5600", "emergency": "+61-2-6214-5600", "website": "https://au.usembassy.gov", "lat": -35.3048, "lng": 149.0826 }
+  },
+  "FR": {
+    "CN": { "name": "中华人民共和国驻法国大使馆", "address": "11 Avenue George V, 75008 Paris", "phone": "+33-1-4952-1950", "emergency": "+33-6-1615-0110", "website": "http://www.amb-chine.fr", "lat": 48.8663, "lng": 2.3016 },
+    "US": { "name": "Embassy of the United States, Paris", "address": "2 Avenue Gabriel, 75008 Paris", "phone": "+33-1-4312-2222", "emergency": "+33-1-4312-2222", "website": "https://fr.usembassy.gov", "lat": 48.8680, "lng": 2.3177 }
+  },
+  "DE": {
+    "CN": { "name": "中华人民共和国驻德国大使馆", "address": "Märkisches Ufer 54, 10179 Berlin", "phone": "+49-30-27588-0", "emergency": "+49-30-27588-0", "website": "http://de.china-embassy.org", "lat": 52.5121, "lng": 13.4148 },
+    "US": { "name": "Embassy of the United States, Berlin", "address": "Pariser Platz 2, 10117 Berlin", "phone": "+49-30-8305-0", "emergency": "+49-30-8305-0", "website": "https://de.usembassy.gov", "lat": 52.5163, "lng": 13.3793 }
+  },
+  "IT": {
+    "CN": { "name": "中华人民共和国驻意大利大使馆", "address": "Via Bruxelles 56, 00198 Rome", "phone": "+39-06-8413458", "emergency": "+39-06-8413467", "website": "http://it.china-embassy.org", "lat": 41.9226, "lng": 12.4920 },
+    "US": { "name": "Embassy of the United States, Rome", "address": "Via Vittorio Veneto 121, 00187 Rome", "phone": "+39-06-46741", "emergency": "+39-06-46741", "website": "https://it.usembassy.gov", "lat": 41.9068, "lng": 12.4895 }
+  },
+  "MY": {
+    "CN": { "name": "中华人民共和国驻马来西亚大使馆", "address": "229 Jalan Ampang, 50450 Kuala Lumpur", "phone": "+60-3-2163-6815", "emergency": "+60-12-374-8428", "website": "http://my.china-embassy.org", "lat": 3.1604, "lng": 101.7349 },
+    "US": { "name": "Embassy of the United States, Kuala Lumpur", "address": "376 Jalan Tun Razak, 50400 Kuala Lumpur", "phone": "+60-3-2168-5000", "emergency": "+60-3-2168-5000", "website": "https://my.usembassy.gov", "lat": 3.1687, "lng": 101.7283 }
+  },
+  "VN": {
+    "CN": { "name": "中华人民共和国驻越南大使馆", "address": "46 Hoang Dieu Street, Hanoi", "phone": "+84-24-3845-3736", "emergency": "+84-24-3845-3736", "website": "http://vn.china-embassy.org", "lat": 21.0355, "lng": 105.8396 }
+  },
+  "ID": {
+    "CN": { "name": "中华人民共和国驻印尼大使馆", "address": "Jl. Mega Kuningan No. 2, Jakarta", "phone": "+62-21-5761037", "emergency": "+62-21-5761037", "website": "http://id.china-embassy.org", "lat": -6.2353, "lng": 106.8273 }
+  },
+  "NZ": {
+    "CN": { "name": "中华人民共和国驻新西兰大使馆", "address": "2-6 Glenmore Street, Wellington", "phone": "+64-4-474-9631", "emergency": "+64-21-528-663", "website": "http://www.chinaembassy.org.nz", "lat": -41.2855, "lng": 174.7695 }
+  },
+  "ES": {
+    "CN": { "name": "中华人民共和国驻西班牙大使馆", "address": "C/ Arturo Soria 113, 28043 Madrid", "phone": "+34-91-519-4242", "emergency": "+34-699-089-086", "website": "http://es.china-embassy.org", "lat": 40.4533, "lng": -3.6389 }
+  },
+  "CA": {
+    "CN": { "name": "中华人民共和国驻加拿大大使馆", "address": "515 St. Patrick Street, Ottawa", "phone": "+1-613-789-3434", "emergency": "+1-613-789-3434", "website": "http://ca.china-embassy.org", "lat": 45.4339, "lng": -75.6798 }
+  }
+}

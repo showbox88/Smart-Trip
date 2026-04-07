@@ -13,6 +13,7 @@ import CalendarPage from './pages/CalendarPage';
 import TodayPage from './pages/TodayPage';
 import { isAdmin } from './utils/admin';
 import BottomNav from './components/layout/BottomNav';
+import EmergencyButton from './components/emergency/EmergencyButton';
 import { useTheme } from './theme';
 
 export default function App() {
@@ -59,6 +60,7 @@ export default function App() {
         </Routes>
       </main>
       {layoutVariant === 'clean' && <BottomNav />}
+      <EmergencyButton />
     </>
   );
 }
