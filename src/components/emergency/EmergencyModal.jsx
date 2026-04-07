@@ -24,6 +24,7 @@ export default function EmergencyModal({ onClose }) {
   const [activeTab, setActiveTab] = useState('numbers');
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [showCountryPicker, setShowCountryPicker] = useState(false);
+  const [detectStatus, setDetectStatus] = useState('');
 
   // Try to detect country: 1) from Trip destinations  2) from GPS reverse geocoding
   useEffect(() => {
@@ -45,31 +46,31 @@ export default function EmergencyModal({ onClose }) {
     }
 
     // 2. No trip context — try GPS + reverse geocoding
-    if (!navigator.geolocation) return;
+    if (!navigator.geolocation) {
+      setDetectStatus('Step 1 FAIL: navigator.geolocation not available');
+      return;
+    }
 
     let cancelled = false;
+    setDetectStatus('Step 1: Requesting GPS...');
 
     // Wait for Google Maps core API to be loaded
     const waitForGoogleMaps = () => new Promise((resolve) => {
       if (window.google?.maps) { resolve(true); return; }
-      // Hook into the loader callback
       const prev = window._dispatchGoogleMapsReady;
       window._dispatchGoogleMapsReady = () => {
         if (prev) prev();
         resolve(true);
       };
-      // Also poll as a safety net (callback may have already fired)
       const interval = setInterval(() => {
         if (window.google?.maps) { clearInterval(interval); resolve(true); }
       }, 200);
-      // Don't wait forever
       setTimeout(() => { clearInterval(interval); resolve(false); }, 8000);
     });
 
     (async () => {
       try {
         // Step 1: Get GPS position
-        console.log('[SOS] Requesting GPS position...');
         const pos = await new Promise((resolve, reject) => {
           navigator.geolocation.getCurrentPosition(resolve, reject, {
             enableHighAccuracy: false,
@@ -80,57 +81,72 @@ export default function EmergencyModal({ onClose }) {
 
         if (cancelled) return;
         const { latitude: lat, longitude: lng } = pos.coords;
-        console.log('[SOS] GPS position:', lat, lng);
+        setDetectStatus(`Step 2: GPS OK (${lat.toFixed(4)}, ${lng.toFixed(4)}), waiting for Maps API...`);
 
         // Step 2: Wait for Google Maps API
         const mapsReady = await waitForGoogleMaps();
         if (cancelled) return;
         if (!mapsReady || !window.google?.maps) {
-          console.warn('[SOS] Google Maps API not available');
+          setDetectStatus('Step 2 FAIL: Google Maps API timeout');
           return;
         }
+        setDetectStatus(`Step 3: Maps API ready, geocoding (${lat.toFixed(4)}, ${lng.toFixed(4)})...`);
 
-        // Step 3: Reverse geocode — use fetch API as fallback if Geocoder class isn't available
+        // Step 3: Reverse geocode
         let countryCode = null;
         let countryName = null;
 
         if (window.google.maps.Geocoder) {
-          // Classic Geocoder API
-          console.log('[SOS] Using google.maps.Geocoder...');
-          const geocoder = new google.maps.Geocoder();
-          const response = await geocoder.geocode({ location: { lat, lng } });
-          const results = response?.results || response;
-          if (results?.length) {
-            for (const result of results) {
-              const comp = (result.address_components || []).find(c =>
-                (c.types || []).includes('country')
-              );
-              if (comp) {
-                countryCode = comp.short_name;
-                countryName = comp.long_name;
-                break;
+          try {
+            const geocoder = new google.maps.Geocoder();
+            const response = await geocoder.geocode({ location: { lat, lng } });
+            const results = response?.results || response;
+            if (results?.length) {
+              for (const result of results) {
+                const comp = (result.address_components || []).find(c =>
+                  (c.types || []).includes('country')
+                );
+                if (comp) {
+                  countryCode = comp.short_name;
+                  countryName = comp.long_name;
+                  break;
+                }
               }
             }
+            if (!countryCode) {
+              setDetectStatus('Step 3a: Geocoder returned no country, trying REST...');
+            }
+          } catch (geoErr) {
+            setDetectStatus(`Step 3a FAIL: Geocoder error: ${geoErr.message}, trying REST...`);
           }
+        } else {
+          setDetectStatus('Step 3a: No Geocoder class, trying REST...');
         }
 
-        // Fallback: use Google Geocoding REST API directly
+        // Fallback: REST API
         if (!countryCode) {
-          console.log('[SOS] Geocoder class unavailable, using REST API fallback...');
           const apiKey = import.meta.env.VITE_GOOGLE_MAPS_KEY;
-          if (apiKey) {
-            const resp = await fetch(
-              `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&result_type=country&key=${apiKey}`
-            );
-            const data = await resp.json();
-            if (data.results?.length) {
-              const comp = data.results[0].address_components?.find(c =>
-                (c.types || []).includes('country')
+          if (!apiKey) {
+            setDetectStatus('Step 3b FAIL: No API key for REST fallback');
+          } else {
+            try {
+              const resp = await fetch(
+                `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&result_type=country&key=${apiKey}`
               );
-              if (comp) {
-                countryCode = comp.short_name;
-                countryName = comp.long_name;
+              const data = await resp.json();
+              if (data.status !== 'OK') {
+                setDetectStatus(`Step 3b FAIL: REST status=${data.status} error=${data.error_message || 'none'}`);
+              } else if (data.results?.length) {
+                const comp = data.results[0].address_components?.find(c =>
+                  (c.types || []).includes('country')
+                );
+                if (comp) {
+                  countryCode = comp.short_name;
+                  countryName = comp.long_name;
+                }
               }
+            } catch (restErr) {
+              setDetectStatus(`Step 3b FAIL: REST fetch error: ${restErr.message}`);
             }
           }
         }
@@ -139,14 +155,15 @@ export default function EmergencyModal({ onClose }) {
 
         // Step 4: Set country
         if (countryCode && emergencyData[countryCode]) {
-          console.log('[SOS] Detected country:', countryName, countryCode);
+          setDetectStatus(`Done: ${countryName} (${countryCode})`);
           setSelectedCountry({ name: countryName, code: countryCode, lat, lng });
+        } else if (countryCode) {
+          setDetectStatus(`Step 4 FAIL: Country "${countryCode}" not in emergency data`);
         } else {
-          console.warn('[SOS] Could not determine country from', lat, lng);
+          setDetectStatus(`Step 4 FAIL: No country resolved from (${lat.toFixed(4)}, ${lng.toFixed(4)})`);
         }
       } catch (err) {
-        console.warn('[SOS] Auto-detect failed:', err.message || err);
-        // GPS denied or geocoding failed — user picks manually
+        setDetectStatus(`FAIL: ${err.code ? 'GPS error code=' + err.code + ' ' : ''}${err.message || String(err)}`);
       }
     })();
 
@@ -232,6 +249,21 @@ export default function EmergencyModal({ onClose }) {
               <span className="material-symbols-outlined">close</span>
             </button>
           </div>
+
+          {/* Debug: GPS detection status */}
+          {detectStatus && !selectedCountry && (
+            <div style={{
+              padding: '0.5rem 1.25rem',
+              fontSize: '0.72rem',
+              fontFamily: 'monospace',
+              color: detectStatus.includes('FAIL') ? '#D32F2F' : '#1565C0',
+              background: detectStatus.includes('FAIL') ? '#FFEBEE' : '#E3F2FD',
+              borderBottom: '1px solid var(--md-sys-color-outline-variant, #e0e0e0)',
+              wordBreak: 'break-all',
+            }}>
+              {detectStatus}
+            </div>
+          )}
 
           {/* Country picker dropdown */}
           {showCountryPicker && (
