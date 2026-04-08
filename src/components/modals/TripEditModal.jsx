@@ -35,7 +35,7 @@ export default function TripEditModal({ trip, onSave, onClose, isCreating: isNew
   const [isSearching, setIsSearching] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [existingDays, setExistingDays] = useState([]);
-  const [linkDays, setLinkDays] = useState(true);
+  const [linkDayIds, setLinkDayIds] = useState(new Set()); // 逐个选择要关联的 day
   const [showImageSection, setShowImageSection] = useState(false);
   const [destinations, setDestinations] = useState(trip.settings?.destinations || []);
   const [climateIdx, setClimateIdx] = useState(0);
@@ -183,8 +183,10 @@ export default function TripEditModal({ trip, onSave, onClose, isCreating: isNew
   };
 
   // ── Detect existing days_v2 records when date range changes ──
+  // 同时从 DB 查询和 state.days（内存）合并，确保不遗漏
   useEffect(() => {
-    if (!form.startDate || !form.endDate || !state.user) {
+    const userId = state.user?.id;
+    if (!form.startDate || !form.endDate || !userId) {
       setExistingDays([]);
       return;
     }
@@ -195,33 +197,71 @@ export default function TripEditModal({ trip, onSave, onClose, isCreating: isNew
 
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(async () => {
+      // 1) 从 DB 查询日期范围内的所有 day
       const { data, error } = await supabase
         .from('days_v2')
-        .select('id, date, title')
-        .eq('user_id', state.user.id)
+        .select('id, date, title, stops_data')
+        .eq('user_id', userId)
         .gte('date', form.startDate)
         .lte('date', form.endDate)
         .order('date', { ascending: true });
 
-      if (error || !data?.length) {
-        setExistingDays([]);
-        return;
+      if (error) {
+        console.warn('[TripEditModal] query days_v2 error:', error.message);
       }
 
+      // 2) 把 DB 结果放进 Map，统一格式为 { id, date, title, stops }
+      const dayMap = new Map();
+      (data || []).forEach(d => {
+        const stops = Array.isArray(d.stops_data) ? d.stops_data
+                    : (typeof d.stops_data === 'string' ? (() => { try { return JSON.parse(d.stops_data); } catch { return []; } })() : []);
+        dayMap.set(d.date, { id: d.id, date: d.date, title: d.title, stops });
+      });
+
+      // 3) 合并 state.days（内存，与日历同源）—— 覆盖 DB 数据以获取最新 stops
+      if (state.days) {
+        Object.values(state.days).forEach(d => {
+          if (!d.date || d.date < form.startDate || d.date > form.endDate) return;
+          if (d.user_id && d.user_id !== userId) return;
+          const existing = dayMap.get(d.date);
+          const memStops = Array.isArray(d.stops) ? d.stops : [];
+          if (existing) {
+            // 内存中 stops 更多时用内存的（更新更及时）
+            if (memStops.length >= (existing.stops?.length || 0)) {
+              existing.stops = memStops;
+            }
+          } else if (d.id) {
+            dayMap.set(d.date, { id: d.id, date: d.date, title: d.title, stops: memStops });
+          }
+        });
+      }
+
+      // 4) 只保留有 stops 的 day
+      let allDays = Array.from(dayMap.values())
+        .filter(d => d.stops && d.stops.length > 0)
+        .sort((a, b) => a.date.localeCompare(b.date));
+
+      // 5) 编辑模式下排除已关联的 day
       if (!isNewTrip && trip?.id) {
         const { data: linked } = await supabase
           .from('trip_days')
           .select('day_id')
           .eq('trip_id', trip.id);
         const linkedIds = new Set((linked || []).map(r => r.day_id));
-        setExistingDays(data.filter(d => !linkedIds.has(d.id)));
-      } else {
-        setExistingDays(data);
+        allDays = allDays.filter(d => !linkedIds.has(d.id));
+      }
+
+      setExistingDays(allDays);
+      setLinkDayIds(new Set(allDays.map(d => d.id)));
+
+      // 发现已有行程时，自动展开日期区域
+      if (allDays.length > 0) {
+        setOpenSections(prev => new Set([...prev, 'dates']));
       }
     }, 400);
 
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
-  }, [form.startDate, form.endDate, state.user]);
+  }, [form.startDate, form.endDate, state.user?.id, state.days]); // state.days 变化时也重新扫描
 
   // ── Entrance animation ──
   useEffect(() => {
@@ -245,7 +285,7 @@ export default function TripEditModal({ trip, onSave, onClose, isCreating: isNew
     setIsSaving(true);
     try {
       const thumb = await resolveThumb(thumbOverride ?? form.thumb);
-      const dayIdsToLink = (linkDays && existingDays.length) ? existingDays.map(d => d.id) : [];
+      const dayIdsToLink = linkDayIds.size > 0 ? [...linkDayIds] : [];
       onSave?.({ ...form, thumb, _dayIdsToLink: dayIdsToLink, _destinations: destinations });
       onClose?.();
     } catch (e) {
@@ -397,17 +437,49 @@ export default function TripEditModal({ trip, onSave, onClose, isCreating: isNew
                             {existingDays.length} {existingDays.length > 1 ? 'days' : 'day'} with existing check-in records
                           </span>
                         </div>
-                        <div className="blossom-days-alert-dates">
-                          {existingDays.map(d => d.date).join(', ')}
-                        </div>
-                        <label className="blossom-days-checkbox">
+                        {/* 全选/取消全选 */}
+                        <label className="blossom-days-checkbox" style={{ marginBottom: '0.5rem', fontWeight: 600 }}>
                           <input
                             type="checkbox"
-                            checked={linkDays}
-                            onChange={e => setLinkDays(e.target.checked)}
+                            checked={linkDayIds.size === existingDays.length}
+                            onChange={e => {
+                              if (e.target.checked) {
+                                setLinkDayIds(new Set(existingDays.map(d => d.id)));
+                              } else {
+                                setLinkDayIds(new Set());
+                              }
+                            }}
                           />
-                          Link these {existingDays.length} days to this trip
+                          {linkDayIds.size === existingDays.length ? 'Deselect All' : 'Select All'}
                         </label>
+                        {/* 逐个 day 列表 */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                          {existingDays.map(d => {
+                            const stopCount = Array.isArray(d.stops) ? d.stops.length : 0;
+                            const stopNames = (d.stops || []).slice(0, 3).map(s => s.location || s.title || s.name || '').filter(Boolean);
+                            return (
+                              <label key={d.id} className="blossom-days-checkbox" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <input
+                                  type="checkbox"
+                                  checked={linkDayIds.has(d.id)}
+                                  onChange={e => {
+                                    setLinkDayIds(prev => {
+                                      const next = new Set(prev);
+                                      if (e.target.checked) next.add(d.id);
+                                      else next.delete(d.id);
+                                      return next;
+                                    });
+                                  }}
+                                />
+                                <span style={{ fontWeight: 600, minWidth: '5.5em' }}>{d.date}</span>
+                                <span style={{ fontSize: '0.82rem', color: 'var(--st-color-text-muted)' }}>
+                                  {stopCount} {stopCount === 1 ? 'stop' : 'stops'}
+                                  {stopNames.length > 0 && ` · ${stopNames.join(', ')}${stopCount > 3 ? '…' : ''}`}
+                                </span>
+                              </label>
+                            );
+                          })}
+                        </div>
                       </div>
                     )}
                   </div>
@@ -1344,13 +1416,18 @@ const blossomModalCSS = `
 
   /* ── Responsive: collapse to single column ── */
   @media (max-width: 700px) {
+    .blossom-modal-overlay {
+      align-items: flex-end;
+      padding: 0;
+      padding-bottom: 72px; /* 底部导航栏高度 */
+    }
     .blossom-modal-shell {
       max-width: 100%;
-      max-height: 100vh;
-      border-radius: var(--blossom-radius-lg);
+      max-height: calc(100vh - 72px);
+      border-radius: var(--blossom-radius-lg) var(--blossom-radius-lg) 0 0;
     }
     .blossom-hero {
-      height: 140px;
+      height: 120px;
       border-radius: var(--blossom-radius-lg) var(--blossom-radius-lg) 0 0;
     }
     .blossom-hero-title { font-size: 1.5rem; }

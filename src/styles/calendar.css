@@ -394,9 +394,10 @@
         display: none;
     }
     .calendar-trip-bar {
-        font-size: 0;
-        height: 12px;
-        padding: 0 2px;
+        font-size: 0.55rem;
+        height: 14px;
+        line-height: 14px;
+        padding: 0 3px;
     }
     .calendar-toolbar-left h2 {
         font-size: 1rem;

@@ -303,12 +303,28 @@ export default function TodayPage() {
           ))}
         </div>
 
+        {/* ── Expense summary ── */}
+        <div style={{
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          background: 'var(--md-sys-color-surface-container)',
+          borderRadius: 'var(--md-sys-shape-corner-medium)',
+          padding: '0.65rem 1rem', marginTop: '1.25rem',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--md-sys-color-tertiary)' }}>payments</span>
+            <span style={{ fontSize: '0.82rem', color: 'var(--st-color-text-muted)' }}>{t('today.total_expense')}</span>
+          </div>
+          <div style={{ fontWeight: 800, fontSize: '1.1rem', color: totalExpense > 0 ? 'var(--md-sys-color-tertiary)' : 'var(--st-color-text-muted)' }}>
+            {formatCurrency(totalExpense, state.settings)}
+          </div>
+        </div>
+
         {/* ── Check-in button ── */}
         <button
           onClick={() => navigate(`/day/${today}`)}
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-            width: '100%', marginTop: '1rem', marginBottom: '1rem',
+            width: '100%', marginTop: '0.75rem', marginBottom: '5rem',
             padding: '0.75rem 1.25rem',
             background: 'var(--md-sys-color-primary)',
             color: 'var(--md-sys-color-on-primary)',
@@ -372,22 +388,6 @@ export default function TodayPage() {
         </div>
       )}
 
-      {/* ── Bottom expense summary ── */}
-      <div style={{
-        position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 200,
-        background: 'color-mix(in srgb, var(--md-sys-color-surface-container-lowest) 95%, transparent)', backdropFilter: 'blur(12px)',
-        borderTop: '1px solid var(--md-sys-color-outline)',
-        padding: '0.75rem 1.25rem',
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--md-sys-color-tertiary)' }}>payments</span>
-          <span style={{ fontSize: '0.82rem', color: 'var(--st-color-text-muted)' }}>{t('today.total_expense')}</span>
-        </div>
-        <div style={{ fontWeight: 800, fontSize: '1.1rem', color: totalExpense > 0 ? 'var(--md-sys-color-tertiary)' : 'var(--st-color-text-muted)' }}>
-          {formatCurrency(totalExpense, state.settings)}
-        </div>
-      </div>
     </div>
   );
 }

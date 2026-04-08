@@ -1,66 +1,55 @@
 import { useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useCheckIn } from '../hooks/useCheckIn';
 import MapPanel from '../components/itinerary/MapPanel';
 
 /**
- * Standalone map page — shows MapPanel in day mode (GPS location + nearby checkin).
- * Used when Map tab is clicked outside of a trip context.
+ * MapPage — 独立地图打卡页（今日打卡）
+ * 使用 useCheckIn(today) 复用通用打卡逻辑
  */
 export default function MapPage() {
   const mapPanelRef = useRef(null);
   const navigate = useNavigate();
+  const today = new Date().toISOString().slice(0, 10);
 
-  // Ensure body has correct class for MapPanel visibility
+  const { dayId, existingPlaceIds, handleAddToDay } = useCheckIn(today);
+
   useEffect(() => {
     document.body.classList.add('mobile-mode-map');
     document.body.classList.remove('mobile-mode-plan');
-    return () => {
-      document.body.classList.remove('mobile-mode-map');
-    };
+    return () => document.body.classList.remove('mobile-mode-map');
   }, []);
 
   return (
     <div style={{
-      position: 'fixed',
-      inset: 0,
-      zIndex: 1000,
-      display: 'flex',
-      flexDirection: 'column',
+      position: 'fixed', inset: 0, zIndex: 1000,
+      display: 'flex', flexDirection: 'column',
       background: 'var(--md-sys-color-surface)',
     }}>
-      {/* Back button overlay */}
+      {/* Back button */}
       <button
         onClick={() => navigate(-1)}
         style={{
-          position: 'absolute',
-          top: '12px',
-          left: '12px',
-          zIndex: 1100,
-          width: '38px',
-          height: '38px',
-          borderRadius: '50%',
-          border: 'none',
+          position: 'absolute', top: 12, left: 12, zIndex: 1100,
+          width: 38, height: 38, borderRadius: '50%', border: 'none',
           background: 'var(--md-sys-color-surface-container-lowest)',
           boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'pointer',
-          color: 'var(--md-sys-color-on-surface)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', color: 'var(--md-sys-color-on-surface)',
         }}
         aria-label="Back"
       >
-        <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>arrow_back</span>
+        <span className="material-symbols-outlined" style={{ fontSize: 20 }}>arrow_back</span>
       </button>
 
-      {/* MapPanel in day mode — auto-locates GPS on mount */}
       <div style={{ flex: 1, position: 'relative', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <MapPanel
           ref={mapPanelRef}
           isDayMode
-          onAddToDay={() => {}}
+          onAddToDay={handleAddToDay}
           focusDayIds={[]}
-          existingPlaceIds={[]}
+          dayId={dayId}
+          existingPlaceIds={existingPlaceIds}
         />
       </div>
     </div>

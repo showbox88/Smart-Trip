@@ -36,8 +36,14 @@ export default function DashboardPage() {
   });
 
   const handleTodayCheckin = useCallback(() => {
-    const today = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
-    navigate(`/day/${today}`);
+    const isMobile = window.innerWidth < 768;
+    if (isMobile) {
+      // 手机屏幕小，直接进入地图选址 check-in 页面
+      navigate('/map');
+    } else {
+      const today = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
+      navigate(`/day/${today}`);
+    }
   }, [navigate]);
 
   const handleAddNewTrip = useCallback((e) => {
@@ -187,7 +193,7 @@ export default function DashboardPage() {
 
       {showNewTripModal && (
         <TripEditModal
-          trip={{ title: '', startDate: '', endDate: '', thumb: '', status: 'planned' }}
+          trip={{ title: '', startDate: new Date().toISOString().slice(0, 10), endDate: new Date().toISOString().slice(0, 10), thumb: '', status: 'planned' }}
           onSave={handleCreateNewTrip}
           onClose={() => setShowNewTripModal(false)}
           isCreating

@@ -94,19 +94,17 @@ export default function TripHeader({ trip, onDeleteTrip, onEditTrip, onShareTrip
         </button>
         {showMenu && (
           <div className="menu-dropdown active" style={{ top: '2rem', right: 0 }}>
-            <button onClick={() => { onShowSchedule?.(); setShowMenu(false); }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>today</span>
-              {t('itinerary.today_schedule') || 'Schedule'}
+            <button title={t('itinerary.today_schedule') || 'Today\'s Schedule'} onClick={() => { onShowSchedule?.(); setShowMenu(false); }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>today</span>
             </button>
-            <button onClick={() => { onEditTrip?.(); setShowMenu(false); }}>
-              {t('itinerary.edit_trip') || 'Edit trip'}
+            <button title={t('itinerary.edit_trip') || 'Edit Trip Info'} onClick={() => { onEditTrip?.(); setShowMenu(false); }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>edit</span>
             </button>
-            <button onClick={() => { onShareTrip?.(); setShowMenu(false); }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>share</span>
-              {t('itinerary.share_trip') || 'Share'}
+            <button title={t('itinerary.share_trip') || 'Share Journey'} onClick={() => { onShareTrip?.(); setShowMenu(false); }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>share</span>
             </button>
-            <button className="danger" onClick={() => { onDeleteTrip?.(trip.id); setShowMenu(false); }}>
-              {t('itinerary.delete_trip') || 'Delete'}
+            <button className="danger" title={t('itinerary.delete_trip') || 'Delete Trip'} onClick={() => { onDeleteTrip?.(trip.id); setShowMenu(false); }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>delete</span>
             </button>
           </div>
         )}
@@ -340,19 +338,17 @@ export default function TripHeader({ trip, onDeleteTrip, onEditTrip, onShareTrip
               <button className="menu-dots" onClick={() => setShowMenu(v => !v)} style={{ position: 'relative', right: 'auto', top: 'auto', transform: 'none' }}>⋮</button>
               {showMenu && (
                 <div className="menu-dropdown active" style={{ top: '2rem', right: 0 }}>
-                  <button onClick={() => { onShowSchedule?.(); setShowMenu(false); }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>today</span>
-                    {t('itinerary.today_schedule') || '今日行程表'}
+                  <button title={t('itinerary.today_schedule') || 'Today\'s Schedule'} onClick={() => { onShowSchedule?.(); setShowMenu(false); }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>today</span>
                   </button>
-                  <button onClick={() => { onEditTrip?.(); setShowMenu(false); }}>
-                    {t('itinerary.edit_trip') || 'Edit trip'}
+                  <button title={t('itinerary.edit_trip') || 'Edit Trip Info'} onClick={() => { onEditTrip?.(); setShowMenu(false); }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>edit</span>
                   </button>
-                  <button onClick={() => { onShareTrip?.(); setShowMenu(false); }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>share</span>
-                    {t('itinerary.share_trip') || 'Share trip'}
+                  <button title={t('itinerary.share_trip') || 'Share Journey'} onClick={() => { onShareTrip?.(); setShowMenu(false); }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>share</span>
                   </button>
-                  <button className="danger" onClick={() => { onDeleteTrip?.(trip.id); setShowMenu(false); }}>
-                    {t('itinerary.delete_trip') || 'Delete trip'}
+                  <button className="danger" title={t('itinerary.delete_trip') || 'Delete Trip'} onClick={() => { onDeleteTrip?.(trip.id); setShowMenu(false); }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>delete</span>
                   </button>
                 </div>
               )}

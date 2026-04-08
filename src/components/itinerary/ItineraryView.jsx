@@ -220,14 +220,16 @@ export default function ItineraryView({ tripId, isDayMode = false, date = null }
   }, [trip?.days, setDayEditModal]);
 
   const handleDeleteTrip = useCallback((tripIdArg) => {
+    // V2 虚拟 trip 的 id 是 "v2-trip-xxx"，真实 DB id 在 _realTripId
+    const realId = trip?._realTripId || tripIdArg;
     openConfirm(
       t('itinerary.delete_trip') || 'Delete this trip?',
       async () => {
-        await deleteTrip(tripIdArg);
+        await deleteTrip(realId);
         navigate('/');
       }
     );
-  }, [t, deleteTrip, navigate, openConfirm]);
+  }, [t, trip, deleteTrip, navigate, openConfirm]);
 
   const handleMapAddToDay = useCallback(async (dayId, placeId, useNow = false) => {
     const afterId = pendingInsertion?.dayId === dayId ? pendingInsertion.afterStopId : null;

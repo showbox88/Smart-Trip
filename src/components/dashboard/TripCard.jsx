@@ -59,7 +59,12 @@ export default function TripCard({ trip, isList = false, onEdit, onShare }) {
   };
 
   if (isList) {
-    const cities = trip.cities || [];
+    // 新方式：从 trip.settings.destinations 读取用户手动添加的城市（[{ name, lat, lng, ... }]）
+    const cities = (trip.settings?.destinations || []).map(d => d.name);
+
+    // 旧方式：从所有 stop 卡的 stop.city 字段推导出城市列表（在 useTripsV2.js normalizeTripRow 里计算）
+    // 缺点：依赖 stop 数据是否填写了 city 字段，且无法反映用户的主观行程规划
+    // const cities = trip.cities || [];
 
     // ── Blossom list card ──
     if (isBlossom) {
@@ -84,38 +89,38 @@ export default function TripCard({ trip, isList = false, onEdit, onShare }) {
               color: 'var(--md-sys-color-primary)', cursor: 'pointer', fontSize: '16px',
             }}>⋮</button>
             {menuOpen && (
-              <div className="menu-dropdown" style={{ right: 0, top: '2rem', transform: 'none', zIndex: 100, display: 'block' }}>
-                <button onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onEdit?.(trip); }}>{t('itinerary.edit_trip')}</button>
-                <button onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onShare?.(trip); }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>share</span>
-                  {t('itinerary.share_trip') || 'Share trip'}
+              <div className="menu-dropdown" style={{ right: 0, top: '2rem', transform: 'none', zIndex: 100, display: 'flex' }}>
+                <button title={t('itinerary.edit_trip') || 'Edit Trip Info'} onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onEdit?.(trip); }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>edit</span>
                 </button>
-                <button className="danger" onClick={handleDelete}>{t('itinerary.delete_trip')}</button>
+                <button title={t('itinerary.share_trip') || 'Share Journey'} onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onShare?.(trip); }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>share</span>
+                </button>
+                <button className="danger" title={t('itinerary.delete_trip') || 'Delete Trip'} onClick={handleDelete}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>delete</span>
+                </button>
               </div>
             )}
           </div>
 
           {/* Thumbnail */}
-          <div style={{ width: '100px', height: '70px', borderRadius: '10px', background: 'var(--md-sys-color-surface-container)', overflow: 'hidden', position: 'relative', flexShrink: 0 }}>
-            <div className="thumb-blur-bg" style={{ backgroundImage: `url('${trip.thumb}')`, opacity: 0.3, filter: 'blur(10px)' }} />
-            <img src={trip.thumb} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'contain', position: 'relative', zIndex: 1 }} alt={trip.title} />
+          <div style={{ width: '100px', minHeight: '70px', alignSelf: 'stretch', borderRadius: '10px', background: 'var(--md-sys-color-surface-container)', overflow: 'hidden', position: 'relative', flexShrink: 0 }}>
+            <img src={trip.thumb} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', position: 'relative', zIndex: 1 }} alt={trip.title} />
           </div>
 
           {/* Info */}
-          <div style={{ flex: 1, minWidth: 0, paddingRight: '2rem' }}>
-            <h4 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{trip.title}</h4>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--md-sys-color-on-surface-variant)', fontSize: '0.8rem', flexWrap: 'wrap' }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>calendar_today</span>
-                {trip.startDate} - {trip.endDate}
-              </span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>location_on</span>
-                {stopsCount} {t('itinerary.stops_count')}
-              </span>
-            </div>
+          <div style={{ flex: 1, minWidth: 0, paddingRight: '2rem', display: 'flex', flexDirection: 'column', gap: '5px' }}>
+            <h4 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{trip.title}</h4>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '3px', color: 'var(--md-sys-color-on-surface-variant)', fontSize: '0.8rem' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>calendar_today</span>
+              {trip.startDate} - {trip.endDate}
+            </span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '3px', color: 'var(--md-sys-color-on-surface-variant)', fontSize: '0.8rem' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>location_on</span>
+              {stopsCount} {t('itinerary.stops_count')}
+            </span>
             {cities.length > 0 && (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '4px' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                 {cities.map(city => (
                   <span key={city} style={{ fontSize: '0.68rem', padding: '1px 7px', borderRadius: '20px', background: 'var(--md-sys-color-surface-container-low)', color: 'var(--md-sys-color-on-surface-variant)', border: '1px solid var(--md-sys-color-outline-variant)', whiteSpace: 'nowrap' }}>
                     {city}
@@ -127,7 +132,7 @@ export default function TripCard({ trip, isList = false, onEdit, onShare }) {
 
           {/* Bottom row: cost left, status right */}
           <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.25rem', borderTop: '1px solid var(--md-sys-color-outline-variant)' }}>
-            <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--md-sys-color-on-surface)' }}>
+            <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--md-sys-color-on-surface)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               {formatCurrency(totalCost, state.settings)}
             </div>
             <span className={`status-badge ${status.cls}`} style={{ position: 'static', padding: '3px 10px', borderRadius: '20px', fontSize: '0.68rem' }}>{status.label}</span>
@@ -141,9 +146,9 @@ export default function TripCard({ trip, isList = false, onEdit, onShare }) {
       <div
         className="trip-card-list"
         onClick={handleOpen}
-        style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', background: 'var(--st-glass-bg)', border: '1px solid var(--md-sys-color-outline)', borderRadius: '16px', padding: '12px', transition: 'all 0.3s', cursor: 'pointer', marginBottom: '1rem', position: 'relative' }}
+        style={{ display: 'flex', alignItems: 'stretch', gap: '1.5rem', background: 'var(--st-glass-bg)', border: '1px solid var(--md-sys-color-outline)', borderRadius: '16px', padding: '12px', transition: 'all 0.3s', cursor: 'pointer', marginBottom: '1rem', position: 'relative' }}
       >
-        <div style={{ width: '120px', height: '80px', borderRadius: '12px', background: '#000', overflow: 'hidden', position: 'relative', flexShrink: 0 }}>
+        <div style={{ width: '120px', minHeight: '80px', borderRadius: '12px', background: '#000', overflow: 'hidden', position: 'relative', flexShrink: 0 }}>
           <div className="thumb-blur-bg" style={{ backgroundImage: `url('${trip.thumb}')`, opacity: 0.3, filter: 'blur(10px)' }} />
           <img src={trip.thumb} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'contain', position: 'relative', zIndex: 1 }} alt={trip.title} />
         </div>
@@ -176,13 +181,16 @@ export default function TripCard({ trip, isList = false, onEdit, onShare }) {
         <div style={{ position: 'relative', marginLeft: '10px' }}>
           <button className="menu-dots" onClick={handleMenuToggle} style={{ position: 'static', transform: 'none', background: 'rgba(255,255,255,0.05)', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', transition: 'all 0.2s' }}>⋮</button>
           {menuOpen && (
-            <div className="menu-dropdown" style={{ right: 0, top: '2.5rem', transform: 'none', zIndex: 100, display: 'block' }}>
-              <button onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onEdit?.(trip); }}>{t('itinerary.edit_trip')}</button>
-              <button onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onShare?.(trip); }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>share</span>
-                {t('itinerary.share_trip') || 'Share trip'}
+            <div className="menu-dropdown" style={{ right: 0, top: '2.5rem', transform: 'none', zIndex: 100, display: 'flex' }}>
+              <button title={t('itinerary.edit_trip') || 'Edit Trip Info'} onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onEdit?.(trip); }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>edit</span>
               </button>
-              <button className="danger" onClick={handleDelete}>{t('itinerary.delete_trip')}</button>
+              <button title={t('itinerary.share_trip') || 'Share Journey'} onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onShare?.(trip); }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>share</span>
+              </button>
+              <button className="danger" title={t('itinerary.delete_trip') || 'Delete Trip'} onClick={handleDelete}>
+                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>delete</span>
+              </button>
             </div>
           )}
         </div>
@@ -264,13 +272,16 @@ export default function TripCard({ trip, isList = false, onEdit, onShare }) {
         )}
       </div>
       {menuOpen && (
-        <div className="menu-dropdown" style={{ right: '1rem', top: '3.5rem', transform: 'none', display: 'block', zIndex: 20 }}>
-          <button onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onEdit?.(trip); }}>{t('itinerary.edit_trip')}</button>
-          <button onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onShare?.(trip); }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>share</span>
-            {t('itinerary.share_trip') || 'Share trip'}
+        <div className="menu-dropdown" style={{ right: '1rem', top: '3.5rem', transform: 'none', display: 'flex', zIndex: 20 }}>
+          <button title={t('itinerary.edit_trip') || 'Edit Trip Info'} onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onEdit?.(trip); }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>edit</span>
           </button>
-          <button className="danger" onClick={handleDelete}>{t('itinerary.delete_trip')}</button>
+          <button title={t('itinerary.share_trip') || 'Share Journey'} onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onShare?.(trip); }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>share</span>
+          </button>
+          <button className="danger" title={t('itinerary.delete_trip') || 'Delete Trip'} onClick={handleDelete}>
+            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>delete</span>
+          </button>
         </div>
       )}
     </div>

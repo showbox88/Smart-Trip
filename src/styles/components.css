@@ -525,7 +525,7 @@
     z-index: 100;
     display: none;
     flex-direction: column;
-    min-width: 120px;
+    min-width: unset;
 }
 
 .menu-dropdown.active {
@@ -533,14 +533,17 @@
 }
 
 .menu-dropdown button {
-    text-align: left;
-    padding: 0.8rem 1.2rem;
+    text-align: center;
+    padding: 0.5rem 0.75rem;
     background: none;
     border: none;
     color: var(--md-sys-color-on-surface);
     cursor: pointer;
     border-bottom: 1px solid var(--md-sys-color-outline);
     white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .menu-dropdown button:last-child {

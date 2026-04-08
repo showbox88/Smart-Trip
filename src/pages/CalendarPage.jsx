@@ -359,7 +359,7 @@ function MonthView({ year, month, days, trips, language, t, onDayClick, onTripCl
                     title={seg.trip.title}
                     onClick={(e) => { e.stopPropagation(); onTripClick(seg.trip); }}
                   >
-                    {seg.trip.title}
+                    {seg.isStart ? seg.trip.title : ''}
                   </div>
                 );
               })}

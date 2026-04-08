@@ -1,57 +1,53 @@
 @echo off
-:: This script launches the Smart Trip Dev Server
 title Smart Trip Launcher
+cd /d "%~dp0"
 
-echo --------------------------------------------
-echo  Smart Trip - Dev Server Launcher
-echo --------------------------------------------
+echo ============================================
+echo   Smart Trip - Dev Servers Launcher
+echo ============================================
 echo.
 
-:: 1. Check if Node is installed
-echo [1/4] Checking environment...
+:: Check Node
 node -v >nul 2>&1
 if %errorlevel% neq 0 (
-    echo [ERROR] Node.js is NOT installed. Please install it from https://nodejs.org/
-    pause
-    exit /b 1
+    echo [ERROR] Node.js not found. Install from https://nodejs.org/
+    pause & exit /b 1
 )
 
-:: 2. Cleanup port 5173 (Simple way)
-echo [2/4] Initializing port 5173...
-:: Kill any process on port 5173 if exists. We ignore errors if none found.
-for /f "tokens=5" %%p in ('netstat -ano ^| findstr :5173') do (
-    echo [INFO] Found existing process on port 5173...
-    taskkill /F /PID %%p >nul 2>&1
-)
-
-:: 3. Check for .env
-echo [3/4] Checking configuration...
-if not exist ".env" (
-    if exist ".env.example" (
-        copy ".env.example" ".env" >nul
-        echo [INFO] Created .env from example.
-    )
-)
-
-:: 4. Check dependencies
-echo [4/4] Verifying dependencies...
+:: Check dependencies
 if not exist "node_modules" (
-    echo [INFO] node_modules missing. Running npm install...
+    echo [INFO] Installing dependencies...
     call npm install
 )
 
-:: 5. Launch
-echo.
-echo [Launch] Starting Vite...
-echo [Info] Server will open in your browser automatically.
-echo.
-
-:: Run dev with auto-open and LAN access
-npm run dev -- --host --open
-
-:: If the server crashes, keep window open
-if %errorlevel% neq 0 (
-    echo.
-    echo [ERROR] Server failed to start.
-    pause
+:: Kill any existing process on port 5173
+for /f "tokens=5" %%p in ('netstat -ano 2^>nul ^| findstr :5173') do (
+    taskkill /F /PID %%p >nul 2>&1
 )
+
+:: Get local IP
+for /f "tokens=2 delims=:" %%i in ('ipconfig ^| findstr /i "IPv4" ^| findstr /v "127.0.0.1"') do (
+    set LOCAL_IP=%%i
+)
+set LOCAL_IP=%LOCAL_IP: =%
+
+echo [1/2] Starting Vite dev server (LAN mode)...
+start "Vite Dev Server" cmd /k "cd /d "%~dp0" && npm run dev -- --host"
+
+:: Wait for Vite to start
+timeout /t 3 /nobreak >nul
+
+echo [2/2] Starting Capacitor livereload...
+start "Capacitor Livereload" cmd /k "cd /d "%~dp0" && npx cap run android --livereload --external"
+
+echo.
+echo ============================================
+echo   Servers started!
+echo   Local:   http://localhost:5173
+echo   Network: http://%LOCAL_IP%:5173
+echo ============================================
+echo.
+echo   Android device must be on same WiFi.
+echo   Close this window to stop all servers.
+echo ============================================
+pause

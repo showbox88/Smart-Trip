@@ -248,10 +248,12 @@ export default React.memo(function StopCard({
             alignItems: 'center',
             justifyContent: 'center',
           }}>
-            {(() => {
-              const Icon = getCategoryIcon(stop.category);
-              return <Icon size={isBlossom ? 13 : 18} strokeWidth={2.2} style={{ color: dotColor }} />;
-            })()}
+            <span style={{
+              color: dotColor,
+              fontSize: isBlossom ? '0.65rem' : '0.8rem',
+              fontWeight: 800,
+              lineHeight: 1,
+            }}>{index + 1}</span>
           </div>
         </div>
       ) : (
@@ -454,92 +456,17 @@ export default React.memo(function StopCard({
               <div className="stop-card-left-column" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                 {/* Title Row: pin + name + category badge + rating */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.4rem', flexWrap: 'wrap' }}>
-                  <div style={{
-                    position: 'relative',
-                    width: '24px',
-                    height: '30px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0
-                  }}>
-                    {isBlossom ? (
-                      /* Blossom: circle outline with number */
-                      <>
-                        <div style={{
-                          width: '26px',
-                          height: '26px',
-                          borderRadius: '50%',
-                          border: `2.5px solid ${isHotelType ? 'var(--st-color-hotel-line)' : (dayColor || 'var(--md-sys-color-primary)')}`,
-                          background: 'var(--md-sys-color-surface-container-lowest)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}>
-                          <span style={{
-                            color: isHotelType ? 'var(--st-color-hotel-line)' : (dayColor || 'var(--md-sys-color-primary)'),
-                            fontSize: '0.72rem',
-                            fontWeight: 800,
-                          }}>{index + 1}</span>
-                        </div>
-                      </>
-                    ) : (
-                      /* Default: filled map pin */
-                      <>
-                        <div style={{
-                          position: 'absolute',
-                          top: '4px',
-                          width: '14px',
-                          height: '14px',
-                          borderRadius: '50%',
-                          background: isHotelType ? 'var(--st-color-hotel-line)' : (dayColor || 'var(--st-color-hotel-checkin)'),
-                          zIndex: 0
-                        }} />
-                        <span className="material-symbols-outlined" style={{
-                          fontSize: '32px',
-                          color: isHotelType ? 'var(--st-color-hotel-line)' : (dayColor || 'var(--st-color-hotel-checkin)'),
-                          position: 'absolute',
-                          fontVariationSettings: "'FILL' 1",
-                          zIndex: 1
-                        }}>location_on</span>
-                        <span style={{
-                          position: 'relative',
-                          color: 'white',
-                          fontSize: '0.75rem',
-                          fontWeight: 900,
-                          marginTop: '-6px',
-                          zIndex: 2
-                        }}>{index + 1}</span>
-                      </>
-                    )}
-                  </div>
                   <h4 className="rich-stop-card-title" style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: 'var(--md-sys-color-on-surface)', letterSpacing: '-0.02em' }}>
                     {stop.location}
                   </h4>
-                  {isBlossom ? null : isClean ? (
-                    /* Clean layout: colored pill badge */
-                    <span style={{
-                      background: `${dotColor}15`,
-                      color: dotColor,
-                      fontSize: '0.65rem',
-                      fontWeight: 700,
-                      padding: '2px 8px',
-                      borderRadius: '9999px',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.03em',
-                      flexShrink: 0,
-                      whiteSpace: 'nowrap',
-                    }}>
-                      {stop.category ? (t(stop.category) !== stop.category ? t(stop.category) : stop.category) : t('map.place_default')}
-                    </span>
-                  ) : (
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginLeft: '4px', flexShrink: 0 }} title={stop.category ? (t(stop.category) !== stop.category ? t(stop.category) : stop.category) : t('map.place_default')}>
-                      {(() => {
-                        const Icon = getCategoryIcon(stop.category);
-                        return <Icon size={16} strokeWidth={2.5} className="text-white opacity-90" />;
-                      })()}
-                    </div>
-                  )}
+                  {/* Category icon after name — all layouts */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }} title={stop.category ? (t(stop.category) !== stop.category ? t(stop.category) : stop.category) : t('map.place_default')}>
+                    {(() => {
+                      const Icon = getCategoryIcon(stop.category);
+                      const iconColor = isHotelType ? 'var(--st-color-hotel-line)' : (dotColor || 'var(--md-sys-color-primary)');
+                      return <Icon size={16} strokeWidth={2.2} style={{ color: iconColor, opacity: 0.75 }} />;
+                    })()}
+                  </div>
                   {stop.rating && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '3px', flexShrink: 0 }}>
                       <span style={{ color: 'var(--st-color-status-soon)', fontSize: '13px' }}>★</span>
