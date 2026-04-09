@@ -309,7 +309,7 @@ export default function ItineraryView({ tripId, isDayMode = false, date = null }
         {/* Blossom: sticky block wrapping header + day strip */}
         {isBlossom ? (
           <div style={{ position: 'sticky', top: 0, zIndex: 100, background: 'var(--md-sys-color-surface)' }}>
-            <TripHeader trip={trip} onDeleteTrip={handleDeleteTrip} onEditTrip={() => setTripEditModal(true)} onShareTrip={() => setShowShareModal(true)} onShowSchedule={() => setShowScheduleModal(true)} isDayMode={isDayMode} />
+            <TripHeader trip={trip} onDeleteTrip={handleDeleteTrip} onEditTrip={() => setTripEditModal(true)} onShareTrip={() => setShowShareModal(true)} onShowSchedule={() => setShowScheduleModal(true)} isDayMode={isDayMode} viewMode={viewMode} setViewMode={setViewMode} />
             {!isDayMode && (
               <TripSidebar
                 trip={trip}
@@ -322,7 +322,7 @@ export default function ItineraryView({ tripId, isDayMode = false, date = null }
             )}
           </div>
         ) : (
-          <TripHeader trip={trip} onDeleteTrip={handleDeleteTrip} onEditTrip={() => setTripEditModal(true)} onShareTrip={() => setShowShareModal(true)} onShowSchedule={() => setShowScheduleModal(true)} isDayMode={isDayMode} />
+          <TripHeader trip={trip} onDeleteTrip={handleDeleteTrip} onEditTrip={() => setTripEditModal(true)} onShareTrip={() => setShowShareModal(true)} onShowSchedule={() => setShowScheduleModal(true)} isDayMode={isDayMode} viewMode={viewMode} setViewMode={setViewMode} />
         )}
 
         {pendingInsertion && (

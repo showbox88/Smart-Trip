@@ -6,6 +6,19 @@ import { useTheme } from '../../theme';
 import { formatCurrency, calculateDays, isCountableStop } from '../../utils/formatters';
 import ClimateCard from '../climate/ClimateCard';
 import { useClimateData } from '../../hooks/useClimateData';
+import { getIsTouch } from '../../hooks/useDeviceType';
+
+/** true when device is touch + portrait — updates on orientation change */
+function usePortraitTouch() {
+  const [is, setIs] = useState(() => getIsTouch() && window.innerHeight > window.innerWidth);
+  useEffect(() => {
+    const update = () => setIs(getIsTouch() && window.innerHeight > window.innerWidth);
+    window.addEventListener('resize', update);
+    window.addEventListener('orientationchange', update);
+    return () => { window.removeEventListener('resize', update); window.removeEventListener('orientationchange', update); };
+  }, []);
+  return is;
+}
 
 function formatDateShort(dateStr) {
   if (!dateStr) return '';
@@ -23,7 +36,7 @@ function formatCheckinDate(dateStr) {
   return { weekday, full };
 }
 
-export default function TripHeader({ trip, onDeleteTrip, onEditTrip, onShareTrip, onShowSchedule, isDayMode = false }) {
+export default function TripHeader({ trip, onDeleteTrip, onEditTrip, onShareTrip, onShowSchedule, isDayMode = false, viewMode, setViewMode }) {
   const { t } = useI18n();
   const { state } = useApp();
   const { layoutVariant, themeId } = useTheme();
@@ -33,6 +46,34 @@ export default function TripHeader({ trip, onDeleteTrip, onEditTrip, onShareTrip
   const [showMenu, setShowMenu] = useState(false);
   const [showClimate, setShowClimate] = useState(false);
   const menuRef = useRef(null);
+  const isPortraitTouch = usePortraitTouch();
+
+  const renderMapToggle = () => {
+    if (!isPortraitTouch || isDayMode || !setViewMode) return null;
+    const isMap = viewMode === 'map';
+    return (
+      <button
+        onClick={() => setViewMode(isMap ? 'plan' : 'map')}
+        style={{
+          background: isMap ? 'var(--md-sys-color-primary)' : (isBlossom ? 'rgba(131,75,88,0.08)' : 'rgba(255,255,255,0.06)'),
+          border: `1px solid ${isMap ? 'var(--md-sys-color-primary)' : 'var(--md-sys-color-outline)'}`,
+          borderRadius: '10px',
+          color: isMap ? 'var(--md-sys-color-on-primary)' : 'var(--md-sys-color-on-surface-variant)',
+          padding: '5px 10px',
+          display: 'flex', alignItems: 'center', gap: '4px',
+          cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600,
+          transition: 'all 0.2s',
+          flexShrink: 0,
+        }}
+        title={isMap ? (t('common.itinerary') || 'Itinerary') : (t('common.map') || 'Map')}
+      >
+        <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
+          {isMap ? 'event_note' : 'map'}
+        </span>
+        <span>{isMap ? (t('common.itinerary') || 'Plan') : (t('common.map') || 'Map')}</span>
+      </button>
+    );
+  };
 
   // Merge manually-added destinations with stop-derived cities (dedup by name)
   const allDestinations = useMemo(() => {
@@ -191,6 +232,9 @@ export default function TripHeader({ trip, onDeleteTrip, onEditTrip, onShareTrip
             </button>
           )}
 
+          {/* Map/Plan toggle — portrait touch only */}
+          {renderMapToggle()}
+
           {/* Menu */}
           {renderMenu()}
         </div>
@@ -258,6 +302,7 @@ export default function TripHeader({ trip, onDeleteTrip, onEditTrip, onShareTrip
         <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {isDayMode ? (() => { const d = formatCheckinDate(trip.startDate); return d.weekday; })() : trip.title}
         </h2>
+        {renderMapToggle()}
         {renderMenu()}
       </div>
     );
@@ -333,6 +378,7 @@ export default function TripHeader({ trip, onDeleteTrip, onEditTrip, onShareTrip
               <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>thermostat</span>
             </button>
           )}
+          {renderMapToggle()}
           {!isDayMode && (
             <div ref={menuRef} style={{ position: 'relative' }}>
               <button className="menu-dots" onClick={() => setShowMenu(v => !v)} style={{ position: 'relative', right: 'auto', top: 'auto', transform: 'none' }}>⋮</button>
