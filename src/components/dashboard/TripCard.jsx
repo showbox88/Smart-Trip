@@ -177,7 +177,7 @@ export default function TripCard({ trip, isList = false, onEdit, onShare }) {
             </div>
           )}
         </div>
-        <span className={`status-badge ${status.cls}`} style={{ position: 'static', padding: '4px 12px', borderRadius: '20px' }}>{status.label}</span>
+        <span className={`status-badge ${status.cls}`} style={{ position: 'static', padding: '4px 12px', borderRadius: '20px', alignSelf: 'center' }}>{status.label}</span>
         <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--md-sys-color-on-surface)', minWidth: '100px', textAlign: 'right' }}>
           {formatCurrency(totalCost, state.settings)}
         </div>
