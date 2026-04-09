@@ -6,6 +6,7 @@ import { PLACE_CATEGORY_MAP } from '../../utils/tripHelpers';
 import { useMapPlaceDetails } from '../../hooks/useMapPlaceDetails';
 import { useLightboxGallery } from '../../hooks/useLightboxGallery';
 import { useFavorites } from '../../hooks/useFavorites';
+import { getIsTouch } from '../../hooks/useDeviceType';
 
 function StarRating({ rating }) {
   if (!rating) return null;
@@ -159,7 +160,7 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay, onSelectPla
 
   const photo = photoUrls[0] || null;
   const category = place ? getCategoryLabel(place, t) : null;
-  const isMobileDevice = typeof window !== 'undefined' && window.innerWidth < 768;
+  const isMobileDevice = typeof window !== 'undefined' && (window.innerWidth < 768 || getIsTouch());
 
   const handleAddToDay = useCallback(async (dayId) => {
     const targetId = pickerTargetPlaceId || placeId;

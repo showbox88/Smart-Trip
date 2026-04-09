@@ -301,8 +301,8 @@
     transform: scale(0.9);
 }
 
-@media (max-width: 768px) {
-    /* Hide flip button on mobile as swipe gestures are supported */
+/* Hide flip button on all touch devices (phone + tablet) — swipe gestures are used instead */
+@media (pointer: coarse) {
     .stop-card-flip-container {
         display: none;
     }

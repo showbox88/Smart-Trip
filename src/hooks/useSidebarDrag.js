@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { getIsTouch } from './useDeviceType';
 
 const DRAG_THRESHOLD = 5;
 
@@ -27,8 +28,7 @@ export function useSidebarDrag(moveDay) {
     if (e.button !== 0) return;
     if (e.target.closest('button, input, textarea, a, [contenteditable]')) return;
 
-    const isMobileBreakpoint = window.innerWidth < 768;
-    if (isMobileBreakpoint && e.pointerType === 'touch' && !e.target.closest('.drag-handle')) return;
+    if (getIsTouch() && e.pointerType === 'touch' && !e.target.closest('.drag-handle')) return;
 
     const item = e.currentTarget;
 

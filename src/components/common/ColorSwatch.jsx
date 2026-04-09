@@ -1,18 +1,19 @@
 /**
  * ColorSwatch — Cross-platform color picker trigger
  *
- * Desktop: delegates to native <input type="color"> (browser's built-in picker)
- * Mobile (<768px): shows a react-colorful HexColorPicker popup overlay
+ * Desktop (mouse): delegates to native <input type="color"> (browser's built-in picker)
+ * Touch devices (phone + tablet): shows a react-colorful HexColorPicker popup overlay
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { HexColorPicker } from 'react-colorful';
+import { getIsTouch } from '../../hooks/useDeviceType';
 
 function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
+  const [isMobile, setIsMobile] = useState(() => getIsTouch());
   useEffect(() => {
-    const mq = window.matchMedia('(max-width: 767px)');
-    const handler = (e) => setIsMobile(e.matches);
+    const mq = window.matchMedia('(pointer: coarse)');
+    const handler = (e) => setIsMobile(e.matches || navigator.maxTouchPoints > 0);
     mq.addEventListener('change', handler);
     return () => mq.removeEventListener('change', handler);
   }, []);

@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { getIsTouch } from './useDeviceType';
 
 const DRAG_THRESHOLD = 5;
 
@@ -22,10 +23,9 @@ export function useTimelineDrag(trip, moveStop) {
     if (e.button !== 0) return;
     if (e.target.closest('button, input, textarea, a, [contenteditable]')) return;
     
-    // 移动端把手判定：只有在手机屏幕（<768px）且是触控操作时，才强制要求必须捏住 .drag-handle 才能拖拽。
-    // 在电脑或平板上，这段判定自动失效，恢复为“随处点击立可拖拽”的模式。
-    const isMobileBreakpoint = window.innerWidth < 768;
-    if (isMobileBreakpoint && e.pointerType === 'touch' && !e.target.closest('.drag-handle')) return;
+    // 触摸设备（手机+平板）要求必须捏住 .drag-handle 才能拖拽，防止滚动冲突。
+    // 桌面鼠标操作不受限制。
+    if (getIsTouch() && e.pointerType === 'touch' && !e.target.closest('.drag-handle')) return;
 
     const wrapper = e.currentTarget;
 

@@ -853,8 +853,8 @@ input:checked+.slider-labeled .label-text {
     color: var(--md-sys-color-primary);
 }
 
-/* 在平板和电脑端（>= 768px）彻底隐藏拖拽把手，保持桌面版原有的清爽外观 */
-@media (min-width: 768px) {
+/* 仅在鼠标设备上隐藏拖拽把手（桌面鼠标），触摸设备（手机+平板）始终显示 */
+@media (pointer: fine) {
     .drag-handle {
         display: none !important;
     }
