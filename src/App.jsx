@@ -16,6 +16,7 @@ import { isAdmin } from './utils/admin';
 import BottomNav from './components/layout/BottomNav';
 import EmergencyButton from './components/emergency/EmergencyButton';
 import { useTheme } from './theme';
+import ScreenDebug from './components/common/ScreenDebug';
 
 export default function App() {
   const { state } = useApp();
@@ -63,6 +64,7 @@ export default function App() {
       </main>
       {layoutVariant === 'clean' && <BottomNav />}
       {layoutVariant !== 'clean' && <EmergencyButton />}
+      <ScreenDebug />
     </>
   );
 }
