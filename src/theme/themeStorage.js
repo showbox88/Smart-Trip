@@ -104,8 +104,7 @@ export async function saveActiveThemeId(supabase, userId, themeId) {
   try {
     await supabase
       .from('profiles')
-      .update({ active_theme_id: themeId })
-      .eq('id', userId);
+      .upsert({ id: userId, active_theme_id: themeId }, { onConflict: 'id' });
   } catch {
     // silently fail — localStorage cache serves as fallback
   }
