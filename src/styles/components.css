@@ -224,6 +224,40 @@
     padding: 1rem 0;
 }
 
+/* === 竖屏平板：2列 + 图片 cover（消除两侧磨砂区）=== */
+@media (min-width: 600px) and (orientation: portrait) and (pointer: coarse) {
+    .trip-dashboard-container .trip-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.25rem;
+    }
+    .trip-dashboard-container .trip-thumb {
+        height: 180px;
+    }
+    .trip-dashboard-container .thumb-main-img {
+        object-fit: cover;
+    }
+    .trip-dashboard-container .thumb-blur-bg {
+        display: none; /* cover 模式不需要磨砂背景 */
+    }
+    .trip-dashboard-container .trip-card {
+        min-height: 380px;
+    }
+}
+
+/* === 横屏平板（768px-1100px）：2列 === */
+@media (min-width: 768px) and (max-width: 1100px) and (orientation: landscape) and (pointer: coarse) {
+    .trip-dashboard-container .trip-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+    }
+    .trip-dashboard-container .thumb-main-img {
+        object-fit: cover;
+    }
+    .trip-dashboard-container .thumb-blur-bg {
+        display: none;
+    }
+}
+
 
 
 .trip-dashboard-container .trip-card {
