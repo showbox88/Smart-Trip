@@ -1,4 +1,5 @@
 {
+  "disableAllHooks": true,
   "permissions": {
     "allow": [
       "Bash(python server.py)",
@@ -10,7 +11,19 @@
       "Bash(ls \"c:\\\\Users\\\\Showbox\\\\Desktop\\\\Smat Trip\\\\react-app\\\\src\\\\components\\\\itinerary\"\" && ls \"c:UsersShowboxDesktopSmat Tripreact-appsrccomponentsmodals\"\")",
       "Bash(grep -n \"onUpdateListItem\\\\|onToggleListItem\\\\|onAddListItem\" react-app/src/components/itinerary/*.jsx)",
       "Bash(npx react-scripts build)",
-      "Read(//c/Users/Showbox/Desktop/Smat/ Trip/react-app/src/components/itinerary/**)"
+      "Read(//c/Users/Showbox/Desktop/Smat/ Trip/react-app/src/components/itinerary/**)",
+      "Bash(ls -la \"C:\\\\Users\\\\Showbox\\\\Desktop\\\\Smat Trip\\\\src\\\\components\\\\itinerary\\\\PlanB\"*.jsx \"C:\\\\Users\\\\Showbox\\\\Desktop\\\\Smat Trip\\\\src\\\\hooks\\\\useNearbyRecommend.js\" \"C:\\\\Users\\\\Showbox\\\\Desktop\\\\Smat Trip\\\\src\\\\styles\\\\planb.css\")",
+      "Bash(netstat -ano)",
+      "Bash(npm list:*)",
+      "Bash(xargs grep:*)",
+      "Bash(npm install:*)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d, indent=2\\)\\)\")",
+      "Bash(python3 -c \"import json; d=open\\('C:/Users/Showbox/AppData/Roaming/Antigravity/User/settings.json'\\).read\\(\\); data=json.loads\\(d\\); hooks=data.get\\('claude.hooks',data.get\\('claudeCode.hooks',{}\\)\\); print\\(json.dumps\\(hooks,indent=2\\)\\)\")",
+      "Bash(python3 -c \"import json; d=open\\('C:/Users/Showbox/AppData/Roaming/Code/User/settings.json'\\).read\\(\\); data=json.loads\\(d\\); hooks=data.get\\('claude.hooks',data.get\\('claudeCode.hooks',{}\\)\\); print\\(json.dumps\\(hooks,indent=2\\)\\)\")",
+      "Bash(node -e \"const d=require\\('C:/Users/Showbox/AppData/Roaming/Code/User/settings.json'\\); const hooks=d['claude.hooks']||d['claudeCode.hooks']||{}; console.log\\(JSON.stringify\\(hooks,null,2\\)\\)\")",
+      "Bash(node -e \"const d=JSON.parse\\(require\\('fs'\\).readFileSync\\('/dev/stdin','utf8'\\)\\); console.log\\(JSON.stringify\\(d.hooks||{},null,2\\)\\)\")",
+      "Bash(node -e \"const fs=require\\('fs'\\); const s=JSON.parse\\(fs.readFileSync\\('/c/Users/Showbox/.claude/settings.json','utf8'\\)\\); console.log\\(JSON.stringify\\(s,null,2\\)\\)\")",
+      "Bash(node -e ':*)"
     ]
   }
 }

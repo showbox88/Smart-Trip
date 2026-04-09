@@ -1,5 +1,6 @@
-import { useEffect, useCallback, useState } from 'react';
+import { useEffect, useCallback, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getIsTouch } from '../../hooks/useDeviceType';
 import { useTripEditor } from '../../hooks/useTripEditor';
 import { useTimelineDrag } from '../../hooks/useTimelineDrag';
 import { useTrips } from '../../hooks/useTrips';
@@ -29,10 +30,22 @@ function scrollToNewStop(id, attempts = 0) {
   }
 }
 
+function usePortraitTouch() {
+  const [is, setIs] = useState(() => getIsTouch() && window.innerHeight > window.innerWidth);
+  useEffect(() => {
+    const update = () => setIs(getIsTouch() && window.innerHeight > window.innerWidth);
+    window.addEventListener('resize', update);
+    window.addEventListener('orientationchange', update);
+    return () => { window.removeEventListener('resize', update); window.removeEventListener('orientationchange', update); };
+  }, []);
+  return is;
+}
+
 export default function ItineraryView({ tripId, isDayMode = false, date = null }) {
   const { t } = useI18n();
   const { themeId } = useTheme();
   const isBlossom = themeId === 'blossom';
+  const isPortraitTouch = usePortraitTouch();
   const navigate = useNavigate();
   const { deleteTrip } = useTrips();
   const [showShareModal, setShowShareModal] = useState(false);
@@ -415,6 +428,31 @@ export default function ItineraryView({ tripId, isDayMode = false, date = null }
           : []
         }
       />
+
+      {/* Floating "back to Plan" button — portrait touch, map mode only, outside .main-itinerary so it's never hidden */}
+      {isPortraitTouch && !isDayMode && viewMode === 'map' && (
+        <button
+          onClick={() => setViewMode('plan')}
+          style={{
+            position: 'fixed',
+            top: '1rem',
+            right: '1rem',
+            zIndex: 1200,
+            background: 'var(--md-sys-color-primary)',
+            color: 'var(--md-sys-color-on-primary)',
+            border: 'none',
+            borderRadius: '10px',
+            padding: '7px 12px',
+            display: 'flex', alignItems: 'center', gap: '5px',
+            cursor: 'pointer',
+            fontSize: '0.78rem', fontWeight: 700,
+            boxShadow: '0 4px 14px rgba(0,0,0,0.3)',
+          }}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>event_note</span>
+          <span>{t('common.itinerary') || 'Plan'}</span>
+        </button>
+      )}
 
       <div className="mobile-view-switcher">
         <button
