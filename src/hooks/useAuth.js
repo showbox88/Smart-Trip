@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
 import { useTheme } from '../theme';
+import { normalizeTripRow } from './useTripsV2';
 
 export function useAuth() {
   const { state, dispatch } = useApp();
@@ -72,10 +73,13 @@ export function useAuth() {
           }
         }
 
-        // Load v2 trip metadata
+        // Load v2 trip metadata (with full join so cities/stopsCount are available immediately)
         const { data: tripsV2Data, error: tripsV2Error } = await supabase
           .from('trips')
-          .select('id, title, thumb, start_date, end_date, settings, share_token, created_at')
+          .select(`
+            id, title, thumb, start_date, end_date, settings, share_token, created_at,
+            trip_days ( days_v2 ( stops_data ) )
+          `)
           .eq('user_id', state.user.id)
           .is('trip_data', null)
           .order('created_at', { ascending: false });
@@ -83,16 +87,7 @@ export function useAuth() {
         if (!tripsV2Error && tripsV2Data?.length) {
           dispatch({
             type: 'SET_TRIPS_V2',
-            payload: tripsV2Data.map(row => ({
-              id: row.id,
-              title: row.title || '',
-              thumb: row.thumb || null,
-              startDate: row.start_date || null,
-              endDate: row.end_date || null,
-              settings: row.settings || {},
-              share_token: row.share_token || null,
-              created_at: row.created_at,
-            })),
+            payload: tripsV2Data.map(normalizeTripRow),
           });
         }
       } catch (e) {

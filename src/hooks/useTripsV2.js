@@ -293,7 +293,7 @@ export function useTripsV2() {
 
 // ── 内部工具 ────────────────────────────────────────────
 
-function normalizeTripRow(row) {
+export function normalizeTripRow(row) {
   const tripDays = row.trip_days || [];
   let stopsCount = 0;
   let totalCost = 0;
