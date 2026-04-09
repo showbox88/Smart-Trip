@@ -17,7 +17,7 @@ const LAYOUT_GROUPS = [
 ];
 
 export default function ThemeSwitcher() {
-  const { applyCustomTheme, layoutVariant } = useTheme();
+  const { applyCustomTheme, applyPresetTheme, layoutVariant } = useTheme();
   const { state } = useApp();
   const [isOpen, setIsOpen] = useState(false);
   const [activeId, setActiveId] = useState('ocean');
@@ -27,7 +27,7 @@ export default function ThemeSwitcher() {
   const {
     handleColorChange, handleSave, handleReset,
     getCurrentColor, hasUnsaved, hasAnyChange,
-  } = useColorOverrides(activeId, applyCustomTheme, state.user?.id);
+  } = useColorOverrides(activeId, applyPresetTheme, state.user?.id);
 
   const groupedThemes = useMemo(() => {
     const groups = {};
@@ -41,7 +41,7 @@ export default function ThemeSwitcher() {
   }, []);
 
   const handleSelect = (preset) => {
-    applyCustomTheme(preset.theme);
+    applyPresetTheme(preset.id, preset.theme);
     setActiveId(preset.id);
   };
 
