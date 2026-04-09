@@ -108,3 +108,13 @@ export function calculateDays(start, end) {
   return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
 }
 
+/**
+ * 判断一个 stop 是否应被计入 stop 总数
+ * 地点类（location、hotel、activity）= 计数
+ * 内容类（note、list、transport）= 不计数
+ */
+export function isCountableStop(stop) {
+  const t = stop?.type;
+  return !t || t === 'location' || t === 'hotel_checkin' || t === 'hotel_checkout' || t === 'activity';
+}
+

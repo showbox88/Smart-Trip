@@ -5,6 +5,7 @@ import { useDays } from './useDays';
 import { deleteFilesFromSupabase } from '../utils/uploadHelpers';
 import { DEFAULT_TRIP_THUMB } from '../utils/tripFactory';
 import { isAdmin } from '../utils/admin';
+import { isCountableStop } from '../utils/formatters';
 
 /**
  * useTripsV2 — v2 Trip 元数据 + trip_days 关联管理
@@ -303,11 +304,11 @@ function normalizeTripRow(row) {
   for (const td of tripDays) {
     const stops = td.days_v2?.stops_data;
     if (!Array.isArray(stops)) continue;
-    stopsCount += stops.length;
     for (const stop of stops) {
+      if (isCountableStop(stop)) stopsCount++;
       const price = parseFloat(stop.price);
-      if (!isNaN(price)) totalCost += price;
-      if (stop.city) {
+      if (!isNaN(price) && price > 0) totalCost += price;
+      if (stop.city && isCountableStop(stop)) {
         citySet.add(stop.city);
         if (stop.lat && stop.lng && !cityCoordMap[stop.city]) {
           cityCoordMap[stop.city] = { name: stop.city, lat: stop.lat, lng: stop.lng };

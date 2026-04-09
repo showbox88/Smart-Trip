@@ -4,6 +4,7 @@ import { useI18n } from '../../context/I18nContext';
 import { useTheme } from '../../theme';
 import { useSidebarGlow } from '../../hooks/useSidebarGlow';
 import { useSidebarDrag } from '../../hooks/useSidebarDrag';
+import { isCountableStop } from '../../utils/formatters';
 
 function formatDayDate(dateStr) {
   if (!dateStr) return '';
@@ -166,7 +167,7 @@ export default function TripSidebar({ trip, activeDayId, onAddDay, onRemoveLastD
           const activeColor = day.color || '#5b7a99';
           const suffix = t('itinerary.day_suffix');
           const dayLabel = `${t('itinerary.day_label') || 'Day'}${index + 1}${suffix === 'itinerary.day_suffix' ? '' : suffix}`;
-          const stopsCount = (day.stops || []).filter(s => s.type === 'location' || !s.type).length;
+          const stopsCount = (day.stops || []).filter(isCountableStop).length;
           const isDragging = draggingDayId === day.id;
 
           return (

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useI18n } from '../../context/I18nContext';
 import { useApp } from '../../context/AppContext';
 import { useTheme } from '../../theme';
-import { formatCurrency, calculateDays } from '../../utils/formatters';
+import { formatCurrency, calculateDays, isCountableStop } from '../../utils/formatters';
 import ClimateCard from '../climate/ClimateCard';
 import { useClimateData } from '../../hooks/useClimateData';
 
@@ -57,12 +57,12 @@ export default function TripHeader({ trip, onDeleteTrip, onEditTrip, onShareTrip
   const totalCost = trip?.days?.reduce((acc, day) => {
     return acc + (day.stops || []).reduce((sum, stop) => {
       const p = parseFloat(stop.price);
-      return sum + (isNaN(p) ? 0 : p);
+      return sum + (isNaN(p) || p <= 0 ? 0 : p);
     }, 0);
   }, 0) || 0;
 
   const dayCount = calculateDays(trip?.startDate, trip?.endDate);
-  const stopCount = trip?.days?.reduce((acc, day) => acc + (day.stops || []).length, 0) || 0;
+  const stopCount = trip?.days?.reduce((acc, day) => acc + (day.stops || []).filter(isCountableStop).length, 0) || 0;
 
   useEffect(() => {
     const onMouseDown = (e) => {

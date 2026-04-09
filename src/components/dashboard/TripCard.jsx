@@ -4,7 +4,7 @@ import { useI18n } from '../../context/I18nContext';
 import { useApp } from '../../context/AppContext';
 import { useTrips } from '../../hooks/useTrips';
 import { useTheme } from '../../theme';
-import { calculateDays, formatCurrency } from '../../utils/formatters';
+import { calculateDays, formatCurrency, isCountableStop } from '../../utils/formatters';
 
 function getStatus(trip, t) {
   const today = new Date().toISOString().split('T')[0];
@@ -33,11 +33,14 @@ export default function TripCard({ trip, isList = false, onEdit, onShare }) {
   const status = getStatus(trip, t);
   const stopsCount = trip.stopsCount !== undefined
     ? trip.stopsCount
-    : (trip.days ? trip.days.reduce((acc, day) => acc + (day.stops?.length || 0), 0) : 0);
+    : (trip.days ? trip.days.reduce((acc, day) => acc + (day.stops?.filter(isCountableStop).length || 0), 0) : 0);
   const totalCost = trip.totalCost !== undefined
     ? trip.totalCost
     : (trip.days ? trip.days.reduce((acc, day) => {
-        return acc + (day.stops?.reduce((s, stop) => s + (parseFloat(stop.price) || 0), 0) || 0);
+        return acc + (day.stops?.reduce((s, stop) => {
+          const p = parseFloat(stop.price);
+          return s + (isNaN(p) || p <= 0 ? 0 : p);
+        }, 0) || 0);
       }, 0) : 0);
 
   const handleOpen = () => navigate(`/trip-v2/${trip.id}`);

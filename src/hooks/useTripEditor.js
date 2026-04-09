@@ -65,7 +65,7 @@ function extractCityFromAddressComponents(addressComponents) {
 export function useTripEditor(tripId) {
   const { state, dispatch } = useApp();
   const { saveTrip } = useTrips();
-  const { updateTrip: updateTripV2 } = useTripsV2();
+  const { updateTrip: updateTripV2, linkDaysToTrip } = useTripsV2();
   const { t } = useI18n();
   const saveTimerRef = useRef(null);
 
@@ -789,8 +789,13 @@ export function useTripEditor(tripId) {
       updateTripV2(realTripId, dbPatch).catch(err =>
         console.error('[useTripEditor] updateTripV2 metadata failed:', err)
       );
+      if (_dayIdsToLink?.length) {
+        linkDaysToTrip(realTripId, _dayIdsToLink).catch(err =>
+          console.error('[useTripEditor] linkDaysToTrip failed:', err)
+        );
+      }
     }
-  }, [withTripUpdate, trip, updateTripV2]);
+  }, [withTripUpdate, trip, updateTripV2, linkDaysToTrip]);
 
   const saveStayInfo = useCallback((dayId, stopId, { cinDate, cinTime, cinPeriod, coutDate, coutTime, coutPeriod }) => {
     const updateResult = withTripUpdate((updated) => {
