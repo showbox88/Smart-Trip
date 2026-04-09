@@ -24,8 +24,8 @@ export default function TripCard({ trip, isList = false, onEdit, onShare }) {
   const { t } = useI18n();
   const { state } = useApp();
   const { deleteTrip } = useTrips();
-  const { themeId } = useTheme();
-  const isBlossom = themeId === 'blossom';
+  const { themeId, layoutVariant } = useTheme();
+  const isBlossom = themeId === 'blossom' || (layoutVariant === 'clean' && themeId !== 'clean');
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
 

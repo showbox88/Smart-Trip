@@ -129,7 +129,7 @@ export default function DashboardPage() {
           <button
             className="btn-main"
             onClick={handleTodayCheckin}
-            style={{ background: 'linear-gradient(135deg, var(--st-color-category-food), #ea580c)' }}
+            style={{ background: 'linear-gradient(135deg, var(--md-sys-color-tertiary), var(--md-sys-color-tertiary-dim, var(--md-sys-color-tertiary)))' }}
             title={t('dashboard.today_checkin') || 'Check In'}
           >
             <span className="material-symbols-outlined">my_location</span>
@@ -150,24 +150,24 @@ export default function DashboardPage() {
       <div
         onClick={() => navigate('/today')}
         style={{
-          background: 'linear-gradient(135deg, rgba(249,115,22,0.12), rgba(234,88,12,0.08))',
-          border: '1px solid rgba(249,115,22,0.3)',
+          background: 'var(--md-sys-color-surface-container)',
+          border: '1px solid var(--md-sys-color-outline-variant)',
           borderRadius: '14px',
           padding: '1rem 1.25rem',
           marginBottom: '1.5rem',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           cursor: 'pointer', transition: 'all 0.2s',
         }}
-        onMouseEnter={e => e.currentTarget.style.background = 'linear-gradient(135deg, rgba(249,115,22,0.18), rgba(234,88,12,0.12))'}
-        onMouseLeave={e => e.currentTarget.style.background = 'linear-gradient(135deg, rgba(249,115,22,0.12), rgba(234,88,12,0.08))'}
+        onMouseEnter={e => e.currentTarget.style.background = 'var(--md-sys-color-surface-container-high)'}
+        onMouseLeave={e => e.currentTarget.style.background = 'var(--md-sys-color-surface-container)'}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <div style={{
             width: 40, height: 40, borderRadius: '10px',
-            background: 'linear-gradient(135deg, var(--st-color-category-food), #ea580c)',
+            background: 'var(--md-sys-color-tertiary-container)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
           }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'white' }}>today</span>
+            <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'var(--md-sys-color-tertiary)' }}>today</span>
           </div>
           <div>
             <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--md-sys-color-on-surface)' }}>{t('dashboard.today_schedule') || "Today's Schedule"}</div>
@@ -176,7 +176,7 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
-        <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'var(--st-color-category-food)' }}>chevron_right</span>
+        <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'var(--md-sys-color-tertiary)' }}>chevron_right</span>
       </div>
 
       <DashboardFilters />

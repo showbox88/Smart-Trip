@@ -6,6 +6,7 @@
  */
 
 import { useState, useMemo } from 'react';
+// useCallback and useEffect now handled by useColorOverrides hook
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../hooks/useAuth';
@@ -13,6 +14,8 @@ import { useI18n } from '../../context/I18nContext';
 import { useTheme } from '../../theme';
 import { PRESET_THEMES } from '../../theme/presetThemes';
 import { isAdmin } from '../../utils/admin';
+import { useColorOverrides, EDITABLE_COLORS } from '../../hooks/useColorOverrides';
+import ColorSwatch from '../common/ColorSwatch';
 
 const LAYOUT_GROUPS = [
   { key: 'glass', label: 'Glass', icon: 'blur_on' },
@@ -27,6 +30,11 @@ export default function ProfilePanel({ open, onClose }) {
   const navigate = useNavigate();
   const [langMenuOpen, setLangMenuOpen] = useState(false);
   const [themeOpen, setThemeOpen] = useState(false);
+
+  const {
+    handleColorChange, handleSave, handleReset,
+    getCurrentColor, hasUnsaved, hasAnyChange,
+  } = useColorOverrides(themeId, applyPresetTheme, state.user?.id);
 
   const groupedThemes = useMemo(() => {
     const groups = {};
@@ -144,6 +152,64 @@ export default function ProfilePanel({ open, onClose }) {
           {/* Expandable content */}
           {themeOpen && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.4rem' }}>
+              {/* ── Customize colors — always visible ── */}
+              <div style={{ padding: '0.5rem 0.4rem 0.6rem', borderBottom: '1px solid var(--md-sys-color-outline-variant)', marginBottom: '0.2rem' }}>
+                <div style={{ fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--md-sys-color-on-surface-variant)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>tune</span>
+                  Customize
+                </div>
+                {/* Color swatches */}
+                <div style={{ display: 'flex', gap: '6px', justifyContent: 'space-between' }}>
+                  {EDITABLE_COLORS.map((colorDef) => (
+                    <ColorSwatch
+                      key={colorDef.key}
+                      colorDef={colorDef}
+                      currentVal={getCurrentColor(colorDef)}
+                      hasUnsaved={hasUnsaved}
+                      onChange={handleColorChange}
+                    />
+                  ))}
+                </div>
+                {/* Save / Reset buttons — always visible */}
+                <div style={{ display: 'flex', gap: '6px', marginTop: '0.6rem' }}>
+                  <button
+                    onClick={handleSave}
+                    disabled={!hasUnsaved}
+                    style={{
+                      flex: 1, padding: '5px', borderRadius: '8px',
+                      cursor: hasUnsaved ? 'pointer' : 'default',
+                      background: hasUnsaved ? 'var(--md-sys-color-primary)' : 'var(--md-sys-color-surface-container-high)',
+                      border: 'none',
+                      color: hasUnsaved ? 'var(--md-sys-color-on-primary)' : 'var(--md-sys-color-on-surface-variant)',
+                      fontSize: '0.7rem', fontWeight: 700,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
+                      opacity: hasUnsaved ? 1 : 0.45,
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>save</span>
+                    Save
+                  </button>
+                  <button
+                    onClick={handleReset}
+                    disabled={!hasAnyChange}
+                    style={{
+                      flex: 1, padding: '5px', borderRadius: '8px',
+                      cursor: hasAnyChange ? 'pointer' : 'default',
+                      background: 'none',
+                      border: '1px solid var(--md-sys-color-outline-variant)',
+                      color: 'var(--md-sys-color-on-surface-variant)', fontSize: '0.7rem', fontWeight: 600,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
+                      opacity: hasAnyChange ? 1 : 0.45,
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>restart_alt</span>
+                    Reset
+                  </button>
+                </div>
+              </div>
+
               {LAYOUT_GROUPS.map((group) => {
                 const themes = groupedThemes[group.key] || [];
                 if (!themes.length) return null;

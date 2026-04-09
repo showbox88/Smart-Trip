@@ -144,6 +144,42 @@ export async function saveTheme(supabase, { authorId, name, description, themeDa
 }
 
 /**
+ * Fetch user's saved color overrides from profiles table
+ * @param {object} supabase
+ * @param {string} userId
+ * @returns {object} e.g. { primary: '#adc6ff', background: '#0d1324' }
+ */
+export async function fetchThemeOverrides(supabase, userId) {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('theme_overrides')
+      .eq('id', userId)
+      .single();
+    if (error || !data) return {};
+    return data.theme_overrides || {};
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * Save user's color overrides to profiles table
+ * @param {object} supabase
+ * @param {string} userId
+ * @param {object} overrides - e.g. { primary: '#adc6ff' }
+ */
+export async function saveThemeOverrides(supabase, userId, overrides) {
+  try {
+    await supabase
+      .from('profiles')
+      .upsert({ id: userId, theme_overrides: overrides }, { onConflict: 'id' });
+  } catch {
+    // silently fail — localStorage cache serves as fallback
+  }
+}
+
+/**
  * Fetch all public themes (for theme gallery)
  * @param {object} supabase
  * @param {number} limit
