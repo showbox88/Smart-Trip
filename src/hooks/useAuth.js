@@ -2,10 +2,12 @@ import { useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
+import { useTheme } from '../theme';
 
 export function useAuth() {
   const { state, dispatch } = useApp();
   const { setLanguage } = useI18n();
+  const { setUserId: setThemeUserId } = useTheme();
 
   // Subscribe to auth state changes on mount
   useEffect(() => {
@@ -22,6 +24,7 @@ export function useAuth() {
             avatar: u.user_metadata?.avatar_url || null,
           },
         });
+        setThemeUserId(u.id);
       }
       dispatch({ type: 'SET_LOADING', payload: false });
     });
@@ -39,13 +42,15 @@ export function useAuth() {
             avatar: u.user_metadata?.avatar_url || null,
           },
         });
+        setThemeUserId(u.id);
       } else {
         dispatch({ type: 'LOGOUT' });
+        setThemeUserId(null);
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [dispatch]);
+  }, [dispatch, setThemeUserId]);
 
   // Load user data (trips + settings) after user is set
   useEffect(() => {

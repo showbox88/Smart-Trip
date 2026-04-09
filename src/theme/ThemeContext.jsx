@@ -23,6 +23,7 @@ import {
   saveActiveThemeId,
 } from './themeStorage';
 import { PRESET_THEMES } from './presetThemes';
+import { supabase } from '../lib/supabase';
 
 export const ThemeContext = createContext(null);
 
@@ -68,7 +69,8 @@ async function persistPresetToSupabase(supabase, userId, themeJson) {
   }
 }
 
-export function ThemeProvider({ children, supabase, userId }) {
+export function ThemeProvider({ children }) {
+  const [userId, setUserId] = useState(null);
   const [currentTheme, setCurrentTheme] = useState(() => {
     // Synchronous: read from localStorage to prevent FOUC
     const { theme } = getCachedTheme();
@@ -93,7 +95,7 @@ export function ThemeProvider({ children, supabase, userId }) {
 
   // Sync with Supabase when user is authenticated
   useEffect(() => {
-    if (!supabase || !userId) return;
+    if (!userId) return;
 
     let cancelled = false;
 
@@ -149,7 +151,7 @@ export function ThemeProvider({ children, supabase, userId }) {
     } finally {
       setIsLoading(false);
     }
-  }, [supabase, userId]);
+  }, [userId]);
 
   // Apply a theme JSON directly (for preview or custom themes)
   const applyCustomTheme = useCallback((themeJson) => {
@@ -178,11 +180,11 @@ export function ThemeProvider({ children, supabase, userId }) {
     setCachedTheme(presetId, themeJson);
 
     // Persist to Supabase in background
-    if (supabase && userId) {
+    if (userId) {
       persistPresetToSupabase(supabase, userId, themeJson);
     }
     return true;
-  }, [supabase, userId]);
+  }, [userId]);
 
   // Reset to default theme
   const resetTheme = useCallback(() => {
@@ -192,10 +194,10 @@ export function ThemeProvider({ children, supabase, userId }) {
     setThemeId('default');
     clearCachedTheme();
 
-    if (supabase && userId) {
+    if (userId) {
       saveActiveThemeId(supabase, userId, null);
     }
-  }, [supabase, userId]);
+  }, [userId]);
 
   const value = useMemo(() => ({
     currentTheme,
@@ -205,7 +207,8 @@ export function ThemeProvider({ children, supabase, userId }) {
     applyCustomTheme,
     applyPresetTheme,
     resetTheme,
-  }), [currentTheme, themeId, isLoading, setThemeById, applyCustomTheme, applyPresetTheme, resetTheme]);
+    setUserId,
+  }), [currentTheme, themeId, isLoading, setThemeById, applyCustomTheme, applyPresetTheme, resetTheme, setUserId]);
 
   return (
     <ThemeContext.Provider value={value}>
