@@ -136,6 +136,26 @@
     grid-template-columns: 1fr;
 }
 
+/* 竖屏平板（touch，≥600px）：覆盖为2列 */
+@media (min-width: 600px) and (orientation: portrait) and (pointer: coarse) {
+    .trip-dashboard-container .trip-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.25rem;
+    }
+    .trip-dashboard-container .trip-thumb {
+        height: 180px;
+    }
+    .trip-dashboard-container .thumb-main-img {
+        object-fit: cover;
+    }
+    .trip-dashboard-container .thumb-blur-bg {
+        display: none;
+    }
+    .trip-dashboard-container .trip-card {
+        min-height: 380px;
+    }
+}
+
 /* Mobile View Mode Support (Class based toggling in JS) */
 body.mobile-mode-map .main-itinerary { display: none !important; }
 body.mobile-mode-plan .map-view { display: none !important; }
