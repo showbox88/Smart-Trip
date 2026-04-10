@@ -1,4 +1,4 @@
-import { useState, useMemo, memo } from 'react';
+import { useState, useMemo, memo, useEffect } from 'react';
 import { format, addDays } from 'date-fns';
 import { zhCN, enUS } from 'date-fns/locale';
 import { useI18n } from '../../context/I18nContext';
@@ -31,10 +31,22 @@ export default memo(function DaySection({
   onFocusStop,
   pendingFocusId, setPendingFocusId,
   onSwapPlanB, onAddPlanBAlternative, onRemovePlanBAlternative,
+  pendingTransportEdit, onClearPendingTransportEdit,
 }) {
   const { t, language } = useI18n();
   const [insertingAfterStopId, setInsertingAfterStopId] = useState(null);
   const [editingTransport, setEditingTransport] = useState(null); // { stop, dayId }
+
+  // 添加交通卡后自动打开编辑 modal
+  useEffect(() => {
+    if (!pendingTransportEdit) return;
+    if (pendingTransportEdit.dayId !== day.id) return;
+    const stop = (day.stops || []).find(s => s.id === pendingTransportEdit.stopId);
+    if (stop) {
+      setEditingTransport({ stop, dayId: day.id });
+      onClearPendingTransportEdit?.();
+    }
+  }, [pendingTransportEdit, day.id, day.stops, onClearPendingTransportEdit]);
   const activeColor = day.color || 'var(--st-color-timeline-default)';
 
   const hotelContext = getHotelContextForDay(trip, day.id);

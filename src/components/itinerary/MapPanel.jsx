@@ -1349,26 +1349,25 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [], is
         )}
         
         {mapReady && (
-          <button
-            id="map-dark-toggle"
-            onClick={() => setDarkMode(!darkMode)}
-            title={darkMode ? t('map.toggle_day') : t('map.toggle_night')}
-          >
-            {darkMode ? '☀️' : '🌙'}
-          </button>
-        )}
-
-        {mapReady && (
-          <button
-            id="map-gps-btn"
-            onClick={handleLocate}
-            title="我的位置"
-            className={locating ? 'locating' : ''}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>
-              {locating ? 'gps_not_fixed' : 'my_location'}
-            </span>
-          </button>
+          <div id="map-controls-row">
+            <button
+              id="map-dark-toggle"
+              onClick={() => setDarkMode(!darkMode)}
+              title={darkMode ? t('map.toggle_day') : t('map.toggle_night')}
+            >
+              {darkMode ? '☀️' : '🌙'}
+            </button>
+            <button
+              id="map-gps-btn"
+              onClick={handleLocate}
+              title="我的位置"
+              className={locating ? 'locating' : ''}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>
+                {locating ? 'gps_not_fixed' : 'my_location'}
+              </span>
+            </button>
+          </div>
         )}
 
         {!mapReady && (

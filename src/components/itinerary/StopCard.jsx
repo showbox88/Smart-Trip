@@ -397,7 +397,7 @@ export default React.memo(function StopCard({
                   >{t('common.cancel') || 'Cancel'}</button>
                   <button
                     onClick={handleConfirmDelete}
-                    style={{ padding: '0.25rem 0.6rem', borderRadius: '6px', background: 'var(--md-sys-color-error)', border: 'none', color: 'var(--md-sys-color-on-surface)', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600 }}
+                    style={{ padding: '0.25rem 0.6rem', borderRadius: '6px', background: 'var(--md-sys-color-error)', border: 'none', color: 'var(--md-sys-color-on-error)', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600 }}
                   >{t('common.delete') || 'Delete'}</button>
                 </div>
               )}
@@ -476,7 +476,7 @@ export default React.memo(function StopCard({
                 </div>
 
                 {/* Vertical Details List: Address -> Phone */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '0.8rem' }}>
+                <div className="rich-stop-card-details" style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '0.8rem' }}>
                   {/* Address */}
                   {stop.address && (
                     <div className="rich-stop-card-address" style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
@@ -566,8 +566,8 @@ export default React.memo(function StopCard({
                         className="stop-chip editable"
                         onClick={handleTimeClick}
                         style={{
-                          background: 'rgba(249, 115, 22, 0.08)',
-                          color: 'var(--st-color-category-food)',
+                          background: 'var(--md-sys-color-primary-container)',
+                          color: 'var(--md-sys-color-on-primary-container)',
                           padding: '4px 10px',
                           borderRadius: '8px',
                           fontSize: '0.78rem',
@@ -575,7 +575,7 @@ export default React.memo(function StopCard({
                           display: 'flex',
                           alignItems: 'center',
                           gap: '6px',
-                          border: '1px solid rgba(249, 115, 22, 0.25)',
+                          border: '1px solid var(--md-sys-color-outline-variant)',
                           cursor: 'pointer'
                         }}
                       >
@@ -584,20 +584,20 @@ export default React.memo(function StopCard({
                       </div>
                     )}
 
-                    <div 
+                    <div
                       className="stop-chip editable"
                       onClick={handleExpenseClick}
-                      style={{ 
-                        background: 'rgba(16, 185, 129, 0.08)', 
-                        color: 'var(--md-sys-color-tertiary)',
-                        padding: '4px 10px', 
-                        borderRadius: '8px', 
-                        fontSize: '0.78rem', 
+                      style={{
+                        background: 'var(--md-sys-color-primary-container)',
+                        color: 'var(--md-sys-color-on-primary-container)',
+                        padding: '4px 10px',
+                        borderRadius: '8px',
+                        fontSize: '0.78rem',
                         fontWeight: 800,
                         display: 'flex',
                         alignItems: 'center',
                         gap: '6px',
-                        border: '1px solid rgba(16, 185, 129, 0.25)',
+                        border: '1px solid var(--md-sys-color-outline-variant)',
                         cursor: 'pointer'
                       }}
                     >
@@ -615,7 +615,7 @@ export default React.memo(function StopCard({
                         onClick={(e) => e.stopPropagation()}
                         title={t('itinerary.navigate') || 'Navigate'}
                         className="stop-chip nav-chip"
-                        style={{ background: 'rgba(59,130,246,0.08)', color: 'var(--md-sys-color-primary)', padding: '4px 10px', borderRadius: '8px', fontSize: '0.78rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '6px', border: '1px solid rgba(59,130,246,0.25)', textDecoration: 'none', cursor: 'pointer' }}
+                        style={{ background: 'var(--md-sys-color-primary-container)', color: 'var(--md-sys-color-on-primary-container)', padding: '4px 10px', borderRadius: '8px', fontSize: '0.78rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '6px', border: '1px solid var(--md-sys-color-outline-variant)', textDecoration: 'none', cursor: 'pointer' }}
                       >
                         <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>near_me</span>
                         {t('itinerary.navigate') || 'Navigate'}
@@ -717,8 +717,8 @@ export default React.memo(function StopCard({
                       className="stop-chip editable"
                       onClick={(e) => { e.stopPropagation(); setShowPlanB(true); }}
                       style={{
-                        background: 'rgba(139, 92, 246, 0.08)',
-                        color: '#8b5cf6',
+                        background: 'var(--md-sys-color-primary-container)',
+                        color: 'var(--md-sys-color-on-primary-container)',
                         padding: '4px 10px',
                         borderRadius: '8px',
                         fontSize: '0.78rem',
@@ -726,7 +726,7 @@ export default React.memo(function StopCard({
                         display: 'flex',
                         alignItems: 'center',
                         gap: '5px',
-                        border: '1px solid rgba(139, 92, 246, 0.25)',
+                        border: '1px solid var(--md-sys-color-outline-variant)',
                         cursor: 'pointer',
                         position: 'relative',
                       }}
@@ -735,8 +735,8 @@ export default React.memo(function StopCard({
                       Plan B
                       {stop.planB?.length > 0 && (
                         <span style={{
-                          background: '#8b5cf6',
-                          color: '#fff',
+                          background: 'var(--md-sys-color-primary)',
+                          color: 'var(--md-sys-color-on-primary)',
                           fontSize: '0.6rem',
                           fontWeight: 800,
                           minWidth: '16px',

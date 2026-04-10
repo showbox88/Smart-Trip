@@ -35,6 +35,13 @@ export default function DashboardFilters() {
           <span className="material-symbols-outlined">grid_view</span>
         </button>
         <button
+          className={`view-icon${state.dashboardView === 'compact' ? ' active' : ''}`}
+          onClick={() => dispatch({ type: 'SET_DASHBOARD_VIEW', payload: 'compact' })}
+          title={t('dashboard.view_compact') || 'Compact Cards'}
+        >
+          <span className="material-symbols-outlined">view_module</span>
+        </button>
+        <button
           className={`view-icon${state.dashboardView === 'list' ? ' active' : ''}`}
           onClick={() => dispatch({ type: 'SET_DASHBOARD_VIEW', payload: 'list' })}
         >

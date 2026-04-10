@@ -5,6 +5,7 @@ import { useApp } from '../../context/AppContext';
 import { useTrips } from '../../hooks/useTrips';
 import { useTheme } from '../../theme';
 import { calculateDays, formatCurrency, isCountableStop } from '../../utils/formatters';
+import { getCompactStyleComponent } from './CompactCardStyles';
 
 function getStatus(trip, t) {
   const today = new Date().toISOString().split('T')[0];
@@ -20,7 +21,7 @@ function getStatus(trip, t) {
 }
 
 
-export default function TripCard({ trip, isList = false, onEdit, onShare }) {
+export default function TripCard({ trip, isList = false, isCompact = false, onEdit, onShare }) {
   const { t } = useI18n();
   const { state } = useApp();
   const { deleteTrip } = useTrips();
@@ -60,6 +61,32 @@ export default function TripCard({ trip, isList = false, onEdit, onShare }) {
     e.stopPropagation();
     setMenuOpen(v => !v);
   };
+
+  // ── Compact card mode — 调度到用户选中的样式组件 ──
+  if (isCompact) {
+    const StyleComp = getCompactStyleComponent(state.compactCardStyle);
+    return (
+      <StyleComp
+        trip={trip}
+        duration={duration}
+        stopsCount={stopsCount}
+        totalCost={totalCost}
+        status={status}
+        settings={state.settings}
+        formatCurrency={formatCurrency}
+        t={t}
+        isBlossom={isBlossom}
+        menuOpen={menuOpen}
+        setMenuOpen={setMenuOpen}
+        onOpen={handleOpen}
+        onMenuToggle={handleMenuToggle}
+        onEdit={onEdit}
+        onShare={onShare}
+        onDelete={handleDelete}
+      />
+    );
+  }
+
 
   if (isList) {
     // 新方式：从 trip.settings.destinations 读取用户手动添加的城市（[{ name, lat, lng, ... }]）

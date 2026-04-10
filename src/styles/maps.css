@@ -135,15 +135,24 @@ gmp-advanced-marker::part(pin) {
     box-shadow: none !important;
 }
 
+/* --- Map Controls Row (dark toggle + GPS side by side) --- */
+#map-controls-row {
+    position: absolute;
+    top: 65px; /* below the fixed "Itinerary" back button (~1rem + 32px btn + 8px gap) */
+    right: 15px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    z-index: 1001;
+}
+
 /* --- Map Dark Mode Toggle --- */
 #map-dark-toggle {
-    position: absolute;
-    top: 15px;
-    right: 15px;
+    position: static;
     width: 44px;
     height: 44px;
     background: rgba(13, 17, 27, 0.85);
-    /* Dark semi-transparent */
     backdrop-filter: blur(8px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 50%;
@@ -154,12 +163,11 @@ gmp-advanced-marker::part(pin) {
     justify-content: center;
     font-size: 1.25rem;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-    z-index: 1001;
-    /* Above map and info panels */
     transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     line-height: 1;
     padding: 0;
     overflow: hidden;
+    flex-shrink: 0;
 }
 
 #map-dark-toggle:hover {
@@ -175,9 +183,7 @@ gmp-advanced-marker::part(pin) {
 
 /* --- GPS Location Button --- */
 #map-gps-btn {
-    position: absolute;
-    top: 69px; /* below dark toggle (15px + 44px + 10px) */
-    right: 15px;
+    position: static;
     width: 44px;
     height: 44px;
     background: rgba(13, 17, 27, 0.85);
@@ -190,10 +196,10 @@ gmp-advanced-marker::part(pin) {
     align-items: center;
     justify-content: center;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-    z-index: 1001;
     transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     padding: 0;
     overflow: hidden;
+    flex-shrink: 0;
 }
 
 #map-gps-btn:hover {

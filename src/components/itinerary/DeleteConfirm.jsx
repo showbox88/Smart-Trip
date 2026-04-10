@@ -19,7 +19,7 @@ export default memo(function DeleteConfirm({ onDelete }) {
     <div ref={ref} style={{ position: 'absolute', top: '-0.5rem', right: '0.3rem', zIndex: 5 }}>
       <button
         onClick={(e) => { e.stopPropagation(); setConfirming(true); }}
-        style={{ background: '#1e3a5f', border: 'none', color: '#93c5fd', cursor: 'pointer', padding: '3px 5px', borderRadius: '6px', lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        style={{ background: 'var(--md-sys-color-primary-container)', border: 'none', color: 'var(--md-sys-color-on-primary-container)', cursor: 'pointer', padding: '3px 5px', borderRadius: '6px', lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
         title={t('common.delete') || 'Delete'}
       >
         <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>close</span>
@@ -32,7 +32,7 @@ export default memo(function DeleteConfirm({ onDelete }) {
           >{t('common.cancel') || 'Cancel'}</button>
           <button
             onClick={(e) => { e.stopPropagation(); onDelete?.(); setConfirming(false); }}
-            style={{ padding: '0.25rem 0.6rem', borderRadius: '6px', background: '#ef4444', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600 }}
+            style={{ padding: '0.25rem 0.6rem', borderRadius: '6px', background: 'var(--md-sys-color-error)', border: 'none', color: 'var(--md-sys-color-on-error)', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600 }}
           >{t('common.delete') || 'Delete'}</button>
         </div>
       )}

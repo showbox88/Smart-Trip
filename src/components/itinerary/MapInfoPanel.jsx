@@ -33,8 +33,8 @@ function renderAddress(address) {
     const parts = address.split(',');
     return (
       <>
-        <div style={{ color: 'white', fontWeight: 700, marginBottom: '2px' }}>{parts[0].trim()}</div>
-        <div style={{ opacity: 0.6, fontSize: '0.8rem' }}>{parts.slice(1).join(',').trim()}</div>
+        <div style={{ color: 'var(--md-sys-color-on-surface)', fontWeight: 700, marginBottom: '2px' }}>{parts[0].trim()}</div>
+        <div style={{ color: 'var(--md-sys-color-on-surface-variant)', fontSize: '0.8rem' }}>{parts.slice(1).join(',').trim()}</div>
       </>
     );
   }
@@ -42,8 +42,8 @@ function renderAddress(address) {
   if (match) {
     return (
       <>
-        <div style={{ color: 'white', fontWeight: 700, marginBottom: '2px' }}>{match[1]}</div>
-        <div style={{ opacity: 0.6, fontSize: '0.8rem' }}>{match[2]}</div>
+        <div style={{ color: 'var(--md-sys-color-on-surface)', fontWeight: 700, marginBottom: '2px' }}>{match[1]}</div>
+        <div style={{ color: 'var(--md-sys-color-on-surface-variant)', fontSize: '0.8rem' }}>{match[2]}</div>
       </>
     );
   }
@@ -87,7 +87,7 @@ function FavoritesTab({ favorites, loading, trip, onSelectPlace, onAddToDay, onT
           </div>
           {/* Info */}
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontWeight: 700, fontSize: '0.85rem', color: 'white', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{fav.name || fav.place_id}</div>
+            <div style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--md-sys-color-on-surface)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{fav.name || fav.place_id}</div>
             <div style={{ fontSize: '0.73rem', color: 'var(--st-color-text-muted)', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
               {fav.category && <span>{fav.category}</span>}
               {fav.rating && <span style={{ color: 'var(--st-color-status-soon)' }}>★ {fav.rating}</span>}
@@ -97,7 +97,7 @@ function FavoritesTab({ favorites, loading, trip, onSelectPlace, onAddToDay, onT
           <button
             onClick={e => { e.stopPropagation(); onAddToDay(fav.place_id, e.currentTarget); }}
             title={t('map.add_to_itinerary') || '添加到行程'}
-            style={{ background: 'rgba(60,131,246,0.15)', border: '1px solid rgba(60,131,246,0.3)', color: '#60a5fa', borderRadius: '6px', padding: '4px 8px', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700, flexShrink: 0, whiteSpace: 'nowrap' }}
+            style={{ background: 'var(--md-sys-color-primary-container)', border: '1px solid var(--md-sys-color-primary)', color: 'var(--md-sys-color-on-primary-container)', borderRadius: '6px', padding: '4px 8px', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700, flexShrink: 0, whiteSpace: 'nowrap' }}
           >
             + {t('map.trip') || '行程'}
           </button>
@@ -206,16 +206,16 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay, onSelectPla
       id="map-info-panel"
       style={{
         position: 'absolute', bottom: 0, left: 0, right: 0,
-        minHeight: '350px', maxHeight: '60vh', background: 'rgba(13, 17, 27, 0.98)',
+        minHeight: '350px', maxHeight: '60vh', background: 'var(--md-sys-color-surface-container)',
         backdropFilter: 'blur(12px)',
-        borderTop: '1px solid rgba(255,255,255,0.1)',
+        borderTop: '1px solid var(--md-sys-color-outline-variant)',
         display: 'flex', flexDirection: 'column', zIndex: 2000,
         fontFamily: 'var(--md-sys-typescale-body-font)',
-        color: 'white',
+        color: 'var(--md-sys-color-on-surface)',
         overflow: 'visible',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', padding: '0 1.5rem', height: '50px', position: 'relative', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', padding: '0 1.5rem', height: '50px', position: 'relative', borderBottom: '1px solid var(--md-sys-color-outline-variant)' }}>
         <div style={{ display: 'flex', gap: '20px', flex: 1 }}>
           {['about', 'reviews', 'photos'].map((tab) => (
             <button
@@ -223,7 +223,7 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay, onSelectPla
               onClick={() => setActiveTab(tab)}
               style={{
                 background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.8rem',
-                color: activeTab === tab ? 'white' : 'var(--st-color-text-muted)',
+                color: activeTab === tab ? 'var(--md-sys-color-on-surface)' : 'var(--st-color-text-muted)',
                 fontWeight: 700,
                 padding: '14px 0',
                 borderBottom: activeTab === tab ? '2px solid var(--st-color-category-food)' : '2px solid transparent',
@@ -271,12 +271,12 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay, onSelectPla
             position: 'fixed',
             bottom: dayPickerPos.bottom,
             left: dayPickerPos.left,
-            background: '#1a1e26',
-            border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px',
+            background: 'var(--md-sys-color-surface-container-high)',
+            border: '1px solid var(--md-sys-color-outline-variant)', borderRadius: '10px',
             minWidth: '220px', boxShadow: '0 20px 50px rgba(0,0,0,0.9)',
             padding: '4px 0', zIndex: 9999,
           }}>
-            <div style={{ padding: '8px 14px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ padding: '8px 14px', borderBottom: '1px solid var(--md-sys-color-outline-variant)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '0.75rem', color: 'var(--st-color-text-muted)', fontWeight: 800, textTransform: 'uppercase' }}>{t('map.select_date') || 'Add to Day'}</span>
             </div>
             <div style={{ maxHeight: '180px', overflowY: 'auto' }}>
@@ -289,13 +289,13 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay, onSelectPla
                     style={{
                       padding: '10px 14px', display: 'flex', alignItems: 'center', cursor: 'pointer',
                       background: isAdded ? 'rgba(16,185,129,0.06)' : 'transparent',
-                      transition: 'background 0.2s', borderBottom: '1px solid rgba(255,255,255,0.02)',
+                      transition: 'background 0.2s', borderBottom: '1px solid var(--md-sys-color-outline-variant)',
                     }}
                     onMouseOver={(e) => { e.currentTarget.style.background = isAdded ? 'rgba(16,185,129,0.12)' : 'rgba(255,255,255,0.05)'; }}
                     onMouseOut={(e) => { e.currentTarget.style.background = isAdded ? 'rgba(16,185,129,0.06)' : 'transparent'; }}
                   >
                     <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: day.color || 'var(--st-color-category-food)', marginRight: '12px' }} />
-                    <span style={{ fontSize: '0.85rem', fontWeight: 700, color: isAdded ? 'var(--md-sys-color-tertiary)' : 'white', flex: 1 }}>{t('itinerary.day_label')}{idx + 1}{t('itinerary.day_suffix')}</span>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 700, color: isAdded ? 'var(--md-sys-color-tertiary)' : 'var(--md-sys-color-on-surface)', flex: 1 }}>{t('itinerary.day_label')}{idx + 1}{t('itinerary.day_suffix')}</span>
                     <span style={{ fontSize: '0.75rem', color: isAdded ? 'var(--md-sys-color-tertiary)' : 'var(--st-color-text-muted)', marginRight: isAdded ? '6px' : 0 }}>{day.date ? new Date(day.date.replace(/-/g, '/')).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''}</span>
                     {isAdded && <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--md-sys-color-tertiary)' }}>check_circle</span>}
                   </div>
@@ -357,23 +357,23 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay, onSelectPla
                 <div className="poi-about-container" style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start' }}>
                   <div className="poi-info-content" style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '1rem' }}>
-                      <h1 style={{ margin: 0, fontSize: '1.35rem', fontWeight: 800, letterSpacing: '-0.02em', color: 'white', lineHeight: 1.1 }}>
+                      <h1 style={{ margin: 0, fontSize: '1.35rem', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--md-sys-color-on-surface)', lineHeight: 1.1 }}>
                         {place.displayName}
                       </h1>
 
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         {category && (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(255,255,255,0.06)', padding: '3px 8px', borderRadius: '5px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'var(--md-sys-color-surface-container-high)', padding: '3px 8px', borderRadius: '5px' }}>
                             <span className="material-symbols-outlined" style={{ fontSize: '13px', color: 'var(--st-color-text-muted)' }}>restaurant</span>
-                            <span style={{ color: '#cbd5e1', fontSize: '0.7rem', fontWeight: 700 }}>{category}</span>
+                            <span style={{ color: 'var(--md-sys-color-on-surface-variant)', fontSize: '0.7rem', fontWeight: 700 }}>{category}</span>
                           </div>
                         )}
 
                         {place.rating && (
                           <div style={{ display: 'flex', alignItems: 'center', gap: '3px', background: 'rgba(249,115,22,0.08)', padding: '3px 8px', borderRadius: '5px' }}>
                             <span style={{ color: 'var(--st-color-category-food)', fontSize: '13px' }}>*</span>
-                            <span style={{ color: 'white', fontWeight: 800, fontSize: '0.8rem' }}>{place.rating}</span>
-                            <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.65rem' }}>({place.userRatingCount})</span>
+                            <span style={{ color: 'var(--md-sys-color-on-surface)', fontWeight: 800, fontSize: '0.8rem' }}>{place.rating}</span>
+                            <span style={{ color: 'var(--md-sys-color-on-surface-variant)', fontSize: '0.65rem' }}>({place.userRatingCount})</span>
                           </div>
                         )}
                       </div>
@@ -383,7 +383,7 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay, onSelectPla
                       {place.formattedAddress && (
                         <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
                           <span className="material-symbols-outlined" style={{ color: 'var(--st-color-category-food)', fontSize: '16px', flexShrink: 0, marginTop: '2px' }}>location_on</span>
-                          <div style={{ fontSize: '0.82rem', color: '#cbd5e1', lineHeight: 1.4 }}>
+                          <div style={{ fontSize: '0.82rem', color: 'var(--md-sys-color-on-surface-variant)', lineHeight: 1.4 }}>
                             {renderAddress(place.formattedAddress)}
                           </div>
                         </div>
@@ -408,7 +408,7 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay, onSelectPla
                       )}
                     </div>
 
-                    <div style={{ height: '1px', background: 'rgba(255,255,255,0.08)', margin: '1rem 0' }} />
+                    <div style={{ height: '1px', background: 'var(--md-sys-color-outline-variant)', margin: '1rem 0' }} />
 
                     {place.regularOpeningHours?.weekdayDescriptions && (
                       <div
@@ -419,10 +419,10 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay, onSelectPla
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'help' }}>
                           <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'var(--st-color-status-soon)' }}>schedule</span>
-                          <span style={{ color: 'white', fontSize: '0.85rem', fontWeight: 700 }}>
+                          <span style={{ color: 'var(--md-sys-color-on-surface)', fontSize: '0.85rem', fontWeight: 700 }}>
                             {place.regularOpeningHours.weekdayDescriptions[new Date().getDay()] || 'Business Hours'}
                           </span>
-                          <span className="material-symbols-outlined" style={{ fontSize: '14px', color: 'rgba(255,255,255,0.4)' }}>expand_less</span>
+                          <span className="material-symbols-outlined" style={{ fontSize: '14px', color: 'var(--md-sys-color-on-surface-variant)' }}>expand_less</span>
                         </div>
 
                         {hoverHours && createPortal(
@@ -431,9 +431,9 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay, onSelectPla
                             bottom: hoursPos.bottom,
                             left: hoursPos.left,
                             zIndex: 9999,
-                            background: 'rgba(23, 27, 41, 0.98)',
+                            background: 'var(--md-sys-color-surface-container-high)',
                             backdropFilter: 'blur(12px)',
-                            border: '1px solid rgba(255, 255, 255, 0.12)',
+                            border: '1px solid var(--md-sys-color-outline-variant)',
                             borderRadius: '12px',
                             padding: '16px',
                             boxShadow: '0 10px 40px rgba(0,0,0,0.6)',
@@ -447,7 +447,7 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay, onSelectPla
                               const hoursStr = splitIdx > -1 ? desc.substring(splitIdx + 2) : '';
                               const isToday = i === new Date().getDay();
                               return (
-                                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: '2rem', fontSize: '0.78rem', color: isToday ? 'white' : 'rgba(255,255,255,0.6)' }}>
+                                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: '2rem', fontSize: '0.78rem', color: isToday ? 'var(--md-sys-color-on-surface)' : 'var(--md-sys-color-on-surface-variant)' }}>
                                   <span style={{ fontWeight: isToday ? 800 : 500 }}>{dayStr}</span>
                                   <span style={{ fontWeight: isToday ? 800 : 600 }}>{hoursStr}</span>
                                 </div>
@@ -462,8 +462,8 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay, onSelectPla
                     {matchedStop?.time && (
                       <div style={{
                         display: 'inline-flex', alignItems: 'center', gap: '6px',
-                        background: 'rgba(255,255,255,0.08)', borderRadius: '8px',
-                        padding: '8px 14px', fontSize: '0.82rem', fontWeight: 800, color: 'white',
+                        background: 'var(--md-sys-color-surface-container-high)', borderRadius: '8px',
+                        padding: '8px 14px', fontSize: '0.82rem', fontWeight: 800, color: 'var(--md-sys-color-on-surface)',
                       }}>
                         <span className="material-symbols-outlined" style={{ fontSize: '15px', color: 'var(--st-color-category-food)' }}>event_note</span>
                         {t('itinerary.scheduled_time') || 'Scheduled'}: {matchedStop.time} {matchedStop.period || ''}
@@ -482,7 +482,7 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay, onSelectPla
                         overflow: 'hidden',
                         boxShadow: '0 10px 40px rgba(0,0,0,0.6)',
                         cursor: 'pointer',
-                        border: '4px solid rgba(255,255,255,0.08)',
+                        border: '4px solid var(--md-sys-color-outline-variant)',
                         transition: 'transform 0.3s ease',
                       }}
                       onMouseOver={(e) => { e.currentTarget.style.transform = 'scale(1.01)'; }}
@@ -496,9 +496,9 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay, onSelectPla
 
               {activeTab === 'reviews' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                  <div style={{ display: 'flex', gap: '2rem', padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', gap: '2rem', padding: '1rem', background: 'var(--md-sys-color-surface-container-high)', borderRadius: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
                     <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: '2.5rem', fontWeight: 800, color: 'white', lineHeight: 1 }}>{place.rating || '-'}</div>
+                      <div style={{ fontSize: '2.5rem', fontWeight: 800, color: 'var(--md-sys-color-on-surface)', lineHeight: 1 }}>{place.rating || '-'}</div>
                       <div style={{ margin: '0.4rem 0' }}><StarRating rating={place.rating} /></div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--st-color-text-muted)' }}>{place.userRatingCount || 0} {t('map.tab_reviews') || 'Reviews'}</div>
                     </div>
@@ -509,7 +509,7 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay, onSelectPla
                         return (
                           <div key={stars} style={{ display: 'flex', alignItems: 'center', gap: '8px', height: '8px' }}>
                             <span style={{ fontSize: '0.7rem', color: 'var(--st-color-text-muted)', minWidth: '10px' }}>{stars}</span>
-                            <div style={{ flex: 1, height: '4px', background: 'rgba(255,255,255,0.1)', borderRadius: '2px', overflow: 'hidden' }}>
+                            <div style={{ flex: 1, height: '4px', background: 'var(--md-sys-color-outline-variant)', borderRadius: '2px', overflow: 'hidden' }}>
                               <div style={{ width: `${pct || (stars <= (place.rating || 0) ? 80 - (5 - stars) * 15 : 20)}%`, height: '100%', background: 'var(--st-color-category-food)', borderRadius: '2px' }} />
                             </div>
                           </div>
@@ -519,9 +519,9 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay, onSelectPla
                   </div>
 
                   {reviews.map((review, i) => (
-                    <div key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '0.8rem', marginBottom: '0.8rem' }}>
+                    <div key={i} style={{ borderBottom: '1px solid var(--md-sys-color-outline-variant)', paddingBottom: '0.8rem', marginBottom: '0.8rem' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-                        <div style={{ width: '30px', height: '30px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 800, color: 'var(--st-color-text-muted)' }}>
+                        <div style={{ width: '30px', height: '30px', borderRadius: '50%', background: 'var(--md-sys-color-surface-container-highest)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 800, color: 'var(--md-sys-color-on-surface-variant)' }}>
                           {review.authorAttribution?.displayName?.[0] || 'U'}
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -529,7 +529,7 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay, onSelectPla
                           <div style={{ marginTop: '4px' }}><StarRating rating={review.rating} /></div>
                         </div>
                       </div>
-                      <p style={{ margin: 0, color: '#cbd5e1', fontSize: '0.92rem', lineHeight: 1.6 }}>
+                      <p style={{ margin: 0, color: 'var(--md-sys-color-on-surface-variant)', fontSize: '0.92rem', lineHeight: 1.6 }}>
                         {typeof review.text === 'object' ? review.text?.text : review.text}
                       </p>
                     </div>
@@ -543,7 +543,7 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay, onSelectPla
                     <div
                       key={i}
                       onClick={() => handlePhotoClick(i)}
-                      style={{ aspectRatio: '1.5', borderRadius: '12px', overflow: 'hidden', cursor: 'pointer', background: '#1e293b' }}
+                      style={{ aspectRatio: '1.5', borderRadius: '12px', overflow: 'hidden', cursor: 'pointer', background: 'var(--md-sys-color-surface-container-high)' }}
                     >
                       <img src={photoSrc} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     </div>

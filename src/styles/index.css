@@ -11,3 +11,132 @@
 @import './responsive/desktop.css' screen and (min-width: 1101px);
 @import './responsive/tablet.css' screen and (min-width: 901px) and (max-width: 1100px);
 @import './responsive/mobile.css' screen and (max-width: 900px);
+
+/* ── 桌面/网页视图 Stop Card — 匹配竖屏平板排版（等比缩小） ── */
+@media (min-width: 1101px) {
+    .stop-card-container,
+    .stop-card-inner {
+        min-height: unset !important;
+    }
+    .rich-stop-card {
+        padding: 0.3rem 0.6rem !important;
+        gap: 0.2rem !important;
+    }
+    .rich-stop-card-title {
+        font-size: 1rem !important;
+        margin-bottom: 0.1rem !important;
+    }
+    .rich-stop-card-address,
+    .rich-stop-card-address *,
+    .rich-stop-card-phone,
+    .rich-stop-card-phone * {
+        font-size: 0.76rem !important;
+        line-height: 1.25 !important;
+    }
+    .stop-card-layout-row {
+        align-items: stretch !important;
+        gap: 0.5rem !important;
+        min-height: unset !important;
+    }
+    .stop-card-left-column {
+        justify-content: space-between !important;
+    }
+    .rich-stop-card-details {
+        gap: 3px !important;
+        margin-bottom: 0.3rem !important;
+    }
+    .rich-stop-card-address,
+    .rich-stop-card-phone {
+        gap: 5px !important;
+    }
+    .rich-stop-card-media {
+        width: 38% !important;
+        aspect-ratio: 4 / 3 !important;
+        height: auto !important;
+        max-height: unset !important;
+        align-self: flex-start !important;
+        flex-shrink: 0 !important;
+        overflow: hidden !important;
+    }
+    .rich-stop-card-media img {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+        object-position: center !important;
+    }
+    .stop-card-actions-row {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 0.3rem !important;
+        margin-top: 0.25rem !important;
+    }
+    .stop-card-actions-row .stop-chip {
+        width: 100% !important;
+        justify-content: center !important;
+        padding: 4px 0 !important;
+        font-size: 0.72rem !important;
+        border-radius: 6px !important;
+        box-sizing: border-box !important;
+    }
+}
+
+/* ── 竖屏平板 Stop Card（独立于 import 宽度限制，直接全局生效）── */
+@media (min-width: 600px) and (max-width: 1100px) and (orientation: portrait) {
+    .stop-card-container,
+    .stop-card-inner {
+        min-height: unset !important;
+    }
+    .rich-stop-card {
+        padding: 0.7rem 0.85rem !important;
+        gap: 0.6rem !important;
+    }
+    .rich-stop-card-title {
+        font-size: 1.55rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    .rich-stop-card-address,
+    .rich-stop-card-address *,
+    .rich-stop-card-phone,
+    .rich-stop-card-phone * {
+        font-size: 1.08rem !important;
+        line-height: 1.55 !important;
+    }
+    .stop-card-layout-row {
+        align-items: stretch !important;
+        gap: 0.75rem !important;
+        min-height: 140px !important;
+    }
+    .stop-card-left-column {
+        justify-content: space-between !important;
+    }
+    /* 图片占右侧约一半，固定比例裁切，不随内容拉伸变形 */
+    .rich-stop-card-media {
+        width: 46% !important;
+        aspect-ratio: 4 / 3 !important;
+        height: auto !important;
+        max-height: unset !important;
+        align-self: flex-start !important;
+        flex-shrink: 0 !important;
+        overflow: hidden !important;
+    }
+    .rich-stop-card-media img {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+        object-position: center !important;
+    }
+    .stop-card-actions-row {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 0.45rem !important;
+        margin-top: 0.4rem !important;
+    }
+    .stop-card-actions-row .stop-chip {
+        width: 100% !important;
+        justify-content: center !important;
+        padding: 6px 0 !important;
+        font-size: 0.8rem !important;
+        border-radius: 8px !important;
+        box-sizing: border-box !important;
+    }
+}

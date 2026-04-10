@@ -239,16 +239,16 @@ export default function TripSidebar({ trip, activeDayId, onAddDay, onRemoveLastD
 const blossomSidebarCSS = `
   .blossom-day-strip {
     width: 100%;
-    padding: 0.75rem 1rem 0.5rem;
+    padding: 0.3rem 0.75rem 0.2rem;
     overflow: hidden;
     border-bottom: 1px solid var(--md-sys-color-outline-variant);
   }
 
   .blossom-day-strip-scroll {
     display: flex;
-    gap: 0.75rem;
+    gap: 0.45rem;
     overflow-x: auto;
-    padding-bottom: 0.5rem;
+    padding-bottom: 0.2rem;
     align-items: center;
     -ms-overflow-style: none;
     scrollbar-width: none;
@@ -260,8 +260,8 @@ const blossomSidebarCSS = `
   /* ── Day pill (circle) ── */
   .blossom-day-pill {
     flex-shrink: 0;
-    width: 56px;
-    height: 56px;
+    width: 38px;
+    height: 38px;
     border-radius: 50%;
     border: none;
     background: var(--md-sys-color-surface-container-high);
@@ -287,11 +287,11 @@ const blossomSidebarCSS = `
 
   /* Active state — large pink circle */
   .blossom-day-pill.active {
-    width: 64px;
-    height: 64px;
+    width: 44px;
+    height: 44px;
     background: var(--md-sys-color-primary-container);
     color: var(--md-sys-color-on-primary-container);
-    box-shadow: 0 6px 16px rgba(131, 75, 88, 0.18);
+    box-shadow: 0 4px 10px rgba(131, 75, 88, 0.18);
   }
 
   /* ── Label "DAY" ── */
@@ -310,20 +310,20 @@ const blossomSidebarCSS = `
 
   /* ── Number "01" ── */
   .blossom-pill-num {
-    font-size: 1.15rem;
+    font-size: 0.8rem;
     font-weight: 800;
     line-height: 1;
     margin-top: 1px;
   }
   .blossom-day-pill.active .blossom-pill-num {
-    font-size: 1.3rem;
+    font-size: 0.9rem;
   }
 
   /* ── Add / Remove buttons — dashed circles ── */
   .blossom-day-pill--add,
   .blossom-day-pill--remove {
-    width: 56px;
-    height: 56px;
+    width: 38px;
+    height: 38px;
     background: transparent;
     border: 2px dashed var(--md-sys-color-outline-variant);
     color: var(--md-sys-color-outline-variant);

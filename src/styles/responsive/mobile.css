@@ -156,6 +156,59 @@
     }
 }
 
+/* 竖屏平板 Stop Card 优化（不限制 pointer，兼容模拟器/浏览器测试） */
+@media (min-width: 600px) and (max-width: 1099px) and (orientation: portrait) {
+    /* 去掉固定最小高度，让卡片随内容自适应 */
+    .stop-card-container,
+    .stop-card-inner {
+        min-height: unset !important;
+    }
+
+    /* 卡片整体：紧凑内边距 */
+    .rich-stop-card {
+        padding: 0.7rem 0.85rem !important;
+        gap: 0.6rem !important;
+    }
+
+    .rich-stop-card-title {
+        font-size: 1.05rem !important;
+        margin-bottom: 0.2rem !important;
+    }
+
+    .rich-stop-card-address, .rich-stop-card-phone {
+        font-size: 0.78rem !important;
+        line-height: 1.25 !important;
+    }
+
+    /* 布局行：stretch 让图片与左栏等高 */
+    .stop-card-layout-row {
+        align-items: stretch !important;
+        gap: 0.75rem !important;
+    }
+
+    /* 图片占右侧约一半宽度，高度随卡片内容撑满 */
+    .rich-stop-card-media {
+        width: 46% !important;
+        height: auto !important;
+        min-height: 110px !important;
+        max-height: unset !important;
+        align-self: stretch !important;
+        flex-shrink: 0 !important;
+    }
+
+    .stop-card-actions-row {
+        gap: 0.45rem !important;
+        flex-wrap: wrap !important;
+        margin-top: 0.4rem !important;
+    }
+
+    .stop-card-actions-row .stop-chip {
+        padding: 4px 10px !important;
+        font-size: 0.76rem !important;
+        border-radius: 8px !important;
+    }
+}
+
 /* Mobile View Mode Support (Class based toggling in JS) */
 body.mobile-mode-map .main-itinerary { display: none !important; }
 body.mobile-mode-plan .map-view { display: none !important; }

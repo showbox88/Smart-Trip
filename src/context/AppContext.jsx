@@ -14,6 +14,7 @@ const initialState = {
   },
   dashboardFilter: 'all',
   dashboardView: 'grid',
+  compactCardStyle: (typeof localStorage !== 'undefined' && localStorage.getItem('compactCardStyle')) || 'sakura',
   sidebarCollapsed: false,
   isLoading: true,
   transitPreview: null, // { steps: [...] } — temporary transit route to preview on map
@@ -34,6 +35,9 @@ function appReducer(state, action) {
       return { ...state, dashboardFilter: action.payload };
     case 'SET_DASHBOARD_VIEW':
       return { ...state, dashboardView: action.payload };
+    case 'SET_COMPACT_CARD_STYLE':
+      try { localStorage.setItem('compactCardStyle', action.payload); } catch {}
+      return { ...state, compactCardStyle: action.payload };
     case 'SET_SIDEBAR_COLLAPSED':
       return { ...state, sidebarCollapsed: action.payload };
     case 'SET_LOADING':

@@ -174,42 +174,46 @@ export default function TripHeader({ trip, onDeleteTrip, onEditTrip, onShareTrip
             </div>
 
             <div className="blossom-header-info">
-              <div className="blossom-header-left">
-                <h2 className="blossom-header-title">
-                  {isDayMode
-                    ? (() => { const d = formatCheckinDate(trip.startDate); return d.weekday; })()
-                    : trip.title
-                  }
-                </h2>
-                <p className="blossom-header-meta">
-                  {isDayMode ? (
-                    formatCheckinDate(trip.startDate)?.full
-                  ) : (
-                    <>
-                      <span className="material-symbols-outlined" style={{ fontSize: 14, verticalAlign: -2 }}>location_on</span>
-                      {formatDateShort(trip.startDate)} — {formatDateShort(trip.endDate)}
-                    </>
-                  )}
-                </p>
-              </div>
+              {/* 标题 — 独占一行 */}
+              <h2 className="blossom-header-title">
+                {isDayMode
+                  ? (() => { const d = formatCheckinDate(trip.startDate); return d.weekday; })()
+                  : trip.title
+                }
+              </h2>
 
-              <div className="blossom-header-right">
-                {!isDayMode && dayCount > 0 && (
-                  <div className="blossom-header-badge">
-                    <span className="material-symbols-outlined" style={{ fontSize: 14 }}>calendar_today</span>
-                    {dayCount} {t('itinerary.days') || 'days'}
-                  </div>
+              {/* 日期 — 独占一行 */}
+              <p className="blossom-header-meta">
+                {isDayMode ? (
+                  formatCheckinDate(trip.startDate)?.full
+                ) : (
+                  <>
+                    <span className="material-symbols-outlined" style={{ fontSize: 14, verticalAlign: -2 }}>location_on</span>
+                    {formatDateShort(trip.startDate)} — {formatDateShort(trip.endDate)}
+                  </>
                 )}
-                {totalCost > 0 && (
-                  <div className="blossom-header-budget">
-                    <span className="blossom-budget-label">{isDayMode ? "Today's Budget" : 'Budget'}</span>
-                    <div className="blossom-budget-pill">
-                      <span className="material-symbols-outlined" style={{ fontSize: 14 }}>filter_vintage</span>
-                      <span className="blossom-budget-value">{formatCurrency(totalCost, state.settings)}</span>
+              </p>
+
+              {/* 底部行：天数 chip（左）+ 预算（右）*/}
+              {(!isDayMode && dayCount > 0) || totalCost > 0 ? (
+                <div className="blossom-header-bottom">
+                  {!isDayMode && dayCount > 0 && (
+                    <div className="blossom-header-badge">
+                      <span className="material-symbols-outlined" style={{ fontSize: 14 }}>calendar_today</span>
+                      {dayCount} {t('itinerary.days') || 'days'}
                     </div>
-                  </div>
-                )}
-              </div>
+                  )}
+                  {totalCost > 0 && (
+                    <div className="blossom-header-budget">
+                      <span className="blossom-budget-label">{isDayMode ? "Today's Budget" : 'Budget'}</span>
+                      <div className="blossom-budget-pill">
+                        <span className="material-symbols-outlined" style={{ fontSize: 14 }}>filter_vintage</span>
+                        <span className="blossom-budget-value">{formatCurrency(totalCost, state.settings)}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : null}
             </div>
           </div>
 
@@ -444,8 +448,8 @@ const blossomHeaderCSS = `
   .blossom-trip-header {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem 1rem;
+    gap: 0.5rem;
+    padding: 0.35rem 0.75rem;
   }
 
   .blossom-header-back {
@@ -468,10 +472,10 @@ const blossomHeaderCSS = `
     position: relative;
     overflow: visible;
     background: var(--md-sys-color-surface-container-lowest);
-    border-radius: 1rem;
-    padding: 1rem 1.25rem;
-    box-shadow: 0 12px 24px rgba(131, 75, 88, 0.05);
-    border-left: 6px solid var(--md-sys-color-primary-container);
+    border-radius: 0.75rem;
+    padding: 0.4rem 0.75rem;
+    box-shadow: 0 6px 16px rgba(131, 75, 88, 0.05);
+    border-left: 4px solid var(--md-sys-color-primary-container);
     min-width: 0;
   }
 
@@ -488,51 +492,50 @@ const blossomHeaderCSS = `
     position: relative;
     z-index: 1;
     display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    gap: 1rem;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
   }
-
-  .blossom-header-left { flex: 1; min-width: 0; }
 
   .blossom-header-title {
     font-family: var(--md-sys-typescale-headline-font);
-    font-size: 1.5rem;
+    font-size: 1rem;
     font-weight: 800;
     color: var(--md-sys-color-primary);
-    margin: 0;
-    line-height: 1.15;
+    margin: 0 0 0.1rem;
+    line-height: 1.2;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    padding-right: 1rem;
   }
 
   .blossom-header-meta {
-    margin: 0.2rem 0 0;
-    font-size: 0.82rem;
+    margin: 0 0 0.25rem;
+    font-size: 0.72rem;
     color: var(--md-sys-color-on-surface-variant);
     display: flex;
     align-items: center;
     gap: 4px;
   }
 
-  .blossom-header-right {
+  .blossom-header-bottom {
     display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 0.3rem;
-    flex-shrink: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-top: 0;
   }
 
   .blossom-header-badge {
     display: flex;
     align-items: center;
-    gap: 4px;
-    font-size: 0.72rem;
+    gap: 3px;
+    font-size: 0.62rem;
     font-weight: 600;
     color: var(--md-sys-color-on-surface-variant);
     background: var(--md-sys-color-surface-container-low);
-    padding: 0.25rem 0.6rem;
+    padding: 0.15rem 0.45rem;
     border-radius: 9999px;
   }
 
@@ -542,20 +545,20 @@ const blossomHeaderCSS = `
 
   .blossom-budget-label {
     display: block;
-    font-size: 0.6rem;
+    font-size: 0.5rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     color: var(--md-sys-color-primary);
-    margin-bottom: 0.15rem;
+    margin-bottom: 0.05rem;
   }
 
   .blossom-budget-pill {
     display: flex;
     align-items: center;
-    gap: 0.35rem;
+    gap: 0.25rem;
     background: rgba(254, 182, 196, 0.2);
-    padding: 0.3rem 0.75rem;
+    padding: 0.15rem 0.5rem;
     border-radius: 9999px;
     color: var(--md-sys-color-primary);
   }
@@ -563,7 +566,7 @@ const blossomHeaderCSS = `
   .blossom-budget-value {
     font-family: var(--md-sys-typescale-headline-font);
     font-weight: 700;
-    font-size: 0.9rem;
+    font-size: 0.75rem;
   }
 
   @keyframes climateSlideDown {
@@ -574,20 +577,7 @@ const blossomHeaderCSS = `
   @media (max-width: 600px) {
     .blossom-header-title { font-size: 1.1rem; }
     .blossom-header-card { padding: 0.6rem 0.75rem; border-left-width: 4px; }
-    .blossom-header-info {
-      flex-direction: column;
-      align-items: stretch;
-      gap: 0.35rem;
-    }
-    .blossom-header-left { flex: none; min-width: 0; }
-    .blossom-header-meta { font-size: 0.72rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .blossom-header-right {
-      flex-direction: row;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.4rem;
-      width: 100%;
-    }
+    .blossom-header-meta { font-size: 0.72rem; }
     .blossom-header-budget { text-align: right; }
     .blossom-budget-label { font-size: 0.5rem; }
     .blossom-budget-pill { padding: 0.2rem 0.5rem; }

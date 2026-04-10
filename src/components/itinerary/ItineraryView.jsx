@@ -50,6 +50,7 @@ export default function ItineraryView({ tripId, isDayMode = false, date = null }
   const { deleteTrip } = useTrips();
   const [showShareModal, setShowShareModal] = useState(false);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [pendingTransportEdit, setPendingTransportEdit] = useState(null); // { stopId, dayId }
   const {
     trip,
     addDay, deleteDay, removeDay, setDayColor, updateDay,
@@ -277,7 +278,10 @@ export default function ItineraryView({ tripId, isDayMode = false, date = null }
 
   const handleAddTransport = useCallback(async (dayId, afterId) => {
     const newId = await addTransport(dayId, afterId);
-    if (newId) scrollToNewStop(newId);
+    if (newId) {
+      scrollToNewStop(newId);
+      setPendingTransportEdit({ stopId: newId, dayId });
+    }
   }, [addTransport, scrollToNewStop]);
 
   const handleAddActivity = useCallback(async (dayId, afterId) => {
@@ -409,6 +413,8 @@ export default function ItineraryView({ tripId, isDayMode = false, date = null }
               onFocusStop={handleFocusStop}
               pendingFocusId={pendingFocusId}
               setPendingFocusId={setPendingFocusId}
+              pendingTransportEdit={pendingTransportEdit}
+              onClearPendingTransportEdit={() => setPendingTransportEdit(null)}
               onSwapPlanB={swapPlanB}
               onAddPlanBAlternative={addPlanBAlternative}
               onRemovePlanBAlternative={removePlanBAlternative}
