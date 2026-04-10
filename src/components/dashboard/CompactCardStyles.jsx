@@ -413,18 +413,18 @@ export function PolaroidCard(p) {
       {/* ═══════ 底部厚白边 — 手写区（普通 flex child，稳定布局）═══════ */}
       <div style={{
         flexShrink: 0,
-        padding: '18px 6px 22px',
+        padding: '20px 8px 24px',
         display: 'flex', flexDirection: 'column',
         justifyContent: 'center',
-        gap: '8px',
+        gap: '10px',
         position: 'relative',
         zIndex: 2,
       }}>
         {/* 标题 — 手写体 */}
         <h4 style={{
-          fontSize: '1.15rem',
+          fontSize: '1.65rem',
           fontFamily: '"Caveat", "Kalam", "Bradley Hand", "Marker Felt", "Segoe Script", cursive',
-          fontWeight: 600,
+          fontWeight: 700,
           letterSpacing: '0.005em',
           margin: 0,
           color: '#2e241c',  /* 深墨蓝灰，像钢笔迹 */
@@ -433,43 +433,52 @@ export function PolaroidCard(p) {
           whiteSpace: 'nowrap',
           overflow: 'hidden',
           textOverflow: 'ellipsis',
-          lineHeight: 1.3,
+          lineHeight: 1.25,
           paddingBottom: '2px',
           textShadow: '0 1px 0 rgba(255,255,255,0.5)',
         }}>
           {trip.title}
         </h4>
 
-        {/* 日期 · 天数 · 预算 — 一行 */}
+        {/* 日期 · 天数 · stop · 预算 — 一行 */}
         <div style={{
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'baseline',
           fontFamily: '"Caveat", "Kalam", cursive',
-          fontSize: '0.82rem',
+          fontSize: '1.15rem',
           lineHeight: 1.25,
           color: '#5a4a3e',
           transform: 'rotate(-0.4deg)',
           transformOrigin: 'left center',
         }}>
-          <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: '4px' }}>
+          <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: '5px', flexWrap: 'nowrap', overflow: 'hidden' }}>
             <span style={{
               fontWeight: 800,
               color: 'var(--md-sys-color-primary)',
-              fontSize: '0.98rem',
+              fontSize: '1.35rem',
               letterSpacing: '-0.01em',
             }}>
               {duration}
             </span>
-            <span style={{ opacity: 0.75 }}>days</span>
-            <span style={{ opacity: 0.35, margin: '0 3px' }}>·</span>
-            <span style={{ fontSize: '0.75rem', opacity: 0.8 }}>{trip.startDate}</span>
+            <span style={{ opacity: 0.78 }}>days</span>
+            <span style={{ opacity: 0.35, margin: '0 4px' }}>·</span>
+            <span style={{
+              fontWeight: 800,
+              color: 'var(--md-sys-color-primary)',
+              fontSize: '1.35rem',
+              letterSpacing: '-0.01em',
+            }}>
+              {p.stopsCount}
+            </span>
+            <span style={{ opacity: 0.78 }}>stops</span>
           </span>
           <span style={{
             fontWeight: 800,
             color: 'var(--md-sys-color-primary)',
-            fontSize: '0.92rem',
+            fontSize: '1.25rem',
             fontFamily: '"Caveat", cursive',
+            whiteSpace: 'nowrap',
           }}>
             {formatCurrency(totalCost, settings)}
           </span>
@@ -982,55 +991,97 @@ export function PostcardCard(p) {
             </div>
           </div>
 
-          {/* ══ 圆形邮戳 — 覆盖邮票左下角 ══ */}
-          <div style={{
-            position: 'absolute',
-            bottom: '6%', left: '2%',
-            width: '44%',
-            aspectRatio: '1 / 1',
-            borderRadius: '50%',
-            border: '2px solid var(--md-sys-color-primary)',
-            boxShadow: 'inset 0 0 0 4px transparent, inset 0 0 0 6px var(--md-sys-color-primary)',
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            color: 'var(--md-sys-color-primary)',
-            opacity: 0.55,
-            transform: 'rotate(-12deg)',
-            fontFamily: 'ui-monospace, "SFMono-Regular", monospace',
-            textAlign: 'center',
-            pointerEvents: 'none',
-            zIndex: 4,
-            lineHeight: 1,
-          }}>
-            <div style={{ fontSize: '0.5rem', fontWeight: 900, letterSpacing: '0.14em' }}>
-              ✦&nbsp;{destination}&nbsp;✦
-            </div>
-            <div style={{
-              fontSize: '0.95rem', fontWeight: 900,
-              margin: '3px 0 2px',
-              fontFamily: 'ui-serif, Georgia, serif',
-              letterSpacing: '0.01em',
-            }}>
+          {/* ══ 真实邮戳 — SVG 双圈 + 波浪取消线 ══ */}
+          <svg
+            viewBox="0 0 280 100"
+            preserveAspectRatio="xMidYMid meet"
+            style={{
+              position: 'absolute',
+              bottom: '4%',
+              left: '0%',
+              width: '102%',
+              opacity: 0.68,
+              transform: 'rotate(-13deg)',
+              transformOrigin: '18% 75%',
+              pointerEvents: 'none',
+              zIndex: 4,
+              overflow: 'visible',
+              mixBlendMode: 'multiply',
+              filter: 'blur(0.15px)',
+            }}
+          >
+            <defs>
+              {/* 顶部弧线路径 — 城市名沿此弧排列 */}
+              <path id={`pmTop-${trip.id}`} d="M 22 58 A 32 32 0 0 1 78 58" fill="none" />
+            </defs>
+
+            {/* 外圈 */}
+            <circle cx="50" cy="50" r="40" fill="none"
+              stroke="#3a1f12" strokeWidth="2.6" strokeOpacity="0.78" />
+            {/* 内圈 */}
+            <circle cx="50" cy="50" r="33" fill="none"
+              stroke="#3a1f12" strokeWidth="0.9" strokeOpacity="0.62" />
+
+            {/* 城市名沿顶部弧线弯曲 */}
+            <text
+              fill="#3a1f12"
+              fillOpacity="0.88"
+              fontSize="9"
+              fontWeight="900"
+              letterSpacing="1.4"
+              fontFamily='"Playfair Display", ui-serif, Georgia, serif'
+            >
+              <textPath href={`#pmTop-${trip.id}`} startOffset="50%" textAnchor="middle">
+                ★ {destination} ★
+              </textPath>
+            </text>
+
+            {/* 日期上下分隔短线 */}
+            <line x1="24" y1="44" x2="76" y2="44"
+              stroke="#3a1f12" strokeWidth="0.7" strokeOpacity="0.55" />
+            <line x1="24" y1="64" x2="76" y2="64"
+              stroke="#3a1f12" strokeWidth="0.7" strokeOpacity="0.55" />
+
+            {/* 中间日期 — 月日 */}
+            <text
+              x="50" y="58"
+              textAnchor="middle"
+              fill="#3a1f12"
+              fillOpacity="0.9"
+              fontSize="11"
+              fontWeight="900"
+              fontFamily='ui-serif, Georgia, "Times New Roman", serif'
+              letterSpacing="0.2"
+            >
               {pm.m}&nbsp;{pm.d}
-            </div>
-            <div style={{ fontSize: '0.46rem', fontWeight: 800, letterSpacing: '0.12em' }}>
+            </text>
+            {/* 年份 */}
+            <text
+              x="50" y="74"
+              textAnchor="middle"
+              fill="#3a1f12"
+              fillOpacity="0.85"
+              fontSize="6.2"
+              fontWeight="900"
+              letterSpacing="1.6"
+              fontFamily='ui-monospace, "SFMono-Regular", monospace'
+            >
               {pm.y}
-            </div>
-            {/* 取消线 */}
-            <div style={{
-              position: 'absolute', top: '50%', left: '-20%', right: '-50%',
-              height: '1.3px', background: 'var(--md-sys-color-primary)', opacity: 0.55,
-              transform: 'translateY(-7px)',
-            }} />
-            <div style={{
-              position: 'absolute', top: '50%', left: '-20%', right: '-50%',
-              height: '1.3px', background: 'var(--md-sys-color-primary)', opacity: 0.55,
-            }} />
-            <div style={{
-              position: 'absolute', top: '50%', left: '-20%', right: '-50%',
-              height: '1.3px', background: 'var(--md-sys-color-primary)', opacity: 0.55,
-              transform: 'translateY(7px)',
-            }} />
-          </div>
+            </text>
+
+            {/* === 经典波浪取消线 (killer bars) — 6 条向右延伸 === */}
+            {[18, 30, 42, 54, 66, 78].map((y) => (
+              <path
+                key={`kb-${y}`}
+                d={`M 94 ${y} Q 117 ${y - 5} 140 ${y} T 186 ${y} T 232 ${y} T 278 ${y}`}
+                fill="none"
+                stroke="#3a1f12"
+                strokeWidth="2.6"
+                strokeOpacity="0.72"
+                strokeLinecap="round"
+              />
+            ))}
+          </svg>
 
           {/* ══ 总消费 pill + 菜单 — 右下角,与邮票右边缘对齐 ══ */}
           <div style={{
