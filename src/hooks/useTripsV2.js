@@ -300,6 +300,8 @@ export function normalizeTripRow(row) {
   const citySet = new Set();
 
   const cityCoordMap = {};
+  const stopPhotos = [];         // 仪表盘卡片用 — 所有 stop 的照片(去重,保留顺序)
+  const stopPhotoSet = new Set();
 
   for (const td of tripDays) {
     const stops = td.days_v2?.stops_data;
@@ -313,6 +315,10 @@ export function normalizeTripRow(row) {
         if (stop.lat && stop.lng && !cityCoordMap[stop.city]) {
           cityCoordMap[stop.city] = { name: stop.city, lat: stop.lat, lng: stop.lng };
         }
+      }
+      if (stop.photo && !stopPhotoSet.has(stop.photo)) {
+        stopPhotoSet.add(stop.photo);
+        stopPhotos.push(stop.photo);
       }
     }
   }
@@ -331,6 +337,7 @@ export function normalizeTripRow(row) {
     totalCost,
     cities: [...citySet],
     citiesWithCoords: Object.values(cityCoordMap),
+    stopPhotos,
   };
 }
 

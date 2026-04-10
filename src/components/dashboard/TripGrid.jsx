@@ -12,6 +12,9 @@ export default function TripGrid({ trips, onAddTrip, onEdit, onShare }) {
   const isList = state.dashboardView === 'list';
   const isAlbum = state.dashboardView === 'album';
   const isCompact = state.dashboardView === 'compact';
+  const compactStyle = state.compactCardStyle;
+  // 横向超宽的卡片样式 — 列数减半,避免拥挤遮挡
+  const isWideStyle = compactStyle === 'postcard';
   const [pickerOpen, setPickerOpen] = useState(false);
 
   if (isAlbum) {
@@ -53,7 +56,7 @@ export default function TripGrid({ trips, onAddTrip, onEdit, onShare }) {
         </button>
       </div>
     )}
-    <div className={`trip-grid${isCompact ? ' trip-grid--compact' : ''}`} style={isList ? { display: 'block' } : {}}>
+    <div className={`trip-grid${isCompact ? ' trip-grid--compact' : ''}${isCompact && isWideStyle ? ' trip-grid--compact-wide' : ''}`} style={isList ? { display: 'block' } : {}}>
       <style>{`
         .trip-grid--compact {
           display: grid !important;
@@ -62,6 +65,10 @@ export default function TripGrid({ trips, onAddTrip, onEdit, onShare }) {
           grid-auto-rows: min-content !important;
           /* Default (web / desktop): auto responsive based on width */
           grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)) !important;
+        }
+        /* 横向超宽样式(明信片): 桌面用更大的最小宽度,自然减少列数 */
+        .trip-grid--compact-wide {
+          grid-template-columns: repeat(auto-fill, minmax(440px, 1fr)) !important;
         }
         .trip-grid--compact > * { align-self: start !important; }
         /* Compact 模式下让占位卡和 trip 卡同高 */
@@ -95,10 +102,12 @@ export default function TripGrid({ trips, onAddTrip, onEdit, onShare }) {
         /* Tablet portrait — 2 per row */
         @media (min-width: 600px) and (max-width: 1100px) and (orientation: portrait) {
           .trip-grid--compact { grid-template-columns: repeat(2, 1fr) !important; }
+          .trip-grid--compact-wide { grid-template-columns: 1fr !important; }
         }
         /* Tablet landscape — 3 per row */
         @media (min-width: 600px) and (max-width: 1100px) and (orientation: landscape) {
           .trip-grid--compact { grid-template-columns: repeat(3, 1fr) !important; }
+          .trip-grid--compact-wide { grid-template-columns: repeat(2, 1fr) !important; }
         }
       `}</style>
       {trips.map(trip => (
