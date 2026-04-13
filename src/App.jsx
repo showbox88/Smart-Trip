@@ -49,7 +49,7 @@ export default function App() {
 
   return (
     <>
-      <Navbar />
+      {layoutVariant !== 'mobile' && <Navbar />}
       <main id="app-container">
         <Routes>
           <Route path="/" element={<DashboardPage />} />
@@ -62,8 +62,8 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
-      {layoutVariant === 'clean' && <BottomNav />}
-      {layoutVariant !== 'clean' && <EmergencyButton />}
+      {(layoutVariant === 'clean' || layoutVariant === 'mobile') && <BottomNav />}
+      {layoutVariant !== 'clean' && layoutVariant !== 'mobile' && <EmergencyButton />}
       <ScreenDebug />
     </>
   );

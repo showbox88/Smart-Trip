@@ -18,8 +18,9 @@ import { useColorOverrides, EDITABLE_COLORS } from '../../hooks/useColorOverride
 import ColorSwatch from '../common/ColorSwatch';
 
 const LAYOUT_GROUPS = [
-  { key: 'glass', label: 'Glass', icon: 'blur_on' },
-  { key: 'clean', label: 'Clean', icon: 'light_mode' },
+  { key: 'glass',  label: 'Glass',  icon: 'blur_on' },
+  { key: 'clean',  label: 'Clean',  icon: 'light_mode' },
+  { key: 'mobile', label: 'Mobile', icon: 'smartphone' },
 ];
 
 export default function ProfilePanel({ open, onClose }) {

@@ -150,14 +150,14 @@ function validateExtended(extended, errors) {
 }
 
 // ── Layout Variant Validation ──
-const VALID_LAYOUT_VARIANTS = ['glass', 'clean'];
+const VALID_LAYOUT_VARIANTS = ['glass', 'clean', 'mobile'];
 const VALID_ELEVATIONS = ['none', 'sm', 'md'];
 const VALID_DOT_STYLES = ['filled', 'hollow'];
 const VALID_LINE_STYLES = ['dashed', 'solid'];
 const VALID_TRANSIT_DISPLAYS = ['collapsible', 'inline'];
 const VALID_NAV_POSITIONS = ['top', 'bottom'];
 const VALID_NAV_STYLES = ['glass', 'flat'];
-const VALID_HEADER_STYLES = ['sticky-bar', 'transparent'];
+const VALID_HEADER_STYLES = ['sticky-bar', 'transparent', 'hero'];
 
 function validateLayout(layout, errors) {
   if (layout.variant && !VALID_LAYOUT_VARIANTS.includes(layout.variant)) {
