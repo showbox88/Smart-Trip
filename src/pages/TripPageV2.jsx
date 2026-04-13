@@ -7,7 +7,9 @@ import { useI18n } from '../context/I18nContext';
 import { saveDayToDB } from '../utils/dayHelpers';
 import { DEFAULT_DAY_COLORS } from '../utils/tripEditorHelpers';
 import ItineraryView from '../components/itinerary/ItineraryView';
+import MobileItineraryView from '../components/itinerary/mobile/MobileItineraryView';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import { useTheme } from '../theme';
 
 /**
  * TripPageV2 — v2 行程页面入口
@@ -24,6 +26,7 @@ export default function TripPageV2() {
   const { getOrCreateDay, loadDaysForTrip } = useDays();
   const { loadTrip } = useTripsV2();
   const { t } = useI18n();
+  const { layoutVariant } = useTheme();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [virtualTripId] = useState(() => `v2-trip-${tripId}`);
@@ -90,6 +93,10 @@ export default function TripPageV2() {
 
   if (loading) {
     return <LoadingSpinner message={t('common.loading') || '加载中...'} />;
+  }
+
+  if (layoutVariant === 'mobile') {
+    return <MobileItineraryView tripId={virtualTripId} />;
   }
 
   return <ItineraryView tripId={virtualTripId} />;
