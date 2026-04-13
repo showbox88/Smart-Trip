@@ -9,11 +9,14 @@
  *   - Between stop cards: gray horizontal line with transit pill centered
  */
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTripEditor } from '../../../hooks/useTripEditor';
 import { useTrips } from '../../../hooks/useTrips';
 import { useI18n } from '../../../context/I18nContext';
+import { useClimateData } from '../../../hooks/useClimateData';
+import { useCityInfo } from '../../../hooks/useCityInfo';
+import { formatTemp } from '../../../utils/formatters';
 import StopEditModal from '../../modals/StopEditModal';
 import TripEditModal from '../../modals/TripEditModal';
 import ShareModal from '../../modals/ShareModal';
@@ -84,10 +87,16 @@ export default function MobileItineraryView({ tripId }) {
   const { deleteTrip } = useTrips();
   const { trip, deleteStop, updateStop, updateStopAndSort, updateTripMetadata } = useTripEditor(tripId);
 
+  // City data hooks
+  const destinations = useMemo(() => trip?.settings?.destinations || [], [trip?.settings?.destinations]);
+  const { climateByCity } = useClimateData(destinations, trip?.startDate, trip?.endDate);
+  const { cityInfo, loading: cityInfoLoading } = useCityInfo(destinations);
+
   const [dayIdx, setDayIdx]       = useState(0);
   const [editStop, setEditStop]   = useState(null);
   const [editTrip, setEditTrip]   = useState(false);
   const [share, setShare]         = useState(false);
+  const [cityModal, setCityModal] = useState(null); // { type: 'cuisine'|'attractions', city, data }
   const [confirm, setConfirm]     = useState(null);
   const [timePick, setTimePick]   = useState(null);
   const [expense, setExpense]     = useState(null);
@@ -97,6 +106,30 @@ export default function MobileItineraryView({ tripId }) {
   const days  = trip?.days || [];
   const day   = days[dayIdx] ?? days[0];
   const stops = (day?.stops || []).filter(isVisible);
+
+  /* ── Hero carousel state ── */
+  const cities = (trip?.settings?.destinations || []).map(d => d.name).filter(Boolean);
+  // Slides: [cover, city1, city2, ...] → loop
+  const totalSlides = 1 + cities.length;
+  const [heroIdx, setHeroIdx] = useState(0);
+  const heroTouchX = useRef(null);
+
+  const onHeroTouchStart = useCallback((e) => {
+    heroTouchX.current = e.touches[0].clientX;
+  }, []);
+  const onHeroTouchEnd = useCallback((e) => {
+    if (heroTouchX.current == null) return;
+    const dx = heroTouchX.current - e.changedTouches[0].clientX;
+    heroTouchX.current = null;
+    if (Math.abs(dx) < 40) return; // too small
+    if (dx > 0) {
+      // swipe left → next
+      setHeroIdx(prev => (prev + 1) % totalSlides);
+    } else {
+      // swipe right → prev
+      setHeroIdx(prev => (prev - 1 + totalSlides) % totalSlides);
+    }
+  }, [totalSlides]);
 
   const DAY_ROW_H = 46;
   const [dragOffset, setDragOffset] = useState(0);
@@ -147,14 +180,133 @@ export default function MobileItineraryView({ tripId }) {
   return (
     <div style={{ background: '#F2F2F7', height: '100vh', fontFamily: FONT, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
-      {/* ════ HERO (fixed at top) ════ */}
-      <div style={{ position: 'relative', height: 260, flexShrink: 0, overflow: 'hidden' }}>
-        {trip.thumb
-          ? <img src={trip.thumb} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-          : <div style={{ width: '100%', height: '100%', background: 'linear-gradient(160deg,#1c2d4f,#2c4a7c,#3a6bc2)' }} />}
-        <div style={{ position: 'absolute', inset: 0,
-          background: 'linear-gradient(to top, rgba(0,0,0,.7) 0%, rgba(0,0,0,.12) 55%, transparent 100%)' }} />
+      {/* ════ HERO CAROUSEL (fixed at top) ════ */}
+      <div style={{ position: 'relative', height: 235, flexShrink: 0, overflow: 'hidden' }}
+        onTouchStart={onHeroTouchStart} onTouchEnd={onHeroTouchEnd}>
 
+        {/* Slide track */}
+        <div style={{
+          display: 'flex', width: `${totalSlides * 100}%`,
+          height: '100%',
+          transform: `translateX(-${heroIdx * (100 / totalSlides)}%)`,
+          transition: 'transform .35s ease',
+        }}>
+          {/* Slide 0: Trip cover */}
+          <div style={{ width: `${100 / totalSlides}%`, height: '100%', position: 'relative', flexShrink: 0 }}>
+            {trip.thumb
+              ? <img src={trip.thumb} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+              : <div style={{ width: '100%', height: '100%', background: 'linear-gradient(160deg,#1c2d4f,#2c4a7c,#3a6bc2)' }} />}
+            <div style={{ position: 'absolute', inset: 0,
+              background: 'linear-gradient(to top, rgba(0,0,0,.7) 0%, rgba(0,0,0,.12) 55%, transparent 100%)' }} />
+            <div style={{ position: 'absolute', bottom: 24, left: 24, right: 24 }}>
+              <h1 style={{ margin: 0, color: '#fff', fontSize: 26, fontWeight: 700, lineHeight: 1.2,
+                textShadow: '0 2px 12px rgba(0,0,0,.4)', letterSpacing: '-.3px' }}>{trip.title}</h1>
+              {(trip.startDate || trip.endDate) &&
+                <p style={{ margin: '6px 0 0', color: 'rgba(255,255,255,.85)', fontSize: 14 }}>
+                  {fmtRange(trip.startDate, trip.endDate)}</p>}
+            </div>
+          </div>
+
+          {/* Slides 1+: City info cards */}
+          {cities.map((city) => {
+            const climate = climateByCity?.[city];
+            const info = cityInfo?.[city];
+            const dest = destinations.find(d => d.name === city);
+            const stg = trip?.settings;
+            return (
+              <div key={city} style={{
+                width: `${100 / totalSlides}%`, height: '100%', flexShrink: 0,
+                position: 'relative',
+                background: 'linear-gradient(160deg,#1a1a2e,#16213e,#0f3460)',
+                display: 'flex', flexDirection: 'column',
+                padding: '48px 16px 14px',
+                gap: 6,
+                overflow: 'hidden',
+              }}>
+                {/* ── Title row: city + country + temp in one line ── */}
+                <div style={{
+                  display: 'flex', alignItems: 'baseline', justifyContent: 'space-between',
+                  marginBottom: 6,
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                    <h2 style={{ margin: 0, color: '#fff', fontSize: 20, fontWeight: 700 }}>{city}</h2>
+                    {dest?.country && (
+                      <span style={{ color: 'rgba(255,255,255,.4)', fontSize: 11 }}>{dest.country}</span>
+                    )}
+                  </div>
+                  {climate && (
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
+                      <span style={{ color: '#FFD60A', fontSize: 11 }}>☀</span>
+                      <span style={{ color: '#fff', fontSize: 15, fontWeight: 700 }}>{formatTemp(climate.avgHigh, stg)}</span>
+                      <span style={{ color: 'rgba(255,255,255,.45)', fontSize: 11 }}>/ {formatTemp(climate.avgLow, stg)}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* ── About card (full width) ── */}
+                <div style={{
+                  background: 'rgba(255,255,255,.08)', borderRadius: 12,
+                  padding: '8px 12px', overflow: 'hidden', cursor: 'pointer',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 3 }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 13, color: 'rgba(255,255,255,.5)' }}>info</span>
+                    <span style={{ color: 'rgba(255,255,255,.5)', fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.5px' }}>About</span>
+                    {climate && (
+                      <span style={{ marginLeft: 'auto', color: 'rgba(255,255,255,.35)', fontSize: 9 }}>
+                        {climate.rainyDays || 0}d rain · {climate.avgPrecipMm > 0 ? `${Math.round(climate.avgPrecipMm)}mm` : '0mm'}
+                      </span>
+                    )}
+                  </div>
+                  <p style={{
+                    margin: 0, color: 'rgba(255,255,255,.75)', fontSize: 11, lineHeight: 1.4,
+                    display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                  }}>
+                    {cityInfoLoading ? 'Loading…' : (info?.intro || 'No description available')}
+                  </p>
+                </div>
+
+                {/* ── Bottom row: Cuisine + Attractions + Activity buttons ── */}
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <button onClick={() => setCityModal({ type: 'cuisine', city })} style={{
+                    flex: 1, background: 'rgba(255,255,255,.08)', borderRadius: 12,
+                    padding: '10px 8px', border: 'none', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', gap: 4,
+                  }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 14, color: 'rgba(255,255,255,.6)' }}>restaurant</span>
+                    <span style={{ color: 'rgba(255,255,255,.7)', fontSize: 11, fontWeight: 600 }}>Cuisine</span>
+                  </button>
+                  <button onClick={() => setCityModal({ type: 'attractions', city })} style={{
+                    flex: 1, background: 'rgba(255,255,255,.08)', borderRadius: 12,
+                    padding: '10px 8px', border: 'none', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', gap: 4,
+                  }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 14, color: 'rgba(255,255,255,.6)' }}>tour</span>
+                    <span style={{ color: 'rgba(255,255,255,.7)', fontSize: 11, fontWeight: 600 }}>Attractions</span>
+                  </button>
+                  <button onClick={() => {
+                    const loc = encodeURIComponent(`${city}, ${dest?.country || ''}`);
+                    const d1 = trip?.startDate ? trip.startDate.replace(/\//g, '-') : '';
+                    const d2 = trip?.endDate ? trip.endDate.replace(/\//g, '-') : '';
+                    let url = `https://www.expedia.com/things-to-do/search?location=${loc}&sort=RECOMMENDED&swp=on`;
+                    if (d1) url += `&d1=${d1}&startDate=${encodeURIComponent(d1)}`;
+                    if (d2) url += `&d2=${d2}&endDate=${encodeURIComponent(d2)}`;
+                    window.open(url, '_blank');
+                  }} style={{
+                    flex: 1, background: 'rgba(255,255,255,.08)', borderRadius: 12,
+                    padding: '10px 8px', border: 'none', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', gap: 4,
+                  }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 14, color: 'rgba(255,255,255,.6)' }}>confirmation_number</span>
+                    <span style={{ color: 'rgba(255,255,255,.7)', fontSize: 11, fontWeight: 600 }}>Activity</span>
+                    <span className="material-symbols-outlined" style={{ fontSize: 12, color: 'rgba(255,255,255,.3)', marginLeft: 'auto' }}>open_in_new</span>
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Overlay controls — always on top */}
         <button onClick={() => nav(-1)} style={{ ...HBTN, top: 16, left: 16 }}>
           <span className="material-symbols-outlined" style={{ fontSize: 20 }}>arrow_back</span>
         </button>
@@ -180,13 +332,21 @@ export default function MobileItineraryView({ tripId }) {
           )}
         </div>
 
-        <div style={{ position: 'absolute', bottom: 24, left: 24, right: 24 }}>
-          <h1 style={{ margin: 0, color: '#fff', fontSize: 26, fontWeight: 700, lineHeight: 1.2,
-            textShadow: '0 2px 12px rgba(0,0,0,.4)', letterSpacing: '-.3px' }}>{trip.title}</h1>
-          {(trip.startDate || trip.endDate) &&
-            <p style={{ margin: '6px 0 0', color: 'rgba(255,255,255,.85)', fontSize: 14 }}>
-              {fmtRange(trip.startDate, trip.endDate)}</p>}
-        </div>
+        {/* Page dots */}
+        {totalSlides > 1 && (
+          <div style={{
+            position: 'absolute', bottom: 10, left: '50%', transform: 'translateX(-50%)',
+            display: 'flex', gap: 6, zIndex: 10,
+          }}>
+            {Array.from({ length: totalSlides }, (_, idx) => (
+              <div key={idx} style={{
+                width: heroIdx === idx ? 18 : 6, height: 6, borderRadius: 3,
+                background: heroIdx === idx ? '#fff' : 'rgba(255,255,255,.5)',
+                transition: 'all .25s ease',
+              }} />
+            ))}
+          </div>
+        )}
       </div>
 
       {/* ════ SCROLLABLE CONTENT AREA ════ */}
@@ -385,6 +545,118 @@ export default function MobileItineraryView({ tripId }) {
         onDelete={() => updateStop(expense.dayId, expense.stop.id, { price: '0', expenseCategory: null })}
         onClose={() => setExpense(null)} />}
       {menu && <div style={{ position: 'fixed', inset: 0, zIndex: 200 }} onClick={() => setMenu(false)} />}
+
+      {/* ════ CITY INFO MODAL (centered card) ════ */}
+      {cityModal && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+          onClick={() => setCityModal(null)}>
+          <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,.45)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }} />
+          <div onClick={e => e.stopPropagation()} style={{
+            position: 'relative', width: '100%', maxWidth: 360, maxHeight: '70vh',
+            background: '#fff', borderRadius: 20,
+            overflow: 'hidden', display: 'flex', flexDirection: 'column',
+            boxShadow: '0 12px 40px rgba(0,0,0,.25)',
+          }}>
+            {/* Header */}
+            <div style={{ padding: '16px 18px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #F2F2F7', flexShrink: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 22, color: '#007AFF' }}>
+                  {cityModal.type === 'cuisine' ? 'restaurant' : 'tour'}
+                </span>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: '#000', fontFamily: FONT }}>
+                    {cityModal.type === 'cuisine' ? 'Local Cuisine' : 'Attractions'}
+                  </h3>
+                  <span style={{ fontSize: 12, color: '#8E8E93' }}>{cityModal.city}</span>
+                </div>
+              </div>
+              <button onClick={() => setCityModal(null)} style={{
+                background: '#F2F2F7', border: 'none', borderRadius: '50%',
+                width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer',
+              }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 18, color: '#8E8E93' }}>close</span>
+              </button>
+            </div>
+            {/* Content — read live from cityInfo */}
+            {(() => {
+              const liveInfo = cityInfo?.[cityModal.city];
+              const cuisineData = liveInfo?.cuisine; // { intro, items: [{ name, desc, image }] }
+              const attractionsData = liveInfo?.attractions; // [{ name, desc, image }]
+              const isCuisine = cityModal.type === 'cuisine';
+              const items = isCuisine ? (cuisineData?.items || []) : (attractionsData || []);
+              const introText = isCuisine ? cuisineData?.intro : '';
+
+              /* Shared card renderer for both cuisine dishes and attractions */
+              const renderCard = (item, idx) => {
+                const name = typeof item === 'string' ? item : item.name;
+                const desc = typeof item === 'string' ? '' : (item.desc || '');
+                const img = typeof item === 'string' ? '' : (item.image || '');
+                return (
+                  <div key={idx} style={{
+                    display: 'flex', gap: 10, padding: 10,
+                    background: '#F8F8FA', borderRadius: 14, overflow: 'hidden',
+                  }}>
+                    {img ? (
+                      <img src={img} alt={name} style={{
+                        width: 64, height: 64, borderRadius: 10, objectFit: 'cover', flexShrink: 0,
+                        background: '#E5E5EA',
+                      }} />
+                    ) : (
+                      <div style={{
+                        width: 64, height: 64, borderRadius: 10, flexShrink: 0,
+                        background: isCuisine ? 'linear-gradient(135deg,#FF9500,#FF6B35)' : 'linear-gradient(135deg,#007AFF,#5856D6)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: 24, color: '#fff' }}>
+                          {isCuisine ? 'lunch_dining' : 'location_on'}
+                        </span>
+                      </div>
+                    )}
+                    <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 2 }}>
+                      <span style={{ fontSize: 14, fontWeight: 600, color: '#1C1C1E', fontFamily: FONT }}>{name}</span>
+                      {desc && (
+                        <span style={{
+                          fontSize: 12, color: '#8E8E93', fontFamily: FONT, lineHeight: 1.4,
+                          display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                        }}>{desc}</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              };
+
+              return (
+                <div style={{ padding: '14px 18px 20px', overflowY: 'auto', flex: 1 }}>
+                  {cityInfoLoading ? (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 30 }}>
+                      <span style={{ fontSize: 14, color: '#8E8E93', fontFamily: FONT }}>Loading…</span>
+                    </div>
+                  ) : (
+                    <>
+                      {introText && (
+                        <p style={{
+                          margin: '0 0 12px', fontSize: 13, lineHeight: 1.6, color: '#3C3C43',
+                          fontFamily: FONT, paddingBottom: 12, borderBottom: '1px solid #F2F2F7',
+                        }}>{introText}</p>
+                      )}
+                      {items.length > 0 ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                          {items.map(renderCard)}
+                        </div>
+                      ) : (
+                        <p style={{ margin: 0, fontSize: 14, color: '#8E8E93', fontFamily: FONT }}>
+                          {isCuisine ? 'No cuisine information available.' : 'No attractions data available.'}
+                        </p>
+                      )}
+                    </>
+                  )}
+                </div>
+              );
+            })()}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
