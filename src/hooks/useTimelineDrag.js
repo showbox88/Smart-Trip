@@ -8,7 +8,7 @@ const DRAG_THRESHOLD = 5;
  * Cards across all days are treated as a single flat list.
  * 30% overlap threshold triggers iOS-style displacement animation.
  */
-export function useTimelineDrag(trip, moveStop) {
+export function useTimelineDrag(trip, moveStop, { dragScale = 1.03 } = {}) {
   const [draggingStopId, setDraggingStopId] = useState(null);
   const timelineRef = useRef(null);
   const dragRef = useRef(null);
@@ -25,7 +25,7 @@ export function useTimelineDrag(trip, moveStop) {
     
     // 触摸设备（手机+平板）要求必须捏住 .drag-handle 才能拖拽，防止滚动冲突。
     // 桌面鼠标操作不受限制。
-    if (getIsTouch() && e.pointerType === 'touch' && !e.target.closest('.drag-handle')) return;
+    if (getIsTouch() && e.pointerType === 'touch' && !e.target.closest('.drag-handle, [data-drag-handle]')) return;
 
     const wrapper = e.currentTarget;
 
@@ -59,6 +59,10 @@ export function useTimelineDrag(trip, moveStop) {
 
     const draggedRect = cardData[originalIndex].rect;
 
+    // Save original boxShadow so we can restore after drag
+    const dragCardEl = cardData[originalIndex].el.querySelector('.stop-card-container');
+    const origBoxShadow = dragCardEl ? dragCardEl.style.boxShadow : '';
+
     Object.assign(dragRef.current, {
       originalIndex,
       currentIndex: originalIndex,
@@ -66,6 +70,7 @@ export function useTimelineDrag(trip, moveStop) {
       dragHeight: draggedRect.height,
       initialTop: draggedRect.top,
       offsetY: e.clientY - draggedRect.top,
+      origBoxShadow,
     });
 
     setDraggingStopId(dragRef.current.stopId);
@@ -85,7 +90,7 @@ export function useTimelineDrag(trip, moveStop) {
     // Move only the card visual — not the TransitInfo/add-button below it
     const dragEl = cardData[originalIndex].el;
     const cardEl = dragEl.querySelector('.stop-card-container') || dragEl;
-    cardEl.style.transform = `translateY(${dy}px) scale(1.03)`;
+    cardEl.style.transform = `translateY(${dy}px)${dragScale !== 1 ? ` scale(${dragScale})` : ''}`;
     cardEl.style.boxShadow = '0 20px 60px rgba(0,0,0,0.5)';
     cardEl.style.transition = 'box-shadow 0.2s, scale 0.2s';
     dragEl.style.zIndex = '100'; // wrapper z-index so floated card renders above siblings
@@ -133,16 +138,16 @@ export function useTimelineDrag(trip, moveStop) {
   const finishDrag = useCallback(() => {
     const { originalIndex, currentIndex, cardData, stopId, sourceDayId } = dragRef.current;
 
-    // Reset all inline styles
+    // Reset inline styles added during drag, restore original boxShadow
+    const { origBoxShadow } = dragRef.current;
     cardData.forEach(card => {
       card.el.style.transform = '';
       card.el.style.transition = '';
       card.el.style.zIndex = '';
-      card.el.style.boxShadow = '';
       const cardEl = card.el.querySelector('.stop-card-container');
       if (cardEl) {
         cardEl.style.transform = '';
-        cardEl.style.boxShadow = '';
+        cardEl.style.boxShadow = origBoxShadow || '';
         cardEl.style.transition = '';
       }
     });

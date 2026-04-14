@@ -289,7 +289,7 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [], is
   const prevHoveredRef = useRef(null); // track previous hovered stopId
   const prevFocusDayIdsRef = useRef([]); // track previous focusDayIds to avoid redundant fitBounds
   const [mapReady, setMapReady] = useState(!!window.googleMapsReady);
-  const [darkMode, setDarkMode] = useState(layoutVariant !== 'clean');
+  const [darkMode, setDarkMode] = useState(layoutVariant !== 'clean' && layoutVariant !== 'mobile');
   const [selectedPlaceId, setSelectedPlaceId] = useState(null);
   const selectedPlaceIdRef = useRef(null);
   const lastCloseTimeRef = useRef(0);
@@ -383,7 +383,7 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [], is
 
   // Sync dark mode when theme layout changes
   useEffect(() => {
-    setDarkMode(layoutVariant !== 'clean');
+    setDarkMode(layoutVariant !== 'clean' && layoutVariant !== 'mobile');
   }, [layoutVariant]);
 
   // 地址换行辅助函数 (用于 Google Maps Tooltip HTML 拼串)
@@ -1345,6 +1345,7 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [], is
             mapInstance={mapInstanceRef.current}
             onPlaceSelect={(id) => setSelectedPlaceId(id)}
             onCategoryResults={(results, icon) => handleCategoryResults(results, icon)}
+            leftOffset={isDayMode ? 56 : 15}
           />
         )}
         

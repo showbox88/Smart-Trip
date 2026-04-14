@@ -57,14 +57,11 @@ export default function BottomNav() {
 
     if (tab.action === 'map') {
       if (isTripPage) {
-        // Inside a trip → toggle trip map panel
         document.body.classList.add('mobile-mode-map');
         document.body.classList.remove('mobile-mode-plan');
-        setMapMode(true);
-      } else {
-        // Outside trip → navigate to standalone GPS map page
-        navigate('/map');
       }
+      setMapMode(true);
+      navigate('/map');
       return;
     }
     if (tab.action === 'itinerary') {
@@ -82,7 +79,7 @@ export default function BottomNav() {
   const isActive = (tab) => {
     if (tab.action === 'sos') return sosOpen;
     if (tab.action === 'profile') return profileOpen;
-    if (tab.action === 'map') return mapMode;
+    if (tab.action === 'map') return mapMode || location.pathname === '/map';
     if (tab.action === 'itinerary') return isTripPage && !mapMode;
     if (!tab.path) return false;
     if (tab.path === '/') return location.pathname === '/';

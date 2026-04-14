@@ -50,7 +50,7 @@ async function focusPlaceOnMap(placeId, mapInstance) {
   return place;
 }
 
-export default function MapSearchBox({ mapInstance, onPlaceSelect, onCategoryResults }) {
+export default function MapSearchBox({ mapInstance, onPlaceSelect, onCategoryResults, leftOffset = 15 }) {
   const { t } = useI18n();
   const inputRef = useRef(null);
   const containerRef = useRef(null);
@@ -194,8 +194,8 @@ export default function MapSearchBox({ mapInstance, onPlaceSelect, onCategoryRes
       ref={containerRef}
       className="map-search-control"
       style={{
-        position: 'absolute', top: '15px', left: '15px',
-        width: 'calc(100% - 100px)', maxWidth: '400px',
+        position: 'absolute', top: '12px', left: leftOffset,
+        width: `calc(100% - ${leftOffset + 100}px)`, maxWidth: '400px',
         zIndex: 100, display: 'flex', flexDirection: 'column', gap: '8px', pointerEvents: 'auto',
       }}
     >

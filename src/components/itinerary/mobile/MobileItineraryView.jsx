@@ -17,12 +17,15 @@ import { useI18n } from '../../../context/I18nContext';
 import { useClimateData } from '../../../hooks/useClimateData';
 import { useCityInfo } from '../../../hooks/useCityInfo';
 import { formatTemp } from '../../../utils/formatters';
+import { useTimelineDrag } from '../../../hooks/useTimelineDrag';
 import StopEditModal from '../../modals/StopEditModal';
 import TripEditModal from '../../modals/TripEditModal';
 import ShareModal from '../../modals/ShareModal';
 import ConfirmModal from '../../modals/ConfirmModal';
 import TimePickerModal from '../../modals/TimePickerModal';
 import ExpenseModal from '../../modals/ExpenseModal';
+import PlanBPanel from '../PlanBPanel';
+import MapPanel from '../MapPanel';
 
 /* ── helpers ─────────────────────────────────────────────── */
 
@@ -85,7 +88,7 @@ export default function MobileItineraryView({ tripId }) {
   const nav = useNavigate();
   const { t } = useI18n();
   const { deleteTrip } = useTrips();
-  const { trip, deleteStop, updateStop, updateStopAndSort, updateTripMetadata } = useTripEditor(tripId);
+  const { trip, deleteStop, updateStop, updateStopAndSort, updateTripMetadata, moveStop, moveDay, swapPlanB, addPlanBAlternative, removePlanBAlternative } = useTripEditor(tripId);
 
   // City data hooks
   const destinations = useMemo(() => trip?.settings?.destinations || [], [trip?.settings?.destinations]);
@@ -101,7 +104,76 @@ export default function MobileItineraryView({ tripId }) {
   const [timePick, setTimePick]   = useState(null);
   const [expense, setExpense]     = useState(null);
   const [menu, setMenu]           = useState(false);
+  const [pageRotation, setPageRotation] = useState(0);
+  const showMap = Math.round(pageRotation / 180) % 2 !== 0;
+  const [planBStop, setPlanBStop]  = useState(null); // { dayId, stop }
+  const mapPanelRef = useRef(null);
+  const [cardRotation, setCardRotation] = useState({}); // { [stopId]: angle }
+  const swipeRef = useRef(null); // { id, startX, startY }
   const dayRefs = useRef([]);
+
+  const {
+    timelineRef: dragContainerRef,
+    draggingStopId,
+    handlePointerDown: onDragPointerDown,
+    handlePointerMove: onDragPointerMove,
+    handlePointerUp: onDragPointerUp,
+  } = useTimelineDrag(trip, moveStop);
+
+  // Track if a drag just ended to suppress the click that follows pointerup
+  const didDragRef = useRef(false);
+  const wrappedPointerDown = useCallback((e, stopId) => {
+    didDragRef.current = false;
+    onDragPointerDown(e, stopId);
+  }, [onDragPointerDown]);
+  const wrappedPointerUp = useCallback((e) => {
+    if (draggingStopId) didDragRef.current = true;
+    onDragPointerUp(e);
+  }, [draggingStopId, onDragPointerUp]);
+
+  // Card flip — directional rotation following swipe, cyclic
+  const flipCard = useCallback((stopId, direction) => {
+    // direction: -1 = swipe left → rotate -180, +1 = swipe right → rotate +180
+    setCardRotation(prev => {
+      const cur = prev[stopId] || 0;
+      return { ...prev, [stopId]: cur - direction * 180 };
+    });
+  }, []);
+
+  const onCardTouchStart = useCallback((e, stopId) => {
+    if (draggingStopId) return;
+    const t = e.touches[0];
+    swipeRef.current = { id: stopId, startX: t.clientX, startY: t.clientY };
+  }, [draggingStopId]);
+
+  const onCardTouchEnd = useCallback((e) => {
+    if (!swipeRef.current) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - swipeRef.current.startX;
+    const dy = t.clientY - swipeRef.current.startY;
+    const id = swipeRef.current.id;
+    swipeRef.current = null;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+      flipCard(id, dx > 0 ? -1 : 1);
+    }
+  }, [flipCard]);
+
+  // Mouse swipe for desktop
+  const onCardMouseDown = useCallback((e, stopId) => {
+    if (draggingStopId) return;
+    swipeRef.current = { id: stopId, startX: e.clientX, startY: e.clientY };
+  }, [draggingStopId]);
+
+  const onCardMouseUp = useCallback((e) => {
+    if (!swipeRef.current) return;
+    const dx = e.clientX - swipeRef.current.startX;
+    const dy = e.clientY - swipeRef.current.startY;
+    const id = swipeRef.current.id;
+    swipeRef.current = null;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+      flipCard(id, dx > 0 ? -1 : 1);
+    }
+  }, [flipCard]);
 
   const days  = trip?.days || [];
   const day   = days[dayIdx] ?? days[0];
@@ -136,19 +208,28 @@ export default function MobileItineraryView({ tripId }) {
   const touchStartY = useRef(null);
   const baseShift = dayIdx * DAY_ROW_H;
 
+  // Day reorder drag state
+  const [dayDragIdx, setDayDragIdx] = useState(null);       // index being dragged
+  const [dayDragDy, setDayDragDy] = useState(0);            // pixel offset of dragged item
+  const [dayDropIdx, setDayDropIdx] = useState(null);        // current insert position
+  const dayDragRef = useRef(null); // { fromIdx, startY, timer }
+
   const onTouchStart = useCallback((e) => {
     touchStartY.current = e.touches[0].clientY;
   }, []);
 
   const onTouchMove = useCallback((e) => {
     if (touchStartY.current == null) return;
+    // If day-reorder drag active, handle that instead of scroll
+    if (dayDragIdx != null) return;
     const delta = touchStartY.current - e.touches[0].clientY;
     const maxShift = (days.length - 1) * DAY_ROW_H;
     const clamped = Math.max(-baseShift, Math.min(maxShift - baseShift, delta));
     setDragOffset(clamped);
-  }, [baseShift, days.length]);
+  }, [baseShift, days.length, dayDragIdx]);
 
   const onTouchEnd = useCallback(() => {
+    if (dayDragIdx != null) return; // handled by day drag end
     // Snap to nearest day
     const totalShift = baseShift + dragOffset;
     const nearest = Math.round(totalShift / DAY_ROW_H);
@@ -156,9 +237,62 @@ export default function MobileItineraryView({ tripId }) {
     setDragOffset(0);
     touchStartY.current = null;
     if (clamped !== dayIdx) setDayIdx(clamped);
-  }, [baseShift, dragOffset, days.length, dayIdx]);
+  }, [baseShift, dragOffset, days.length, dayIdx, dayDragIdx]);
 
   const totalShift = baseShift + dragOffset;
+
+  // Day reorder: long-press to start, drag to reorder
+  const onDayPointerDown = useCallback((e, idx) => {
+    if (e.button !== 0) return;
+    const startY = e.clientY;
+    const timer = setTimeout(() => {
+      if (dayDragRef.current?.fromIdx !== idx) return;
+      dayDragRef.current.active = true;
+      setDayDragIdx(idx);
+      setDayDropIdx(idx);
+      if (window.navigator.vibrate) window.navigator.vibrate(20);
+    }, 400);
+    dayDragRef.current = { fromIdx: idx, startY, timer, active: false };
+  }, []);
+
+  const onDayPointerMove = useCallback((e) => {
+    if (!dayDragRef.current) return;
+    if (!dayDragRef.current.active) {
+      // If moved too much before long-press fires, cancel
+      if (Math.abs(e.clientY - dayDragRef.current.startY) > 8) {
+        clearTimeout(dayDragRef.current.timer);
+        dayDragRef.current = null;
+      }
+      return;
+    }
+    const dy = e.clientY - dayDragRef.current.startY;
+    setDayDragDy(dy);
+    // Calculate drop position
+    const fromIdx = dayDragRef.current.fromIdx;
+    const offsetRows = Math.round(dy / DAY_ROW_H);
+    const target = Math.max(0, Math.min(days.length - 1, fromIdx + offsetRows));
+    setDayDropIdx(target);
+  }, [days.length]);
+
+  const onDayPointerUp = useCallback(() => {
+    if (!dayDragRef.current) return;
+    clearTimeout(dayDragRef.current.timer);
+    if (dayDragRef.current.active && dayDragIdx != null && dayDropIdx != null && dayDropIdx !== dayDragIdx) {
+      const dayId = days[dayDragIdx].id;
+      // moveDay(dayId, afterDayId) places dayId after afterDayId (null = beginning)
+      const afterId = dayDropIdx === 0
+        ? null
+        : dayDropIdx > dayDragIdx
+          ? days[dayDropIdx].id
+          : (dayDropIdx > 0 ? days[dayDropIdx - 1].id : null);
+      moveDay(dayId, afterId);
+      setDayIdx(dayDropIdx);
+    }
+    dayDragRef.current = null;
+    setDayDragIdx(null);
+    setDayDragDy(0);
+    setDayDropIdx(null);
+  }, [dayDragIdx, dayDropIdx, days, moveDay]);
 
   const doDelete = useCallback(() => {
     setMenu(false);
@@ -178,7 +312,22 @@ export default function MobileItineraryView({ tripId }) {
   );
 
   return (
-    <div style={{ background: '#F2F2F7', height: '100vh', fontFamily: FONT, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+    <div style={{ perspective: 1800, height: '100vh', overflow: 'hidden' }}>
+    <div className="mobile-ios-view" style={{
+      position: 'relative', width: '100%', height: '100%',
+      transformStyle: 'preserve-3d',
+      transition: 'transform 0.7s cubic-bezier(.4,.0,.2,1)',
+      transform: `rotateY(${pageRotation}deg)`,
+    }}>
+      {/* ══ FRONT FACE — Itinerary ══ */}
+      <div style={{
+        position: 'absolute', inset: 0,
+        backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden',
+        background: '#F2F2F7', fontFamily: FONT,
+        display: 'flex', flexDirection: 'column', overflow: 'hidden',
+        pointerEvents: showMap ? 'none' : 'auto',
+      }}>
+      <style>{`.mobile-ios-view .stop-card-container { min-height: unset !important; }`}</style>
 
       {/* ════ HERO CAROUSEL (fixed at top) ════ */}
       <div style={{ position: 'relative', height: 235, flexShrink: 0, overflow: 'hidden' }}
@@ -310,8 +459,8 @@ export default function MobileItineraryView({ tripId }) {
         <button onClick={() => nav(-1)} style={{ ...HBTN, top: 16, left: 16 }}>
           <span className="material-symbols-outlined" style={{ fontSize: 20 }}>arrow_back</span>
         </button>
-        <div style={{ position: 'absolute', top: 16, right: 16, zIndex: 20 }}>
-          <button onClick={() => setMenu(v => !v)} style={HBTN}>
+        <div style={{ position: 'absolute', top: 16, right: 16, zIndex: 20, width: 36, height: 36 }}>
+          <button onClick={() => setMenu(v => !v)} style={{ ...HBTN, top: 0, left: 0 }}>
             <span className="material-symbols-outlined" style={{ fontSize: 20 }}>more_horiz</span>
           </button>
           {menu && (
@@ -362,20 +511,23 @@ export default function MobileItineraryView({ tripId }) {
         alignItems: 'flex-start',
       }}>
 
-        {/* ── LEFT: Day nav — clip + translateY + touch drag ── */}
+        {/* ── LEFT: Day nav — clip + translateY + touch drag + long-press reorder ── */}
         <div style={{
           width: 72, flexShrink: 0, overflow: 'hidden',
-          position: 'relative',
+          userSelect: 'none', WebkitUserSelect: 'none',
         }}
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
+          onPointerMove={onDayPointerMove}
+          onPointerUp={onDayPointerUp}
+          onPointerLeave={onDayPointerUp}
         >
           <div style={{
             display: 'flex', flexDirection: 'column',
             position: 'relative',
             transform: `translateY(-${totalShift}px)`,
-            transition: dragOffset !== 0 ? 'none' : 'transform .3s ease',
+            transition: (dragOffset !== 0 || dayDragIdx != null) ? 'none' : 'transform .3s ease',
           }}>
             {/* Vertical connecting line through dot centers */}
             <div style={{
@@ -390,20 +542,39 @@ export default function MobileItineraryView({ tripId }) {
             {days.map((d, i) => {
               const active = i === dayIdx;
               const adjActive = i === dayIdx - 1 || i === dayIdx;
+              const isDayDragging = dayDragIdx === i;
+              // Displacement for non-dragged items
+              let dayShift = 0;
+              if (dayDragIdx != null && dayDropIdx != null && i !== dayDragIdx) {
+                if (dayDragIdx < dayDropIdx && i > dayDragIdx && i <= dayDropIdx) dayShift = -DAY_ROW_H;
+                else if (dayDragIdx > dayDropIdx && i >= dayDropIdx && i < dayDragIdx) dayShift = DAY_ROW_H;
+              }
               return (
-                <div key={d.id} style={{
+                <div key={d.id}
+                  onPointerDown={(e) => onDayPointerDown(e, i)}
+                  style={{
                   position: 'relative',
-                  zIndex: active ? 2 : 1,
+                  zIndex: isDayDragging ? 10 : (active ? 2 : 1),
                   height: DAY_ROW_H,
                   boxSizing: 'border-box',
+                  transform: isDayDragging
+                    ? `translateY(${dayDragDy}px) scale(1.06)`
+                    : dayShift ? `translateY(${dayShift}px)` : '',
+                  transition: isDayDragging ? 'scale 0.2s' : 'transform 0.25s cubic-bezier(.25,.1,.25,1)',
+                  opacity: isDayDragging ? 0.9 : 1,
+                  touchAction: 'none',
                 }}>
-                  <button onClick={() => setDayIdx(i)} style={{
+                  <button onClick={() => { if (dayDragIdx != null) return; setDayIdx(i); }}
+                    onPointerDown={(e) => onDayPointerDown(e, i)}
+                    style={{
                     display: 'flex', alignItems: 'center', gap: 6,
                     padding: '0 0 0 6px', border: 'none', cursor: 'pointer',
-                    background: active ? '#fff' : 'transparent',
-                    borderRadius: active ? '16px 0 0 16px' : 0,
+                    background: isDayDragging ? '#F2F2F7' : (active ? '#fff' : 'transparent'),
+                    borderRadius: active || isDayDragging ? '16px 0 0 16px' : 0,
                     width: '100%', height: '100%',
                     transition: 'background .15s',
+                    boxShadow: isDayDragging ? '0 4px 16px rgba(0,0,0,.15)' : 'none',
+                    touchAction: 'none',
                   }}>
                     <span style={{
                       fontSize: 15, fontWeight: active ? 700 : 500,
@@ -436,14 +607,12 @@ export default function MobileItineraryView({ tripId }) {
 
         {/* ── RIGHT: Stops card — always at the top ── */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{
+          <div ref={dragContainerRef} style={{
             background: '#fff',
             borderRadius: '0 16px 16px 16px',
             boxShadow: '0 1px 4px rgba(0,0,0,.05)',
-            overflow: 'hidden',
-            minHeight: 120,
+            padding: '10px 8px 10px',
           }}>
-            <div style={{ padding: '10px 8px 14px' }}>
               {stops.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '32px 12px', color: '#8E8E93' }}>
                   <span className="material-symbols-outlined" style={{ fontSize: 40, opacity: .25, display: 'block', marginBottom: 8 }}>
@@ -456,47 +625,145 @@ export default function MobileItineraryView({ tripId }) {
                 const pr = priceTier(stop);
                 const tm = fmtTime(stop);
                 const last = idx === stops.length - 1;
+                const isDragging = draggingStopId === stop.id;
 
                 return (
-                  <div key={stop.id}>
-                    {/* Stop card */}
-                    <button onClick={() => setEditStop({ dayId: day.id, stop })} style={{
-                      width: '100%', background: '#fff', borderRadius: 12, padding: '8px 6px',
-                      display: 'flex', gap: 8, alignItems: 'flex-start',
-                      border: 'none', cursor: 'pointer', textAlign: 'left',
-                      boxShadow: '0 2px 6px rgba(0,0,0,.12), 0 1px 10px rgba(0,0,0,.06)',
-                    }}>
-                      {/* badge */}
+                  <div key={stop.id}
+                    data-drag-id={stop.id}
+                    data-drag-day={day.id}
+                    data-drag-handle="true"
+                    onPointerDown={(e) => wrappedPointerDown(e, stop.id)}
+                    onPointerMove={onDragPointerMove}
+                    onPointerUp={wrappedPointerUp}
+                    style={{
+                      position: 'relative',
+                      userSelect: 'none',
+                      willChange: isDragging ? 'transform' : 'auto',
+                    }}
+                  >
+                    {/* Stop card — 3D flip container */}
+                    {(() => {
+                      const rot = cardRotation[stop.id] || 0;
+                      const isBack = Math.round(rot / 180) % 2 !== 0;
+                      return (
+                    <div className="stop-card-container"
+                      onTouchStart={(e) => onCardTouchStart(e, stop.id)}
+                      onTouchEnd={onCardTouchEnd}
+                      onMouseDown={(e) => onCardMouseDown(e, stop.id)}
+                      onMouseUp={onCardMouseUp}
+                      style={{ perspective: 900, width: '100%' }}>
                       <div style={{
-                        width: 28, height: 28, borderRadius: '50%', background: '#1C1C1E', color: '#fff',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: 13, fontWeight: 700, flexShrink: 0, marginTop: 2,
-                      }}>{idx + 1}</div>
-                      {/* info */}
-                      <div style={{ flex: 1, minWidth: 0 }}>
+                        position: 'relative', width: '100%',
+                        transition: 'transform 0.55s cubic-bezier(.4,.0,.2,1)',
+                        transformStyle: 'preserve-3d',
+                        transform: `rotateY(${rot}deg)`,
+                      }}>
+                        {/* ── FRONT FACE ── */}
                         <div style={{
-                          fontSize: 14, fontWeight: 600, color: '#000', lineHeight: 1.3,
-                          marginBottom: 4,
-                          display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
-                        }}>{nm}</div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
-                          {stop.rating > 0 && (
-                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2, fontSize: 11, fontWeight: 500, color: '#3C3C43' }}>
-                              <span style={{ color: '#FF3B30', fontSize: 12 }}>★</span>
-                              {Number(stop.rating).toFixed(1)}
-                            </span>
+                          width: '100%', background: '#fff', borderRadius: 14, padding: '8px 6px',
+                          display: 'flex', gap: 8, alignItems: 'flex-start',
+                          border: 'none', textAlign: 'left', position: 'relative',
+                          backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden',
+                          boxShadow: isDragging
+                            ? '0 12px 32px rgba(0,0,0,0.35)'
+                            : '0 1px 3px rgba(0,0,0,.08), 0 2px 8px rgba(0,0,0,.06)',
+                        }}>
+                          {/* badge */}
+                          <div style={{
+                            width: 28, height: 28, borderRadius: '50%', background: '#1C1C1E', color: '#fff',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            flexShrink: 0, marginTop: 2, position: 'relative',
+                          }}>
+                            <span style={{ fontSize: 13, fontWeight: 700 }}>{idx + 1}</span>
+                            <span className="material-symbols-outlined" style={{
+                              position: 'absolute', fontSize: 10, color: 'rgba(255,255,255,.45)',
+                              bottom: -2, right: -2,
+                            }}>drag_indicator</span>
+                          </div>
+                          {/* info */}
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div onClick={() => {
+                              if (draggingStopId || didDragRef.current) return;
+                              setEditStop({ dayId: day.id, stop });
+                            }} style={{
+                              fontSize: 14, fontWeight: 600, color: '#000', lineHeight: 1.3,
+                              marginBottom: 4, cursor: 'pointer',
+                              display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                            }}>{nm}</div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
+                              {stop.rating > 0 && (
+                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2, fontSize: 11, fontWeight: 500, color: '#3C3C43' }}>
+                                  <span style={{ color: '#FF3B30', fontSize: 12 }}>★</span>
+                                  {Number(stop.rating).toFixed(1)}
+                                </span>
+                              )}
+                              {tm && <span style={{ ...CHIP, cursor: 'pointer' }} onClick={(e) => {
+                                e.stopPropagation();
+                                if (draggingStopId || didDragRef.current) return;
+                                let dayDate = day.date;
+                                if (trip.startDate) {
+                                  const d = new Date(trip.startDate.replace(/-/g, '/'));
+                                  d.setDate(d.getDate() + dayIdx);
+                                  if (!isNaN(d)) dayDate = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                                }
+                                setTimePick({ dayId: day.id, stop, dayDate });
+                              }}>{tm}</span>}
+                              {pr && <span style={{ ...CHIP, cursor: 'pointer' }} onClick={(e) => {
+                                e.stopPropagation();
+                                if (draggingStopId || didDragRef.current) return;
+                                setExpense({ dayId: day.id, stop });
+                              }}>{pr}</span>}
+                            </div>
+                          </div>
+                          {/* photo */}
+                          {stop.photo && (
+                            <div style={{ width: 60, height: 60, borderRadius: 10, overflow: 'hidden', flexShrink: 0 }}>
+                              <img src={stop.photo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                            </div>
                           )}
-                          {tm && <span style={CHIP}>{tm}</span>}
-                          {pr && <span style={CHIP}>{pr}</span>}
-                        </div>
+                        </div>{/* end front face */}
+
+                        {/* ── BACK FACE — Apple-style white ── */}
+                        <div style={{
+                          position: 'absolute', inset: 0, width: '100%', height: '100%',
+                          background: '#fff', borderRadius: 14,
+                          backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden',
+                          transform: 'rotateY(180deg)',
+                          display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', alignItems: 'center',
+                          padding: '0 12px', gap: 10,
+                          boxShadow: '0 1px 3px rgba(0,0,0,.08), 0 2px 8px rgba(0,0,0,.06)',
+                        }}>
+                          {[
+                            { icon: 'attach_file', label: '附件' },
+                            { icon: 'swap_horiz', label: 'Plan B', action: () => {
+                              setPlanBStop({ dayId: day.id, stop });
+                            }},
+                            { icon: 'near_me', label: '导航', action: () => {
+                              const dest = stop.lat && stop.lng
+                                ? `${stop.lat},${stop.lng}`
+                                : encodeURIComponent(stop.address || stop.location || nm);
+                              window.open(`https://www.google.com/maps/dir/?api=1&destination=${dest}`, '_blank');
+                            }},
+                          ].map(btn => (
+                            <button key={btn.label} onClick={(e) => {
+                              e.stopPropagation();
+                              btn.action?.();
+                            }} style={{
+                              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6,
+                              background: '#fff', border: '1px solid #E5E5EA', borderRadius: 12,
+                              cursor: 'pointer', padding: '10px 0',
+                              boxShadow: '0 1px 3px rgba(0,0,0,.06), 0 1px 6px rgba(0,0,0,.04)',
+                              width: '100%', height: '100%', maxHeight: 64,
+                            }}>
+                              <span className="material-symbols-outlined" style={{ fontSize: 22, color: '#1C1C1E' }}>{btn.icon}</span>
+                              <span style={{ fontSize: 11, fontWeight: 500, color: '#3C3C43', letterSpacing: .2 }}>{btn.label}</span>
+                            </button>
+                          ))}
+                        </div>{/* end back face */}
                       </div>
-                      {/* photo */}
-                      {stop.photo && (
-                        <div style={{ width: 60, height: 60, borderRadius: 8, overflow: 'hidden', flexShrink: 0 }}>
-                          <img src={stop.photo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                        </div>
-                      )}
-                    </button>
+                    </div>
+                      );
+                    })()}{/* end stop-card-container flip wrapper */}
 
                     {/* Divider line + transit pill between stops */}
                     {!last && (
@@ -521,11 +788,23 @@ export default function MobileItineraryView({ tripId }) {
                   </div>
                 );
               })}
-            </div>
           </div>
         </div>
       </div>
       </div>{/* end clip wrapper */}
+
+      {/* ════ FLOATING MAP BUTTON ════ */}
+      <button onClick={() => setPageRotation(r => r - 180)} style={{
+        position: 'absolute', bottom: 84, right: 18, zIndex: 50,
+        width: 52, height: 52, borderRadius: '50%',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: 'rgba(255,255,255,.45)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
+        border: '1px solid rgba(255,255,255,.6)',
+        boxShadow: '0 0 20px rgba(0,122,255,.2), 0 4px 16px rgba(0,0,0,.08)',
+        cursor: 'pointer', padding: 0,
+      }}>
+        <span className="material-symbols-outlined" style={{ fontSize: 24, color: '#007AFF' }}>map</span>
+      </button>
 
       {/* ════ MODALS ════ */}
       {editStop && <StopEditModal stop={editStop.stop}
@@ -545,6 +824,19 @@ export default function MobileItineraryView({ tripId }) {
         onDelete={() => updateStop(expense.dayId, expense.stop.id, { price: '0', expenseCategory: null })}
         onClose={() => setExpense(null)} />}
       {menu && <div style={{ position: 'fixed', inset: 0, zIndex: 200 }} onClick={() => setMenu(false)} />}
+
+      {/* ════ PLAN B PANEL ════ */}
+      {planBStop && (
+        <PlanBPanel
+          stop={planBStop.stop}
+          dayId={planBStop.dayId}
+          open={!!planBStop}
+          onClose={() => setPlanBStop(null)}
+          onSwap={swapPlanB}
+          onAddAlternative={addPlanBAlternative}
+          onRemoveAlternative={removePlanBAlternative}
+        />
+      )}
 
       {/* ════ CITY INFO MODAL (centered card) ════ */}
       {cityModal && (
@@ -657,6 +949,48 @@ export default function MobileItineraryView({ tripId }) {
           </div>
         </div>
       )}
+    </div>{/* end front face */}
+
+    {/* ══ BACK FACE — Map ══ */}
+    <div style={{
+      position: 'absolute', inset: 0,
+      backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden',
+      transform: 'rotateY(180deg)',
+      display: 'flex', flexDirection: 'column',
+      background: '#F2F2F7',
+      pointerEvents: showMap ? 'auto' : 'none',
+    }}>
+      <style>{`
+        .mobile-ios-view .map-view { height: 100% !important; flex: 1; }
+        .mobile-ios-view .map-view .map-placeholder { height: 100% !important; }
+        .mobile-ios-view #map-controls-row { top: 16px !important; right: 12px !important; gap: 6px !important; }
+        .mobile-ios-view #map-dark-toggle,
+        .mobile-ios-view #map-gps-btn { width: 32px !important; height: 32px !important; font-size: 0.85rem !important; }
+        .mobile-ios-view #map-gps-btn .material-symbols-outlined { font-size: 16px !important; }
+      `}</style>
+      {showMap && (
+        <MapPanel
+          ref={mapPanelRef}
+          onAddToDay={() => {}}
+          focusDayIds={day ? [day.id] : []}
+          isDayMode={false}
+          dayId={null}
+          existingPlaceIds={[]}
+        />
+      )}
+      <button onClick={() => setPageRotation(r => r - 180)} style={{
+        position: 'absolute', bottom: 84, right: 18, zIndex: 70,
+        width: 52, height: 52, borderRadius: '50%',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: 'rgba(255,255,255,.45)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
+        border: '1px solid rgba(255,255,255,.6)',
+        boxShadow: '0 0 20px rgba(0,122,255,.2), 0 4px 16px rgba(0,0,0,.08)',
+        cursor: 'pointer', padding: 0,
+      }}>
+        <span className="material-symbols-outlined" style={{ fontSize: 24, color: '#007AFF' }}>event_note</span>
+      </button>
+    </div>
+    </div>
     </div>
   );
 }

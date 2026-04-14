@@ -64,7 +64,7 @@ export default function App() {
       </main>
       {(layoutVariant === 'clean' || layoutVariant === 'mobile') && <BottomNav />}
       {layoutVariant !== 'clean' && layoutVariant !== 'mobile' && <EmergencyButton />}
-      <ScreenDebug />
+      {/* <ScreenDebug /> */}
     </>
   );
 }
