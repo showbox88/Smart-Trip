@@ -13,16 +13,24 @@ const CATEGORIES = [
   { id: 'shopping', label: 'Shopping', icon: 'shopping_bag' },
   { id: 'fuel', label: 'Fuel', icon: 'local_gas_station' },
   { id: 'groceries', label: 'Groceries', icon: 'shopping_cart' },
-  { id: 'other', label: 'Other', icon: 'menu' },
+  { id: 'other', label: 'Other', icon: 'more_horiz' },
 ];
+
+// Soft pastel accent per category
+const CAT_COLORS = {
+  flight: '#007AFF', stay: '#5856D6', car_rental: '#FF9500', transport: '#34C759',
+  dining: '#FF3B30', drinks: '#AF52DE', sightseeing: '#FF2D55', activities: '#007AFF',
+  shopping: '#FF9500', fuel: '#8E8E93', groceries: '#34C759', other: '#8E8E93',
+};
 
 export default function ExpenseModal({ stop, onSave, onDelete, onClose }) {
   const { t } = useI18n();
-  const [amount, setAmount] = useState(stop.price || '0.00');
+  const [amount, setAmount] = useState(stop.price || '0');
   const [category, setCategory] = useState(stop.expenseCategory || 'activities');
   const [showCategories, setShowCategories] = useState(false);
   const [description, setDescription] = useState(stop.note || stop.location || '');
   const amountRef = useRef(null);
+  const [closing, setClosing] = useState(false);
 
   useEffect(() => {
     if (amountRef.current) {
@@ -31,9 +39,13 @@ export default function ExpenseModal({ stop, onSave, onDelete, onClose }) {
     }
   }, []);
 
+  const animateClose = (cb) => {
+    setClosing(true);
+    setTimeout(() => { cb?.(); onClose(); }, 260);
+  };
+
   const handleSave = () => {
-    onSave?.({ price: amount, expenseCategory: category, note: description });
-    onClose();
+    animateClose(() => onSave?.({ price: amount, expenseCategory: category, note: description }));
   };
 
   const handleKeyDown = (e) => {
@@ -44,166 +56,191 @@ export default function ExpenseModal({ stop, onSave, onDelete, onClose }) {
   };
 
   const selectedCategory = CATEGORIES.find(c => c.id === category) || CATEGORIES[7];
+  const accent = CAT_COLORS[category] || '#007AFF';
 
   return (
-    <div className="modal-overlay active" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2200, background: 'rgba(0,0,0,0.85)' }} onClick={onClose}>
-      <div 
-        className="modal-content" 
-        onClick={(e) => e.stopPropagation()} 
-        style={{ 
-          width: '420px', 
-          background: 'var(--md-sys-color-surface-container-lowest)', 
-          borderRadius: '28px', 
-          padding: '2rem',
-          border: '1px solid rgba(255,255,255,0.08)',
-          position: 'relative',
-          boxShadow: '0 40px 100px rgba(0,0,0,0.8)',
-          maxHeight: '90vh',
-          display: 'flex',
-          flexDirection: 'column'
+    <div
+      onClick={() => animateClose()}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 2200,
+        background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
+        display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+        animation: closing ? 'expFadeOut .25s ease forwards' : 'expFadeIn .25s ease forwards',
+      }}
+    >
+      <style>{`
+        @keyframes expFadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes expFadeOut { from { opacity: 1; } to { opacity: 0; } }
+        @keyframes expSlideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        @keyframes expSlideDown { from { transform: translateY(0); } to { transform: translateY(100%); } }
+      `}</style>
+
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: '100%', maxWidth: 420,
+          background: '#fff',
+          borderRadius: '24px 24px 0 0',
+          padding: '0 0 env(safe-area-inset-bottom, 16px) 0',
+          boxShadow: '0 -8px 40px rgba(0,0,0,0.12)',
+          animation: closing ? 'expSlideDown .25s ease forwards' : 'expSlideUp .3s cubic-bezier(.32,1.15,.6,1) forwards',
+          maxHeight: '92vh', overflowY: 'auto',
+          WebkitOverflowScrolling: 'touch',
         }}
       >
-        <button 
-          onClick={onClose} 
-          style={{ position: 'absolute', top: '1.2rem', right: '1.2rem', background: 'rgba(255,255,255,0.08)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>close</span>
-        </button>
+        {/* ── Drag Handle ── */}
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0 4px' }}>
+          <div style={{ width: 36, height: 4, borderRadius: 2, background: '#D1D1D6' }} />
+        </div>
 
-        <h3 style={{ textAlign: 'center', margin: '0 0 1.5rem 0', fontSize: '1.2rem', fontWeight: 800, color: 'white' }}>
-          Add Expense
-        </h3>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {/* Amount Box */}
-          <div style={{ background: '#11141b', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)', padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'rgba(255,255,255,0.9)' }}>
-              <span style={{ fontSize: '1.2rem', fontWeight: 700 }}>$</span>
-              <span className="material-symbols-outlined" style={{ fontSize: '14px', opacity: 0.5 }}>arrow_drop_down</span>
-              <input
-                ref={amountRef}
-                type="number"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                onKeyDown={handleKeyDown}
-                style={{ background: 'transparent', border: 'none', color: 'white', fontSize: '1.3rem', fontWeight: 600, width: '120px', outline: 'none', marginLeft: '10px' }}
-                placeholder="0.00"
-              />
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', opacity: 0.6 }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '20px', cursor: 'pointer' }} onClick={() => setAmount(prev => (parseFloat(prev || 0) + 1).toFixed(2))}>unfold_more</span>
-            </div>
+        {/* ── Amount Section ── */}
+        <div style={{ padding: '8px 24px 20px', textAlign: 'center' }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: '#8E8E93', marginBottom: 8, letterSpacing: 0.5 }}>
+            EXPENSE
           </div>
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 4 }}>
+            <span style={{ fontSize: 28, fontWeight: 300, color: '#3C3C43' }}>$</span>
+            <input
+              ref={amountRef}
+              type="number"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="0"
+              style={{
+                background: 'transparent', border: 'none', outline: 'none',
+                fontSize: 48, fontWeight: 700, color: '#000',
+                width: '160px', textAlign: 'center',
+                fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif',
+              }}
+            />
+          </div>
+        </div>
 
-          {/* Category Selector */}
-          <div 
+        {/* ── Category Pill ── */}
+        <div style={{ padding: '0 20px 12px', display: 'flex', justifyContent: 'center' }}>
+          <button
             onClick={() => setShowCategories(!showCategories)}
-            style={{ 
-              background: '#11141b', 
-              borderRadius: '14px', 
-              border: '1px solid rgba(255,255,255,0.06)', 
-              padding: '14px 16px', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'space-between',
-              cursor: 'pointer',
-              transition: 'background 0.2s'
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              padding: '8px 18px', border: 'none', cursor: 'pointer',
+              borderRadius: 20, background: `${accent}12`,
+              transition: 'all 0.2s',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'white' }}>{selectedCategory.icon}</span>
-              </div>
-              <span style={{ fontWeight: 700, color: 'white', fontSize: '1rem' }}>{selectedCategory.label}</span>
-            </div>
-            <span className="material-symbols-outlined" style={{ fontSize: '18px', opacity: 0.4 }}>{showCategories ? 'expand_less' : 'chevron_right'}</span>
-          </div>
+            <span className="material-symbols-outlined" style={{ fontSize: 18, color: accent }}>{selectedCategory.icon}</span>
+            <span style={{ fontSize: 14, fontWeight: 600, color: accent }}>{selectedCategory.label}</span>
+            <span className="material-symbols-outlined" style={{ fontSize: 16, color: accent, opacity: 0.6 }}>
+              {showCategories ? 'expand_less' : 'expand_more'}
+            </span>
+          </button>
+        </div>
 
-          {/* Expanded Categories Grid */}
-          {showCategories && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', padding: '5px', background: 'rgba(255,255,255,0.02)', borderRadius: '14px' }}>
-              {CATEGORIES.map((cat) => (
-                <div 
-                  key={cat.id} 
+        {/* ── Category Grid (Expandable) ── */}
+        <div style={{
+          maxHeight: showCategories ? 220 : 0,
+          overflow: 'hidden',
+          transition: 'max-height 0.3s cubic-bezier(.4,0,.2,1)',
+        }}>
+          <div style={{
+            display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6,
+            padding: '8px 20px 16px',
+          }}>
+            {CATEGORIES.map((cat) => {
+              const isActive = category === cat.id;
+              const catColor = CAT_COLORS[cat.id] || '#8E8E93';
+              return (
+                <button
+                  key={cat.id}
                   onClick={() => { setCategory(cat.id); setShowCategories(false); }}
-                  style={{ 
-                    display: 'flex', 
-                    flexDirection: 'column', 
-                    alignItems: 'center', 
-                    gap: '6px', 
-                    padding: '12px 0', 
-                    borderRadius: '12px',
-                    background: category === cat.id ? 'rgba(59,130,246,0.1)' : 'transparent',
-                    border: category === cat.id ? '1px solid rgba(59,130,246,0.3)' : '1px solid transparent',
-                    cursor: 'pointer'
+                  style={{
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+                    padding: '10px 2px 8px', border: 'none', cursor: 'pointer',
+                    borderRadius: 14,
+                    background: isActive ? `${catColor}14` : 'transparent',
+                    transition: 'all 0.2s',
                   }}
                 >
-                  <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: category === cat.id ? 'var(--md-sys-color-primary)' : 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: category === cat.id ? '0 4px 10px rgba(59,130,246,0.4)' : 'none' }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'white' }}>{cat.icon}</span>
+                  <div style={{
+                    width: 40, height: 40, borderRadius: 12,
+                    background: isActive ? catColor : '#F2F2F7',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    transition: 'all 0.2s',
+                    boxShadow: isActive ? `0 4px 12px ${catColor}40` : 'none',
+                  }}>
+                    <span className="material-symbols-outlined" style={{
+                      fontSize: 20, color: isActive ? '#fff' : '#8E8E93',
+                    }}>{cat.icon}</span>
                   </div>
-                  <span style={{ fontSize: '0.65rem', fontWeight: 700, color: category === cat.id ? 'var(--md-sys-color-primary)' : 'rgba(255,255,255,0.6)', textTransform: 'uppercase' }}>{cat.label}</span>
-                </div>
-              ))}
-            </div>
-          )}
+                  <span style={{
+                    fontSize: 10, fontWeight: 600, color: isActive ? catColor : '#8E8E93',
+                    letterSpacing: 0.2,
+                  }}>{cat.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
-          {/* Description Box */}
-          <div style={{ background: '#11141b', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)', padding: '16px', minHeight: '100px' }}>
-            <div style={{ fontSize: '0.8rem', fontWeight: 800, color: 'rgba(255,255,255,0.4)', marginBottom: '8px' }}>Add Description</div>
+        {/* ── Divider ── */}
+        <div style={{ height: 1, background: '#F2F2F7', margin: '0 20px' }} />
+
+        {/* ── Form Fields ── */}
+        <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+
+          {/* Description */}
+          <div style={{
+            background: '#F9F9F9', borderRadius: 14, padding: '14px 16px',
+            border: '1px solid #F2F2F7',
+          }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: '#8E8E93', marginBottom: 6, letterSpacing: 0.3, textTransform: 'uppercase' }}>
+              Note
+            </div>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               onKeyDown={handleKeyDown}
-              style={{ background: 'transparent', border: 'none', color: 'white', fontSize: '0.95rem', width: '100%', outline: 'none', resize: 'none', minHeight: '60px', fontFamily: 'inherit' }}
-              placeholder="e.g. Lunch at restaurant"
+              placeholder={stop.name || 'Add a note...'}
+              rows={2}
+              style={{
+                background: 'transparent', border: 'none', outline: 'none', resize: 'none',
+                color: '#1C1C1E', fontSize: 15, fontWeight: 500, width: '100%',
+                fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif',
+                lineHeight: 1.4,
+              }}
             />
-          </div>
-
-          {/* Payer Selector (Static for now) */}
-          <div style={{ background: '#11141b', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)', padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontWeight: 700, color: 'white' }}>Payer</span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'var(--md-sys-color-primary)', overflow: 'hidden' }}>
-                <img src="https://ui-avatars.com/api/?name=User&background=3b82f6&color=fff" style={{ width: '100%', height: '100%' }} />
-              </div>
-              <span style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.8)' }}>showbox88</span>
-              <span className="material-symbols-outlined" style={{ fontSize: '18px', opacity: 0.4 }}>arrow_drop_down</span>
-            </div>
-          </div>
-
-          {/* Split Selector (Static for now) */}
-          <div style={{ background: '#11141b', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)', padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontWeight: 700, color: 'white' }}>Split</span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.4)' }}>No Split</span>
-              <span className="material-symbols-outlined" style={{ fontSize: '18px', opacity: 0.4 }}>arrow_drop_down</span>
-            </div>
           </div>
         </div>
 
-        {/* Footer Actions */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '1.5rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'rgba(255,255,255,0.6)', fontSize: '0.9rem', fontWeight: 700 }}>
-            <span>Date:</span>
-            <span style={{ color: 'rgba(255,255,255,0.9)' }}>03/17</span>
-            <span className="material-symbols-outlined" style={{ fontSize: '18px', opacity: 0.4 }}>arrow_drop_down</span>
-          </div>
-
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <button 
-              onClick={() => onDelete?.()}
-              style={{ background: 'rgba(51, 65, 85, 0.5)', border: 'none', borderRadius: '14px', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'rgba(255,255,255,0.8)' }}>delete</span>
-              <span style={{ color: 'white', fontSize: '0.9rem', fontWeight: 700 }}>Delete</span>
-            </button>
+        {/* ── Footer Actions ── */}
+        <div style={{ padding: '8px 20px 16px', display: 'flex', gap: 10 }}>
+          {onDelete && (
             <button
-              onClick={handleSave}
-              style={{ background: 'var(--md-sys-color-error)', border: 'none', borderRadius: '14px', padding: '10px 24px', color: 'white', fontSize: '1rem', fontWeight: 800, cursor: 'pointer', boxShadow: '0 8px 20px rgba(239, 68, 68, 0.3)' }}
+              onClick={() => animateClose(() => onDelete?.())}
+              style={{
+                flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                padding: '14px 0', border: 'none', cursor: 'pointer',
+                borderRadius: 14, background: '#F2F2F7',
+                fontSize: 15, fontWeight: 600, color: '#FF3B30',
+                transition: 'background 0.2s',
+              }}
             >
-              Save
+              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>delete</span>
+              Delete
             </button>
-          </div>
+          )}
+          <button
+            onClick={handleSave}
+            style={{
+              flex: 2, padding: '14px 0', border: 'none', cursor: 'pointer',
+              borderRadius: 14, background: '#007AFF',
+              fontSize: 15, fontWeight: 700, color: '#fff',
+              boxShadow: '0 4px 14px rgba(0,122,255,0.3)',
+              transition: 'all 0.2s',
+            }}
+          >
+            Save
+          </button>
         </div>
       </div>
     </div>

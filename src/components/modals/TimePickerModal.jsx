@@ -4,8 +4,7 @@ import { useI18n } from '../../context/I18nContext';
 const HOURS = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'));
 const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
 
-const ITEM_HEIGHT = 40;
-const PADDING_TOP = 55;
+const ITEM_HEIGHT = 44;
 
 function ScrollColumn({ items, selectedIdx, onSelect }) {
   const scrollRef = useRef(null);
@@ -19,13 +18,8 @@ function ScrollColumn({ items, selectedIdx, onSelect }) {
     if (scrollRef.current) {
       const centerGroup = Math.floor(REPEAT_COUNT / 2);
       const targetIdx = centerGroup * items.length + selectedIdx;
-      
-      // Perform instantaneous un-animated jump to center on mount
-      const targetScroll = targetIdx * ITEM_HEIGHT;
-      scrollRef.current.style.scrollBehavior = 'auto'; // ensure instant
-      scrollRef.current.scrollTop = targetScroll;
-      
-      // Small delay before enabling smooth scroll behavior if they click to select
+      scrollRef.current.style.scrollBehavior = 'auto';
+      scrollRef.current.scrollTop = targetIdx * ITEM_HEIGHT;
       setTimeout(() => {
         if (scrollRef.current) scrollRef.current.style.scrollBehavior = 'smooth';
       }, 50);
@@ -34,7 +28,7 @@ function ScrollColumn({ items, selectedIdx, onSelect }) {
       cancelAnimationFrame(rafRef.current);
       clearTimeout(debounceRef.current);
     };
-  }, []); // Only run once on mount
+  }, []);
 
   const handleScroll = () => {
     if (rafRef.current) return;
@@ -42,12 +36,10 @@ function ScrollColumn({ items, selectedIdx, onSelect }) {
       rafRef.current = null;
       if (!scrollRef.current) return;
       const st = scrollRef.current.scrollTop;
-      const centerOffset = st + scrollRef.current.offsetHeight / 2 - PADDING_TOP;
+      const centerOffset = st + scrollRef.current.offsetHeight / 2;
       const idx = Math.round((centerOffset - ITEM_HEIGHT / 2) / ITEM_HEIGHT);
       const clamped = Math.max(0, Math.min(extendedItems.length - 1, idx));
-
       clearTimeout(debounceRef.current);
-      // Wait for scrolling to settle
       debounceRef.current = setTimeout(() => {
         onSelect(clamped % items.length);
       }, 60);
@@ -55,14 +47,27 @@ function ScrollColumn({ items, selectedIdx, onSelect }) {
   };
 
   return (
-    <div className="time-picker-scroll-container" style={{ position: 'relative', height: '150px', flex: 1 }}>
-      <div style={{ position: 'absolute', top: '50%', left: '0', right: '0', height: '40px', transform: 'translateY(-50%)', background: 'var(--md-sys-color-primary)', borderRadius: '12px', zIndex: 0, boxShadow: '0 6px 20px rgba(59,130,246,0.35)', pointerEvents: 'none' }} />
+    <div style={{ position: 'relative', height: 180, flex: 1 }}>
+      {/* Selection highlight */}
+      <div style={{
+        position: 'absolute', top: '50%', left: 4, right: 4, height: ITEM_HEIGHT,
+        transform: 'translateY(-50%)',
+        background: '#007AFF', borderRadius: 12, zIndex: 0,
+        boxShadow: '0 4px 14px rgba(0,122,255,0.25)',
+      }} />
 
-      <div 
+      <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className="custom-scrollbar hide-scrollbar"
-        style={{ height: '150px', overflowY: 'auto', position: 'relative', padding: '55px 0', zIndex: 2, scrollSnapType: 'y mandatory', maskImage: 'linear-gradient(to bottom, transparent, black 40%, black 60%, transparent)', WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 40%, black 60%, transparent)' }}
+        className="hide-scrollbar"
+        style={{
+          height: 180, overflowY: 'auto', position: 'relative', zIndex: 2,
+          scrollSnapType: 'y mandatory',
+          paddingTop: (180 - ITEM_HEIGHT) / 2,
+          paddingBottom: (180 - ITEM_HEIGHT) / 2,
+          maskImage: 'linear-gradient(to bottom, transparent, black 30%, black 70%, transparent)',
+          WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 30%, black 70%, transparent)',
+        }}
       >
         {extendedItems.map((item, i) => {
           const isSel = selectedIdx === (i % items.length);
@@ -71,11 +76,20 @@ function ScrollColumn({ items, selectedIdx, onSelect }) {
               key={i}
               onClick={() => {
                 onSelect(i % items.length);
-                if (scrollRef.current && scrollRef.current.children[i]) {
+                if (scrollRef.current?.children[i]) {
                   scrollRef.current.children[i].scrollIntoView({ block: 'center', behavior: 'smooth' });
                 }
               }}
-              style={{ height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem', fontWeight: 800, color: isSel ? 'white' : 'rgba(255,255,255,0.3)', cursor: 'pointer', transform: isSel ? 'scale(1.15)' : 'scale(1)', transition: 'transform 0.2s ease, color 0.15s ease', scrollSnapAlign: 'center', lineHeight: 1, willChange: 'transform' }}
+              style={{
+                height: ITEM_HEIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 22, fontWeight: 700,
+                color: isSel ? '#fff' : '#C7C7CC',
+                cursor: 'pointer',
+                transform: isSel ? 'scale(1.1)' : 'scale(1)',
+                transition: 'transform 0.15s, color 0.15s',
+                scrollSnapAlign: 'center',
+                fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif',
+              }}
             >
               {item}
             </div>
@@ -89,35 +103,30 @@ function ScrollColumn({ items, selectedIdx, onSelect }) {
 
 export default function TimePickerModal({ stop, dayDate, onSave, onClose }) {
   const { t } = useI18n();
-  const scrollRef = useRef(null);
-  const rafRef = useRef(null);
-  const debounceRef = useRef(null);
   const [openingHours, setOpeningHours] = useState(stop.openingHours || []);
   const [loadingHours, setLoadingHours] = useState(false);
+  const [closing, setClosing] = useState(false);
 
   const initialTime = stop.time || '10:00';
   const initialPeriod = stop.period || 'AM';
   const [h, m] = initialTime.split(':');
 
   const [period, setPeriod] = useState(initialPeriod);
-
   const [hourIdx, setHourIdx] = useState(() => {
     const idx = HOURS.indexOf(h);
-    return idx >= 0 ? idx : 9; // Default 10
+    return idx >= 0 ? idx : 9;
   });
-
   const [minIdx, setMinIdx] = useState(() => {
     const idx = MINUTES.indexOf(m);
-    return idx >= 0 ? idx : 0; // Default 00
+    return idx >= 0 ? idx : 0;
   });
 
-  // Determine which weekday this stop falls on (for "Closed" detection)
   const WEEKDAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   const todayWeekdayIdx = (() => {
     if (!dayDate) return -1;
     const d = new Date(dayDate);
     if (isNaN(d)) return -1;
-    return (d.getDay() + 6) % 7; // Convert JS 0=Sun → 0=Mon...6=Sun
+    return (d.getDay() + 6) % 7;
   })();
   const todayName = todayWeekdayIdx >= 0 ? WEEKDAY_NAMES[todayWeekdayIdx] : '';
   const isTodayClosed = todayWeekdayIdx >= 0 && openingHours.length > 0 && /closed/i.test(openingHours[todayWeekdayIdx] || '');
@@ -126,24 +135,24 @@ export default function TimePickerModal({ stop, dayDate, onSave, onClose }) {
     if ((!openingHours || openingHours.length === 0) && stop.placeId && window.googleMapsReady) {
       setLoadingHours(true);
       const service = new google.maps.places.PlacesService(document.createElement('div'));
-      service.getDetails({
-        placeId: stop.placeId,
-        fields: ['opening_hours']
-      }, (place, status) => {
+      service.getDetails({ placeId: stop.placeId, fields: ['opening_hours'] }, (place, status) => {
         setLoadingHours(false);
         if (status === google.maps.places.PlacesServiceStatus.OK && place.opening_hours) {
-          const hours = place.opening_hours.weekday_text || [];
-          setOpeningHours(hours);
+          setOpeningHours(place.opening_hours.weekday_text || []);
         }
       });
     }
   }, [stop.placeId]);
 
+  const animateClose = (cb) => {
+    setClosing(true);
+    setTimeout(() => { cb?.(); onClose(); }, 260);
+  };
+
   const handleSave = () => {
     const timeH = HOURS[hourIdx];
     const timeM = MINUTES[minIdx];
-    onSave?.({ time: `${timeH}:${timeM}`, period, openingHours });
-    onClose();
+    animateClose(() => onSave?.({ time: `${timeH}:${timeM}`, period, openingHours }));
   };
 
   const handlePunchIn = () => {
@@ -153,171 +162,217 @@ export default function TimePickerModal({ stop, dayDate, onSave, onClose }) {
     const isPM = hours >= 12;
     const currentPeriod = isPM ? 'PM' : 'AM';
     hours = hours % 12 || 12;
-
     const timeH = String(hours).padStart(2, '0');
     const timeM = String(minutes).padStart(2, '0');
-
-    onSave?.({ time: `${timeH}:${timeM}`, period: currentPeriod, openingHours });
-    onClose();
+    animateClose(() => onSave?.({ time: `${timeH}:${timeM}`, period: currentPeriod, openingHours }));
   };
 
+  const hasHours = openingHours && openingHours.length > 0;
+
   return (
-    <div className="modal-overlay active" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, background: 'rgba(0,0,0,0.8)' }} onClick={onClose}>
-      <div 
-        className="modal-content time-picker-content" 
-        onClick={(e) => e.stopPropagation()} 
-        style={{ 
-          width: '680px', 
-          background: 'var(--md-sys-color-surface-container-lowest)',
-          borderRadius: '32px', 
-          padding: '2.5rem',
-          border: '1px solid rgba(255,255,255,0.1)',
-          position: 'relative',
-          boxShadow: '0 40px 100px rgba(0,0,0,0.9)',
-          display: 'flex',
-          flexDirection: 'column'
+    <div
+      onClick={() => animateClose()}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 2200,
+        background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
+        display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+        animation: closing ? 'tpFadeOut .25s ease forwards' : 'tpFadeIn .25s ease forwards',
+      }}
+    >
+      <style>{`
+        @keyframes tpFadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes tpFadeOut { from { opacity: 1; } to { opacity: 0; } }
+        @keyframes tpSlideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        @keyframes tpSlideDown { from { transform: translateY(0); } to { transform: translateY(100%); } }
+      `}</style>
+
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: '100%', maxWidth: 420,
+          background: '#fff',
+          borderRadius: '24px 24px 0 0',
+          padding: '0 0 env(safe-area-inset-bottom, 16px) 0',
+          boxShadow: '0 -8px 40px rgba(0,0,0,0.12)',
+          animation: closing ? 'tpSlideDown .25s ease forwards' : 'tpSlideUp .3s cubic-bezier(.32,1.15,.6,1) forwards',
+          maxHeight: '92vh', overflowY: 'auto',
+          WebkitOverflowScrolling: 'touch',
         }}
       >
-        <button 
-          onClick={onClose} 
-          style={{ position: 'absolute', top: '1.2rem', right: '1.2rem', background: 'rgba(255,255,255,0.08)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>close</span>
-        </button>
+        {/* ── Drag Handle ── */}
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0 4px' }}>
+          <div style={{ width: 36, height: 4, borderRadius: 2, background: '#D1D1D6' }} />
+        </div>
 
-        {dayDate && (
-          <div style={{ 
-            display: 'flex', 
-            justifyContent: 'center', 
-            alignItems: 'center', 
-            gap: '12px', 
-            marginBottom: '1rem',
-            padding: '8px 0',
-            borderBottom: '1px solid rgba(255,255,255,0.05)'
-          }}>
-            <span style={{ color: 'white', fontSize: '1rem', fontWeight: 800 }}>{dayDate}</span>
-            {todayName && (
-              <span style={{ 
-                background: 'rgba(249,115,22,0.15)', 
-                color: 'var(--st-color-category-food)',
-                padding: '2px 10px',
-                borderRadius: '6px',
-                fontSize: '0.8rem',
-                fontWeight: 800
-              }}>
-                {todayName}
-              </span>
-            )}
+        {/* ── Header: Stop Name + Date ── */}
+        <div style={{ padding: '4px 24px 16px', textAlign: 'center' }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: '#8E8E93', marginBottom: 4, letterSpacing: 0.5 }}>
+            RESERVATION
           </div>
-        )}
+          <div style={{
+            fontSize: 17, fontWeight: 700, color: '#1C1C1E',
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          }}>
+            {stop.name || stop.location || 'Set Time'}
+          </div>
+          {dayDate && (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8, marginTop: 6 }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: '#8E8E93' }}>{dayDate}</span>
+              {todayName && (
+                <span style={{
+                  fontSize: 11, fontWeight: 700, color: isTodayClosed ? '#FF3B30' : '#007AFF',
+                  background: isTodayClosed ? '#FF3B3012' : '#007AFF12',
+                  padding: '2px 8px', borderRadius: 6,
+                }}>
+                  {todayName}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
 
-        {/* Closed-day warning */}
+        {/* ── Closed Warning ── */}
         {isTodayClosed && (
-          <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.35)', borderRadius: '16px', padding: '12px 18px', marginBottom: '1.2rem', display: 'flex', alignItems: 'center', gap: '10px', animation: 'pulse-border 2s ease-in-out infinite' }}>
-            <span className="material-symbols-outlined" style={{ color: 'var(--md-sys-color-error)', fontSize: '20px', flexShrink: 0 }}>error</span>
-            <span style={{ color: 'var(--md-sys-color-error)', fontSize: '0.85rem', fontWeight: 700 }}>
-              {todayName} Closed
+          <div style={{
+            margin: '0 20px 12px', padding: '10px 14px', borderRadius: 12,
+            background: '#FFF5F5', border: '1px solid #FFE0E0',
+            display: 'flex', alignItems: 'center', gap: 8,
+          }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 18, color: '#FF3B30' }}>error</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: '#FF3B30' }}>
+              Closed on {todayName}
             </span>
           </div>
         )}
 
-        <div className="time-picker-body" style={{ display: 'grid', gridTemplateColumns: '1fr 1.1fr', gap: '2rem', marginBottom: '1.5rem', minHeight: '340px' }}>
-          {/* Left: Opening Hours */}
-          <div className="time-picker-hours" style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '24px', padding: '1.5rem', border: isTodayClosed ? '1px solid rgba(239,68,68,0.3)' : '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--st-color-category-food)', marginBottom: '1rem', fontWeight: 800, fontSize: '0.9rem' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>schedule</span>
-              Opening Hours
-            </div>
-
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {loadingHours ? (
-                <div style={{ color: 'var(--st-color-text-muted)', fontSize: '0.9rem' }}>Loading hours...</div>
-              ) : (openingHours && openingHours.length > 0) ? (
-                openingHours.map((line, i) => {
-                  const isClosedLine = /closed/i.test(line);
-                  const isToday = i === todayWeekdayIdx;
-                  return (
-                    <div key={i} style={{
-                      fontSize: '0.85rem',
-                      color: isClosedLine ? 'var(--md-sys-color-error)' : isToday ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.5)',
-                      lineHeight: 1.5,
-                      wordBreak: 'break-word',
-                      fontWeight: isToday ? 700 : 400,
-                      borderLeft: isToday ? `3px solid ${isClosedLine ? 'var(--md-sys-color-error)' : 'var(--st-color-category-food)'}` : 'none',
-                      paddingLeft: isToday ? '10px' : 0,
-                      background: isToday && isClosedLine ? 'rgba(239,68,68,0.08)' : 'transparent',
-                      borderRadius: isToday ? '4px' : 0,
-                      padding: isToday ? '4px 10px' : 0
-                    }}>
-                      {line}
-                    </div>
-                  );
-                })
-              ) : (
-                <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.95rem', fontStyle: 'italic', marginTop: '1rem', textAlign: 'center' }}>
-                  No opening hours<br/>data available.
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Right: Time Selection */}
-          <div className="time-picker-selector" style={{ textAlign: 'center', position: 'relative', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
-            
-            {/* AM/PM Toggle */}
-            <div style={{ display: 'flex', background: 'rgba(255,255,255,0.06)', borderRadius: '12px', padding: '4px', marginBottom: '1.5rem', width: '100%', maxWidth: '200px' }}>
+        {/* ── AM/PM Toggle ── */}
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '0 20px 12px' }}>
+          <div style={{
+            display: 'flex', background: '#F2F2F7', borderRadius: 10, padding: 3,
+            width: 180,
+          }}>
+            {['AM', 'PM'].map(p => (
               <button
-                onClick={() => setPeriod('AM')}
-                style={{ flex: 1, padding: '8px 0', border: 'none', background: period === 'AM' ? 'var(--md-sys-color-primary)' : 'transparent', color: period === 'AM' ? 'white' : 'rgba(255,255,255,0.5)', borderRadius: '8px', fontWeight: 800, fontSize: '0.95rem', cursor: 'pointer', transition: 'all 0.2s', boxShadow: period === 'AM' ? '0 4px 12px rgba(59,130,246,0.3)' : 'none' }}
+                key={p}
+                onClick={() => setPeriod(p)}
+                style={{
+                  flex: 1, padding: '8px 0', border: 'none', cursor: 'pointer',
+                  borderRadius: 8, fontSize: 14, fontWeight: 700,
+                  background: period === p ? '#fff' : 'transparent',
+                  color: period === p ? '#007AFF' : '#8E8E93',
+                  boxShadow: period === p ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
+                  transition: 'all 0.2s',
+                }}
               >
-                {t('common.am') || 'AM'}
+                {t(`common.${p.toLowerCase()}`) || p}
               </button>
-              <button
-                onClick={() => setPeriod('PM')}
-                style={{ flex: 1, padding: '8px 0', border: 'none', background: period === 'PM' ? 'var(--md-sys-color-primary)' : 'transparent', color: period === 'PM' ? 'white' : 'rgba(255,255,255,0.5)', borderRadius: '8px', fontWeight: 800, fontSize: '0.95rem', cursor: 'pointer', transition: 'all 0.2s', boxShadow: period === 'PM' ? '0 4px 12px rgba(59,130,246,0.3)' : 'none' }}
-              >
-                {t('common.pm') || 'PM'}
-              </button>
-            </div>
-
-            {/* Scrolling Wheels */}
-            <div style={{ display: 'flex', gap: '8px', width: '100%', maxWidth: '280px' }}>
-              <ScrollColumn items={HOURS} selectedIdx={hourIdx} onSelect={setHourIdx} />
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', fontWeight: 800, color: 'rgba(255,255,255,0.5)' }}>:</div>
-              <ScrollColumn items={MINUTES} selectedIdx={minIdx} onSelect={setMinIdx} />
-            </div>
-
+            ))}
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr 1fr', gap: '0.8rem', marginTop: '1.2rem' }}>
-          <button 
-            onClick={onClose}
-            style={{ padding: '0.8rem 0.5rem', borderRadius: '16px', background: 'rgba(255,255,255,0.06)', border: 'none', color: 'rgba(255,255,255,0.85)', fontWeight: 800, cursor: 'pointer', fontSize: '0.95rem', transition: 'all 0.2s' }}
-            onMouseOver={(e) => e.target.style.background = 'rgba(255,255,255,0.1)'}
-            onMouseOut={(e) => e.target.style.background = 'rgba(255,255,255,0.06)'}
-          >
-            {t('common.cancel') || 'Cancel'}
-          </button>
-          
-          <button 
-            onClick={handlePunchIn}
-            style={{ padding: '0.8rem 0.5rem', borderRadius: '16px', background: 'rgba(249,115,22,0.15)', border: '1px solid rgba(249,115,22,0.3)', color: 'var(--st-color-category-food)', fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
-            onMouseOver={(e) => e.target.style.background = 'rgba(249,115,22,0.25)'}
-            onMouseOut={(e) => e.target.style.background = 'rgba(249,115,22,0.15)'}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>location_on</span>
-            {t('itinerary.punch_in') || '打卡此时'}
-          </button>
+        {/* ── Scroll Wheels ── */}
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          gap: 4, padding: '0 32px', marginBottom: 8,
+        }}>
+          <ScrollColumn items={HOURS} selectedIdx={hourIdx} onSelect={setHourIdx} />
+          <div style={{
+            fontSize: 28, fontWeight: 800, color: '#3C3C43', lineHeight: 1,
+            paddingBottom: 2,
+          }}>:</div>
+          <ScrollColumn items={MINUTES} selectedIdx={minIdx} onSelect={setMinIdx} />
+        </div>
 
-          <button 
+        {/* ── Opening Hours (Collapsible) ── */}
+        {(hasHours || loadingHours) && (
+          <OpeningHoursSection
+            openingHours={openingHours}
+            loadingHours={loadingHours}
+            todayWeekdayIdx={todayWeekdayIdx}
+          />
+        )}
+
+        {/* ── Footer Actions ── */}
+        <div style={{ padding: '12px 20px 16px', display: 'flex', gap: 10 }}>
+          <button
+            onClick={handlePunchIn}
+            style={{
+              flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              padding: '14px 0', border: 'none', cursor: 'pointer',
+              borderRadius: 14, background: '#FFF8F0',
+              border: '1px solid #FFE8CC',
+              fontSize: 14, fontWeight: 600, color: '#FF9500',
+              transition: 'all 0.2s',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>my_location</span>
+            {t('itinerary.punch_in') || 'Now'}
+          </button>
+          <button
             onClick={handleSave}
-            style={{ padding: '0.8rem 0.5rem', borderRadius: '16px', background: 'var(--md-sys-color-primary)', border: 'none', color: 'white', fontWeight: 800, cursor: 'pointer', fontSize: '0.95rem', boxShadow: '0 6px 15px rgba(59,130,246,0.3)', transition: 'all 0.2s' }}
-            onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
-            onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
+            style={{
+              flex: 2, padding: '14px 0', border: 'none', cursor: 'pointer',
+              borderRadius: 14, background: '#007AFF',
+              fontSize: 15, fontWeight: 700, color: '#fff',
+              boxShadow: '0 4px 14px rgba(0,122,255,0.3)',
+              transition: 'all 0.2s',
+            }}
           >
             {t('common.save') || 'Save'}
           </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+function OpeningHoursSection({ openingHours, loadingHours, todayWeekdayIdx }) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <div style={{ padding: '0 20px 8px' }}>
+      <button
+        onClick={() => setExpanded(!expanded)}
+        style={{
+          width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '12px 16px', background: '#F9F9F9', borderRadius: 14,
+          border: '1px solid #F2F2F7', cursor: 'pointer',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span className="material-symbols-outlined" style={{ fontSize: 18, color: '#FF9500' }}>schedule</span>
+          <span style={{ fontSize: 14, fontWeight: 600, color: '#1C1C1E' }}>Opening Hours</span>
+        </div>
+        <span className="material-symbols-outlined" style={{ fontSize: 18, color: '#8E8E93' }}>
+          {expanded ? 'expand_less' : 'expand_more'}
+        </span>
+      </button>
+
+      <div style={{
+        maxHeight: expanded ? 300 : 0,
+        overflow: 'hidden',
+        transition: 'max-height 0.3s cubic-bezier(.4,0,.2,1)',
+      }}>
+        <div style={{ padding: '12px 16px 4px' }}>
+          {loadingHours ? (
+            <div style={{ color: '#8E8E93', fontSize: 13, padding: '8px 0' }}>Loading...</div>
+          ) : openingHours.map((line, i) => {
+            const isClosedLine = /closed/i.test(line);
+            const isToday = i === todayWeekdayIdx;
+            return (
+              <div key={i} style={{
+                fontSize: 13, lineHeight: 1.6, fontWeight: isToday ? 700 : 400,
+                color: isClosedLine ? '#FF3B30' : isToday ? '#1C1C1E' : '#8E8E93',
+                padding: isToday ? '4px 10px' : '2px 0',
+                background: isToday ? (isClosedLine ? '#FFF5F5' : '#F0F7FF') : 'transparent',
+                borderRadius: isToday ? 8 : 0,
+                marginBottom: 2,
+              }}>
+                {line}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

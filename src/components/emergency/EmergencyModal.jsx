@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { useI18n } from '../../context/I18nContext';
@@ -8,18 +8,13 @@ import EmergencyNumbers from './EmergencyNumbers';
 import EmergencyNearby from './EmergencyNearby';
 import EmergencyEmbassy from './EmergencyEmbassy';
 
-// Use @capacitor/geolocation on native, fallback to browser API on web
 async function getPosition() {
   try {
     const { Geolocation } = await import('@capacitor/geolocation');
     await Geolocation.requestPermissions();
-    const pos = await Geolocation.getCurrentPosition({
-      enableHighAccuracy: false,
-      timeout: 15000,
-    });
+    const pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: false, timeout: 15000 });
     return { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
   } catch {
-    // Fallback to browser geolocation
     return new Promise((resolve, reject) => {
       navigator.geolocation.getCurrentPosition(
         (pos) => resolve({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }),
@@ -36,23 +31,18 @@ const TAB_KEYS = [
   { key: 'embassy', icon: 'account_balance', i18nKey: 'emergency.tab_embassy' },
 ];
 
-/**
- * Full-screen emergency info modal.
- * Auto-detects country from active trip destinations or allows manual selection.
- */
 export default function EmergencyModal({ onClose }) {
   const { state } = useApp();
   const { t } = useI18n();
   const location = useLocation();
-  const overlayRef = useRef(null);
   const [activeTab, setActiveTab] = useState('numbers');
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [showCountryPicker, setShowCountryPicker] = useState(false);
   const [detectStatus, setDetectStatus] = useState('');
+  const [closing, setClosing] = useState(false);
 
-  // Try to detect country: 1) from Trip destinations  2) from GPS reverse geocoding
+  // Detect country from trip or GPS
   useEffect(() => {
-    // 1. Check if we're on a trip page
     const tripMatch = location.pathname.match(/\/trip-v2\/(.+)/);
     if (tripMatch && state.trips) {
       const tripId = tripMatch[1];
@@ -69,74 +59,48 @@ export default function EmergencyModal({ onClose }) {
       }
     }
 
-    // 2. No trip context — try GPS + reverse geocoding
     let cancelled = false;
-    setDetectStatus('Requesting GPS...');
+    setDetectStatus('Locating...');
 
     (async () => {
       try {
-        // Step 1: Get GPS position (Capacitor plugin or browser fallback)
         const { latitude: lat, longitude: lng } = await getPosition();
-
         if (cancelled) return;
-        setDetectStatus(`GPS OK (${lat.toFixed(4)}, ${lng.toFixed(4)}), detecting country...`);
-
-        // Step 2: Reverse geocode using free BigDataCloud API (no key needed)
+        setDetectStatus('Detecting country...');
         const resp = await fetch(
           `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`
         );
         const data = await resp.json();
-
         if (cancelled) return;
-
         const countryCode = data.countryCode;
         const countryName = data.countryName;
-
         if (countryCode && emergencyData[countryCode]) {
           setDetectStatus('');
           setSelectedCountry({ name: countryName, code: countryCode, lat, lng });
-        } else if (countryCode) {
-          setDetectStatus(`Country "${countryName}" (${countryCode}) not in emergency database`);
         } else {
-          setDetectStatus(`Could not determine country from (${lat.toFixed(4)}, ${lng.toFixed(4)})`);
+          setDetectStatus(countryCode ? `${countryName} not in database` : 'Could not detect country');
         }
       } catch (err) {
-        if (err.code === 1) {
-          setDetectStatus('GPS permission denied');
-        } else if (err.code === 2) {
-          setDetectStatus('GPS unavailable');
-        } else if (err.code === 3) {
-          setDetectStatus('GPS timeout');
-        } else {
-          setDetectStatus(`Error: ${err.message || String(err)}`);
-        }
+        if (err.code === 1) setDetectStatus('GPS permission denied');
+        else if (err.code === 3) setDetectStatus('GPS timeout');
+        else setDetectStatus('GPS unavailable');
       }
     })();
 
     return () => { cancelled = true; };
   }, [location.pathname, state.trips]);
 
-  // Entrance animation
-  useEffect(() => {
-    requestAnimationFrame(() => {
-      if (overlayRef.current) overlayRef.current.classList.add('sos-modal-visible');
-    });
-  }, []);
-
-  const handleClose = () => {
-    if (overlayRef.current) overlayRef.current.classList.remove('sos-modal-visible');
-    setTimeout(onClose, 200);
+  const animateClose = (cb) => {
+    setClosing(true);
+    setTimeout(() => { cb?.(); onClose(); }, 260);
   };
 
-  // Get nationality from settings
   const nationality = state.settings?.nationality || null;
 
-  // Build country list for manual picker
   const countryOptions = Object.entries(emergencyData)
     .map(([code, data]) => ({ code, name: data.country }))
     .sort((a, b) => a.name.localeCompare(b.name));
 
-  // Get all destination countries from all trips for quick switching
   const tripCountries = [];
   if (state.trips) {
     const seen = new Set();
@@ -153,288 +117,210 @@ export default function EmergencyModal({ onClose }) {
 
   return (
     <>
-      <style>{sosModalCSS}</style>
-      <div ref={overlayRef} className="sos-modal-overlay" onClick={handleClose}>
-        <div className="sos-modal-shell" onClick={e => e.stopPropagation()}>
-          {/* Header */}
-          <div className="sos-modal-header">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 22, color: '#D32F2F' }}>sos</span>
-              <div>
-                <div style={{ fontSize: '1rem', fontWeight: 800, color: '#D32F2F' }}>Emergency</div>
-                {selectedCountry && (
-                  <button
-                    onClick={() => setShowCountryPicker(!showCountryPicker)}
-                    style={{
-                      background: 'none', border: 'none', padding: 0, cursor: 'pointer',
-                      fontSize: '0.78rem', fontWeight: 600, color: 'var(--md-sys-color-on-surface-variant, #666)',
-                      display: 'flex', alignItems: 'center', gap: '3px',
-                    }}
-                  >
-                    <span className="material-symbols-outlined" style={{ fontSize: 14 }}>location_on</span>
-                    {selectedCountry.name}
-                    <span className="material-symbols-outlined" style={{ fontSize: 14 }}>expand_more</span>
-                  </button>
-                )}
-                {!selectedCountry && (
-                  <button
-                    onClick={() => setShowCountryPicker(!showCountryPicker)}
-                    style={{
-                      background: 'none', border: 'none', padding: 0, cursor: 'pointer',
-                      fontSize: '0.78rem', fontWeight: 600, color: '#1565C0',
-                      display: 'flex', alignItems: 'center', gap: '3px',
-                    }}
-                  >
-                    <span className="material-symbols-outlined" style={{ fontSize: 14 }}>add_location</span>
-                    {t('emergency.select_country_label')}
-                  </button>
-                )}
-              </div>
-            </div>
-            <button className="sos-close-btn" onClick={handleClose} aria-label="Close">
-              <span className="material-symbols-outlined">close</span>
-            </button>
-          </div>
+      <style>{`
+        @keyframes sosFadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes sosFadeOut { from { opacity: 1; } to { opacity: 0; } }
+        @keyframes sosSlideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        @keyframes sosSlideDown { from { transform: translateY(0); } to { transform: translateY(100%); } }
+      `}</style>
 
-          {/* Debug: GPS detection status */}
-          {detectStatus && (
+      {/* Backdrop */}
+      <div
+        onClick={() => animateClose()}
+        style={{
+          position: 'fixed', inset: 0, zIndex: 9000,
+          background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
+          animation: closing ? 'sosFadeOut .25s ease forwards' : 'sosFadeIn .2s ease forwards',
+        }}
+      />
+
+      {/* Panel */}
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          position: 'fixed', bottom: 0, left: 0, right: 0,
+          width: '100%', maxWidth: 420, margin: '0 auto',
+          maxHeight: '85vh', display: 'flex', flexDirection: 'column',
+          background: '#F2F2F7',
+          borderRadius: '24px 24px 0 0',
+          boxShadow: '0 -8px 40px rgba(0,0,0,0.12)',
+          zIndex: 9001,
+          paddingBottom: 'env(safe-area-inset-bottom, 16px)',
+          animation: closing ? 'sosSlideDown .25s ease forwards' : 'sosSlideUp .3s cubic-bezier(.32,1.15,.6,1) forwards',
+        }}
+      >
+        {/* Drag handle */}
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0 6px', flexShrink: 0 }}>
+          <div style={{ width: 36, height: 4, borderRadius: 2, background: '#C7C7CC' }} />
+        </div>
+
+        {/* ═══ Header Card ═══ */}
+        <div style={{
+          margin: '0 16px 12px', padding: '14px 16px',
+          background: '#fff', borderRadius: 16,
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{
-              padding: '0.5rem 1.25rem',
-              fontSize: '0.65rem',
-              fontFamily: 'monospace',
-              lineHeight: 1.4,
-              color: detectStatus.startsWith('OK') ? '#2E7D32' : (detectStatus.includes('ERR') || detectStatus.includes('FAIL') ? '#D32F2F' : '#1565C0'),
-              background: detectStatus.startsWith('OK') ? '#E8F5E9' : (detectStatus.includes('ERR') || detectStatus.includes('FAIL') ? '#FFEBEE' : '#E3F2FD'),
-              borderBottom: '1px solid var(--md-sys-color-outline-variant, #e0e0e0)',
-              wordBreak: 'break-all',
+              width: 40, height: 40, borderRadius: 12,
+              background: '#FFF5F5', display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
-              {detectStatus}
+              <span className="material-symbols-outlined" style={{ fontSize: 22, color: '#FF3B30' }}>sos</span>
             </div>
-          )}
-
-          {/* Country picker dropdown */}
-          {showCountryPicker && (
-            <div className="sos-country-picker">
-              {/* Quick access: trip destinations */}
-              {tripCountries.length > 0 && (
-                <>
-                  <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--md-sys-color-on-surface-variant, #888)', textTransform: 'uppercase', padding: '0.4rem 0.75rem', letterSpacing: '0.04em' }}>
-                    {t('emergency.trip_destinations')}
-                  </div>
-                  {tripCountries.map(c => (
-                    <button
-                      key={c.code}
-                      className={`sos-country-option ${selectedCountry?.code === c.code ? 'active' : ''}`}
-                      onClick={() => { setSelectedCountry(c); setShowCountryPicker(false); }}
-                    >
-                      <span style={{ fontWeight: 600 }}>{c.name}</span>
-                      <span style={{ fontSize: '0.72rem', opacity: 0.6 }}>{c.code}</span>
-                    </button>
-                  ))}
-                  <div style={{ borderBottom: '1px solid var(--md-sys-color-outline-variant, #ddd)', margin: '0.3rem 0.75rem' }} />
-                </>
+            <div>
+              <div style={{ fontSize: 17, fontWeight: 700, color: '#FF3B30' }}>Emergency</div>
+              {selectedCountry ? (
+                <button
+                  onClick={() => setShowCountryPicker(!showCountryPicker)}
+                  style={{
+                    background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+                    fontSize: 13, fontWeight: 600, color: '#8E8E93',
+                    display: 'flex', alignItems: 'center', gap: 3,
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 14 }}>location_on</span>
+                  {selectedCountry.name}
+                  <span className="material-symbols-outlined" style={{ fontSize: 14 }}>expand_more</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => setShowCountryPicker(!showCountryPicker)}
+                  style={{
+                    background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+                    fontSize: 13, fontWeight: 600, color: '#007AFF',
+                    display: 'flex', alignItems: 'center', gap: 3,
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 14 }}>add_location</span>
+                  {t('emergency.select_country_label') || 'Select Country'}
+                </button>
               )}
-              <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--md-sys-color-on-surface-variant, #888)', textTransform: 'uppercase', padding: '0.4rem 0.75rem', letterSpacing: '0.04em' }}>
-                {t('emergency.all_countries')}
-              </div>
-              <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
-                {countryOptions.map(c => (
+            </div>
+          </div>
+        </div>
+
+        {/* Detection status */}
+        {detectStatus && (
+          <div style={{
+            margin: '0 16px 8px', padding: '8px 14px', borderRadius: 12,
+            background: '#fff', fontSize: 12, fontWeight: 500,
+            color: detectStatus.includes('denied') || detectStatus.includes('unavailable') || detectStatus.includes('timeout')
+              ? '#FF3B30' : '#007AFF',
+            display: 'flex', alignItems: 'center', gap: 6,
+          }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+              {detectStatus.includes('denied') || detectStatus.includes('unavailable') ? 'error' : 'sync'}
+            </span>
+            {detectStatus}
+          </div>
+        )}
+
+        {/* Country picker */}
+        {showCountryPicker && (
+          <div style={{
+            margin: '0 16px 12px', background: '#fff', borderRadius: 16,
+            overflow: 'hidden', maxHeight: 280, overflowY: 'auto',
+            WebkitOverflowScrolling: 'touch',
+          }}>
+            {tripCountries.length > 0 && (
+              <>
+                <div style={{
+                  fontSize: 11, fontWeight: 600, color: '#8E8E93', textTransform: 'uppercase',
+                  padding: '12px 16px 6px', letterSpacing: 0.3,
+                }}>
+                  {t('emergency.trip_destinations') || 'Trip Destinations'}
+                </div>
+                {tripCountries.map(c => (
                   <button
                     key={c.code}
-                    className={`sos-country-option ${selectedCountry?.code === c.code ? 'active' : ''}`}
-                    onClick={() => { setSelectedCountry({ ...c, lat: null, lng: null }); setShowCountryPicker(false); }}
+                    onClick={() => { setSelectedCountry(c); setShowCountryPicker(false); }}
+                    style={{
+                      width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      padding: '11px 16px', border: 'none', cursor: 'pointer', textAlign: 'left',
+                      background: selectedCountry?.code === c.code ? '#FFF5F5' : '#fff',
+                      borderBottom: '0.5px solid #F2F2F7',
+                      fontSize: 14, fontWeight: selectedCountry?.code === c.code ? 700 : 500,
+                      color: selectedCountry?.code === c.code ? '#FF3B30' : '#1C1C1E',
+                    }}
                   >
-                    <span style={{ fontWeight: 600 }}>{c.name}</span>
-                    <span style={{ fontSize: '0.72rem', opacity: 0.6 }}>{c.code}</span>
+                    <span>{c.name}</span>
+                    <span style={{ fontSize: 12, color: '#8E8E93' }}>{c.code}</span>
                   </button>
                 ))}
-              </div>
+                <div style={{ height: 1, background: '#E5E5EA', margin: '0 16px' }} />
+              </>
+            )}
+            <div style={{
+              fontSize: 11, fontWeight: 600, color: '#8E8E93', textTransform: 'uppercase',
+              padding: '12px 16px 6px', letterSpacing: 0.3,
+            }}>
+              {t('emergency.all_countries') || 'All Countries'}
             </div>
-          )}
-
-          {/* Tab bar */}
-          <div className="sos-tab-bar">
-            {TAB_KEYS.map(tab => (
+            {countryOptions.map(c => (
               <button
-                key={tab.key}
-                className={`sos-tab ${activeTab === tab.key ? 'active' : ''}`}
-                onClick={() => setActiveTab(tab.key)}
+                key={c.code}
+                onClick={() => { setSelectedCountry({ ...c, lat: null, lng: null }); setShowCountryPicker(false); }}
+                style={{
+                  width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '11px 16px', border: 'none', cursor: 'pointer', textAlign: 'left',
+                  background: selectedCountry?.code === c.code ? '#FFF5F5' : '#fff',
+                  borderBottom: '0.5px solid #F2F2F7',
+                  fontSize: 14, fontWeight: selectedCountry?.code === c.code ? 700 : 400,
+                  color: selectedCountry?.code === c.code ? '#FF3B30' : '#1C1C1E',
+                }}
               >
-                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>{tab.icon}</span>
-                <span>{t(tab.i18nKey)}</span>
+                <span>{c.name}</span>
+                <span style={{ fontSize: 12, color: '#8E8E93' }}>{c.code}</span>
               </button>
             ))}
           </div>
+        )}
 
-          {/* Tab content */}
-          <div className="sos-modal-content">
-            {activeTab === 'numbers' && (
-              <EmergencyNumbers
-                countryName={selectedCountry?.name}
-                countryCode={selectedCountry?.code}
-              />
-            )}
-            {activeTab === 'nearby' && (
-              <EmergencyNearby
-                position={null}
-                fallbackLat={selectedCountry?.lat}
-                fallbackLng={selectedCountry?.lng}
-              />
-            )}
-            {activeTab === 'embassy' && (
-              <EmergencyEmbassy
-                countryName={selectedCountry?.name}
-                countryCode={selectedCountry?.code}
-                nationality={nationality}
-              />
-            )}
-          </div>
+        {/* ═══ Tab Bar ═══ */}
+        <div style={{
+          display: 'flex', margin: '0 16px 12px',
+          background: '#fff', borderRadius: 12, padding: 3,
+        }}>
+          {TAB_KEYS.map(tab => {
+            const isActive = activeTab === tab.key;
+            return (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                style={{
+                  flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  gap: 5, padding: '10px 4px', border: 'none', cursor: 'pointer',
+                  borderRadius: 10, fontSize: 12, fontWeight: 600,
+                  background: isActive ? '#FF3B30' : 'transparent',
+                  color: isActive ? '#fff' : '#8E8E93',
+                  transition: 'all 0.2s',
+                  boxShadow: isActive ? '0 2px 8px rgba(255,59,48,0.25)' : 'none',
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>{tab.icon}</span>
+                <span>{t(tab.i18nKey)}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* ═══ Content ═══ */}
+        <div style={{
+          flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch',
+          margin: '0 16px 16px', padding: '16px',
+          background: '#fff', borderRadius: 16,
+        }}>
+          {activeTab === 'numbers' && (
+            <EmergencyNumbers countryName={selectedCountry?.name} countryCode={selectedCountry?.code} />
+          )}
+          {activeTab === 'nearby' && (
+            <EmergencyNearby position={null} fallbackLat={selectedCountry?.lat} fallbackLng={selectedCountry?.lng} />
+          )}
+          {activeTab === 'embassy' && (
+            <EmergencyEmbassy countryName={selectedCountry?.name} countryCode={selectedCountry?.code} nationality={nationality} />
+          )}
         </div>
       </div>
     </>
   );
 }
-
-/* ── SOS Modal Scoped CSS ── */
-const sosModalCSS = `
-  .sos-modal-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 9000;
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-    opacity: 0;
-    transition: opacity 0.25s ease;
-  }
-  .sos-modal-overlay.sos-modal-visible {
-    opacity: 1;
-  }
-
-  .sos-modal-shell {
-    position: relative;
-    width: 100%;
-    max-width: 480px;
-    max-height: 90vh;
-    background: var(--md-sys-color-surface, #fff);
-    border-radius: 1.5rem 1.5rem 0 0;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    transform: translateY(100%);
-    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .sos-modal-visible .sos-modal-shell {
-    transform: translateY(0);
-  }
-
-  /* Desktop: centered modal */
-  @media (min-width: 769px) {
-    .sos-modal-overlay {
-      align-items: center;
-    }
-    .sos-modal-shell {
-      border-radius: 1.5rem;
-      max-height: 80vh;
-      transform: translateY(16px) scale(0.97);
-    }
-    .sos-modal-visible .sos-modal-shell {
-      transform: translateY(0) scale(1);
-    }
-  }
-
-  .sos-modal-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1rem 1.25rem 0.75rem;
-    border-bottom: 1px solid var(--md-sys-color-outline-variant, #e0e0e0);
-  }
-
-  .sos-close-btn {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    border: none;
-    background: var(--md-sys-color-surface-container, #eee);
-    color: var(--md-sys-color-on-surface-variant, #666);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .sos-close-btn:hover {
-    background: #FFEBEE;
-    color: #D32F2F;
-  }
-
-  .sos-country-picker {
-    background: var(--md-sys-color-surface-container-low, #f5f5f5);
-    border-bottom: 1px solid var(--md-sys-color-outline-variant, #e0e0e0);
-    padding: 0.5rem 0;
-  }
-  .sos-country-option {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    padding: 0.5rem 0.75rem;
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    font-size: 0.82rem;
-    color: var(--md-sys-color-on-surface, #333);
-    transition: background 0.15s;
-    text-align: left;
-  }
-  .sos-country-option:hover {
-    background: var(--md-sys-color-surface-container, #e8e8e8);
-  }
-  .sos-country-option.active {
-    background: #FFEBEE;
-    color: #D32F2F;
-    font-weight: 700;
-  }
-
-  .sos-tab-bar {
-    display: flex;
-    gap: 0;
-    border-bottom: 1px solid var(--md-sys-color-outline-variant, #e0e0e0);
-  }
-  .sos-tab {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.3rem;
-    padding: 0.7rem 0.5rem;
-    border: none;
-    background: transparent;
-    color: var(--md-sys-color-on-surface-variant, #888);
-    font-size: 0.78rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    border-bottom: 2px solid transparent;
-  }
-  .sos-tab:hover {
-    color: var(--md-sys-color-on-surface, #333);
-    background: var(--md-sys-color-surface-container-low, #f8f8f8);
-  }
-  .sos-tab.active {
-    color: #D32F2F;
-    border-bottom-color: #D32F2F;
-  }
-
-  .sos-modal-content {
-    flex: 1;
-    overflow-y: auto;
-    padding: 1rem 1.25rem 1.5rem;
-  }
-  .sos-modal-content::-webkit-scrollbar { width: 4px; }
-  .sos-modal-content::-webkit-scrollbar-thumb { background: #ccc; border-radius: 2px; }
-`;

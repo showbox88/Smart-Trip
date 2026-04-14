@@ -79,6 +79,8 @@ export default function BottomNav() {
   const isActive = (tab) => {
     if (tab.action === 'sos') return sosOpen;
     if (tab.action === 'profile') return profileOpen;
+    // When a panel is open, only that panel's tab is active
+    if (profileOpen || sosOpen) return false;
     if (tab.action === 'map') return mapMode || location.pathname === '/map';
     if (tab.action === 'itinerary') return isTripPage && !mapMode;
     if (!tab.path) return false;

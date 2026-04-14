@@ -1,12 +1,8 @@
 /**
- * ProfilePanel — Slide-up user profile & settings sheet
- *
- * Contains: user info, theme picker, language switcher, admin link, logout.
- * Used by BottomNav (clean layout) and can be triggered from Navbar (glass layout).
+ * ProfilePanel — iOS-style slide-up settings sheet
  */
 
 import { useState, useMemo } from 'react';
-// useCallback and useEffect now handled by useColorOverrides hook
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../hooks/useAuth';
@@ -31,6 +27,7 @@ export default function ProfilePanel({ open, onClose }) {
   const navigate = useNavigate();
   const [langMenuOpen, setLangMenuOpen] = useState(false);
   const [themeOpen, setThemeOpen] = useState(false);
+  const [closing, setClosing] = useState(false);
 
   const {
     handleColorChange, handleSave, handleReset,
@@ -50,117 +47,127 @@ export default function ProfilePanel({ open, onClose }) {
 
   if (!open) return null;
 
+  const animateClose = (cb) => {
+    setClosing(true);
+    setTimeout(() => { setClosing(false); cb?.(); onClose(); }, 260);
+  };
+
   const handleLogout = async () => {
-    onClose();
-    await signOut();
-    navigate('/');
+    animateClose(async () => { await signOut(); navigate('/'); });
   };
 
   const handleThemeSelect = (preset) => {
     applyPresetTheme(preset.id, preset.theme);
   };
 
+  // Shared row style for menu items
+  const ROW = {
+    width: '100%', textAlign: 'left', padding: '13px 16px',
+    background: '#fff', border: 'none', cursor: 'pointer',
+    display: 'flex', alignItems: 'center', gap: 12,
+    fontSize: 15, fontWeight: 500, color: '#1C1C1E',
+    transition: 'background 0.15s',
+  };
+
   return (
     <>
+      <style>{`
+        @keyframes ppFadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes ppFadeOut { from { opacity: 1; } to { opacity: 0; } }
+        @keyframes ppSlideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        @keyframes ppSlideDown { from { transform: translateY(0); } to { transform: translateY(100%); } }
+      `}</style>
+
       {/* Backdrop */}
       <div
-        onClick={onClose}
+        onClick={() => animateClose()}
         style={{
-          position: 'fixed',
-          inset: 0,
-          background: 'rgba(0,0,0,0.32)',
+          position: 'fixed', inset: 0,
+          background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
           zIndex: 2020,
-          animation: 'fadeIn 0.15s ease',
+          animation: closing ? 'ppFadeOut .25s ease forwards' : 'ppFadeIn .2s ease forwards',
         }}
       />
 
       {/* Panel */}
       <div style={{
-        position: 'fixed',
-        bottom: '80px',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        width: 'calc(100% - 32px)',
-        maxWidth: '400px',
-        maxHeight: '70vh',
-        background: 'var(--md-sys-color-surface-container-lowest)',
-        border: '1px solid var(--md-sys-color-outline-variant)',
-        borderRadius: 'var(--md-sys-shape-corner-large)',
-        boxShadow: '0 8px 32px rgba(0,0,0,0.16)',
+        position: 'fixed', bottom: 0, left: 0, right: 0,
+        width: '100%', maxWidth: 420, margin: '0 auto',
+        maxHeight: '80vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch',
+        background: '#F2F2F7',
+        borderRadius: '24px 24px 0 0',
+        boxShadow: '0 -8px 40px rgba(0,0,0,0.12)',
         zIndex: 2021,
-        overflowY: 'auto',
-        padding: '1rem',
-        animation: 'slideUp 0.2s ease',
+        paddingBottom: 'env(safe-area-inset-bottom, 16px)',
+        animation: closing ? 'ppSlideDown .25s ease forwards' : 'ppSlideUp .3s cubic-bezier(.32,1.15,.6,1) forwards',
       }}>
-        {/* ── User Info ── */}
+        {/* Drag handle */}
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0 6px', position: 'sticky', top: 0, background: '#F2F2F7', zIndex: 1, borderRadius: '24px 24px 0 0' }}>
+          <div style={{ width: 36, height: 4, borderRadius: 2, background: '#C7C7CC' }} />
+        </div>
+
+        {/* ═══ User Card ═══ */}
         {state.user && (
           <div style={{
-            display: 'flex', alignItems: 'center', gap: '12px',
-            paddingBottom: '0.75rem',
-            borderBottom: '1px solid var(--md-sys-color-outline-variant)',
-            marginBottom: '0.75rem',
+            margin: '4px 16px 16px', padding: '16px',
+            background: '#fff', borderRadius: 16,
+            display: 'flex', alignItems: 'center', gap: 14,
           }}>
             <div style={{
-              width: '40px', height: '40px', borderRadius: '50%', overflow: 'hidden',
+              width: 52, height: 52, borderRadius: '50%', overflow: 'hidden',
+              background: '#F2F2F7', flexShrink: 0,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: 'var(--md-sys-color-surface-container)',
-              flexShrink: 0,
             }}>
               {state.user.avatar ? (
                 <img src={state.user.avatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" />
               ) : (
-                <span className="material-symbols-outlined" style={{ fontSize: '2rem', color: 'var(--md-sys-color-on-surface-variant)' }}>account_circle</span>
+                <span className="material-symbols-outlined" style={{ fontSize: 32, color: '#C7C7CC' }}>account_circle</span>
               )}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--md-sys-color-on-surface)' }}>
+              <div style={{ fontSize: 17, fontWeight: 700, color: '#1C1C1E' }}>
                 {state.user.name || state.user.email?.split('@')[0]}
               </div>
               <div style={{
-                fontSize: '0.75rem', color: 'var(--md-sys-color-on-surface-variant)',
+                fontSize: 13, color: '#8E8E93', marginTop: 2,
                 overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
               }}>
                 {state.user.email}
               </div>
             </div>
+            <span className="material-symbols-outlined" style={{ fontSize: 18, color: '#C7C7CC' }}>chevron_right</span>
           </div>
         )}
 
-        {/* ── Theme Picker ── */}
-        <div style={{ marginBottom: '0.75rem' }}>
-          {/* Collapsible header */}
+        {/* ═══ Settings Group ═══ */}
+        <div style={{ margin: '0 16px 16px', background: '#fff', borderRadius: 16, overflow: 'hidden' }}>
+
+          {/* ── Theme ── */}
           <button
             onClick={() => setThemeOpen(v => !v)}
-            style={{
-              width: '100%', textAlign: 'left', padding: '8px 10px',
-              background: themeOpen ? 'var(--md-sys-color-surface-container)' : 'transparent',
-              border: 'none', borderRadius: '8px',
-              cursor: 'pointer', display: 'flex', alignItems: 'center',
-              gap: '8px', justifyContent: 'space-between',
-            }}
+            style={{ ...ROW, borderBottom: '0.5px solid #E5E5EA' }}
           >
-            <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--md-sys-color-primary)' }}>palette</span>
-              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--md-sys-color-on-surface)' }}>Theme</span>
+            <span className="material-symbols-outlined" style={{ fontSize: 22, color: '#007AFF' }}>palette</span>
+            <span style={{ flex: 1 }}>Theme</span>
+            <span style={{ fontSize: 13, color: '#8E8E93', marginRight: 4 }}>
+              {PRESET_THEMES.find(p => p.id === themeId)?.emoji || ''}
             </span>
             <span className="material-symbols-outlined" style={{
-              fontSize: '14px', color: 'var(--md-sys-color-on-surface-variant)',
+              fontSize: 16, color: '#C7C7CC',
               transition: 'transform 0.2s',
               transform: themeOpen ? 'rotate(180deg)' : 'none',
             }}>expand_more</span>
           </button>
 
-          {/* Expandable content */}
+          {/* Theme expanded content */}
           {themeOpen && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.4rem' }}>
-              {/* ── Customize colors — always visible ── */}
-              <div style={{ padding: '0.5rem 0.4rem 0.6rem', borderBottom: '1px solid var(--md-sys-color-outline-variant)', marginBottom: '0.2rem' }}>
-                <div style={{ fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--md-sys-color-on-surface-variant)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>tune</span>
-                  Customize
+            <div style={{ borderBottom: '0.5px solid #E5E5EA' }}>
+              {/* Customize colors */}
+              <div style={{ padding: '12px 16px', borderBottom: '0.5px solid #F2F2F7' }}>
+                <div style={{ fontSize: 11, fontWeight: 600, color: '#8E8E93', marginBottom: 10, letterSpacing: 0.3, textTransform: 'uppercase' }}>
+                  Customize Colors
                 </div>
-                {/* Color swatches */}
-                <div style={{ display: 'flex', gap: '6px', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', gap: 6, justifyContent: 'space-between' }}>
                   {EDITABLE_COLORS.map((colorDef) => (
                     <ColorSwatch
                       key={colorDef.key}
@@ -171,61 +178,51 @@ export default function ProfilePanel({ open, onClose }) {
                     />
                   ))}
                 </div>
-                {/* Save / Reset buttons — always visible */}
-                <div style={{ display: 'flex', gap: '6px', marginTop: '0.6rem' }}>
+                <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
                   <button
                     onClick={handleSave}
                     disabled={!hasUnsaved}
                     style={{
-                      flex: 1, padding: '5px', borderRadius: '8px',
-                      cursor: hasUnsaved ? 'pointer' : 'default',
-                      background: hasUnsaved ? 'var(--md-sys-color-primary)' : 'var(--md-sys-color-surface-container-high)',
-                      border: 'none',
-                      color: hasUnsaved ? 'var(--md-sys-color-on-primary)' : 'var(--md-sys-color-on-surface-variant)',
-                      fontSize: '0.7rem', fontWeight: 700,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
-                      opacity: hasUnsaved ? 1 : 0.45,
+                      flex: 1, padding: '8px', borderRadius: 10, border: 'none',
+                      background: hasUnsaved ? '#007AFF' : '#F2F2F7',
+                      color: hasUnsaved ? '#fff' : '#C7C7CC',
+                      fontSize: 13, fontWeight: 600, cursor: hasUnsaved ? 'pointer' : 'default',
                       transition: 'all 0.2s',
                     }}
                   >
-                    <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>save</span>
                     Save
                   </button>
                   <button
                     onClick={handleReset}
                     disabled={!hasAnyChange}
                     style={{
-                      flex: 1, padding: '5px', borderRadius: '8px',
-                      cursor: hasAnyChange ? 'pointer' : 'default',
-                      background: 'none',
-                      border: '1px solid var(--md-sys-color-outline-variant)',
-                      color: 'var(--md-sys-color-on-surface-variant)', fontSize: '0.7rem', fontWeight: 600,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
-                      opacity: hasAnyChange ? 1 : 0.45,
+                      flex: 1, padding: '8px', borderRadius: 10,
+                      background: '#F2F2F7', border: 'none',
+                      color: hasAnyChange ? '#FF3B30' : '#C7C7CC',
+                      fontSize: 13, fontWeight: 600, cursor: hasAnyChange ? 'pointer' : 'default',
                       transition: 'all 0.2s',
                     }}
                   >
-                    <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>restart_alt</span>
                     Reset
                   </button>
                 </div>
               </div>
 
+              {/* Theme presets by group */}
               {LAYOUT_GROUPS.map((group) => {
                 const themes = groupedThemes[group.key] || [];
                 if (!themes.length) return null;
                 return (
-                  <div key={group.key}>
+                  <div key={group.key} style={{ padding: '12px 16px', borderBottom: '0.5px solid #F2F2F7' }}>
                     <div style={{
-                      fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase',
-                      color: 'var(--md-sys-color-on-surface-variant)',
-                      letterSpacing: '0.05em', marginBottom: '0.3rem', paddingLeft: '0.2rem',
-                      display: 'flex', alignItems: 'center', gap: '4px',
+                      fontSize: 11, fontWeight: 600, color: '#8E8E93',
+                      letterSpacing: 0.3, textTransform: 'uppercase', marginBottom: 8,
+                      display: 'flex', alignItems: 'center', gap: 4,
                     }}>
-                      <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>{group.icon}</span>
+                      <span className="material-symbols-outlined" style={{ fontSize: 14 }}>{group.icon}</span>
                       {group.label}
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                       {themes.map((preset) => {
                         const isActive = themeId === preset.id;
                         const colors = preset.theme.colors;
@@ -234,34 +231,31 @@ export default function ProfilePanel({ open, onClose }) {
                             key={preset.id}
                             onClick={() => handleThemeSelect(preset)}
                             style={{
-                              display: 'flex', alignItems: 'center', gap: '10px',
-                              padding: '0.5rem 0.6rem',
-                              borderRadius: 'var(--md-sys-shape-corner-medium)',
+                              display: 'flex', alignItems: 'center', gap: 10,
+                              padding: '10px 12px', borderRadius: 12,
                               border: isActive ? `2px solid ${colors.primary}` : '2px solid transparent',
-                              background: isActive ? `${colors.primary}15` : 'transparent',
-                              cursor: 'pointer', transition: 'all 0.15s ease', textAlign: 'left',
+                              background: isActive ? `${colors.primary}0D` : '#F9F9F9',
+                              cursor: 'pointer', transition: 'all 0.15s', textAlign: 'left',
                             }}
                           >
-                            <div style={{ display: 'flex', gap: '3px', flexShrink: 0 }}>
+                            <div style={{ display: 'flex', gap: 3, flexShrink: 0 }}>
                               {[colors.primary, colors.secondary, colors.tertiary, colors.surface].map((c, i) => (
                                 <div key={i} style={{
-                                  width: '14px', height: '14px', borderRadius: '50%',
+                                  width: 16, height: 16, borderRadius: '50%',
                                   background: c,
-                                  border: i === 3 ? '1px solid var(--md-sys-color-outline)' : 'none',
+                                  border: i === 3 ? '1px solid #E5E5EA' : 'none',
                                 }} />
                               ))}
                             </div>
-                            <div style={{ flex: 1 }}>
-                              <div style={{
-                                fontSize: '0.78rem', fontWeight: 600,
-                                color: isActive ? colors.primary : 'var(--md-sys-color-on-surface)',
-                              }}>
-                                {preset.emoji} {preset.theme.name}
-                              </div>
-                            </div>
+                            <span style={{
+                              flex: 1, fontSize: 14, fontWeight: 600,
+                              color: isActive ? colors.primary : '#1C1C1E',
+                            }}>
+                              {preset.emoji} {preset.theme.name}
+                            </span>
                             {isActive && (
                               <span className="material-symbols-outlined" style={{
-                                fontSize: '16px', color: colors.primary,
+                                fontSize: 18, color: colors.primary,
                                 fontVariationSettings: "'FILL' 1",
                               }}>check_circle</span>
                             )}
@@ -274,88 +268,75 @@ export default function ProfilePanel({ open, onClose }) {
               })}
             </div>
           )}
-        </div>
 
-        {/* ── Language Switcher ── */}
-        <div style={{
-          borderTop: '1px solid var(--md-sys-color-outline-variant)',
-          paddingTop: '0.75rem', marginBottom: '0.5rem',
-        }}>
+          {/* ── Language ── */}
           <button
             onClick={() => setLangMenuOpen(v => !v)}
-            style={{
-              width: '100%', textAlign: 'left', padding: '8px 10px',
-              background: langMenuOpen ? 'var(--md-sys-color-surface-container)' : 'transparent',
-              border: 'none', color: 'var(--md-sys-color-on-surface)',
-              cursor: 'pointer', borderRadius: '8px', fontSize: '0.85rem',
-              display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'space-between',
-            }}
+            style={{ ...ROW, borderBottom: (isAdmin(state.user) || langMenuOpen) ? '0.5px solid #E5E5EA' : 'none' }}
           >
-            <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--md-sys-color-on-surface-variant)' }}>language</span>
-              {t('itinerary.settings_lang')}
+            <span className="material-symbols-outlined" style={{ fontSize: 22, color: '#FF9500' }}>language</span>
+            <span style={{ flex: 1 }}>{t('itinerary.settings_lang') || 'Language'}</span>
+            <span style={{ fontSize: 13, color: '#8E8E93', marginRight: 4 }}>
+              {availableLanguages.find(l => l.code === language)?.label || language}
             </span>
             <span className="material-symbols-outlined" style={{
-              fontSize: '14px', color: 'var(--md-sys-color-on-surface-variant)',
+              fontSize: 16, color: '#C7C7CC',
               transition: 'transform 0.2s',
               transform: langMenuOpen ? 'rotate(180deg)' : 'none',
             }}>expand_more</span>
           </button>
+
           {langMenuOpen && (
-            <div style={{ marginTop: '2px', borderRadius: '8px', overflow: 'hidden' }}>
-              {availableLanguages.map(lang => (
-                <button
-                  key={lang.code}
-                  onClick={() => { setLanguage(lang.code); setLangMenuOpen(false); }}
-                  style={{
-                    width: '100%', textAlign: 'left', padding: '7px 14px',
-                    background: lang.code === language ? 'var(--md-sys-color-primary-container)' : 'transparent',
-                    border: 'none',
-                    color: lang.code === language ? 'var(--md-sys-color-on-primary-container)' : 'var(--md-sys-color-on-surface)',
-                    cursor: 'pointer', fontSize: '0.85rem',
-                    display: 'flex', alignItems: 'center', gap: '8px',
-                  }}
-                >
-                  {lang.code === language && <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>check</span>}
-                  {lang.code !== language && <span style={{ width: '14px' }} />}
-                  {lang.label}
-                </button>
-              ))}
+            <div style={{ borderBottom: isAdmin(state.user) ? '0.5px solid #E5E5EA' : 'none' }}>
+              {availableLanguages.map(lang => {
+                const isActive = lang.code === language;
+                return (
+                  <button
+                    key={lang.code}
+                    onClick={() => { setLanguage(lang.code); setLangMenuOpen(false); }}
+                    style={{
+                      ...ROW, padding: '11px 16px 11px 50px',
+                      background: isActive ? '#F0F7FF' : '#fff',
+                      color: isActive ? '#007AFF' : '#1C1C1E',
+                      fontWeight: isActive ? 600 : 400,
+                      borderBottom: '0.5px solid #F2F2F7',
+                    }}
+                  >
+                    {isActive && <span className="material-symbols-outlined" style={{ fontSize: 16, color: '#007AFF', marginLeft: -24 }}>check</span>}
+                    {lang.label}
+                  </button>
+                );
+              })}
             </div>
+          )}
+
+          {/* ── Admin ── */}
+          {state.user && isAdmin(state.user) && (
+            <button
+              onClick={() => animateClose(() => navigate('/admin'))}
+              style={{ ...ROW }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 22, color: '#5856D6' }}>admin_panel_settings</span>
+              <span style={{ flex: 1 }}>Admin Dashboard</span>
+              <span className="material-symbols-outlined" style={{ fontSize: 18, color: '#C7C7CC' }}>chevron_right</span>
+            </button>
           )}
         </div>
 
-        {/* ── Admin Link ── */}
-        {state.user && isAdmin(state.user) && (
+        {/* ═══ Logout Group ═══ */}
+        <div style={{ margin: '0 16px 20px', background: '#fff', borderRadius: 16, overflow: 'hidden' }}>
           <button
-            onClick={() => { onClose(); navigate('/admin'); }}
+            onClick={handleLogout}
             style={{
-              width: '100%', textAlign: 'left', padding: '8px 10px',
-              background: 'transparent', border: 'none',
-              color: 'var(--md-sys-color-on-surface)',
-              cursor: 'pointer', borderRadius: '8px', fontSize: '0.85rem',
-              display: 'flex', alignItems: 'center', gap: '8px',
+              ...ROW, justifyContent: 'center',
+              color: '#FF3B30', fontWeight: 600,
+              gap: 8,
             }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--md-sys-color-on-surface-variant)' }}>admin_panel_settings</span>
-            Admin Dashboard
+            <span className="material-symbols-outlined" style={{ fontSize: 20 }}>logout</span>
+            {t('common.logout') || 'Sign Out'}
           </button>
-        )}
-
-        {/* ── Logout ── */}
-        <button
-          onClick={handleLogout}
-          style={{
-            width: '100%', textAlign: 'left', padding: '8px 10px',
-            background: 'transparent', border: 'none',
-            color: 'var(--md-sys-color-error)',
-            cursor: 'pointer', borderRadius: '8px', fontSize: '0.85rem',
-            display: 'flex', alignItems: 'center', gap: '8px',
-          }}
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>logout</span>
-          {t('common.logout')}
-        </button>
+        </div>
       </div>
     </>
   );

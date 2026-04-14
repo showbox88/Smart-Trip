@@ -456,9 +456,6 @@ export default function MobileItineraryView({ tripId }) {
         </div>
 
         {/* Overlay controls — always on top */}
-        <button onClick={() => nav(-1)} style={{ ...HBTN, top: 16, left: 16 }}>
-          <span className="material-symbols-outlined" style={{ fontSize: 20 }}>arrow_back</span>
-        </button>
         <div style={{ position: 'absolute', top: 16, right: 16, zIndex: 20, width: 36, height: 36 }}>
           <button onClick={() => setMenu(v => !v)} style={{ ...HBTN, top: 0, left: 0 }}>
             <span className="material-symbols-outlined" style={{ fontSize: 20 }}>more_horiz</span>
@@ -734,11 +731,11 @@ export default function MobileItineraryView({ tripId }) {
                           boxShadow: '0 1px 3px rgba(0,0,0,.08), 0 2px 8px rgba(0,0,0,.06)',
                         }}>
                           {[
-                            { icon: 'attach_file', label: '附件' },
-                            { icon: 'swap_horiz', label: 'Plan B', action: () => {
+                            { icon: 'attach_file', label: t('stops.attach_btn') || 'Attach' },
+                            { icon: 'swap_horiz', label: t('itinerary.plan_b') || 'Plan B', action: () => {
                               setPlanBStop({ dayId: day.id, stop });
                             }},
-                            { icon: 'near_me', label: '导航', action: () => {
+                            { icon: 'near_me', label: t('itinerary.navigate') || 'Navigate', action: () => {
                               const dest = stop.lat && stop.lng
                                 ? `${stop.lat},${stop.lng}`
                                 : encodeURIComponent(stop.address || stop.location || nm);
@@ -961,8 +958,16 @@ export default function MobileItineraryView({ tripId }) {
       pointerEvents: showMap ? 'auto' : 'none',
     }}>
       <style>{`
-        .mobile-ios-view .map-view { height: 100% !important; flex: 1; }
-        .mobile-ios-view .map-view .map-placeholder { height: 100% !important; }
+        .mobile-ios-view .map-view {
+          height: 100% !important; flex: 1 !important;
+          display: flex !important; flex-direction: column !important;
+          overflow: visible !important; min-width: unset !important;
+        }
+        .mobile-ios-view .map-view .map-placeholder {
+          height: 100% !important; flex: 1 !important;
+          overflow: visible !important; position: relative !important;
+        }
+        .mobile-ios-view .map-search-control { z-index: 200 !important; position: absolute !important; }
         .mobile-ios-view #map-controls-row { top: 16px !important; right: 12px !important; gap: 6px !important; }
         .mobile-ios-view #map-dark-toggle,
         .mobile-ios-view #map-gps-btn { width: 32px !important; height: 32px !important; font-size: 0.85rem !important; }

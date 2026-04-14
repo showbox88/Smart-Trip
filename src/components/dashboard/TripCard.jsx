@@ -171,59 +171,45 @@ export default function TripCard({ trip, isList = false, isCompact = false, onEd
       );
     }
 
-    // ── Default list card ──
+    // ── Default list card (responsive) ──
     return (
       <div
         className="trip-card-list"
         onClick={handleOpen}
-        style={{ display: 'flex', alignItems: 'stretch', gap: '1.5rem', background: 'var(--st-glass-bg)', border: '1px solid var(--md-sys-color-outline)', borderRadius: '16px', padding: '12px', transition: 'all 0.3s', cursor: 'pointer', marginBottom: '1rem', position: 'relative' }}
+        style={{
+          display: 'flex', alignItems: 'center', gap: '12px',
+          background: 'var(--st-glass-bg)', border: '1px solid var(--md-sys-color-outline)',
+          borderRadius: '16px', padding: '10px 12px',
+          transition: 'all 0.3s', cursor: 'pointer', marginBottom: '0.5rem', position: 'relative',
+        }}
       >
-        <div style={{ width: '120px', minHeight: '80px', borderRadius: '12px', background: '#000', overflow: 'hidden', position: 'relative', flexShrink: 0 }}>
-          <div className="thumb-blur-bg" style={{ backgroundImage: `url('${trip.thumb}')`, opacity: 0.3, filter: 'blur(10px)' }} />
-          <img src={trip.thumb} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'contain', position: 'relative', zIndex: 1 }} alt={trip.title} />
+        {/* Thumbnail */}
+        <div style={{ width: 56, height: 56, borderRadius: 12, background: '#000', overflow: 'hidden', position: 'relative', flexShrink: 0 }}>
+          <img src={trip.thumb} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={trip.title} />
         </div>
+
+        {/* Info */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <h4 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: '4px' }}>{trip.title}</h4>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: 'var(--st-color-text-muted)', fontSize: '0.85rem', marginBottom: cities.length ? '6px' : 0 }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>calendar_today</span>
-              {trip.startDate} - {trip.endDate}
-            </span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>location_on</span>
-              {stopsCount} {t('itinerary.stops_count')}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+            <h4 style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>{trip.title}</h4>
+            <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--md-sys-color-on-surface)', flexShrink: 0 }}>
+              {formatCurrency(totalCost, state.settings)}
             </span>
           </div>
-          {cities.length > 0 && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-              {cities.map(city => (
-                <span key={city} style={{ fontSize: '0.72rem', padding: '2px 8px', borderRadius: '20px', background: 'rgba(255,255,255,0.07)', color: 'var(--st-color-text-muted)', border: '1px solid rgba(255,255,255,0.1)', whiteSpace: 'nowrap' }}>
-                  {city}
-                </span>
-              ))}
-            </div>
-          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 3, color: 'var(--st-color-text-muted)', fontSize: '0.75rem' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 13 }}>calendar_today</span>
+              {trip.startDate}
+            </span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 3, color: 'var(--st-color-text-muted)', fontSize: '0.75rem' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 13 }}>location_on</span>
+              {stopsCount} {t('itinerary.stops_count')}
+            </span>
+            <span style={{ flex: 1 }} />
+            <span className={`status-badge ${status.cls}`} style={{ position: 'static', padding: '2px 8px', borderRadius: 12, fontSize: '0.65rem', lineHeight: 1.4, flexShrink: 0 }}>{status.label}</span>
+          </div>
         </div>
-        <span className={`status-badge ${status.cls}`} style={{ position: 'static', padding: '4px 12px', borderRadius: '20px', alignSelf: 'center' }}>{status.label}</span>
-        <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--md-sys-color-on-surface)', minWidth: '100px', textAlign: 'right' }}>
-          {formatCurrency(totalCost, state.settings)}
-        </div>
-        <div style={{ position: 'relative', marginLeft: '10px' }}>
-          <button className="menu-dots" onClick={handleMenuToggle} style={{ position: 'static', transform: 'none', background: 'rgba(255,255,255,0.05)', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', transition: 'all 0.2s' }}>⋮</button>
-          {menuOpen && (
-            <div className="menu-dropdown" style={{ right: 0, top: '2.5rem', transform: 'none', zIndex: 100, display: 'flex' }}>
-              <button title={t('itinerary.edit_trip') || 'Edit Trip Info'} onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onEdit?.(trip); }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>edit</span>
-              </button>
-              <button title={t('itinerary.share_trip') || 'Share Journey'} onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onShare?.(trip); }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>share</span>
-              </button>
-              <button className="danger" title={t('itinerary.delete_trip') || 'Delete Trip'} onClick={handleDelete}>
-                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>delete</span>
-              </button>
-            </div>
-          )}
-        </div>
+
       </div>
     );
   }
