@@ -652,7 +652,7 @@ export default function MobileItineraryView({ tripId }) {
                       onMouseDown={(e) => onCardMouseDown(e, stop.id)}
                       onMouseUp={onCardMouseUp}
                       style={{ perspective: 900, width: '100%' }}>
-                      <div style={{
+                      <div className="stop-card-flip" style={{
                         position: 'relative', width: '100%',
                         transition: 'transform 0.55s cubic-bezier(.4,.0,.2,1)',
                         transformStyle: 'preserve-3d',

@@ -1,12 +1,15 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { getIsTouch } from './useDeviceType';
 
-const DRAG_THRESHOLD = 5;
+const DRAG_THRESHOLD = 8;
+const LONG_PRESS_MS = 600; // 长按600ms后才进入可拖拽状态
+const SCROLL_CANCEL_PX = 10; // 等待期间手指移动超过此距离则判定为滚动，取消拖拽
 
 /**
  * Cross-day pointer-based drag system for timeline cards.
  * Cards across all days are treated as a single flat list.
  * 30% overlap threshold triggers iOS-style displacement animation.
+ * Touch devices require long-press (400ms) before drag activates.
  */
 export function useTimelineDrag(trip, moveStop, { dragScale = 1.03 } = {}) {
   const [draggingStopId, setDraggingStopId] = useState(null);
@@ -22,26 +25,38 @@ export function useTimelineDrag(trip, moveStop, { dragScale = 1.03 } = {}) {
   const handlePointerDown = useCallback((e, stopId) => {
     if (e.button !== 0) return;
     if (e.target.closest('button, input, textarea, a, [contenteditable]')) return;
-    
+
     // 触摸设备（手机+平板）要求必须捏住 .drag-handle 才能拖拽，防止滚动冲突。
     // 桌面鼠标操作不受限制。
     if (getIsTouch() && e.pointerType === 'touch' && !e.target.closest('.drag-handle, [data-drag-handle]')) return;
 
     const wrapper = e.currentTarget;
+    const isTouch = e.pointerType === 'touch';
+
+    // 清理之前可能残留的计时器
+    if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
 
     dragRef.current = {
-      phase: 'pending', // 没有了长按判定，直接进入 pending 状态随时准备拖动
+      phase: isTouch ? 'waiting' : 'pending', // 触摸设备先等长按，鼠标直接进入pending
       stopId,
       sourceDayId: wrapper.dataset.dragDay,
       startX: e.clientX,
       startY: e.clientY,
       wrapper,
       pointerId: e.pointerId,
-      isTouch: e.pointerType === 'touch',
+      isTouch,
     };
 
-    if (e.pointerType === 'touch' && window.navigator.vibrate) {
-      window.navigator.vibrate(20); // 极短促的反馈提示抓取成功
+    if (isTouch) {
+      // 长按计时器：400ms后才允许拖拽
+      timerRef.current = setTimeout(() => {
+        if (!dragRef.current || dragRef.current.phase !== 'waiting') return;
+        dragRef.current.phase = 'pending';
+        // 震动反馈提示长按成功，可以拖了
+        if (window.navigator.vibrate) window.navigator.vibrate(30);
+        // 添加视觉提示
+        wrapper.classList.add('dragging-hint');
+      }, LONG_PRESS_MS);
     }
   }, []);
 
@@ -60,7 +75,9 @@ export function useTimelineDrag(trip, moveStop, { dragScale = 1.03 } = {}) {
     const draggedRect = cardData[originalIndex].rect;
 
     // Save original boxShadow so we can restore after drag
-    const dragCardEl = cardData[originalIndex].el.querySelector('.stop-card-container');
+    // 优先选择 .stop-card-flip（3D翻转容器，包含正反面），其次 .stop-card-container
+    const dragCardEl = cardData[originalIndex].el.querySelector('.stop-card-flip')
+      || cardData[originalIndex].el.querySelector('.stop-card-container');
     const origBoxShadow = dragCardEl ? dragCardEl.style.boxShadow : '';
 
     Object.assign(dragRef.current, {
@@ -89,10 +106,12 @@ export function useTimelineDrag(trip, moveStop, { dragScale = 1.03 } = {}) {
 
     // Move only the card visual — not the TransitInfo/add-button below it
     const dragEl = cardData[originalIndex].el;
-    const cardEl = dragEl.querySelector('.stop-card-container') || dragEl;
+    const cardEl = dragEl.querySelector('.stop-card-flip') || dragEl.querySelector('.stop-card-container') || dragEl;
     cardEl.style.transform = `translateY(${dy}px)${dragScale !== 1 ? ` scale(${dragScale})` : ''}`;
     cardEl.style.boxShadow = '0 20px 60px rgba(0,0,0,0.5)';
-    cardEl.style.transition = 'box-shadow 0.2s, scale 0.2s';
+    cardEl.style.borderRadius = '16px';
+    cardEl.style.overflow = 'hidden';
+    cardEl.style.transition = 'box-shadow 0.2s, scale 0.2s, border-radius 0.2s';
     dragEl.style.zIndex = '100'; // wrapper z-index so floated card renders above siblings
 
     // Calculate new insert position based on 30% overlap
@@ -144,10 +163,12 @@ export function useTimelineDrag(trip, moveStop, { dragScale = 1.03 } = {}) {
       card.el.style.transform = '';
       card.el.style.transition = '';
       card.el.style.zIndex = '';
-      const cardEl = card.el.querySelector('.stop-card-container');
+      const cardEl = card.el.querySelector('.stop-card-flip') || card.el.querySelector('.stop-card-container');
       if (cardEl) {
         cardEl.style.transform = '';
         cardEl.style.boxShadow = origBoxShadow || '';
+        cardEl.style.borderRadius = '';
+        cardEl.style.overflow = '';
         cardEl.style.transition = '';
       }
     });
@@ -188,6 +209,17 @@ export function useTimelineDrag(trip, moveStop, { dragScale = 1.03 } = {}) {
   const handlePointerMove = useCallback((e) => {
     if (!dragRef.current) return;
 
+    // waiting 阶段（长按计时中）：手指移动超过阈值 → 判定为滚动，取消拖拽
+    if (dragRef.current.phase === 'waiting') {
+      const dx = e.clientX - dragRef.current.startX;
+      const dy = e.clientY - dragRef.current.startY;
+      if (Math.abs(dx) > SCROLL_CANCEL_PX || Math.abs(dy) > SCROLL_CANCEL_PX) {
+        if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
+        dragRef.current = null;
+      }
+      return;
+    }
+
     if (dragRef.current.phase === 'pending') {
       const dx = e.clientX - dragRef.current.startX;
       const dy = e.clientY - dragRef.current.startY;
@@ -221,7 +253,8 @@ export function useTimelineDrag(trip, moveStop, { dragScale = 1.03 } = {}) {
     setDraggingStopId(null);
   }, [finishDrag]);
 
-  // 原生手势拦截器：核心逻辑，仅当长按成功变为 pending（或拖拽 active）时才强制切断原生滚动
+  // 原生手势拦截器：仅当长按成功进入 pending 或 active 时才切断原生滚动
+  // waiting 阶段不拦截，让用户可以正常滚动
   useEffect(() => {
     const handleTouchMove = (e) => {
       if (dragRef.current && (dragRef.current.phase === 'pending' || dragRef.current.phase === 'active')) {
@@ -237,7 +270,14 @@ export function useTimelineDrag(trip, moveStop, { dragScale = 1.03 } = {}) {
     };
 
     const handleTouchEnd = (e) => {
-      if (dragRef.current && (dragRef.current.phase === 'pending' || dragRef.current.phase === 'active')) {
+      if (!dragRef.current) return;
+      // waiting 阶段松手 → 只是普通点击/滚动，清理即可
+      if (dragRef.current.phase === 'waiting') {
+        if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
+        dragRef.current = null;
+        return;
+      }
+      if (dragRef.current.phase === 'pending' || dragRef.current.phase === 'active') {
         handlePointerUp();
       }
     };
