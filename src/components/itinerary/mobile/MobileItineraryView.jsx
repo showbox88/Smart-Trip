@@ -251,7 +251,7 @@ export default function MobileItineraryView({ tripId }) {
         display: 'flex', flexDirection: 'column', overflow: 'hidden',
         pointerEvents: showMap ? 'none' : 'auto',
       }}>
-      <style>{`.mobile-ios-view .stop-card-container { min-height: unset !important; }`}</style>
+      {/* mobile CSS loaded via src/styles/mobile-itinerary.css */}
 
       {/* Hero Carousel */}
       <MobileHero
@@ -391,50 +391,7 @@ export default function MobileItineraryView({ tripId }) {
       background: '#F2F2F7',
       pointerEvents: showMap ? 'auto' : 'none',
     }}>
-      <style>{`
-        .mobile-ios-view .map-view {
-          height: 100% !important; flex: 1 !important;
-          display: flex !important; flex-direction: column !important;
-          overflow: visible !important; min-width: unset !important;
-          min-height: 0 !important;
-        }
-        .mobile-ios-view .map-view .map-placeholder {
-          height: 100% !important; flex: 1 !important;
-          overflow: visible !important; position: relative !important;
-        }
-        .mobile-ios-view .map-search-control {
-          z-index: 200 !important; position: absolute !important;
-          top: 14px !important; left: 12px !important;
-          width: calc(100% - 110px) !important;
-          display: flex !important;
-        }
-        .mobile-ios-view .map-search-control .location-search-input {
-          background: rgba(255,255,255,.92) !important;
-          backdrop-filter: blur(20px) !important;
-          -webkit-backdrop-filter: blur(20px) !important;
-          color: #222 !important;
-          border: none !important;
-          box-shadow: 0 2px 12px rgba(0,0,0,.12) !important;
-          border-radius: 12px !important;
-          font-size: 14px !important;
-          padding: 10px 40px 10px 36px !important;
-        }
-        .mobile-ios-view .map-search-control .location-search-input::placeholder {
-          color: #999 !important;
-        }
-        .mobile-ios-view .map-search-control.map-dark .location-search-input {
-          background: rgba(13,17,27,.85) !important;
-          color: #fff !important;
-          box-shadow: 0 4px 20px rgba(0,0,0,.5) !important;
-        }
-        .mobile-ios-view .map-search-control.map-dark .location-search-input::placeholder {
-          color: rgba(255,255,255,.5) !important;
-        }
-        .mobile-ios-view #map-controls-row { top: 16px !important; right: 12px !important; gap: 6px !important; }
-        .mobile-ios-view #map-dark-toggle,
-        .mobile-ios-view #map-gps-btn { width: 32px !important; height: 32px !important; font-size: 0.85rem !important; }
-        .mobile-ios-view #map-gps-btn .material-symbols-outlined { font-size: 16px !important; }
-      `}</style>
+      {/* mobile map CSS loaded via src/styles/mobile-itinerary.css */}
       {showMap && (
         <MapPanel
           ref={mapPanelRef}
