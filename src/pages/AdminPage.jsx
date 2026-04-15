@@ -449,30 +449,18 @@ export default function AdminPage() {
 
 
   return (
-    <div className="admin-page" style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
-      <header style={{ marginBottom: '2rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+    <div className="admin-page">
+      <header>
         <div>
-          <h1 style={{ fontSize: '1.8rem', fontWeight: 'bold', marginBottom: '1rem' }}>Admin Dashboard</h1>
+          <h1>Admin Dashboard</h1>
           <div style={{ display: 'flex', gap: '1rem' }}>
-            <button
-              onClick={() => setActiveTab('api')}
-              className={`tab-btn ${activeTab === 'api' ? 'active' : ''}`}
-              style={{ padding: '0.5rem 1rem', borderRadius: '8px', background: activeTab === 'api' ? 'var(--accent)' : 'rgba(255,255,255,0.05)', border: 'none', color: '#fff', cursor: 'pointer' }}
-            >
+            <button onClick={() => setActiveTab('api')} className={`admin-tab-btn ${activeTab === 'api' ? 'active' : ''}`}>
               API 监控
             </button>
-            <button
-              onClick={() => setActiveTab('itineraries')}
-              className={`tab-btn ${activeTab === 'itineraries' ? 'active' : ''}`}
-              style={{ padding: '0.5rem 1rem', borderRadius: '8px', background: activeTab === 'itineraries' ? 'var(--accent)' : 'rgba(255,255,255,0.05)', border: 'none', color: '#fff', cursor: 'pointer' }}
-            >
+            <button onClick={() => setActiveTab('itineraries')} className={`admin-tab-btn ${activeTab === 'itineraries' ? 'active' : ''}`}>
               All Itineraries
             </button>
-            <button
-              onClick={() => setActiveTab('cleanup')}
-              className={`tab-btn ${activeTab === 'cleanup' ? 'active' : ''}`}
-              style={{ padding: '0.5rem 1rem', borderRadius: '8px', background: activeTab === 'cleanup' ? 'var(--accent)' : 'rgba(255,255,255,0.05)', border: 'none', color: '#fff', cursor: 'pointer' }}
-            >
+            <button onClick={() => setActiveTab('cleanup')} className={`admin-tab-btn ${activeTab === 'cleanup' ? 'active' : ''}`}>
               Image Cleanup
             </button>
           </div>
@@ -503,27 +491,27 @@ export default function AdminPage() {
           {loading ? (
             <p>Loading trips...</p>
           ) : (
-            <div className="admin-table-container" style={{ background: 'rgba(255,255,255,0.02)', borderRadius: '12px', overflow: 'hidden' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                <thead style={{ background: 'rgba(255,255,255,0.05)' }}>
+            <div className="admin-table-container">
+              <table className="admin-table">
+                <thead>
                   <tr>
-                    <th style={{ padding: '1rem' }}>Title</th>
-                    <th style={{ padding: '1rem' }}>Email</th>
-                    <th style={{ padding: '1rem' }}>架构</th>
-                    <th style={{ padding: '1rem' }}>Created At</th>
-                    <th style={{ padding: '1rem' }}>Actions</th>
+                    <th>Title</th>
+                    <th>Email</th>
+                    <th>架构</th>
+                    <th>Created At</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {trips.map(trip => {
                     const isV2 = trip.trip_data == null;
                     return (
-                    <tr key={trip.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                      <td style={{ padding: '1rem' }}>{trip.title}</td>
-                      <td style={{ padding: '1rem', fontSize: '0.85rem' }}>
+                    <tr key={trip.id}>
+                      <td>{trip.title}</td>
+                      <td style={{ fontSize: '0.85rem' }}>
                         {trip.profiles?.email || <span style={{ opacity: 0.5 }}>{trip.user_id?.substring(0, 8) || 'unknown'}...</span>}
                       </td>
-                      <td style={{ padding: '1rem' }}>
+                      <td>
                         <span style={{
                           fontSize: '0.72rem', fontWeight: 700, padding: '2px 8px', borderRadius: '6px',
                           background: isV2 ? 'rgba(34,197,94,0.15)' : 'rgba(251,191,36,0.15)',
@@ -533,11 +521,11 @@ export default function AdminPage() {
                           {isV2 ? 'V2 新' : 'V1 旧'}
                         </span>
                       </td>
-                      <td style={{ padding: '1rem' }}>{new Date(trip.created_at).toLocaleDateString()}</td>
-                      <td style={{ padding: '1rem', display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                      <td>{new Date(trip.created_at).toLocaleDateString()}</td>
+                      <td style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                         <button
                           onClick={() => window.open(isV2 ? `/trip-v2/${trip.id}` : `/trip/${trip.id}`, '_blank')}
-                          style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', fontSize: '0.9rem' }}
+                          className="admin-ghost-btn" style={{ color: 'var(--accent)' }}
                         >
                           View
                         </button>
@@ -545,14 +533,14 @@ export default function AdminPage() {
                           <button
                             onClick={() => repairTripData(trip)}
                             disabled={repairingTripId === trip.id}
-                            style={{ background: 'none', border: 'none', color: '#a78bfa', cursor: repairingTripId === trip.id ? 'not-allowed' : 'pointer', fontSize: '0.9rem', opacity: repairingTripId === trip.id ? 0.5 : 1 }}
+                            className="admin-ghost-btn" style={{ color: '#a78bfa', cursor: repairingTripId === trip.id ? 'not-allowed' : 'pointer', opacity: repairingTripId === trip.id ? 0.5 : 1 }}
                           >
                             {repairingTripId === trip.id ? '修复中...' : '🔧 Repair'}
                           </button>
                         )}
                         <button
                           onClick={() => handleDeleteTrip(trip.id)}
-                          style={{ background: 'none', border: 'none', color: 'var(--md-sys-color-error)', cursor: 'pointer', fontSize: '0.9rem' }}
+                          className="admin-ghost-btn" style={{ color: 'var(--md-sys-color-error)' }}
                         >
                           Delete
                         </button>
@@ -568,7 +556,7 @@ export default function AdminPage() {
           {/* Repair log */}
           {repairLog.length > 0 && (
             <div style={{ marginTop: '1rem' }}>
-              <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--st-color-text-muted)', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>修复日志</div>
+              <div className="admin-section-label">修复日志</div>
               <pre style={{ background: 'rgba(0,0,0,0.4)', borderRadius: '8px', padding: '1rem', fontSize: '0.78rem', color: 'var(--st-color-text-muted)', maxHeight: '240px', overflowY: 'auto', whiteSpace: 'pre-wrap' }}>
                 {repairLog.join('\n')}
               </pre>
@@ -578,7 +566,7 @@ export default function AdminPage() {
       )}
 
       {activeTab === 'cleanup' && (
-        <section style={{ padding: '1.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '12px' }}>
+        <section className="admin-section">
           <h2 style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>Storage Optimizer</h2>
           <p style={{ color: 'var(--md-sys-color-on-surface-variant)', marginBottom: '1.5rem', fontSize: '0.85rem' }}>
             扫描 Supabase 存储桶中不再被任何行程引用的孤立文件（含附件子目录）。勾选要删除的文件后点击删除。
@@ -689,7 +677,7 @@ export default function AdminPage() {
       )}
 
       {activeTab === 'api' && (
-        <section style={{ padding: '1.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '12px' }}>
+        <section className="admin-section">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
             <h2 style={{ fontSize: '1.2rem' }}>Google API 监控</h2>
             <button onClick={loadApiData} disabled={apiSaving} style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: '#fff', padding: '0.4rem 0.9rem', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -783,7 +771,7 @@ export default function AdminPage() {
                   type="number" min="1"
                   value={apiLimitInputs.daily_api_limit ?? ''}
                   onChange={e => setApiLimitInputs(p => ({ ...p, daily_api_limit: e.target.value }))}
-                  style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: '#fff', borderRadius: '8px', padding: '0.5rem 0.8rem', width: '120px', fontSize: '0.9rem' }}
+                  className="admin-input" style={{ width: '120px' }}
                 />
               </div>
               <div>
@@ -792,7 +780,7 @@ export default function AdminPage() {
                   type="number" min="1"
                   value={apiLimitInputs.per_2min_api_limit ?? ''}
                   onChange={e => setApiLimitInputs(p => ({ ...p, per_2min_api_limit: e.target.value }))}
-                  style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: '#fff', borderRadius: '8px', padding: '0.5rem 0.8rem', width: '120px', fontSize: '0.9rem' }}
+                  className="admin-input" style={{ width: '120px' }}
                 />
               </div>
               <button onClick={saveLimits} disabled={apiSaving} style={{ padding: '0.5rem 1.2rem', borderRadius: '8px', background: 'var(--accent)', border: 'none', color: '#fff', cursor: 'pointer', fontWeight: 600, opacity: apiSaving ? 0.6 : 1 }}>
@@ -805,22 +793,22 @@ export default function AdminPage() {
           {/* Recent log */}
           {apiLogs.length > 0 && (
             <div>
-              <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--st-color-text-muted)', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>最近 50 条记录</div>
+              <div className="admin-section-label">最近 50 条记录</div>
               <div style={{ background: 'rgba(0,0,0,0.3)', borderRadius: '8px', overflow: 'hidden', maxHeight: '300px', overflowY: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.78rem' }}>
-                  <thead style={{ background: 'rgba(255,255,255,0.05)', position: 'sticky', top: 0 }}>
+                <table className="admin-log-table">
+                  <thead>
                     <tr>
-                      <th style={{ padding: '0.5rem 0.8rem', textAlign: 'left' }}>时间</th>
-                      <th style={{ padding: '0.5rem 0.8rem', textAlign: 'left' }}>类型</th>
-                      <th style={{ padding: '0.5rem 0.8rem', textAlign: 'left' }}>状态</th>
+                      <th>时间</th>
+                      <th>类型</th>
+                      <th>状态</th>
                     </tr>
                   </thead>
                   <tbody>
                     {apiLogs.map((log, i) => (
-                      <tr key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                        <td style={{ padding: '0.4rem 0.8rem', color: 'var(--st-color-text-muted)' }}>{new Date(log.created_at).toLocaleTimeString()}</td>
-                        <td style={{ padding: '0.4rem 0.8rem' }}>{log.api_type}</td>
-                        <td style={{ padding: '0.4rem 0.8rem' }}>
+                      <tr key={i}>
+                        <td style={{ color: 'var(--st-color-text-muted)' }}>{new Date(log.created_at).toLocaleTimeString()}</td>
+                        <td>{log.api_type}</td>
+                        <td>
                           <span style={{ color: log.status === 'success' ? 'var(--st-color-hotel-checkin)' : log.status === 'blocked' ? '#f87171' : '#fbbf24', fontWeight: 600 }}>
                             {log.status}
                           </span>
@@ -837,12 +825,9 @@ export default function AdminPage() {
 
       {/* Lightbox */}
       {previewUrl && (
-        <div
-          onClick={() => setPreviewUrl(null)}
-          style={{ position: 'fixed', inset: 0, zIndex: 99999, background: 'rgba(0,0,0,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'zoom-out', backdropFilter: 'blur(8px)' }}
-        >
-          <img src={previewUrl} alt="preview" style={{ maxWidth: '90vw', maxHeight: '88vh', objectFit: 'contain', borderRadius: '12px', boxShadow: '0 30px 80px rgba(0,0,0,0.8)' }} />
-          <button onClick={() => setPreviewUrl(null)} style={{ position: 'fixed', top: '1.5rem', right: '1.5rem', background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#fff' }}>
+        <div onClick={() => setPreviewUrl(null)} className="admin-lightbox">
+          <img src={previewUrl} alt="preview" />
+          <button onClick={() => setPreviewUrl(null)} className="admin-lightbox-close">
             <span className="material-symbols-outlined">close</span>
           </button>
         </div>
