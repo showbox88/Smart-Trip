@@ -5,12 +5,11 @@
 
 import { useCallback, useRef } from 'react';
 import { formatTemp, formatDateRange } from '../../../utils/formatters';
-import { FONT, HBTN } from './mobileStyles';
 
 export default function MobileHero({
   trip, cities, destinations, climateByCity, cityInfo, cityInfoLoading,
   heroIdx, setHeroIdx, totalSlides,
-  menu, setMenu, setEditTrip, setShare, doDelete, setCityModal,
+  menuTrigger, setCityModal,
 }) {
   const heroTouchX = useRef(null);
 
@@ -152,36 +151,8 @@ export default function MobileHero({
         })}
       </div>
 
-      {/* Overlay controls */}
-      <div style={{ position: 'absolute', top: 9, right: 16, zIndex: 20, width: 36, height: 36 }}>
-        <button onClick={() => setMenu(v => !v)} style={{ ...HBTN, top: 0, left: 0 }}>
-          <span className="material-symbols-outlined" style={{ fontSize: 20 }}>more_horiz</span>
-        </button>
-        {menu && (
-          <div style={{ position: 'absolute', top: 44, right: 0,
-            background: 'rgba(255,255,255,.85)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-            borderRadius: 14, boxShadow: '0 4px 20px rgba(0,0,0,.12)', overflow: 'hidden', zIndex: 300,
-            display: 'flex', flexDirection: 'row', padding: 4, gap: 2 }}>
-            {[
-              { ic: 'edit', lb: 'Edit Trip', fn: () => { setEditTrip(true); setMenu(false); } },
-              { ic: 'share', lb: 'Share', fn: () => { setShare(true); setMenu(false); } },
-              { ic: 'delete', lb: 'Delete', fn: doDelete, danger: true },
-            ].map(i => (
-              <button key={i.lb} title={i.lb} onClick={i.fn} style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                width: 40, height: 40, borderRadius: 10,
-                background: 'none', border: 'none',
-                cursor: 'pointer', color: i.danger ? '#FF3B30' : '#222',
-                transition: 'background 0.15s',
-              }}
-              onPointerDown={e => e.currentTarget.style.background = 'rgba(0,0,0,.08)'}
-              onPointerUp={e => e.currentTarget.style.background = 'none'}
-              onPointerLeave={e => e.currentTarget.style.background = 'none'}
-              ><span className="material-symbols-outlined" style={{ fontSize: 20 }}>{i.ic}</span></button>
-            ))}
-          </div>
-        )}
-      </div>
+      {/* Menu trigger — rendered by parent to avoid overflow:hidden clipping */}
+      {menuTrigger}
 
       {/* Page dots */}
       {totalSlides > 1 && (

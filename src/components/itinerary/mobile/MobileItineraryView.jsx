@@ -26,6 +26,7 @@ import TimePickerModal from '../../modals/TimePickerModal';
 import ExpenseModal from '../../modals/ExpenseModal';
 import PlanBPanel from '../PlanBPanel';
 import MapPanel from '../MapPanel';
+import TripCardMenu from '../../shared/TripCardMenu';
 import MobileHero from './MobileHero';
 import MobileDayStrip from './MobileDayStrip';
 import MobileStopRow from './MobileStopRow';
@@ -257,8 +258,19 @@ export default function MobileItineraryView({ tripId }) {
         trip={trip} cities={cities} destinations={destinations}
         climateByCity={climateByCity} cityInfo={cityInfo} cityInfoLoading={cityInfoLoading}
         heroIdx={heroIdx} setHeroIdx={setHeroIdx} totalSlides={totalSlides}
-        menu={menu} setMenu={setMenu} setEditTrip={setEditTrip} setShare={setShare}
-        doDelete={doDelete} setCityModal={setCityModal}
+        setCityModal={setCityModal}
+        menuTrigger={
+          <TripCardMenu
+            open={menu}
+            onToggle={() => setMenu(v => !v)}
+            onEdit={() => { setEditTrip(true); setMenu(false); }}
+            onShare={() => { setShare(true); setMenu(false); }}
+            onDelete={doDelete}
+            t={t}
+            triggerIcon="more_horiz"
+            triggerStyle={{ position: 'absolute', top: 9, right: 16, zIndex: 20 }}
+          />
+        }
       />
 
       {/* Scrollable Content Area */}
@@ -347,7 +359,8 @@ export default function MobileItineraryView({ tripId }) {
         onSave={p => updateStop(expense.dayId, expense.stop.id, p)}
         onDelete={() => updateStop(expense.dayId, expense.stop.id, { price: '0', expenseCategory: null })}
         onClose={() => setExpense(null)} />}
-      {menu && <div style={{ position: 'fixed', inset: 0, zIndex: 200 }} onClick={() => setMenu(false)} />}
+      {/* Backdrop to close menu on outside tap */}
+      {menu && <div style={{ position: 'absolute', inset: 0, zIndex: 19 }} onClick={() => setMenu(false)} />}
 
       {/* Plan B Panel */}
       {planBStop && (
