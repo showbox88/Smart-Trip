@@ -4,6 +4,7 @@ import { useApp } from '../../context/AppContext';
 import { useTheme } from '../../theme';
 import HotelLine from './HotelLine';
 import DeleteConfirm from './DeleteConfirm';
+import { useEditOperations } from '../../context/EditOperationsContext';
 
 const TRANSPORT_CONFIG = {
   FLIGHT: { icon: 'flight',          label: '飞机', color: '#4FC3F7', mapLabel: 'Flight' },
@@ -14,7 +15,8 @@ const TRANSPORT_CONFIG = {
 
 export { TRANSPORT_CONFIG };
 
-export default memo(function TransportCard({ stop, dayId, dayColor, onDelete, onEdit, inHotelStay }) {
+export default memo(function TransportCard({ stop, dayId, dayColor, onEdit, inHotelStay }) {
+  const { onDeleteStop: onDelete } = useEditOperations();
   const { t } = useI18n();
   const { state, dispatch } = useApp();
   const { layoutVariant } = useTheme();

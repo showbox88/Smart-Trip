@@ -5,8 +5,13 @@ import { useApp } from '../../context/AppContext';
 import DeleteConfirm from './DeleteConfirm';
 import HotelLine from './HotelLine';
 import { supabase } from '../../lib/supabase';
+import { useEditOperations } from '../../context/EditOperationsContext';
 
-export default memo(function NoteCard({ stop, dayId, dayColor, onDelete, onContentChange, onUpdateStop, pendingFocusId, setPendingFocusId, inHotelStay }) {
+export default memo(function NoteCard({ stop, dayId, dayColor, inHotelStay }) {
+  const {
+    onDeleteNote: onDelete, onUpdateNoteContent: onContentChange,
+    onUpdateStop, pendingFocusId, setPendingFocusId,
+  } = useEditOperations();
   const { state, dispatch } = useApp();
   const { t } = useI18n();
   const textareaRef = useRef(null);

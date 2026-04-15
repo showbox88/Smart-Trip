@@ -1,7 +1,6 @@
-import React, { useState, useRef, useEffect, forwardRef } from 'react';
+import React, { forwardRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useApp } from '../../context/AppContext';
-import { checkApiAllowed, logApiCall } from '../../utils/apiGuard';
 import { useI18n } from '../../context/I18nContext';
 import { useTheme } from '../../theme';
 import {
@@ -17,11 +16,12 @@ import TransitInfo from './TransitInfo';
 import PlanBPanel from './PlanBPanel';
 import ActivityDetailModal from '../modals/ActivityDetailModal';
 import { getActivityIcon, getActivityLabel, formatDuration } from '../../utils/activityHelpers';
-import { uploadToSupabase } from '../../utils/uploadHelpers';
 import { supabase } from '../../lib/supabase';
 import PhotoSheet from './PhotoSheet';
 import PrivateNoteSheet from './PrivateNoteSheet';
 import PhotoPickerDropdown from './PhotoPickerDropdown';
+import { useStopCardState } from '../../hooks/useStopCardState';
+import { useEditOperations } from '../../context/EditOperationsContext';
 
 // 分类图标映射
 const CATEGORY_MAP = {
@@ -71,50 +71,38 @@ function getStopTimeStatus(stop, isToday, t) {
 export default React.memo(function StopCard({
   stop, dayId, dayColor, index, showTransit, dayWeekdayIdx, isToday,
   nextStop,
-  onDelete, onToggleTransitMode, onOpenTimePicker, onOpenExpense, onOpenStayInfo,
-  onChangePhoto, onAddStop, onAddNote, onAddList, onAddTransport, onAddActivity, onFocusStop,
-  onUpdateStop,
-  onSwapPlanB, onAddPlanBAlternative, onRemovePlanBAlternative,
+  onInsertAfter,
   inHotelStay,
 }) {
   const { state, dispatch } = useApp();
+  const {
+    onDeleteStop: onDelete, onToggleTransitMode, onOpenTimePicker, onOpenExpense, onOpenStayInfo,
+    onChangePhoto, onAddNote, onAddList, onAddTransport, onAddActivity, onFocusStop,
+    onUpdateStop, onSwapPlanB, onAddPlanBAlternative, onRemovePlanBAlternative,
+  } = useEditOperations();
   const { t } = useI18n();
   const { layoutVariant, layout, themeId } = useTheme();
   const isClean = layoutVariant === 'clean';
   const isBlossom = themeId === 'blossom';
-  const [showPlanB, setShowPlanB] = useState(false);
-  const [showActivityDetail, setShowActivityDetail] = useState(false);
   const isActivity = stop.type === 'activity';
-  const [showPhotoPicker, setShowPhotoPicker] = useState(false);
-  const [placePhotos, setPlacePhotos] = useState([]);
-  const [loadingPhotos, setLoadingPhotos] = useState(false);
-  const [confirmingDelete, setConfirmingDelete] = useState(false);
-  const [rotation, setRotation] = useState(0);
-  const isFlipped = (rotation / 180) % 2 !== 0;
-  const [showPrivateNoteSheet, setShowPrivateNoteSheet] = useState(false);
-  const [showPhotoSheet, setShowPhotoSheet] = useState(false);
-  const touchStart = useRef(null);
-  const thumbRef = useRef(null);
-  const pickerRef = useRef(null);
-  const deleteRef = useRef(null);
 
-  // Close photo picker / delete confirm on outside click
-  useEffect(() => {
-    if (!showPhotoPicker && !confirmingDelete) return;
-    const handler = (e) => {
-      if (showPhotoPicker &&
-          pickerRef.current && !pickerRef.current.contains(e.target) &&
-          thumbRef.current && !thumbRef.current.contains(e.target)) {
-        setShowPhotoPicker(false);
-      }
-      if (confirmingDelete &&
-          deleteRef.current && !deleteRef.current.contains(e.target)) {
-        setConfirmingDelete(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [showPhotoPicker, confirmingDelete]);
+  const {
+    showPlanB, setShowPlanB,
+    showActivityDetail, setShowActivityDetail,
+    showPhotoPicker, setShowPhotoPicker,
+    placePhotos, loadingPhotos,
+    confirmingDelete, setConfirmingDelete,
+    rotation, isFlipped,
+    showPrivateNoteSheet, setShowPrivateNoteSheet,
+    showPhotoSheet, setShowPhotoSheet,
+    thumbRef, pickerRef, deleteRef,
+    handleDelete, handleConfirmDelete,
+    handleTimeClick, handleExpenseClick,
+    handlePhotoClick, handleSelectPhoto, handleFileUpload,
+    handleTouchStart, handleTouchEnd,
+  } = useStopCardState(stop, dayId, state.user?.id, t, {
+    onDelete, onOpenTimePicker, onOpenExpense, onChangePhoto,
+  });
 
   const isHotel = isHotelStop(stop);
   const typeLabel = stop.type === 'hotel_checkin'
@@ -129,95 +117,8 @@ export default React.memo(function StopCard({
   const openingHours = stop.openingHours || [];
   const isClosed = dayWeekdayIdx >= 0 && openingHours.length > 0 && /closed/i.test(openingHours[dayWeekdayIdx] || '');
 
-  const handleDelete = (e) => {
-    e.stopPropagation();
-    setConfirmingDelete(true);
-  };
-
-  const handleConfirmDelete = (e) => {
-    e.stopPropagation();
-    onDelete?.(dayId, stop.id);
-    setConfirmingDelete(false);
-  };
-
-  const handleTimeClick = (e) => {
-    e.stopPropagation();
-    onOpenTimePicker?.(dayId, stop.id);
-  };
-
-  const handleExpenseClick = (e) => {
-    e.stopPropagation();
-    onOpenExpense?.(dayId, stop.id);
-  };
-
-  const handlePhotoClick = async (e) => {
-    e.stopPropagation();
-    if (!stop.placeId || typeof google === 'undefined') return;
-    if (showPhotoPicker) { setShowPhotoPicker(false); return; }
-    setShowPhotoPicker(true);
-    setLoadingPhotos(true);
-    try {
-      const { allowed } = await checkApiAllowed('place_details', state.user?.id);
-      if (!allowed) {
-        console.warn('[StopCard] place_details blocked by guard');
-        setPlacePhotos([]);
-        setLoadingPhotos(false);
-        return;
-      }
-      const { Place } = await google.maps.importLibrary('places');
-      const place = new Place({ id: stop.placeId });
-      await place.fetchFields({ fields: ['photos'] });
-      logApiCall('place_details', state.user?.id, 'success');
-      const photos = place.photos || [];
-      setPlacePhotos(photos.map(p => ({
-        url: p.getURI({ maxWidth: 400, maxHeight: 300 }),
-        urlFull: p.getURI({ maxWidth: 1200, maxHeight: 900 }),
-      })));
-    } catch (err) {
-      console.error('[StopCard] fetch photos failed:', err);
-      setPlacePhotos([]);
-    } finally {
-      setLoadingPhotos(false);
-    }
-  };
-
-  const handleSelectPhoto = (photoUrl) => {
-    onChangePhoto?.(dayId, stop.id, photoUrl);
-    setShowPhotoPicker(false);
-  };
-
-  const handleFileUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    try {
-      const publicUrl = await uploadToSupabase(file);
-      handleSelectPhoto(publicUrl);
-    } catch (err) {
-      console.error('[StopCard] Upload error:', err);
-      alert(t('common.fetch_error') || 'Upload error');
-    }
-  };
-
   const isHotelType = stop.type === 'hotel_checkin' || stop.type === 'hotel_checkout';
   const dotColor = isHotelType ? 'var(--st-color-hotel-line)' : (dayColor || 'var(--st-color-timeline-default)');
-
-  const handleTouchStart = (e) => {
-    touchStart.current = e.touches[0].clientX;
-  };
-
-  const handleTouchEnd = (e) => {
-    if (!touchStart.current) return;
-    const touchEnd = e.changedTouches[0].clientX;
-    const diff = touchStart.current - touchEnd;
-
-    if (diff > 50) {
-      setRotation(prev => prev - 180);
-    } else if (diff < -50) {
-      setRotation(prev => prev + 180);
-    }
-    touchStart.current = null;
-  };
 
   return (
     <div className={`timeline-item id-${stop.id}`} style={{ position: 'relative', marginBottom: '0.75rem' }}>
@@ -888,7 +789,7 @@ export default React.memo(function StopCard({
           origin={stop.lat && stop.lng ? { lat: stop.lat, lng: stop.lng } : null}
           dest={nextStop?.lat && nextStop?.lng ? { lat: nextStop.lat, lng: nextStop.lng } : null}
           onToggleMode={() => onToggleTransitMode?.(dayId, stop.id)}
-          onAddStop={() => onAddStop?.(dayId, stop.id)}
+          onAddStop={() => onInsertAfter?.(stop.id)}
           onAddNote={() => onAddNote?.(dayId, stop.id)}
           onAddList={() => onAddList?.(dayId, stop.id)}
           onAddTransport={() => onAddTransport?.(dayId, stop.id)}
