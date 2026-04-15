@@ -318,7 +318,7 @@ function MonthView({ year, month, days, trips, language, t, onDayClick, onTripCl
                 <div
                   key={colIdx}
                   className={`calendar-cell${isOutside ? ' outside' : ''}${isToday ? ' today' : ''}`}
-                  style={{ minHeight: `${90 + extraH}px` }}
+                  style={{ minHeight: `${60 + extraH}px` }}
                   onClick={() => onDayClick(dateStr)}
                 >
                   <div className="calendar-date-num">{date.getDate()}</div>
@@ -467,8 +467,8 @@ function MiniMonth({ year, month, days, tripDateSets, language, isCurrent, today
       <div className="calendar-mini-month-title">{title}</div>
       <div className="calendar-mini-grid">
         {cells.map((cell, i) => {
-          if (!cell) return <div key={i} className="calendar-mini-cell" />;
-          let cls = 'calendar-mini-cell';
+          if (!cell) return <div key={i} className="calendar-mini-cell empty" />;
+          let cls = 'calendar-mini-cell has-date';
           if (cell.hasActivity && cell.hasTrip) cls += ' has-both';
           else if (cell.hasActivity) cls += ' has-activity';
           else if (cell.hasTrip) cls += ' has-trip';

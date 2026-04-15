@@ -3,7 +3,7 @@
 .calendar-page {
     max-width: 1100px;
     margin: 0 auto;
-    padding: 0 0 3rem;
+    padding: 0 0 2rem;
 }
 
 /* ── Toolbar ── */
@@ -11,81 +11,84 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 1.5rem;
-    gap: 1rem;
+    margin-bottom: 1.25rem;
+    gap: 0.75rem;
     flex-wrap: wrap;
 }
 
 .calendar-toolbar-left {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 6px;
 }
 
 .calendar-toolbar-left h2 {
-    font-size: 1.35rem;
+    font-size: 1.1rem;
     font-weight: 700;
     color: var(--md-sys-color-on-surface);
     margin: 0;
-    min-width: 180px;
+    min-width: 150px;
+    letter-spacing: -.3px;
 }
 
 .calendar-nav-btn {
     background: none;
-    border: 1px solid var(--md-sys-color-outline);
-    color: var(--md-sys-color-on-surface-variant);
-    width: 32px;
-    height: 32px;
+    border: none;
+    color: var(--md-sys-color-primary);
+    width: 30px;
+    height: 30px;
     border-radius: 8px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.15s, color 0.15s;
+    transition: background 0.15s;
 }
 .calendar-nav-btn:hover {
-    background: rgba(255,255,255,0.06);
-    color: var(--md-sys-color-on-surface);
+    background: rgba(255,255,255,0.04);
 }
 
 .calendar-today-btn {
-    background: rgba(60,131,246,0.12);
-    border: 1px solid rgba(60,131,246,0.25);
+    background: var(--md-sys-color-surface-container);
+    border: none;
     color: var(--md-sys-color-primary);
-    padding: 4px 14px;
-    border-radius: 20px;
-    font-size: 0.8rem;
+    padding: 5px 12px;
+    border-radius: 8px;
+    font-size: 12px;
     font-weight: 600;
     cursor: pointer;
     transition: background 0.15s;
 }
 .calendar-today-btn:hover {
-    background: rgba(60,131,246,0.22);
+    background: var(--md-sys-color-surface-container-high);
 }
 
 .calendar-view-toggle {
     display: flex;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid var(--md-sys-color-outline);
-    border-radius: 10px;
+    background: var(--md-sys-color-surface-container);
+    border: none;
+    border-radius: 8px;
     overflow: hidden;
+    padding: 3px;
+    gap: 2px;
 }
 .calendar-view-toggle button {
     background: none;
     border: none;
     color: var(--st-color-text-muted);
-    padding: 6px 16px;
-    font-size: 0.8rem;
+    padding: 5px 14px;
+    font-size: 12px;
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.15s, color 0.15s;
+    border-radius: 6px;
+    transition: all 0.15s;
 }
 .calendar-view-toggle button.active {
-    background: rgba(60,131,246,0.15);
-    color: var(--md-sys-color-primary);
+    background: var(--md-sys-color-primary);
+    color: white;
 }
 .calendar-view-toggle button:hover:not(.active) {
-    background: rgba(255,255,255,0.04);
+    color: var(--md-sys-color-on-surface);
 }
 
 /* ── Month Grid ── */
@@ -100,12 +103,12 @@
 }
 .calendar-weekday-cell {
     text-align: center;
-    font-size: 0.72rem;
+    font-size: 11px;
     font-weight: 600;
     color: var(--st-color-text-muted);
     padding: 6px 0;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
 }
 
 .calendar-grid {
@@ -115,22 +118,22 @@
     background: rgba(255,255,255,0.02);
     border-radius: 12px;
     overflow: hidden;
-    border: 1px solid var(--md-sys-color-outline);
 }
 
 /* ── Cell ── */
 .calendar-cell {
-    min-height: 90px;
-    background: var(--st-glass-bg);
-    padding: 6px 8px;
+    min-height: 60px;
+    background: var(--md-sys-color-surface-container);
+    padding: 4px 6px;
     cursor: pointer;
     transition: background 0.15s;
     position: relative;
     display: flex;
     flex-direction: column;
+    border-radius: 2px;
 }
 .calendar-cell:hover {
-    background: rgba(255,255,255,0.06);
+    background: var(--md-sys-color-surface-container-high);
 }
 .calendar-cell.outside {
     opacity: 0.3;
@@ -148,7 +151,7 @@
 }
 
 .calendar-date-num {
-    font-size: 0.8rem;
+    font-size: 13px;
     color: var(--md-sys-color-on-surface-variant);
     font-weight: 500;
     margin-bottom: 4px;
@@ -189,7 +192,7 @@
     height: 18px;
     border-radius: 4px;
     padding: 0 6px;
-    font-size: 0.65rem;
+    font-size: 10px;
     font-weight: 600;
     color: #fff;
     white-space: nowrap;
@@ -197,12 +200,11 @@
     text-overflow: ellipsis;
     line-height: 18px;
     cursor: pointer;
-    transition: filter 0.15s, transform 0.1s;
+    transition: filter 0.15s;
     position: relative;
 }
 .calendar-trip-bar:hover {
-    filter: brightness(1.25);
-    transform: translateY(-1px);
+    filter: brightness(1.2);
 }
 
 .calendar-trip-bar.start {
@@ -220,7 +222,6 @@
     margin: 0 2px;
 }
 
-/* Trip bar spanning full row (positioned absolutely) */
 .calendar-bar-overlay {
     position: absolute;
     top: 0;
@@ -237,7 +238,7 @@
 
 /* ── More indicator ── */
 .calendar-cell-more {
-    font-size: 0.62rem;
+    font-size: 10px;
     color: var(--st-color-text-muted);
     margin-top: 2px;
     cursor: pointer;
@@ -250,36 +251,34 @@
 .calendar-year-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 1rem;
+    gap: 12px;
 }
 
 .calendar-mini-month {
-    background: var(--st-glass-bg);
-    border: 1px solid var(--md-sys-color-outline);
-    border-radius: 12px;
+    background: var(--md-sys-color-surface-container);
+    border: none;
+    border-radius: 14px;
     padding: 14px;
     cursor: pointer;
-    transition: background 0.2s, border-color 0.2s, transform 0.15s;
+    transition: background 0.15s;
     display: flex;
     flex-direction: column;
     aspect-ratio: 1;
     overflow: hidden;
 }
 .calendar-mini-month:hover {
-    background: rgba(255,255,255,0.05);
-    border-color: rgba(255,255,255,0.15);
-    transform: translateY(-2px);
+    background: var(--md-sys-color-surface-container-high);
 }
 .calendar-mini-month.current-month {
-    border-color: var(--md-sys-color-primary);
-    box-shadow: 0 0 0 1px var(--md-sys-color-primary);
+    box-shadow: inset 0 0 0 1.5px var(--md-sys-color-primary);
 }
 
 .calendar-mini-month-title {
-    font-size: 0.82rem;
-    font-weight: 700;
+    font-size: 13px;
+    font-weight: 600;
     color: var(--md-sys-color-on-surface);
     margin-bottom: 8px;
+    letter-spacing: -.2px;
 }
 
 .calendar-mini-grid {
@@ -293,48 +292,54 @@
     background: transparent;
     min-width: 0;
 }
+.calendar-mini-cell.has-date {
+    background: var(--md-sys-color-outline-variant, rgba(0,0,0,0.08));
+    opacity: 0.3;
+}
 .calendar-mini-cell.has-activity {
     background: rgba(60,131,246,0.35);
+    opacity: 1;
 }
 .calendar-mini-cell.has-trip {
     background: rgba(255,140,66,0.5);
+    opacity: 1;
 }
 .calendar-mini-cell.has-both {
     background: var(--md-sys-color-primary);
-    box-shadow: 0 0 4px rgba(60,131,246,0.8);
+    opacity: 1;
 }
 .calendar-mini-cell.is-today {
     outline: 1.5px solid var(--md-sys-color-primary);
     outline-offset: -0.5px;
 }
 
-/* ── Trip legend (below year view) ── */
+/* ── Trip legend ── */
 .calendar-trip-legend {
-    margin-top: 1.5rem;
+    margin-top: 1.25rem;
     display: flex;
     flex-wrap: wrap;
-    gap: 0.75rem;
+    gap: 8px;
 }
 .calendar-legend-item {
     display: flex;
     align-items: center;
     gap: 6px;
     padding: 5px 12px;
-    border-radius: 20px;
-    background: var(--st-glass-bg);
-    border: 1px solid var(--md-sys-color-outline);
+    border-radius: 8px;
+    background: var(--md-sys-color-surface-container);
+    border: none;
     cursor: pointer;
     transition: background 0.15s;
-    font-size: 0.75rem;
+    font-size: 12px;
     color: var(--md-sys-color-on-surface-variant);
 }
 .calendar-legend-item:hover {
-    background: rgba(255,255,255,0.06);
+    background: var(--md-sys-color-surface-container-high);
     color: var(--md-sys-color-on-surface);
 }
 .calendar-legend-dot {
-    width: 10px;
-    height: 10px;
+    width: 8px;
+    height: 8px;
     border-radius: 3px;
 }
 
@@ -344,11 +349,11 @@
         grid-template-columns: repeat(3, 1fr);
     }
     .calendar-cell {
-        min-height: 70px;
-        padding: 4px 5px;
+        min-height: 52px;
+        padding: 3px 5px;
     }
     .calendar-toolbar-left h2 {
-        font-size: 1.1rem;
+        font-size: 1rem;
         min-width: unset;
     }
 }
@@ -365,16 +370,16 @@
         overflow-x: hidden;
     }
     .calendar-weekday-cell {
-        font-size: 0.6rem;
+        font-size: 10px;
         padding: 4px 0;
     }
     .calendar-cell {
-        min-height: 55px;
-        padding: 3px 2px;
+        min-height: 44px;
+        padding: 2px 2px;
         overflow: hidden;
     }
     .calendar-date-num {
-        font-size: 0.7rem;
+        font-size: 11px;
         width: 20px;
         height: 20px;
     }
@@ -382,19 +387,18 @@
         width: 20px;
         height: 20px;
     }
-    /* Stop count row: compact on mobile, show number only (no "stops" word) */
     .calendar-stop-info {
         margin-left: 2px !important;
         gap: 2px !important;
     }
     .calendar-stop-label {
-        font-size: 0.62rem !important;
+        font-size: 10px !important;
     }
     .calendar-stop-word {
         display: none;
     }
     .calendar-trip-bar {
-        font-size: 0.55rem;
+        font-size: 9px;
         height: 14px;
         line-height: 14px;
         padding: 0 3px;

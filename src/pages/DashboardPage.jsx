@@ -17,7 +17,6 @@ export default function DashboardPage() {
   const navigate = useNavigate();
   const { createTrip, updateTrip, linkDaysToTrip, refreshTrips } = useTripsV2();
 
-  // Refresh v2 trips with stop counts whenever dashboard mounts
   useEffect(() => {
     refreshTrips();
   }, [refreshTrips]);
@@ -38,10 +37,9 @@ export default function DashboardPage() {
   const handleTodayCheckin = useCallback(() => {
     const isMobile = window.innerWidth < 768;
     if (isMobile) {
-      // 手机屏幕小，直接进入地图选址 check-in 页面
       navigate('/map');
     } else {
-      const today = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
+      const today = new Date().toISOString().slice(0, 10);
       navigate(`/day/${today}`);
     }
   }, [navigate]);
@@ -55,7 +53,6 @@ export default function DashboardPage() {
     if (isCreating) return;
     setIsCreating(true);
     try {
-      // 新架构：创建纯元数据 trip，不含 trip_data
       const tripSettings = { ...(state.settings || {}) };
       if (patch._destinations?.length) {
         tripSettings.destinations = patch._destinations;
@@ -68,7 +65,6 @@ export default function DashboardPage() {
         settings: tripSettings,
       });
 
-      // 将已有 days_v2 记录归入此行程
       if (patch._dayIdsToLink?.length) {
         try {
           await linkDaysToTrip(newTrip.id, patch._dayIdsToLink);
@@ -114,73 +110,81 @@ export default function DashboardPage() {
     }
   }, [editingTrip, updateTrip, linkDaysToTrip]);
 
+  const todayLabel = new Date().toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+
   return (
     <div className="trip-dashboard-container fade-in">
-      <div className="dashboard-header" style={{ marginBottom: '2.5rem' }}>
+
+      {/* ── Header ── */}
+      <div className="dashboard-header" style={{ marginBottom: 28 }}>
         <div>
-          <h2 style={{ fontSize: '2.25rem', fontWeight: 800, marginBottom: '0.5rem', letterSpacing: '-0.02em' }}>
+          <h2 style={{
+            fontSize: '1.75rem', fontWeight: 700, marginBottom: 4,
+            letterSpacing: '-.4px', lineHeight: 1.2,
+          }}>
             {state.user?.name}{t('dashboard.title')}
           </h2>
-          <p style={{ color: 'var(--st-color-text-muted)', fontSize: '0.95rem', marginBottom: '1.5rem' }}>
+          <p style={{ color: 'var(--st-color-text-muted)', fontSize: 13, margin: 0, fontWeight: 400 }}>
             {t('dashboard.subtitle')}
           </p>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-          <button
-            className="btn-main"
-            onClick={handleTodayCheckin}
-            style={{ background: 'linear-gradient(135deg, var(--md-sys-color-tertiary), var(--md-sys-color-tertiary-dim, var(--md-sys-color-tertiary)))' }}
-            title={t('dashboard.today_checkin') || 'Check In'}
-          >
-            <span className="material-symbols-outlined">my_location</span>
-            <span>Check In</span>
-          </button>
-          <button
-            className="btn-main"
-            onClick={handleAddNewTrip}
-            disabled={isCreating}
-          >
-            <span className="material-symbols-outlined">{isCreating ? 'sync' : 'add'}</span>
-            <span>{isCreating ? t('common.loading') : t('dashboard.new_trip')}</span>
-          </button>
-        </div>
       </div>
 
-      {/* Today's schedule entry card */}
+      {/* ── Action row: Check-in + New Trip ── */}
+      <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
+        <button
+          className="btn-main"
+          onClick={handleTodayCheckin}
+          title={t('dashboard.today_checkin') || 'Check In'}
+        >
+          <span className="material-symbols-outlined">my_location</span>
+          <span>Check In</span>
+        </button>
+        <button
+          className="btn-main"
+          onClick={handleAddNewTrip}
+          disabled={isCreating}
+        >
+          <span className="material-symbols-outlined">{isCreating ? 'sync' : 'add'}</span>
+          <span>{isCreating ? t('common.loading') : t('dashboard.new_trip')}</span>
+        </button>
+      </div>
+
+      {/* ── Today's Schedule card ── */}
       <div
         onClick={() => navigate('/today')}
         style={{
           background: 'var(--md-sys-color-surface-container)',
-          border: '1px solid var(--md-sys-color-outline-variant)',
-          borderRadius: '14px',
-          padding: '1rem 1.25rem',
-          marginBottom: '1.5rem',
+          borderRadius: 14, padding: '12px 16px',
+          marginBottom: 24,
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          cursor: 'pointer', transition: 'all 0.2s',
+          cursor: 'pointer', transition: 'background 0.15s',
         }}
         onMouseEnter={e => e.currentTarget.style.background = 'var(--md-sys-color-surface-container-high)'}
         onMouseLeave={e => e.currentTarget.style.background = 'var(--md-sys-color-surface-container)'}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{
-            width: 40, height: 40, borderRadius: '10px',
-            background: 'var(--md-sys-color-tertiary-container)',
+            width: 36, height: 36, borderRadius: 10,
+            background: 'rgba(59,130,246,.1)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
           }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'var(--md-sys-color-tertiary)' }}>today</span>
+            <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--md-sys-color-primary)' }}>today</span>
           </div>
           <div>
-            <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--md-sys-color-on-surface)' }}>{t('dashboard.today_schedule') || "Today's Schedule"}</div>
-            <div style={{ fontSize: '0.78rem', color: 'var(--st-color-text-muted)', marginTop: '1px' }}>
-              {new Date().toLocaleDateString(undefined, { month: 'long', day: 'numeric', weekday: 'short' })}
+            <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--md-sys-color-on-surface)' }}>
+              {t('dashboard.today_schedule') || "Today's Schedule"}
             </div>
+            <div style={{ fontSize: 12, color: 'var(--st-color-text-muted)', marginTop: 1 }}>{todayLabel}</div>
           </div>
         </div>
-        <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'var(--md-sys-color-tertiary)' }}>chevron_right</span>
+        <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--st-color-text-muted)' }}>chevron_right</span>
       </div>
 
+      {/* ── Filters + View toggles ── */}
       <DashboardFilters />
 
+      {/* ── Trip grid / Calendar ── */}
       <div id="trip-grid-container">
         {state.dashboardView === 'calendar' ? (
           <CalendarPage />

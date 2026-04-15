@@ -40,23 +40,24 @@
     background: var(--md-sys-color-primary);
     color: white;
     border: none;
-    padding: 0.75rem 1.5rem;
-    font-size: 0.95rem;
-    font-weight: 700;
+    padding: 0.6rem 1.25rem;
+    font-size: 0.85rem;
+    font-weight: 600;
     border-radius: 12px;
     cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 12px rgba(60, 131, 246, 0.25);
+    transition: opacity 0.15s;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
+    letter-spacing: -.2px;
 }
 
 .btn-main:hover {
-    transform: scale(1.02);
-    box-shadow: 0 8px 20px rgba(60, 131, 246, 0.35);
-    background: var(--md-sys-color-primary-dim);
-    /* Slightly darker blue on hover */
+    opacity: 0.85;
+}
+
+.btn-main:active {
+    opacity: 0.7;
 }
 
 .btn-secondary {
@@ -134,14 +135,14 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 2.5rem;
-    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    gap: 1rem;
     flex-wrap: wrap;
 }
 
 .filter-tabs {
     display: flex;
-    gap: 0.6rem;
+    gap: 6px;
     overflow-x: auto;
     scrollbar-width: none;
     padding-bottom: 2px;
@@ -152,37 +153,36 @@
 }
 
 .filter-tab {
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid var(--md-sys-color-outline);
-    color: var(--md-sys-color-on-surface-variant);
-    padding: 0.6rem 1.4rem;
-    border-radius: 999px;
-    font-size: 0.85rem;
-    font-weight: 600;
+    background: var(--md-sys-color-surface-container);
+    border: none;
+    color: var(--st-color-text-muted);
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.15s;
     white-space: nowrap;
+    letter-spacing: -.1px;
 }
 
 .filter-tab:hover {
-    background: rgba(255, 255, 255, 0.08);
-    color: white;
-    transform: translateY(-1px);
+    background: var(--md-sys-color-surface-container-high);
+    color: var(--md-sys-color-on-surface);
 }
 
 .filter-tab.active {
     background: var(--md-sys-color-primary);
     color: white;
-    border-color: var(--md-sys-color-primary);
-    box-shadow: 0 4px 15px rgba(60, 131, 246, 0.3);
+    border-color: transparent;
 }
 
 .view-toggles {
     display: flex;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid var(--md-sys-color-outline);
-    border-radius: 12px;
-    padding: 5px;
+    background: var(--md-sys-color-surface-container);
+    border: none;
+    border-radius: 10px;
+    padding: 3px;
     gap: 2px;
 }
 
@@ -190,29 +190,27 @@
     background: transparent;
     border: none;
     color: var(--st-color-text-muted);
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
     border-radius: 8px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s;
+    transition: all 0.15s;
 }
 
 .view-icon .material-symbols-outlined {
-    font-size: 20px;
+    font-size: 18px;
 }
 
 .view-icon:hover {
     color: var(--md-sys-color-on-surface-variant);
-    background: rgba(255, 255, 255, 0.04);
 }
 
 .view-icon.active {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--md-sys-color-surface-container-high);
     color: var(--md-sys-color-primary);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 /* --- Dashboard Professional Upgrade (Isolated) --- */
@@ -532,14 +530,18 @@
     top: 50%;
     right: 3.5rem;
     transform: translateY(-50%);
-    background: var(--md-sys-color-surface-variant);
-    border: 1px solid var(--md-sys-color-outline);
-    border-radius: 8px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: none;
+    border-radius: 14px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
     z-index: 100;
     display: none;
-    flex-direction: column;
+    flex-direction: row;
     min-width: unset;
+    padding: 4px;
+    gap: 2px;
 }
 
 .menu-dropdown.active {
@@ -548,28 +550,33 @@
 
 .menu-dropdown button {
     text-align: center;
-    padding: 0.5rem 0.75rem;
+    padding: 0;
+    width: 40px;
+    height: 40px;
     background: none;
     border: none;
-    color: var(--md-sys-color-on-surface);
+    border-bottom: none;
+    color: #222;
     cursor: pointer;
-    border-bottom: 1px solid var(--md-sys-color-outline);
     white-space: nowrap;
     display: flex;
     align-items: center;
     justify-content: center;
+    border-radius: 10px;
+    transition: background 0.15s;
 }
 
 .menu-dropdown button:last-child {
     border-bottom: none;
 }
 
-.menu-dropdown button:hover {
-    background: rgba(255, 255, 255, 0.05);
+.menu-dropdown button:hover,
+.menu-dropdown button:active {
+    background: rgba(0, 0, 0, 0.08);
 }
 
 .menu-dropdown button.danger {
-    color: #f43f5e;
+    color: #FF3B30;
 }
 
 .image-thumb-option {

@@ -535,15 +535,15 @@ nav a:hover {
     width: 100%;
     max-width: 1320px;
     margin: 0 auto;
-    padding: 3rem 2rem;
+    padding: 2rem 1.25rem;
     box-sizing: border-box;
 }
 
 .dashboard-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    margin-bottom: 3rem;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
 }
 
 .trip-grid {

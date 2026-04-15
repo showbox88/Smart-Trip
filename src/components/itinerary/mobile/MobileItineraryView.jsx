@@ -368,87 +368,82 @@ export default function MobileItineraryView({ tripId }) {
                 position: 'relative',
                 background: 'linear-gradient(160deg,#1a1a2e,#16213e,#0f3460)',
                 display: 'flex', flexDirection: 'column',
-                padding: '48px 16px 14px',
-                gap: 6,
+                justifyContent: 'flex-end',
+                padding: '0 16px 14px',
                 overflow: 'hidden',
               }}>
-                {/* ── Title row: city + country + temp in one line ── */}
-                <div style={{
-                  display: 'flex', alignItems: 'baseline', justifyContent: 'space-between',
-                  marginBottom: 6,
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                    <h2 style={{ margin: 0, color: '#fff', fontSize: 20, fontWeight: 700 }}>{city}</h2>
-                    {dest?.country && (
-                      <span style={{ color: 'rgba(255,255,255,.4)', fontSize: 11 }}>{dest.country}</span>
+                {/* ── Title row ── */}
+                <div style={{ marginBottom: 10, paddingRight: 40 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                      <h2 style={{ margin: 0, color: '#fff', fontSize: 24, fontWeight: 700, letterSpacing: '-.4px' }}>{city}</h2>
+                      {dest?.country && (
+                        <span style={{ color: 'rgba(255,255,255,.45)', fontSize: 13, fontWeight: 400 }}>{dest.country}</span>
+                      )}
+                    </div>
+                    {climate && (
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
+                        <span style={{ color: '#FFD60A', fontSize: 12 }}>★</span>
+                        <span style={{ color: '#fff', fontSize: 17, fontWeight: 600, letterSpacing: '-.3px' }}>{formatTemp(climate.avgHigh, stg)}</span>
+                        <span style={{ color: 'rgba(255,255,255,.4)', fontSize: 12, fontWeight: 400 }}>/ {formatTemp(climate.avgLow, stg)}</span>
+                      </div>
                     )}
                   </div>
-                  {climate && (
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
-                      <span style={{ color: '#FFD60A', fontSize: 11 }}>☀</span>
-                      <span style={{ color: '#fff', fontSize: 15, fontWeight: 700 }}>{formatTemp(climate.avgHigh, stg)}</span>
-                      <span style={{ color: 'rgba(255,255,255,.45)', fontSize: 11 }}>/ {formatTemp(climate.avgLow, stg)}</span>
-                    </div>
-                  )}
                 </div>
 
-                {/* ── About card (full width) ── */}
+                {/* ── About card ── */}
                 <div style={{
-                  background: 'rgba(255,255,255,.08)', borderRadius: 12,
-                  padding: '8px 12px', overflow: 'hidden', cursor: 'pointer',
+                  background: 'rgba(255,255,255,.06)', borderRadius: 14,
+                  padding: '10px 14px', overflow: 'hidden', cursor: 'pointer',
+                  border: '1px solid rgba(255,255,255,.06)',
+                  marginBottom: 8,
                 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 3 }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: 13, color: 'rgba(255,255,255,.5)' }}>info</span>
-                    <span style={{ color: 'rgba(255,255,255,.5)', fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.5px' }}>About</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 6 }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 14, color: 'rgba(255,255,255,.4)' }}>info</span>
+                    <span style={{ color: 'rgba(255,255,255,.4)', fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.8px' }}>About</span>
                     {climate && (
-                      <span style={{ marginLeft: 'auto', color: 'rgba(255,255,255,.35)', fontSize: 9 }}>
+                      <span style={{ marginLeft: 'auto', color: 'rgba(255,255,255,.3)', fontSize: 10, fontWeight: 500 }}>
                         {climate.rainyDays || 0}d rain · {climate.avgPrecipMm > 0 ? `${Math.round(climate.avgPrecipMm)}mm` : '0mm'}
                       </span>
                     )}
                   </div>
                   <p style={{
-                    margin: 0, color: 'rgba(255,255,255,.75)', fontSize: 11, lineHeight: 1.4,
+                    margin: 0, color: 'rgba(255,255,255,.7)', fontSize: 12.5, lineHeight: 1.5, fontWeight: 400,
                     display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden',
                   }}>
                     {cityInfoLoading ? 'Loading…' : (info?.intro || 'No description available')}
                   </p>
                 </div>
 
-                {/* ── Bottom row: Cuisine + Attractions + Activity buttons ── */}
-                <div style={{ display: 'flex', gap: 6 }}>
-                  <button onClick={() => setCityModal({ type: 'cuisine', city })} style={{
-                    flex: 1, background: 'rgba(255,255,255,.08)', borderRadius: 12,
-                    padding: '10px 8px', border: 'none', cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', gap: 4,
-                  }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: 14, color: 'rgba(255,255,255,.6)' }}>restaurant</span>
-                    <span style={{ color: 'rgba(255,255,255,.7)', fontSize: 11, fontWeight: 600 }}>Cuisine</span>
-                  </button>
-                  <button onClick={() => setCityModal({ type: 'attractions', city })} style={{
-                    flex: 1, background: 'rgba(255,255,255,.08)', borderRadius: 12,
-                    padding: '10px 8px', border: 'none', cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', gap: 4,
-                  }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: 14, color: 'rgba(255,255,255,.6)' }}>tour</span>
-                    <span style={{ color: 'rgba(255,255,255,.7)', fontSize: 11, fontWeight: 600 }}>Attractions</span>
-                  </button>
-                  <button onClick={() => {
-                    const loc = encodeURIComponent(`${city}, ${dest?.country || ''}`);
-                    const d1 = trip?.startDate ? trip.startDate.replace(/\//g, '-') : '';
-                    const d2 = trip?.endDate ? trip.endDate.replace(/\//g, '-') : '';
-                    let url = `https://www.expedia.com/things-to-do/search?location=${loc}&sort=RECOMMENDED&swp=on`;
-                    if (d1) url += `&d1=${d1}&startDate=${encodeURIComponent(d1)}`;
-                    if (d2) url += `&d2=${d2}&endDate=${encodeURIComponent(d2)}`;
-                    window.open(url, '_blank');
-                  }} style={{
-                    flex: 1, background: 'rgba(255,255,255,.08)', borderRadius: 12,
-                    padding: '10px 8px', border: 'none', cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', gap: 4,
-                  }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: 14, color: 'rgba(255,255,255,.6)' }}>confirmation_number</span>
-                    <span style={{ color: 'rgba(255,255,255,.7)', fontSize: 11, fontWeight: 600 }}>Activity</span>
-                    <span className="material-symbols-outlined" style={{ fontSize: 12, color: 'rgba(255,255,255,.3)', marginLeft: 'auto' }}>open_in_new</span>
-                  </button>
+                {/* ── Bottom row: Cuisine + Attractions + Activity ── */}
+                <div style={{ display: 'flex', gap: 8 }}>
+                  {[
+                    { icon: 'restaurant', label: 'Cuisine', fn: () => setCityModal({ type: 'cuisine', city }) },
+                    { icon: 'tour', label: 'Attractions', fn: () => setCityModal({ type: 'attractions', city }) },
+                    { icon: 'confirmation_number', label: 'Activity', fn: () => {
+                      const loc = encodeURIComponent(`${city}, ${dest?.country || ''}`);
+                      const d1 = trip?.startDate ? trip.startDate.replace(/\//g, '-') : '';
+                      const d2 = trip?.endDate ? trip.endDate.replace(/\//g, '-') : '';
+                      let url = `https://www.expedia.com/things-to-do/search?location=${loc}&sort=RECOMMENDED&swp=on`;
+                      if (d1) url += `&d1=${d1}&startDate=${encodeURIComponent(d1)}`;
+                      if (d2) url += `&d2=${d2}&endDate=${encodeURIComponent(d2)}`;
+                      window.open(url, '_blank');
+                    }, external: true },
+                  ].map(b => (
+                    <button key={b.label} onClick={b.fn} style={{
+                      flex: 1, background: 'rgba(255,255,255,.08)', borderRadius: 12,
+                      padding: '10px 0', border: '1px solid rgba(255,255,255,.06)', cursor: 'pointer',
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
+                      transition: 'background .15s',
+                    }}
+                    onPointerDown={e => e.currentTarget.style.background = 'rgba(255,255,255,.14)'}
+                    onPointerUp={e => e.currentTarget.style.background = 'rgba(255,255,255,.08)'}
+                    onPointerLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,.08)'}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'rgba(255,255,255,.6)' }}>{b.icon}</span>
+                      <span style={{ color: 'rgba(255,255,255,.65)', fontSize: 11, fontWeight: 600, letterSpacing: '.2px' }}>{b.label}</span>
+                    </button>
+                  ))}
                 </div>
               </div>
             );
@@ -456,23 +451,31 @@ export default function MobileItineraryView({ tripId }) {
         </div>
 
         {/* Overlay controls — always on top */}
-        <div style={{ position: 'absolute', top: 16, right: 16, zIndex: 20, width: 36, height: 36 }}>
+        <div style={{ position: 'absolute', top: 9, right: 16, zIndex: 20, width: 36, height: 36 }}>
           <button onClick={() => setMenu(v => !v)} style={{ ...HBTN, top: 0, left: 0 }}>
             <span className="material-symbols-outlined" style={{ fontSize: 20 }}>more_horiz</span>
           </button>
           {menu && (
-            <div style={{ position: 'absolute', top: 44, right: 0, background: 'rgba(255,255,255,.97)',
-              borderRadius: 13, boxShadow: '0 8px 24px rgba(0,0,0,.18)', overflow: 'hidden', minWidth: 160, zIndex: 300 }}>
+            <div style={{ position: 'absolute', top: 44, right: 0,
+              background: 'rgba(255,255,255,.85)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+              borderRadius: 14, boxShadow: '0 4px 20px rgba(0,0,0,.12)', overflow: 'hidden', zIndex: 300,
+              display: 'flex', flexDirection: 'row', padding: 4, gap: 2 }}>
               {[
                 { ic: 'edit', lb: 'Edit Trip', fn: () => { setEditTrip(true); setMenu(false); } },
                 { ic: 'share', lb: 'Share', fn: () => { setShare(true); setMenu(false); } },
                 { ic: 'delete', lb: 'Delete', fn: doDelete, danger: true },
               ].map(i => (
-                <button key={i.lb} onClick={i.fn} style={{
-                  display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '12px 16px',
-                  background: 'none', border: 'none', borderBottom: '1px solid rgba(0,0,0,.06)',
-                  cursor: 'pointer', fontSize: 15, color: i.danger ? '#FF3B30' : '#000', fontFamily: FONT, textAlign: 'left',
-                }}><span className="material-symbols-outlined" style={{ fontSize: 18 }}>{i.ic}</span>{i.lb}</button>
+                <button key={i.lb} title={i.lb} onClick={i.fn} style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  width: 40, height: 40, borderRadius: 10,
+                  background: 'none', border: 'none',
+                  cursor: 'pointer', color: i.danger ? '#FF3B30' : '#222',
+                  transition: 'background 0.15s',
+                }}
+                onPointerDown={e => e.currentTarget.style.background = 'rgba(0,0,0,.08)'}
+                onPointerUp={e => e.currentTarget.style.background = 'none'}
+                onPointerLeave={e => e.currentTarget.style.background = 'none'}
+                ><span className="material-symbols-outlined" style={{ fontSize: 20 }}>{i.ic}</span></button>
               ))}
             </div>
           )}

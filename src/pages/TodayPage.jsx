@@ -39,18 +39,18 @@ function buildStaticMapUrl(stops, width = 680, height = 180) {
 }
 
 function MapThumbnail({ url }) {
-  const [status, setStatus] = useState('loading'); // loading | ok | error
+  const [status, setStatus] = useState('loading');
   const { t } = useI18n();
 
   if (!url) {
     return (
       <div style={{
-        borderRadius: '14px', border: '1px dashed rgba(255,255,255,0.1)',
-        marginBottom: '1.25rem', height: '100px',
+        borderRadius: 14, border: '1px dashed rgba(255,255,255,0.08)',
+        marginBottom: 16, height: 80,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        color: '#475569', fontSize: '0.78rem', gap: '6px',
+        color: 'var(--st-color-text-muted)', fontSize: 12, gap: 6,
       }}>
-        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>map</span>
+        <span className="material-symbols-outlined" style={{ fontSize: 16 }}>map</span>
         {t('today.map_no_key')}
       </div>
     );
@@ -60,21 +60,18 @@ function MapThumbnail({ url }) {
 
   return (
     <div style={{
-      borderRadius: '14px', overflow: 'hidden',
-      border: '1px solid var(--md-sys-color-outline)',
-      marginBottom: '1.25rem', background: '#1a1a2e',
-      minHeight: '180px',
+      borderRadius: 14, overflow: 'hidden',
+      marginBottom: 16, background: '#1a1a2e',
+      minHeight: 160,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
     }}>
-      {(
-        <img
-          src={url}
-          alt={t('today.route_alt')}
-          style={{ width: '100%', display: 'block', opacity: status === 'loading' ? 0 : 1, transition: 'opacity 0.3s' }}
-          onLoad={() => setStatus('ok')}
-          onError={() => setStatus('error')}
-        />
-      )}
+      <img
+        src={url}
+        alt={t('today.route_alt')}
+        style={{ width: '100%', display: 'block', opacity: status === 'loading' ? 0 : 1, transition: 'opacity 0.3s' }}
+        onLoad={() => setStatus('ok')}
+        onError={() => setStatus('error')}
+      />
     </div>
   );
 }
@@ -87,9 +84,9 @@ export default function TodayPage() {
   const today = new Date().toISOString().slice(0, 10);
 
   const [loading, setLoading] = useState(true);
-  const [dayData, setDayData] = useState(null);   // { id, stops: [] }
-  const [stops, setStops] = useState([]);          // location stops, sorted by time
-  const [gpsToast, setGpsToast] = useState(null);  // stop object for nearby toast
+  const [dayData, setDayData] = useState(null);
+  const [stops, setStops] = useState([]);
+  const [gpsToast, setGpsToast] = useState(null);
   const toastTimerRef = useRef(null);
 
   // ── Load today's day ──────────────────────────────────────────
@@ -110,7 +107,6 @@ export default function TodayPage() {
           const locationStops = raw
             .filter(s => !s.type || s.type === 'location' || s.type === 'hotel_checkin' || s.type === 'hotel_checkout')
             .sort((a, b) => {
-              // Sort by time (convert to 24h for comparison)
               const toMins = (s) => {
                 if (!s.time) return 9999;
                 const [h, m] = s.time.split(':').map(Number);
@@ -131,11 +127,8 @@ export default function TodayPage() {
   // ── Persist stop update back to DB ────────────────────────────
   const handleStopUpdate = useCallback(async (stopId, patch) => {
     if (!dayData) return;
-
-    // Update local state optimistically
     setStops(prev => prev.map(s => s.id === stopId ? { ...s, ...patch } : s));
 
-    // Load the full day stops_data, merge, and save
     const { data } = await supabase
       .from('days_v2')
       .select('stops_data')
@@ -173,26 +166,23 @@ export default function TodayPage() {
   const currentStopId = stops.find(s => !s.checkedIn)?.id;
   const totalExpense = stops.reduce((sum, s) => sum + (parseFloat(s.price) || 0), 0);
   const mapUrl = buildStaticMapUrl(stops);
+  const allDone = checkedCount === totalCount && totalCount > 0;
 
-  // ── No auth ───────────────────────────────────────────────────
-  if (!state.user) {
-    navigate('/');
-    return null;
-  }
+  if (!state.user) { navigate('/'); return null; }
 
   // ── Loading ───────────────────────────────────────────────────
   if (loading) {
     return (
       <div style={{ minHeight: '100vh', background: 'var(--md-sys-color-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ textAlign: 'center', color: 'var(--st-color-text-muted)' }}>
-          <span className="material-symbols-outlined" style={{ fontSize: '3rem', display: 'block', marginBottom: '0.75rem', opacity: 0.4 }}>today</span>
-          <p style={{ margin: 0 }}>{t('dashboard.loading_today') || "Loading today's schedule..."}</p>
+          <span className="material-symbols-outlined" style={{ fontSize: 40, display: 'block', marginBottom: 12, opacity: 0.3 }}>today</span>
+          <p style={{ margin: 0, fontSize: 14 }}>{t('dashboard.loading_today') || "Loading today's schedule..."}</p>
         </div>
       </div>
     );
   }
 
-  // ── No trips today → redirect to lazy checkin ─────────────────
+  // ── No trips today ────────────────────────────────────────────
   if (!dayData || stops.length === 0) {
     return (
       <div style={{
@@ -200,33 +190,33 @@ export default function TodayPage() {
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         padding: '2rem',
       }}>
-        <div style={{ textAlign: 'center', maxWidth: '320px' }}>
-          <span className="material-symbols-outlined" style={{ fontSize: '56px', display: 'block', marginBottom: '1rem', opacity: 0.25, color: 'var(--md-sys-color-on-surface)' }}>
+        <div style={{ textAlign: 'center', maxWidth: 320 }}>
+          <span className="material-symbols-outlined" style={{ fontSize: 52, display: 'block', marginBottom: 16, opacity: 0.2, color: 'var(--md-sys-color-on-surface)' }}>
             event_available
           </span>
-          <h2 style={{ margin: '0 0 0.5rem', fontSize: '1.25rem', color: 'var(--md-sys-color-on-surface)' }}>{t('today.no_schedule_title')}</h2>
-          <p style={{ color: 'var(--st-color-text-muted)', fontSize: '0.88rem', marginBottom: '1.5rem', lineHeight: 1.6 }}>
+          <h2 style={{ margin: '0 0 8px', fontSize: 20, fontWeight: 700, color: 'var(--md-sys-color-on-surface)', letterSpacing: '-.3px' }}>{t('today.no_schedule_title')}</h2>
+          <p style={{ color: 'var(--st-color-text-muted)', fontSize: 14, marginBottom: 24, lineHeight: 1.6 }}>
             {t('today.no_schedule_desc')}
           </p>
           <button
             onClick={() => navigate(`/day/${today}`)}
             style={{
-              display: 'inline-flex', alignItems: 'center', gap: '8px',
-              background: 'linear-gradient(135deg, #f97316, #ea580c)',
-              color: 'white', border: 'none', borderRadius: '12px',
-              padding: '0.75rem 1.5rem', fontWeight: 800, fontSize: '0.95rem',
-              cursor: 'pointer', marginBottom: '0.75rem', width: '100%',
-              justifyContent: 'center',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              width: '100%', background: 'var(--md-sys-color-primary)',
+              color: 'var(--md-sys-color-on-primary)', border: 'none', borderRadius: 14,
+              padding: '14px 0', fontWeight: 600, fontSize: 15, cursor: 'pointer',
+              marginBottom: 10,
             }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>my_location</span>
+            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>my_location</span>
             {t('today.free_checkin')}
           </button>
           <button
             onClick={() => navigate('/')}
             style={{
-              background: 'none', border: '1px solid var(--md-sys-color-outline)', color: 'var(--st-color-text-muted)',
-              borderRadius: '10px', padding: '0.6rem 1.2rem', cursor: 'pointer', fontSize: '0.85rem', width: '100%',
+              width: '100%', background: 'none',
+              border: '1px solid rgba(255,255,255,.08)', color: 'var(--st-color-text-muted)',
+              borderRadius: 12, padding: '12px 0', cursor: 'pointer', fontSize: 14,
             }}
           >
             {t('today.back_home')}
@@ -238,103 +228,113 @@ export default function TodayPage() {
 
   // ── Main page ─────────────────────────────────────────────────
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--md-sys-color-surface)', color: 'var(--md-sys-color-on-surface)', paddingBottom: '100px' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--md-sys-color-surface)', color: 'var(--md-sys-color-on-surface)', paddingBottom: 100 }}>
 
-      {/* ── Top bar ── */}
+      {/* ── Header ── */}
       <div style={{
         position: 'sticky', top: 0, zIndex: 100,
-        background: 'var(--md-sys-color-surface)', borderBottom: '1px solid var(--md-sys-color-outline)',
-        padding: '0.75rem 1.25rem',
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        background: 'var(--md-sys-color-surface)',
+        padding: '14px 20px 12px',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-          <button
-            onClick={() => navigate('/')}
-            style={{ background: 'none', border: 'none', color: 'var(--st-color-text-muted)', cursor: 'pointer', padding: '4px', display: 'flex' }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>arrow_back</span>
-          </button>
-          <div>
-            <div style={{ fontWeight: 800, fontSize: '1rem', lineHeight: 1.2 }}>{t('dashboard.today_schedule') || "Today's Schedule"}</div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--st-color-text-muted)' }}>{formatTodayLabel()}</div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <button
+              onClick={() => navigate('/')}
+              style={{ background: 'none', border: 'none', color: 'var(--md-sys-color-primary)', cursor: 'pointer', padding: 0, display: 'flex' }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 24 }}>arrow_back_ios_new</span>
+            </button>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 18, letterSpacing: '-.3px', lineHeight: 1.2 }}>
+                {t('dashboard.today_schedule') || "Today's Schedule"}
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--st-color-text-muted)', marginTop: 2 }}>{formatTodayLabel()}</div>
+            </div>
+          </div>
+
+          {/* Progress pill */}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 5,
+            background: allDone ? 'rgba(34,197,94,0.1)' : 'var(--md-sys-color-surface-container)',
+            borderRadius: 20, padding: '5px 12px',
+          }}>
+            <span className="material-symbols-outlined" style={{
+              fontSize: 14,
+              color: allDone ? 'var(--st-color-hotel-checkin)' : 'var(--md-sys-color-primary)',
+              fontVariationSettings: "'FILL' 1",
+            }}>
+              {allDone ? 'check_circle' : 'route'}
+            </span>
+            <span style={{
+              fontSize: 13, fontWeight: 600, letterSpacing: '-.2px',
+              color: allDone ? 'var(--st-color-hotel-checkin)' : 'var(--md-sys-color-on-surface)',
+            }}>
+              {t('today.stops_progress').replace('{checked}', checkedCount).replace('{total}', totalCount)}
+            </span>
           </div>
         </div>
-        {/* Progress badge */}
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: '6px',
-          background: checkedCount === totalCount && totalCount > 0 ? 'rgba(34,197,94,0.15)' : 'rgba(255,255,255,0.06)',
-          border: `1px solid ${checkedCount === totalCount && totalCount > 0 ? 'rgba(34,197,94,0.4)' : 'rgba(255,255,255,0.1)'}`,
-          borderRadius: '20px', padding: '4px 12px',
-        }}>
-          <span className="material-symbols-outlined" style={{ fontSize: '14px', color: checkedCount === totalCount && totalCount > 0 ? 'var(--st-color-hotel-checkin)' : 'var(--st-color-category-food)' }}>
-            {checkedCount === totalCount && totalCount > 0 ? 'celebration' : 'route'}
-          </span>
-          <span style={{ fontSize: '0.8rem', fontWeight: 700, color: checkedCount === totalCount && totalCount > 0 ? 'var(--st-color-hotel-checkin)' : 'var(--md-sys-color-on-surface)' }}>
-            {t('today.stops_progress').replace('{checked}', checkedCount).replace('{total}', totalCount)}
-          </span>
+
+        {/* Thin progress bar */}
+        <div style={{ height: 3, background: 'rgba(255,255,255,.04)', borderRadius: 2, marginTop: 12 }}>
+          <div style={{
+            height: '100%', borderRadius: 2,
+            width: totalCount > 0 ? `${(checkedCount / totalCount) * 100}%` : '0%',
+            background: allDone ? 'var(--st-color-hotel-checkin)' : 'var(--md-sys-color-primary)',
+            transition: 'width 0.5s ease',
+          }} />
         </div>
       </div>
 
-      {/* ── Progress bar ── */}
-      <div style={{ height: 4, background: 'rgba(255,255,255,0.06)' }}>
-        <div style={{
-          height: '100%',
-          width: totalCount > 0 ? `${(checkedCount / totalCount) * 100}%` : '0%',
-          background: 'linear-gradient(90deg, var(--st-color-category-food), var(--st-color-hotel-checkin))',
-          transition: 'width 0.5s ease',
-        }} />
-      </div>
+      {/* ── Content ── */}
+      <div style={{ maxWidth: 680, margin: '0 auto', padding: '16px 16px 0' }}>
 
-      <div style={{ maxWidth: '680px', margin: '0 auto', padding: '1.25rem 1rem 0' }}>
-
-        {/* ── Map thumbnail ── */}
         <MapThumbnail url={mapUrl} />
 
-        {/* ── Stop list ── */}
-        <div>
-          {stops.map((stop) => (
-            <StopCheckinCard
-              key={stop.id}
-              stop={stop}
-              isCurrent={stop.id === currentStopId}
-              dayDate={today}
-              onCheckin={handleStopUpdate}
-            />
-          ))}
-        </div>
+        {/* Stop list */}
+        {stops.map((stop) => (
+          <StopCheckinCard
+            key={stop.id}
+            stop={stop}
+            isCurrent={stop.id === currentStopId}
+            dayDate={today}
+            onCheckin={handleStopUpdate}
+          />
+        ))}
 
-        {/* ── Expense summary ── */}
+        {/* Expense summary */}
         <div style={{
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           background: 'var(--md-sys-color-surface-container)',
-          borderRadius: 'var(--md-sys-shape-corner-medium)',
-          padding: '0.65rem 1rem', marginTop: '1.25rem',
+          borderRadius: 14, padding: '12px 16px', marginTop: 16,
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--md-sys-color-tertiary)' }}>payments</span>
-            <span style={{ fontSize: '0.82rem', color: 'var(--st-color-text-muted)' }}>{t('today.total_expense')}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--md-sys-color-tertiary)' }}>payments</span>
+            <span style={{ fontSize: 13, color: 'var(--st-color-text-muted)', fontWeight: 500 }}>{t('today.total_expense')}</span>
           </div>
-          <div style={{ fontWeight: 800, fontSize: '1.1rem', color: totalExpense > 0 ? 'var(--md-sys-color-tertiary)' : 'var(--st-color-text-muted)' }}>
+          <span style={{
+            fontWeight: 700, fontSize: 17, letterSpacing: '-.3px',
+            color: totalExpense > 0 ? 'var(--md-sys-color-tertiary)' : 'var(--st-color-text-muted)',
+          }}>
             {formatCurrency(totalExpense, state.settings)}
-          </div>
+          </span>
         </div>
 
-        {/* ── Check-in button ── */}
+        {/* Check-in CTA */}
         <button
           onClick={() => navigate(`/day/${today}`)}
           style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-            width: '100%', marginTop: '0.75rem', marginBottom: '5rem',
-            padding: '0.75rem 1.25rem',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            width: '100%', marginTop: 12, marginBottom: 80,
+            padding: '14px 0',
             background: 'var(--md-sys-color-primary)',
             color: 'var(--md-sys-color-on-primary)',
-            border: 'none', borderRadius: 'var(--md-sys-shape-corner-medium)',
-            fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
-            transition: 'opacity 0.15s ease',
+            border: 'none', borderRadius: 14,
+            fontWeight: 600, fontSize: 15, letterSpacing: '-.2px',
+            cursor: 'pointer',
+            transition: 'opacity 0.15s',
           }}
         >
-          <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>my_location</span>
+          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>my_location</span>
           {t('dashboard.today_checkin') || 'Check In'}
         </button>
       </div>
@@ -342,21 +342,22 @@ export default function TodayPage() {
       {/* ── GPS nearby toast ── */}
       {gpsToast && (
         <div style={{
-          position: 'fixed', bottom: '90px', left: '50%', transform: 'translateX(-50%)',
-          zIndex: 2000, width: 'calc(100% - 2rem)', maxWidth: '400px',
-          background: '#1a1a2e', border: '1px solid rgba(249,115,22,0.5)',
-          borderRadius: '14px', padding: '1rem 1.25rem',
-          boxShadow: '0 8px 30px rgba(0,0,0,0.6)',
+          position: 'fixed', bottom: 90, left: '50%', transform: 'translateX(-50%)',
+          zIndex: 2000, width: 'calc(100% - 2rem)', maxWidth: 400,
+          background: 'var(--md-sys-color-surface-container)',
+          border: '1px solid rgba(255,255,255,.08)',
+          borderRadius: 16, padding: '14px 16px',
+          boxShadow: '0 8px 30px rgba(0,0,0,0.4)',
           animation: 'slideUp 0.3s ease',
         }}>
           <style>{`@keyframes slideUp { from { transform: translateX(-50%) translateY(20px); opacity:0; } to { transform: translateX(-50%) translateY(0); opacity:1; } }`}</style>
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '22px', color: 'var(--st-color-category-food)', flexShrink: 0, marginTop: '1px' }}>near_me</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 22, color: 'var(--md-sys-color-primary)', flexShrink: 0 }}>near_me</span>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontWeight: 700, fontSize: '0.88rem', marginBottom: '2px' }}>
+              <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 2 }}>
                 {t('today.nearby_toast_title')}
               </div>
-              <div style={{ fontSize: '0.8rem', color: 'var(--md-sys-color-on-surface-variant)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <div style={{ fontSize: 12, color: 'var(--st-color-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {gpsToast.location || gpsToast.name}
               </div>
             </div>
@@ -371,18 +372,18 @@ export default function TodayPage() {
                 dismissToast();
               }}
               style={{
-                background: 'var(--st-color-category-food)', color: 'white', border: 'none',
-                borderRadius: '8px', padding: '6px 14px',
-                fontWeight: 800, fontSize: '0.82rem', cursor: 'pointer', flexShrink: 0,
+                background: 'var(--md-sys-color-primary)', color: 'var(--md-sys-color-on-primary)',
+                border: 'none', borderRadius: 10, padding: '7px 14px',
+                fontWeight: 600, fontSize: 13, cursor: 'pointer', flexShrink: 0,
               }}
             >
               {t('today.checkin_btn')}
             </button>
             <button
               onClick={dismissToast}
-              style={{ background: 'none', border: 'none', color: 'var(--st-color-text-muted)', cursor: 'pointer', padding: '4px', flexShrink: 0 }}
+              style={{ background: 'none', border: 'none', color: 'var(--st-color-text-muted)', cursor: 'pointer', padding: 4, flexShrink: 0 }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>close</span>
+              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>close</span>
             </button>
           </div>
         </div>
