@@ -1,6 +1,33 @@
 import { checkApiAllowed, logApiCall } from './apiGuard';
 import { getRouteCache, saveRouteCache } from './routeCache';
 
+/* ── Consolidated transit icon/label maps (from TransitInfo + MobileItineraryView) ── */
+
+export const TRANSIT_MODE_ICONS = {
+  WALK: 'directions_walk',
+  DRIVE: 'directions_car',
+  TRANSIT: 'directions_bus',
+  BICYCLE: 'pedal_bike',
+};
+
+export const TRANSIT_MODE_WORDS = {
+  WALK: 'walk',
+  DRIVE: 'taxi',
+  TRANSIT: 'transit',
+  BICYCLE: 'bike',
+};
+
+export function getStepIcon(step) {
+  if (step.travelMode === 'WALKING') return 'directions_walk';
+  const vt = (step.vehicleType || '').toUpperCase();
+  if (vt === 'SUBWAY' || vt === 'METRO_RAIL') return 'directions_subway';
+  if (vt.includes('BUS') || vt === 'TROLLEYBUS') return 'directions_bus';
+  if (vt.includes('TRAIN') || vt === 'RAIL' || vt === 'MONORAIL') return 'train';
+  if (vt === 'TRAM' || vt === 'CABLE_CAR') return 'tram';
+  if (vt === 'FERRY') return 'directions_boat';
+  return 'directions_transit';
+}
+
 // Map legacy REST API travel modes to JS SDK values
 const TRAVEL_MODE_MAP = {
   'DRIVE': 'DRIVING',

@@ -2,31 +2,9 @@ import { createPortal } from 'react-dom';
 import { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { formatCurrency } from '../../utils/formatters';
+import { getCategoryMaterialIcon as getCategoryIcon } from '../../utils/categoryHelpers';
 import TimePickerModal from '../modals/TimePickerModal';
 import ExpenseModal from '../modals/ExpenseModal';
-
-const CATEGORY_ICON_MAP = [
-  [['lodging', 'hotel', 'accommodation'], 'hotel'],
-  [['restaurant', 'food', 'dining'], 'restaurant'],
-  [['cafe', 'coffee'], 'local_cafe'],
-  [['bakery'], 'bakery_dining'],
-  [['bar', 'night', 'drinks'], 'local_bar'],
-  [['attraction', 'museum', 'landmark', 'sightseeing'], 'museum'],
-  [['park', 'nature'], 'park'],
-  [['shopping', 'store', 'mall'], 'shopping_bag'],
-  [['transit', 'subway', 'train', 'bus', 'transport'], 'directions_transit'],
-  [['airport', 'flight'], 'flight'],
-  [['activity', 'sport', 'activities'], 'confirmation_number'],
-];
-
-function getCategoryIcon(stop) {
-  if (stop.type === 'hotel_checkin' || stop.type === 'hotel_checkout') return 'hotel';
-  const key = (stop.category || '').toLowerCase();
-  for (const [kw, icon] of CATEGORY_ICON_MAP) {
-    if (kw.some(k => key.includes(k))) return icon;
-  }
-  return 'place';
-}
 
 export default function StopCheckinCard({ stop, isCurrent, dayDate, onCheckin }) {
   const { state } = useApp();

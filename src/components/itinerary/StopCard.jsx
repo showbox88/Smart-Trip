@@ -11,6 +11,7 @@ import {
   Hotel, Receipt, Coffee, Croissant
 } from 'lucide-react';
 import { formatCurrency } from '../../utils/formatters';
+import { isHotelStop, HOTEL_CATEGORIES } from '../../utils/categoryHelpers';
 import HotelLine from './HotelLine';
 import TransitInfo from './TransitInfo';
 import PlanBPanel from './PlanBPanel';
@@ -112,10 +113,7 @@ export default React.memo(function StopCard({
     return () => document.removeEventListener('mousedown', handler);
   }, [showPhotoPicker, confirmingDelete]);
 
-  const HOTEL_CATEGORIES = ['酒店', '住宿', 'lodging', 'Accommodation', 'Hotel', 'map.place_lodging'];
-  const isHotel = stop.type === 'hotel_checkin' || stop.type === 'hotel_checkout'
-    || HOTEL_CATEGORIES.includes(stop.category)
-    || (typeof stop.category === 'string' && stop.category.includes('lodging'));
+  const isHotel = isHotelStop(stop);
   const typeLabel = stop.type === 'hotel_checkin'
     ? (t('itinerary.hotel_checkin') || 'Check-in')
     : stop.type === 'hotel_checkout'

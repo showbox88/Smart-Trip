@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useI18n } from '../../context/I18nContext';
 import { useApp } from '../../context/AppContext';
 import { useTheme } from '../../theme';
-import { formatCurrency, calculateDays, isCountableStop } from '../../utils/formatters';
+import { formatCurrency, calculateDays, isCountableStop, formatDateShort } from '../../utils/formatters';
 import ClimateCard from '../climate/ClimateCard';
 import { useClimateData } from '../../hooks/useClimateData';
 import { getIsTouch } from '../../hooks/useDeviceType';
@@ -18,13 +18,6 @@ function usePortraitTouch() {
     return () => { window.removeEventListener('resize', update); window.removeEventListener('orientationchange', update); };
   }, []);
   return is;
-}
-
-function formatDateShort(dateStr) {
-  if (!dateStr) return '';
-  const d = new Date(dateStr.replace(/-/g, '/'));
-  if (isNaN(d)) return dateStr;
-  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
 function formatCheckinDate(dateStr) {

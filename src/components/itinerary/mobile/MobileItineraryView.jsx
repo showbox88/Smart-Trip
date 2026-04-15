@@ -16,7 +16,8 @@ import { useTrips } from '../../../hooks/useTrips';
 import { useI18n } from '../../../context/I18nContext';
 import { useClimateData } from '../../../hooks/useClimateData';
 import { useCityInfo } from '../../../hooks/useCityInfo';
-import { formatTemp } from '../../../utils/formatters';
+import { formatTemp, formatDateRange, formatTime12h, formatDurationCompact, priceTier, stopDisplayName, isVisibleStop } from '../../../utils/formatters';
+import { TRANSIT_MODE_ICONS, TRANSIT_MODE_WORDS } from '../../../utils/transitHelpers';
 import { useTimelineDrag } from '../../../hooks/useTimelineDrag';
 import StopEditModal from '../../modals/StopEditModal';
 import TripEditModal from '../../modals/TripEditModal';
@@ -29,58 +30,13 @@ import MapPanel from '../MapPanel';
 
 /* ── helpers ─────────────────────────────────────────────── */
 
-function stopName(s) { return s.location || s.title || s.address || ''; }
-
-function priceTier(stop) {
-  const v = stop.expense != null ? parseFloat(stop.expense) : parseFloat(stop.price || 0);
-  if (isNaN(v) || v < 0) return null;
-  if (v === 0) return 'Free';
-  if (v <= 15) return '$';
-  if (v <= 50) return '$$';
-  if (v <= 150) return '$$$';
-  return '$$$$';
-}
-
-function fmtTime(stop) {
-  if (!stop.time) return null;
-  const [hS, mS] = stop.time.split(':');
-  const h24 = parseInt(hS, 10), m = parseInt(mS, 10) || 0;
-  if (isNaN(h24)) return null;
-  const p = stop.period || (h24 >= 12 ? 'PM' : 'AM');
-  const h12 = h24 === 0 ? 12 : h24 > 12 ? h24 - 12 : h24;
-  return `${h12}:${String(m).padStart(2, '0')} ${p}`;
-}
-
-function fmtDuration(sec) {
-  const n = typeof sec === 'string' ? parseInt(sec, 10) : sec;
-  if (!n || isNaN(n)) return null;
-  const h = Math.floor(n / 3600);
-  const m = Math.max(1, Math.round((n % 3600) / 60));
-  if (h > 0) return `${h} hr ${m} min`;
-  return `${m} min`;
-}
-
-const T_ICON = { WALK: 'directions_walk', DRIVE: 'directions_car', TRANSIT: 'directions_bus', BICYCLE: 'pedal_bike' };
-const T_WORD = { WALK: 'walk', DRIVE: 'taxi', TRANSIT: 'transit', BICYCLE: 'bike' };
-
 function transitPill(t) {
   if (!t) return null;
   const mode = (t.mode || 'WALK').toUpperCase();
-  const dur = fmtDuration(t.duration);
+  const dur = formatDurationCompact(t.duration);
   if (!dur) return null;
-  return { icon: T_ICON[mode] || 'directions_walk', text: `${dur} ${T_WORD[mode] || 'walk'}` };
+  return { icon: TRANSIT_MODE_ICONS[mode] || 'directions_walk', text: `${dur} ${TRANSIT_MODE_WORDS[mode] || 'walk'}` };
 }
-
-function fmtRange(s, e) {
-  try {
-    const o = { month: 'short', day: 'numeric', year: 'numeric' };
-    const a = new Date(s.replace(/-/g, '/')).toLocaleDateString('en-US', o);
-    if (!e) return a;
-    return `${a} – ${new Date(e.replace(/-/g, '/')).toLocaleDateString('en-US', o)}`;
-  } catch { return ''; }
-}
-
-function isVisible(s) { return !s.type || s.type === 'location' || s.type === 'activity'; }
 
 /* ── component ───────────────────────────────────────────── */
 
@@ -177,7 +133,7 @@ export default function MobileItineraryView({ tripId }) {
 
   const days  = trip?.days || [];
   const day   = days[dayIdx] ?? days[0];
-  const stops = (day?.stops || []).filter(isVisible);
+  const stops = (day?.stops || []).filter(isVisibleStop);
 
   /* ── Hero carousel state ── */
   const cities = (trip?.settings?.destinations || []).map(d => d.name).filter(Boolean);
@@ -352,7 +308,7 @@ export default function MobileItineraryView({ tripId }) {
                 textShadow: '0 2px 12px rgba(0,0,0,.4)', letterSpacing: '-.3px' }}>{trip.title}</h1>
               {(trip.startDate || trip.endDate) &&
                 <p style={{ margin: '6px 0 0', color: 'rgba(255,255,255,.85)', fontSize: 14 }}>
-                  {fmtRange(trip.startDate, trip.endDate)}</p>}
+                  {formatDateRange(trip.startDate, trip.endDate)}</p>}
             </div>
           </div>
 
@@ -620,10 +576,10 @@ export default function MobileItineraryView({ tripId }) {
                   <span style={{ fontSize: 14 }}>No stops for this day</span>
                 </div>
               ) : stops.map((stop, idx) => {
-                const nm = stopName(stop);
+                const nm = stopDisplayName(stop);
                 const tr = transitPill(stop.transitToNext);
                 const pr = priceTier(stop);
-                const tm = fmtTime(stop);
+                const tm = formatTime12h(stop);
                 const last = idx === stops.length - 1;
                 const isDragging = draggingStopId === stop.id;
 
