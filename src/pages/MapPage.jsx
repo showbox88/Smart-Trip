@@ -26,22 +26,6 @@ export default function MapPage() {
       display: 'flex', flexDirection: 'column',
       background: 'var(--md-sys-color-surface)',
     }}>
-      {/* Back button */}
-      <button
-        onClick={() => navigate(-1)}
-        style={{
-          position: 'absolute', top: 12, left: 12, zIndex: 1100,
-          width: 38, height: 38, borderRadius: '50%', border: 'none',
-          background: 'var(--md-sys-color-surface-container-lowest)',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', color: 'var(--md-sys-color-on-surface)',
-        }}
-        aria-label="Back"
-      >
-        <span className="material-symbols-outlined" style={{ fontSize: 20 }}>arrow_back</span>
-      </button>
-
       <div style={{ flex: 1, position: 'relative', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <MapPanel
           ref={mapPanelRef}

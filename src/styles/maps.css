@@ -150,20 +150,21 @@ gmp-advanced-marker::part(pin) {
 /* --- Map Dark Mode Toggle --- */
 #map-dark-toggle {
     position: static;
-    width: 44px;
-    height: 44px;
-    background: rgba(13, 17, 27, 0.85);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: none;
     border-radius: 50%;
-    color: white;
+    color: #1c1c1e;
     cursor: pointer;
     display: flex !important;
     align-items: center;
     justify-content: center;
-    font-size: 1.25rem;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    font-size: 1.1rem;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+    transition: opacity 0.15s;
     line-height: 1;
     padding: 0;
     overflow: hidden;
@@ -171,46 +172,49 @@ gmp-advanced-marker::part(pin) {
 }
 
 #map-dark-toggle:hover {
-    transform: scale(1.1);
-    background: #1a2235;
-    border-color: var(--md-sys-color-primary);
-    box-shadow: 0 0 15px rgba(249, 115, 22, 0.4);
+    opacity: 0.8;
 }
 
 #map-dark-toggle:active {
-    transform: scale(0.95);
+    opacity: 0.6;
 }
 
 /* --- GPS Location Button --- */
 #map-gps-btn {
     position: static;
-    width: 44px;
-    height: 44px;
-    background: rgba(13, 17, 27, 0.85);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: none;
     border-radius: 50%;
-    color: white;
+    color: #1c1c1e;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+    transition: opacity 0.15s;
     padding: 0;
     overflow: hidden;
     flex-shrink: 0;
 }
 
 #map-gps-btn:hover {
-    transform: scale(1.1);
-    background: #1a2235;
-    border-color: #4285f4;
-    box-shadow: 0 0 15px rgba(66, 133, 244, 0.4);
+    opacity: 0.8;
 }
 
 #map-gps-btn:active {
-    transform: scale(0.95);
+    opacity: 0.6;
+}
+
+/* Dark mode variants */
+.map-dark #map-dark-toggle,
+.map-dark #map-gps-btn {
+    background: rgba(13, 17, 27, 0.85);
+    color: white;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
 }
 
 #map-gps-btn.locating .material-symbols-outlined {
@@ -286,4 +290,57 @@ gmp-advanced-marker::part(pin) {
 @keyframes slideUp {
     from { transform: translateY(20px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
+}
+
+/* --- Mobile map search bar (shared by MapPage + itinerary flip) --- */
+body.mobile-mode-map .map-search-control {
+    z-index: 200 !important;
+    position: absolute !important;
+    top: 14px !important;
+    left: 12px !important;
+    width: calc(100% - 110px) !important;
+    display: flex !important;
+}
+
+body.mobile-mode-map .map-search-control .location-search-input {
+    background: rgba(255, 255, 255, .92) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    color: #222 !important;
+    border: none !important;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, .12) !important;
+    border-radius: 12px !important;
+    font-size: 14px !important;
+    padding: 10px 40px 10px 36px !important;
+}
+
+body.mobile-mode-map .map-search-control .location-search-input::placeholder {
+    color: #999 !important;
+}
+
+body.mobile-mode-map .map-search-control.map-dark .location-search-input {
+    background: rgba(13, 17, 27, .85) !important;
+    color: #fff !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, .5) !important;
+}
+
+body.mobile-mode-map .map-search-control.map-dark .location-search-input::placeholder {
+    color: rgba(255, 255, 255, .5) !important;
+}
+
+body.mobile-mode-map #map-controls-row {
+    top: 16px !important;
+    right: 12px !important;
+    gap: 6px !important;
+}
+
+body.mobile-mode-map #map-dark-toggle,
+body.mobile-mode-map #map-gps-btn {
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 0.9rem !important;
+}
+
+body.mobile-mode-map #map-gps-btn .material-symbols-outlined {
+    font-size: 18px !important;
 }

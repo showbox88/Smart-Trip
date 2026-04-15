@@ -50,7 +50,7 @@ async function focusPlaceOnMap(placeId, mapInstance) {
   return place;
 }
 
-export default function MapSearchBox({ mapInstance, onPlaceSelect, onCategoryResults, leftOffset = 15 }) {
+export default function MapSearchBox({ mapInstance, onPlaceSelect, onCategoryResults, leftOffset = 15, darkMode = false }) {
   const { t } = useI18n();
   const inputRef = useRef(null);
   const containerRef = useRef(null);
@@ -189,10 +189,18 @@ export default function MapSearchBox({ mapInstance, onPlaceSelect, onCategoryRes
     }, 220);
   }, [clearPredictions, runPredictionSearch]);
 
+  // Adaptive colors for light/dark map
+  const bg = darkMode ? 'rgba(13,17,27,.85)' : 'rgba(255,255,255,.92)';
+  const textColor = darkMode ? '#fff' : '#1c1c1e';
+  const mutedColor = darkMode ? 'rgba(255,255,255,.5)' : '#8e8e93';
+  const divider = darkMode ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.06)';
+  const hoverBg = darkMode ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.04)';
+  const shadow = darkMode ? '0 4px 20px rgba(0,0,0,.5)' : '0 2px 12px rgba(0,0,0,.12)';
+
   return (
     <div
       ref={containerRef}
-      className="map-search-control"
+      className={`map-search-control${darkMode ? ' map-dark' : ''}`}
       style={{
         position: 'absolute', top: '12px', left: leftOffset,
         width: `calc(100% - ${leftOffset + 100}px)`, maxWidth: '400px',
@@ -210,18 +218,18 @@ export default function MapSearchBox({ mapInstance, onPlaceSelect, onCategoryRes
           onFocus={() => setShowDropdown(true)}
           onKeyDown={handleKeyDown}
           style={{
-            width: '100%', padding: '0.75rem 2.5rem 0.75rem 2.8rem',
-            background: 'var(--md-sys-color-surface)', backdropFilter: 'blur(12px)',
-            border: '1px solid var(--md-sys-color-outline)', borderRadius: '12px',
-            color: 'white', fontSize: '0.85rem', outline: 'none',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+            width: '100%', padding: '10px 38px 10px 36px',
+            background: bg, backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+            border: 'none', borderRadius: '12px',
+            color: textColor, fontSize: '14px', outline: 'none',
+            boxShadow: shadow,
           }}
         />
         <span
           className="material-symbols-outlined"
           style={{
-            position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)',
-            color: 'var(--st-color-text-muted)', fontSize: '18px',
+            position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)',
+            color: mutedColor, fontSize: '18px',
           }}
         >
           search
@@ -236,9 +244,9 @@ export default function MapSearchBox({ mapInstance, onPlaceSelect, onCategoryRes
               inputRef.current?.focus();
             }}
             style={{
-              position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)',
+              position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)',
               background: 'none', border: 'none', cursor: 'pointer', padding: '2px',
-              display: 'flex', alignItems: 'center', color: 'var(--st-color-text-muted)',
+              display: 'flex', alignItems: 'center', color: mutedColor,
             }}
           >
             <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>close</span>
@@ -247,25 +255,25 @@ export default function MapSearchBox({ mapInstance, onPlaceSelect, onCategoryRes
       </div>
 
       {showPredictions && (
-        <div style={{ background: '#111318', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.6)' }}>
+        <div style={{ background: bg, backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: 'none', borderRadius: '12px', overflow: 'hidden', boxShadow: shadow }}>
           {predictions.map((prediction, idx) => (
             <button
               key={prediction.placeId}
               onClick={() => handleSelectPrediction(prediction)}
               style={{
                 display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '2px', width: '100%',
-                padding: '12px 16px', background: idx === focusIdx ? 'rgba(255,255,255,0.06)' : 'none', border: 'none',
-                borderBottom: idx < predictions.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none',
-                color: 'white', fontSize: '0.9rem', cursor: 'pointer', textAlign: 'left',
+                padding: '11px 14px', background: idx === focusIdx ? hoverBg : 'none', border: 'none',
+                borderBottom: idx < predictions.length - 1 ? `1px solid ${divider}` : 'none',
+                color: textColor, fontSize: '14px', cursor: 'pointer', textAlign: 'left',
                 transition: 'background 0.15s',
               }}
               onMouseEnter={() => setFocusIdx(idx)}
-              onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
-              onMouseOut={(e) => { e.currentTarget.style.background = idx === focusIdx ? 'rgba(255,255,255,0.06)' : 'none'; }}
+              onMouseOver={(e) => { e.currentTarget.style.background = hoverBg; }}
+              onMouseOut={(e) => { e.currentTarget.style.background = idx === focusIdx ? hoverBg : 'none'; }}
             >
-              <span style={{ fontWeight: 700 }}>{prediction.mainText}</span>
+              <span style={{ fontWeight: 600 }}>{prediction.mainText}</span>
               {prediction.secondaryText && (
-                <span style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{prediction.secondaryText}</span>
+                <span style={{ fontSize: '12px', color: mutedColor }}>{prediction.secondaryText}</span>
               )}
             </button>
           ))}
@@ -273,22 +281,22 @@ export default function MapSearchBox({ mapInstance, onPlaceSelect, onCategoryRes
       )}
 
       {showCategories && (
-        <div style={{ background: '#111318', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.6)' }}>
+        <div style={{ background: bg, backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: 'none', borderRadius: '12px', overflow: 'hidden', boxShadow: shadow }}>
           {categories.map((cat, idx) => (
             <button
               key={cat.id}
               onClick={() => handleCategoryClick(cat.type, cat.keyword, cat.icon)}
               style={{
-                display: 'flex', alignItems: 'center', gap: '14px', width: '100%',
-                padding: '12px 16px', background: 'none', border: 'none',
-                borderBottom: idx < categories.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none',
-                color: 'white', fontSize: '0.9rem', cursor: 'pointer', textAlign: 'left',
+                display: 'flex', alignItems: 'center', gap: '12px', width: '100%',
+                padding: '11px 14px', background: 'none', border: 'none',
+                borderBottom: idx < categories.length - 1 ? `1px solid ${divider}` : 'none',
+                color: textColor, fontSize: '14px', cursor: 'pointer', textAlign: 'left',
                 transition: 'background 0.15s',
               }}
-              onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
+              onMouseOver={(e) => { e.currentTarget.style.background = hoverBg; }}
               onMouseOut={(e) => { e.currentTarget.style.background = 'none'; }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'rgba(255,255,255,0.7)', width: '24px', flexShrink: 0 }}>{cat.icon}</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '18px', color: mutedColor, width: '24px', flexShrink: 0 }}>{cat.icon}</span>
               {cat.label}
             </button>
           ))}

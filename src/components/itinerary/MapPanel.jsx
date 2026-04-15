@@ -289,6 +289,7 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [], is
   const prevHoveredRef = useRef(null); // track previous hovered stopId
   const prevFocusDayIdsRef = useRef([]); // track previous focusDayIds to avoid redundant fitBounds
   const [mapReady, setMapReady] = useState(!!window.googleMapsReady);
+  const [mapInited, setMapInited] = useState(false); // triggers re-render after map instance created
   const [darkMode, setDarkMode] = useState(layoutVariant !== 'clean' && layoutVariant !== 'mobile');
   const [selectedPlaceId, setSelectedPlaceId] = useState(null);
   const selectedPlaceIdRef = useRef(null);
@@ -348,6 +349,8 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [], is
       zoomControl: !isMobile,
       gestureHandling: 'greedy',
     });
+
+    setMapInited(true);
 
     // Click on map POI → show info panel
     mapClickListenerRef.current = mapInstanceRef.current.addListener('click', (e) => {
@@ -1340,17 +1343,18 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [], is
       >
         <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
 
-        {mapReady && mapInstanceRef.current && (
+        {mapReady && mapInited && mapInstanceRef.current && (
           <MapSearchBox
             mapInstance={mapInstanceRef.current}
             onPlaceSelect={(id) => setSelectedPlaceId(id)}
             onCategoryResults={(results, icon) => handleCategoryResults(results, icon)}
             leftOffset={isDayMode ? 56 : 15}
+            darkMode={darkMode}
           />
         )}
-        
+
         {mapReady && (
-          <div id="map-controls-row">
+          <div id="map-controls-row" className={darkMode ? 'map-dark' : 'map-light'}>
             <button
               id="map-dark-toggle"
               onClick={() => setDarkMode(!darkMode)}
