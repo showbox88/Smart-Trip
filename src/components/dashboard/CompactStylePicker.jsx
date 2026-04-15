@@ -2,7 +2,7 @@ import { useApp } from '../../context/AppContext';
 import { useI18n } from '../../context/I18nContext';
 import { useTheme } from '../../theme';
 import { formatCurrency } from '../../utils/formatters';
-import { COMPACT_STYLES } from './CompactCardStyles';
+import { COMPACT_STYLES } from './card-styles';
 
 /**
  * Compact Card 样式选择器 — 全屏 modal，9 宫格预览
