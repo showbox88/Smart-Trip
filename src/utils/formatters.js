@@ -111,11 +111,15 @@ export function calculateDays(start, end) {
 /**
  * 判断一个 stop 是否应被计入 stop 总数
  * 地点类（location、hotel、activity）= 计数
- * 内容类（note、list、transport）= 不计数
+ * 内容类（list、transport）= 不计数
+ * note：仅当 isEvent === true 时计数（UI 创建默认 event；MCP/历史数据默认 reminder，不计数）
  */
 export function isCountableStop(stop) {
   const t = stop?.type;
-  return !t || t === 'location' || t === 'hotel_checkin' || t === 'hotel_checkout' || t === 'activity';
+  if (!t) return true;
+  if (t === 'location' || t === 'hotel_checkin' || t === 'hotel_checkout' || t === 'activity') return true;
+  if (t === 'note' && stop.isEvent === true) return true;
+  return false;
 }
 
 /* ── Consolidated from SharedTripPage / TripHeader / TodayScheduleModal ── */

@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useMemo, memo } from 'react';
 import { useI18n } from '../../context/I18nContext';
 import { useApp } from '../../context/AppContext';
 import { useTheme } from '../../theme';
-import { formatDistance, formatDuration, formatCurrency } from '../../utils/formatters';
+import { formatDistance, formatDuration, formatCurrency, isCountableStop } from '../../utils/formatters';
 
 const DAY_COLORS = ['#0e27b4ff', '#ef4444', '#f59e0b', '#10b981', '#0ea5e9', '#8b5cf6', '#ec4899'];
 
@@ -31,7 +31,7 @@ export default memo(function DayHeader({
         expense += parseFloat(s.price);
       }
     });
-    return { totalDuration: dur || null, totalDistance: dist || null, stopCount: stops.length, totalExpense: expense };
+    return { totalDuration: dur || null, totalDistance: dist || null, stopCount: stops.filter(isCountableStop).length, totalExpense: expense };
   }, [day.stops, day.showReturnRoute]);
 
   const [showColorPicker, setShowColorPicker] = useState(false);

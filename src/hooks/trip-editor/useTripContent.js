@@ -8,7 +8,7 @@ import { findDayById, findStopById } from '../../utils/tripEditorHelpers';
 export function useTripContent(withTripUpdate, insertStop, updateStop) {
 
   const addNote = useCallback((dayId, afterStopId = null) => {
-    return insertStop(dayId, { id: `n${Date.now()}`, type: 'note', content: '', checked: false }, afterStopId);
+    return insertStop(dayId, { id: `n${Date.now()}`, type: 'note', content: '', checked: false, isEvent: true }, afterStopId);
   }, [insertStop]);
 
   const addList = useCallback((dayId, afterStopId = null) => {
