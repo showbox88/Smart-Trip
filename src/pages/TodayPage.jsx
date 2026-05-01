@@ -4,16 +4,11 @@ import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
 import { supabase } from '../lib/supabase';
 import { saveDayToDB } from '../utils/dayHelpers';
-import { formatCurrency } from '../utils/formatters';
+import { formatCurrency, formatTodayLabel } from '../utils/formatters';
 import { useGpsCheckin } from '../hooks/useGpsCheckin';
 import StopCheckinCard from '../components/today/StopCheckinCard';
 
 const MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_KEY;
-
-function formatTodayLabel() {
-  const d = new Date();
-  return d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
-}
 
 function buildStaticMapUrl(stops, width = 680, height = 180) {
   if (!MAPS_KEY) return null;

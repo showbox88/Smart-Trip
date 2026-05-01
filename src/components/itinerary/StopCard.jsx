@@ -1,7 +1,6 @@
-import React, { useState, useRef, useEffect, forwardRef } from 'react';
+import React, { forwardRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useApp } from '../../context/AppContext';
-import { checkApiAllowed, logApiCall } from '../../utils/apiGuard';
 import { useI18n } from '../../context/I18nContext';
 import { useTheme } from '../../theme';
 import {
@@ -11,13 +10,18 @@ import {
   Hotel, Receipt, Coffee, Croissant
 } from 'lucide-react';
 import { formatCurrency } from '../../utils/formatters';
+import { isHotelStop, HOTEL_CATEGORIES } from '../../utils/categoryHelpers';
 import HotelLine from './HotelLine';
 import TransitInfo from './TransitInfo';
 import PlanBPanel from './PlanBPanel';
 import ActivityDetailModal from '../modals/ActivityDetailModal';
 import { getActivityIcon, getActivityLabel, formatDuration } from '../../utils/activityHelpers';
-import { uploadToSupabase } from '../../utils/uploadHelpers';
 import { supabase } from '../../lib/supabase';
+import PhotoSheet from './PhotoSheet';
+import PrivateNoteSheet from './PrivateNoteSheet';
+import PhotoPickerDropdown from './PhotoPickerDropdown';
+import { useStopCardState } from '../../hooks/useStopCardState';
+import { useEditOperations } from '../../context/EditOperationsContext';
 
 // 分类图标映射
 const CATEGORY_MAP = {
@@ -67,55 +71,40 @@ function getStopTimeStatus(stop, isToday, t) {
 export default React.memo(function StopCard({
   stop, dayId, dayColor, index, showTransit, dayWeekdayIdx, isToday,
   nextStop,
-  onDelete, onToggleTransitMode, onOpenTimePicker, onOpenExpense, onOpenStayInfo,
-  onChangePhoto, onAddStop, onAddNote, onAddList, onAddTransport, onAddActivity, onFocusStop,
-  onUpdateStop,
-  onSwapPlanB, onAddPlanBAlternative, onRemovePlanBAlternative,
+  onInsertAfter,
   inHotelStay,
 }) {
   const { state, dispatch } = useApp();
+  const {
+    onDeleteStop: onDelete, onToggleTransitMode, onOpenTimePicker, onOpenExpense, onOpenStayInfo,
+    onChangePhoto, onAddNote, onAddList, onAddTransport, onAddActivity, onFocusStop,
+    onUpdateStop, onSwapPlanB, onAddPlanBAlternative, onRemovePlanBAlternative,
+  } = useEditOperations();
   const { t } = useI18n();
   const { layoutVariant, layout, themeId } = useTheme();
   const isClean = layoutVariant === 'clean';
   const isBlossom = themeId === 'blossom';
-  const [showPlanB, setShowPlanB] = useState(false);
-  const [showActivityDetail, setShowActivityDetail] = useState(false);
   const isActivity = stop.type === 'activity';
-  const [showPhotoPicker, setShowPhotoPicker] = useState(false);
-  const [placePhotos, setPlacePhotos] = useState([]);
-  const [loadingPhotos, setLoadingPhotos] = useState(false);
-  const [confirmingDelete, setConfirmingDelete] = useState(false);
-  const [rotation, setRotation] = useState(0);
-  const isFlipped = (rotation / 180) % 2 !== 0;
-  const [showPrivateNoteSheet, setShowPrivateNoteSheet] = useState(false);
-  const [showPhotoSheet, setShowPhotoSheet] = useState(false);
-  const touchStart = useRef(null);
-  const thumbRef = useRef(null);
-  const pickerRef = useRef(null);
-  const deleteRef = useRef(null);
 
-  // Close photo picker / delete confirm on outside click
-  useEffect(() => {
-    if (!showPhotoPicker && !confirmingDelete) return;
-    const handler = (e) => {
-      if (showPhotoPicker &&
-          pickerRef.current && !pickerRef.current.contains(e.target) &&
-          thumbRef.current && !thumbRef.current.contains(e.target)) {
-        setShowPhotoPicker(false);
-      }
-      if (confirmingDelete &&
-          deleteRef.current && !deleteRef.current.contains(e.target)) {
-        setConfirmingDelete(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [showPhotoPicker, confirmingDelete]);
+  const {
+    showPlanB, setShowPlanB,
+    showActivityDetail, setShowActivityDetail,
+    showPhotoPicker, setShowPhotoPicker,
+    placePhotos, loadingPhotos,
+    confirmingDelete, setConfirmingDelete,
+    rotation, isFlipped,
+    showPrivateNoteSheet, setShowPrivateNoteSheet,
+    showPhotoSheet, setShowPhotoSheet,
+    thumbRef, pickerRef, deleteRef,
+    handleDelete, handleConfirmDelete,
+    handleTimeClick, handleExpenseClick,
+    handlePhotoClick, handleSelectPhoto, handleFileUpload,
+    handleTouchStart, handleTouchEnd,
+  } = useStopCardState(stop, dayId, state.user?.id, t, {
+    onDelete, onOpenTimePicker, onOpenExpense, onChangePhoto,
+  });
 
-  const HOTEL_CATEGORIES = ['酒店', '住宿', 'lodging', 'Accommodation', 'Hotel', 'map.place_lodging'];
-  const isHotel = stop.type === 'hotel_checkin' || stop.type === 'hotel_checkout'
-    || HOTEL_CATEGORIES.includes(stop.category)
-    || (typeof stop.category === 'string' && stop.category.includes('lodging'));
+  const isHotel = isHotelStop(stop);
   const typeLabel = stop.type === 'hotel_checkin'
     ? (t('itinerary.hotel_checkin') || 'Check-in')
     : stop.type === 'hotel_checkout'
@@ -128,95 +117,8 @@ export default React.memo(function StopCard({
   const openingHours = stop.openingHours || [];
   const isClosed = dayWeekdayIdx >= 0 && openingHours.length > 0 && /closed/i.test(openingHours[dayWeekdayIdx] || '');
 
-  const handleDelete = (e) => {
-    e.stopPropagation();
-    setConfirmingDelete(true);
-  };
-
-  const handleConfirmDelete = (e) => {
-    e.stopPropagation();
-    onDelete?.(dayId, stop.id);
-    setConfirmingDelete(false);
-  };
-
-  const handleTimeClick = (e) => {
-    e.stopPropagation();
-    onOpenTimePicker?.(dayId, stop.id);
-  };
-
-  const handleExpenseClick = (e) => {
-    e.stopPropagation();
-    onOpenExpense?.(dayId, stop.id);
-  };
-
-  const handlePhotoClick = async (e) => {
-    e.stopPropagation();
-    if (!stop.placeId || typeof google === 'undefined') return;
-    if (showPhotoPicker) { setShowPhotoPicker(false); return; }
-    setShowPhotoPicker(true);
-    setLoadingPhotos(true);
-    try {
-      const { allowed } = await checkApiAllowed('place_details', state.user?.id);
-      if (!allowed) {
-        console.warn('[StopCard] place_details blocked by guard');
-        setPlacePhotos([]);
-        setLoadingPhotos(false);
-        return;
-      }
-      const { Place } = await google.maps.importLibrary('places');
-      const place = new Place({ id: stop.placeId });
-      await place.fetchFields({ fields: ['photos'] });
-      logApiCall('place_details', state.user?.id, 'success');
-      const photos = place.photos || [];
-      setPlacePhotos(photos.map(p => ({
-        url: p.getURI({ maxWidth: 400, maxHeight: 300 }),
-        urlFull: p.getURI({ maxWidth: 1200, maxHeight: 900 }),
-      })));
-    } catch (err) {
-      console.error('[StopCard] fetch photos failed:', err);
-      setPlacePhotos([]);
-    } finally {
-      setLoadingPhotos(false);
-    }
-  };
-
-  const handleSelectPhoto = (photoUrl) => {
-    onChangePhoto?.(dayId, stop.id, photoUrl);
-    setShowPhotoPicker(false);
-  };
-
-  const handleFileUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    try {
-      const publicUrl = await uploadToSupabase(file);
-      handleSelectPhoto(publicUrl);
-    } catch (err) {
-      console.error('[StopCard] Upload error:', err);
-      alert(t('common.fetch_error') || 'Upload error');
-    }
-  };
-
   const isHotelType = stop.type === 'hotel_checkin' || stop.type === 'hotel_checkout';
   const dotColor = isHotelType ? 'var(--st-color-hotel-line)' : (dayColor || 'var(--st-color-timeline-default)');
-
-  const handleTouchStart = (e) => {
-    touchStart.current = e.touches[0].clientX;
-  };
-
-  const handleTouchEnd = (e) => {
-    if (!touchStart.current) return;
-    const touchEnd = e.changedTouches[0].clientX;
-    const diff = touchStart.current - touchEnd;
-
-    if (diff > 50) {
-      setRotation(prev => prev - 180);
-    } else if (diff < -50) {
-      setRotation(prev => prev + 180);
-    }
-    touchStart.current = null;
-  };
 
   return (
     <div className={`timeline-item id-${stop.id}`} style={{ position: 'relative', marginBottom: '0.75rem' }}>
@@ -887,7 +789,7 @@ export default React.memo(function StopCard({
           origin={stop.lat && stop.lng ? { lat: stop.lat, lng: stop.lng } : null}
           dest={nextStop?.lat && nextStop?.lng ? { lat: nextStop.lat, lng: nextStop.lng } : null}
           onToggleMode={() => onToggleTransitMode?.(dayId, stop.id)}
-          onAddStop={() => onAddStop?.(dayId, stop.id)}
+          onAddStop={() => onInsertAfter?.(stop.id)}
           onAddNote={() => onAddNote?.(dayId, stop.id)}
           onAddList={() => onAddList?.(dayId, stop.id)}
           onAddTransport={() => onAddTransport?.(dayId, stop.id)}
@@ -898,394 +800,3 @@ export default React.memo(function StopCard({
     </div>
   );
 })
-
-function PhotoSheet({ stop, userId, tripId, onUpdateStop, onClose, t }) {
-  const [attachments, setAttachments] = useState(stop.attachments || []);
-  const [uploading, setUploading] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState(null);
-  const cameraRef = useRef(null);
-  const galleryRef = useRef(null);
-
-  const basePath = `${userId}/${tripId}/${stop.id}/attachments`;
-
-  const handleFiles = async (files) => {
-    if (!files || files.length === 0) return;
-    setUploading(true);
-    try {
-      const uploaded = await Promise.all(Array.from(files).map(async (file) => {
-        const ext = file.name.split('.').pop();
-        const fileName = `${Date.now()}_${Math.random().toString(36).slice(2, 6)}.${ext}`;
-        const path = `${basePath}/${fileName}`;
-        const { error } = await supabase.storage.from('trip-media').upload(path, file, { cacheControl: '3600', upsert: false });
-        if (error) throw error;
-        const { data: { publicUrl } } = supabase.storage.from('trip-media').getPublicUrl(path);
-        return { url: publicUrl, path, name: file.name, createdAt: new Date().toISOString() };
-      }));
-      const next = [...attachments, ...uploaded];
-      setAttachments(next);
-      onUpdateStop({ attachments: next });
-    } catch (err) {
-      console.error('[PhotoSheet] Upload failed:', err);
-      alert(t('common.upload_failed') || '上传失败，请重试');
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const handleDelete = async (idx) => {
-    const item = attachments[idx];
-    try {
-      if (item.path) {
-        await supabase.storage.from('trip-media').remove([item.path]);
-      }
-    } catch (e) {
-      console.warn('[PhotoSheet] Delete from storage failed:', e);
-    }
-    const next = attachments.filter((_, i) => i !== idx);
-    setAttachments(next);
-    onUpdateStop({ attachments: next });
-  };
-
-  return (
-    <div
-      className="sheet-backdrop"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-      style={{ position: 'fixed', inset: 0, zIndex: 99999, background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'flex-end', animation: 'fadeIn 0.2s ease' }}
-    >
-      <div className="sheet-panel" style={{ width: '100%', maxHeight: '88vh', background: 'var(--md-sys-color-surface-variant)', borderRadius: '1.4rem 1.4rem 0 0', display: 'flex', flexDirection: 'column', animation: 'slideUp 0.28s cubic-bezier(0.32, 0.72, 0, 1)', boxShadow: '0 -20px 60px rgba(0,0,0,0.5)' }}>
-        {/* Drag handle */}
-        <div className="sheet-drag-handle" style={{ display: 'flex', justifyContent: 'center', padding: '0.7rem 0 0' }}>
-          <div style={{ width: '36px', height: '4px', borderRadius: '99px', background: 'rgba(255,255,255,0.15)' }} />
-        </div>
-
-        {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.8rem 1.2rem 0.5rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'var(--md-sys-color-primary)' }}>photo_library</span>
-            <div>
-              <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--md-sys-color-on-surface)' }}>{t('itinerary.back_photos')}</div>
-              <div style={{ fontSize: '0.72rem', color: 'var(--st-color-text-muted)', marginTop: '1px' }}>📍 {stop.location}</div>
-            </div>
-          </div>
-          <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.06)', border: 'none', color: 'var(--st-color-text-muted)', cursor: 'pointer', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>close</span>
-          </button>
-        </div>
-
-        <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)' }} />
-
-        {/* Upload buttons */}
-        <div style={{ display: 'flex', gap: '0.8rem', padding: '0.9rem 1.2rem' }}>
-          {/* Camera (mobile only) */}
-          <label style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px', padding: '0.7rem', background: 'rgba(59,130,246,0.08)', border: '1px dashed rgba(59,130,246,0.4)', borderRadius: '12px', cursor: uploading ? 'not-allowed' : 'pointer', transition: 'all 0.2s' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '22px', color: 'var(--md-sys-color-primary)' }}>photo_camera</span>
-            <span style={{ fontSize: '0.72rem', color: 'var(--md-sys-color-primary)', fontWeight: 600 }}>{t('itinerary.take_photo') || '拍照'}</span>
-            <input ref={cameraRef} type="file" accept="image/*" capture="environment" onChange={(e) => handleFiles(e.target.files)} style={{ display: 'none' }} disabled={uploading} />
-          </label>
-
-          {/* Gallery */}
-          <label style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px', padding: '0.7rem', background: 'rgba(16,185,129,0.08)', border: '1px dashed rgba(16,185,129,0.4)', borderRadius: '12px', cursor: uploading ? 'not-allowed' : 'pointer', transition: 'all 0.2s' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '22px', color: 'var(--md-sys-color-tertiary)' }}>add_photo_alternate</span>
-            <span style={{ fontSize: '0.72rem', color: 'var(--md-sys-color-tertiary)', fontWeight: 600 }}>{t('itinerary.choose_photo') || '从相册选择'}</span>
-            <input ref={galleryRef} type="file" accept="image/*" multiple onChange={(e) => handleFiles(e.target.files)} style={{ display: 'none' }} disabled={uploading} />
-          </label>
-        </div>
-
-        {uploading && (
-          <div style={{ textAlign: 'center', color: 'var(--md-sys-color-primary)', fontSize: '0.85rem', paddingBottom: '0.4rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '16px', animation: 'spin 1s linear infinite' }}>sync</span>
-            {t('common.uploading') || '上传中...'}
-          </div>
-        )}
-
-        {/* Grid of attachments */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '0 1.2rem 1.6rem' }}>
-          {attachments.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--st-color-text-muted)', fontSize: '0.85rem' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '40px', display: 'block', marginBottom: '0.5rem', opacity: 0.4 }}>image_not_supported</span>
-              {t('itinerary.no_attachments') || '还没有附件，点上方按钮添加'}
-            </div>
-          ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
-              {attachments.map((att, idx) => (
-                <div key={att.path || idx} style={{ position: 'relative', aspectRatio: '1', borderRadius: '10px', overflow: 'hidden', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                  <img
-                    src={att.url}
-                    alt=""
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'zoom-in' }}
-                    onClick={() => setPreviewUrl(att.url)}
-                    loading="lazy"
-                  />
-                  {/* Delete button */}
-                  <button
-                    onClick={() => handleDelete(idx)}
-                    style={{ position: 'absolute', top: '4px', right: '4px', background: 'rgba(0,0,0,0.7)', border: 'none', borderRadius: '50%', width: '22px', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--md-sys-color-error)' }}
-                  >
-                    <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>close</span>
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Full-screen preview */}
-      {previewUrl && createPortal(
-        <div onClick={() => setPreviewUrl(null)} style={{ position: 'fixed', inset: 0, zIndex: 999999, background: 'rgba(0,0,0,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'zoom-out', backdropFilter: 'blur(8px)' }}>
-          <img src={previewUrl} alt="" style={{ maxWidth: '95vw', maxHeight: '90vh', objectFit: 'contain', borderRadius: '12px' }} />
-        </div>,
-        document.body
-      )}
-    </div>
-  );
-}
-
-function PrivateNoteSheet({ stop, dayId, onSave, onClose, t }) {
-  const [title, setTitle] = useState(stop.privateNoteTitle || '');
-  const [content, setContent] = useState(stop.privateNote || '');
-  const [isDirty, setIsDirty] = useState(false);
-
-  const handleSave = () => {
-    onSave(title, content);
-  };
-
-  // Close on backdrop tap
-  const handleBackdrop = (e) => {
-    if (e.target === e.currentTarget) {
-      if (isDirty) {
-        if (window.confirm(t('common.discard_changes') || '放弃未保存的内容？')) onClose();
-      } else {
-        onClose();
-      }
-    }
-  };
-
-  return (
-    <div
-      className="sheet-backdrop"
-      onClick={handleBackdrop}
-      style={{
-        position: 'fixed', inset: 0, zIndex: 99999,
-        background: 'rgba(0,0,0,0.6)',
-        backdropFilter: 'blur(4px)',
-        display: 'flex', alignItems: 'flex-end',
-        animation: 'fadeIn 0.2s ease'
-      }}
-    >
-      <div className="sheet-panel" style={{
-        width: '100%',
-        maxHeight: '85vh',
-        background: 'var(--md-sys-color-surface-variant)',
-        borderRadius: '1.4rem 1.4rem 0 0',
-        display: 'flex',
-        flexDirection: 'column',
-        animation: 'slideUp 0.28s cubic-bezier(0.32, 0.72, 0, 1)',
-        boxShadow: '0 -20px 60px rgba(0,0,0,0.5)'
-      }}>
-        {/* Drag handle bar */}
-        <div className="sheet-drag-handle" style={{ display: 'flex', justifyContent: 'center', padding: '0.7rem 0 0' }}>
-          <div style={{ width: '36px', height: '4px', borderRadius: '99px', background: 'rgba(255,255,255,0.15)' }} />
-        </div>
-
-        {/* Header */}
-        <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '0.8rem 1.2rem 0.6rem'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'var(--md-sys-color-secondary)' }}>lock</span>
-            <div>
-              <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--md-sys-color-on-surface)' }}>
-                {t('itinerary.back_private_note')}
-              </div>
-              <div style={{ fontSize: '0.72rem', color: 'var(--st-color-text-muted)', marginTop: '1px' }}>
-                📍 {stop.location}
-              </div>
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            style={{ background: 'rgba(255,255,255,0.06)', border: 'none', color: 'var(--st-color-text-muted)', cursor: 'pointer', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>close</span>
-          </button>
-        </div>
-
-        {/* Divider */}
-        <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)', marginBottom: '0.8rem' }} />
-
-        {/* Content area */}
-        <div style={{ padding: '0 1.2rem', flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-          {/* Title input */}
-          <div>
-            <label style={{ display: 'block', fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--st-color-text-muted)', marginBottom: '6px', letterSpacing: '0.05em' }}>
-              {t('itinerary.private_note_title_label') || '标题'}
-            </label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => { setTitle(e.target.value); setIsDirty(true); }}
-              placeholder={t('itinerary.private_note_title_placeholder') || '如：酒店确认号、取票信息...'}
-              style={{
-                width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
-                borderRadius: '10px', color: 'var(--md-sys-color-on-surface)', padding: '10px 12px', fontSize: '0.95rem',
-                outline: 'none', fontFamily: 'inherit', fontWeight: 600,
-                boxSizing: 'border-box'
-              }}
-              onFocus={(e) => e.target.style.borderColor = 'var(--md-sys-color-primary)'}
-              onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.08)'}
-            />
-          </div>
-
-          {/* Content area */}
-          <div style={{ flex: 1 }}>
-            <label style={{ display: 'block', fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--st-color-text-muted)', marginBottom: '6px', letterSpacing: '0.05em' }}>
-              {t('itinerary.private_note_content_label') || '内容'}
-            </label>
-            <textarea
-              value={content}
-              onChange={(e) => { setContent(e.target.value); setIsDirty(true); }}
-              placeholder={t('itinerary.private_note_content_placeholder') || '记录任何私密信息：确认码、密码、提醒事项...'}
-              rows={7}
-              style={{
-                width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
-                borderRadius: '10px', color: 'var(--md-sys-color-on-surface-variant)', padding: '10px 12px', fontSize: '0.9rem',
-                outline: 'none', fontFamily: 'inherit', lineHeight: 1.6, resize: 'none',
-                boxSizing: 'border-box'
-              }}
-              onFocus={(e) => e.target.style.borderColor = 'var(--md-sys-color-primary)'}
-              onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.08)'}
-            />
-          </div>
-        </div>
-
-        {/* Action buttons */}
-        <div style={{ padding: '0.8rem 1.2rem 1.4rem', display: 'flex', gap: '0.8rem' }}>
-          <button
-            onClick={onClose}
-            style={{
-              flex: 1, padding: '0.8rem', borderRadius: '12px',
-              background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)',
-              color: 'var(--md-sys-color-on-surface-variant)', fontSize: '0.95rem', fontWeight: 600, cursor: 'pointer'
-            }}
-          >
-            {t('common.cancel') || '取消'}
-          </button>
-          <button
-            onClick={handleSave}
-            style={{
-              flex: 2, padding: '0.8rem', borderRadius: '12px',
-              background: 'var(--md-sys-color-primary)', border: 'none',
-              color: 'white', fontSize: '0.95rem', fontWeight: 700, cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px'
-            }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>save</span>
-            {t('common.save') || '保存'}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-const PhotoPickerDropdown = forwardRef(function PhotoPickerDropdown(
-  { anchorEl, loading, photos, currentPhoto, noPhotosText, uploadText, onSelect, onUpload },
-  ref
-) {
-  const [previewUrl, setPreviewUrl] = useState(null);
-  const rect = anchorEl.getBoundingClientRect();
-  const top = rect.bottom + 6;
-  const right = window.innerWidth - rect.right;
-
-  return (
-    <>
-      <div
-        ref={ref}
-        style={{
-          position: 'fixed',
-          top, right,
-          zIndex: 10000,
-          background: 'var(--md-sys-color-surface-variant)',
-          border: '1px solid var(--md-sys-color-outline)',
-          borderRadius: '12px',
-          padding: '0.5rem',
-          boxShadow: '0 12px 40px rgba(0,0,0,0.6)',
-          width: '280px',
-          maxHeight: '340px',
-          overflowY: 'auto'
-        }}
-      >
-        {/* Upload Local Button */}
-        <div style={{ marginBottom: '0.6rem' }}>
-          <label style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center', 
-            gap: '8px', 
-            padding: '0.6rem', 
-            background: 'rgba(255,255,255,0.06)', 
-            border: '1px dashed var(--md-sys-color-outline)', 
-            borderRadius: '8px', 
-            cursor: 'pointer',
-            color: 'var(--md-sys-color-on-surface-variant)',
-            fontSize: '0.85rem',
-            transition: 'all 0.2s',
-            fontWeight: 600
-          }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>upload</span>
-            {uploadText}
-            <input type="file" accept="image/*" onChange={onUpload} style={{ display: 'none' }} />
-          </label>
-        </div>
-
-        {/* Current photo preview */}
-        {currentPhoto && (
-          <div
-            onClick={() => setPreviewUrl(currentPhoto)}
-            style={{ marginBottom: '0.5rem', borderRadius: '8px', overflow: 'hidden', cursor: 'zoom-in', border: '1px solid var(--md-sys-color-outline)', position: 'relative' }}
-          >
-            <img src={currentPhoto} style={{ width: '100%', height: '120px', objectFit: 'cover', display: 'block' }} alt="" />
-            <div style={{ position: 'absolute', bottom: '4px', right: '6px', background: 'rgba(0,0,0,0.6)', borderRadius: '4px', padding: '1px 6px', fontSize: '0.7rem', color: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', gap: '3px' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>zoom_in</span>
-            </div>
-          </div>
-        )}
-
-        {loading ? (
-          <div style={{ textAlign: 'center', padding: '1rem', color: 'var(--st-color-text-muted)', fontSize: '0.85rem' }}>Loading...</div>
-        ) : photos.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '1rem', color: 'var(--st-color-text-muted)', fontSize: '0.85rem' }}>{noPhotosText}</div>
-        ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '4px' }}>
-            {photos.map((p, i) => (
-              <div
-                key={i}
-                onClick={() => onSelect(p.urlFull)}
-                style={{ cursor: 'pointer', borderRadius: '6px', overflow: 'hidden', aspectRatio: '1', border: p.urlFull === currentPhoto ? '2px solid var(--md-sys-color-primary)' : '1px solid transparent' }}
-              >
-                <img src={p.url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" loading="lazy" />
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Full-screen preview */}
-      {previewUrl && createPortal(
-        <div
-          onClick={() => setPreviewUrl(null)}
-          style={{ position: 'fixed', inset: 0, zIndex: 100000, background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'zoom-out', backdropFilter: 'blur(8px)' }}
-        >
-          <img
-            src={previewUrl}
-            alt=""
-            style={{ maxWidth: '90vw', maxHeight: '85vh', objectFit: 'contain', borderRadius: '12px', boxShadow: '0 20px 60px rgba(0,0,0,0.8)' }}
-          />
-        </div>,
-        document.body
-      )}
-    </>
-  );
-});

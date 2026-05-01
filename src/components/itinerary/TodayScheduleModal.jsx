@@ -2,47 +2,10 @@ import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useApp } from '../../context/AppContext';
 import { useI18n } from '../../context/I18nContext';
-import { formatCurrency } from '../../utils/formatters';
+import { formatCurrency, formatDateShort, calculateDays } from '../../utils/formatters';
+import { getCategoryMaterialIcon as getCategoryIcon } from '../../utils/categoryHelpers';
 import TimePickerModal from '../modals/TimePickerModal';
 import ExpenseModal from '../modals/ExpenseModal';
-
-const CATEGORY_ICON_MAP = [
-  [['lodging', 'hotel', 'accommodation'], 'hotel'],
-  [['restaurant', 'food', 'dining'], 'restaurant'],
-  [['cafe', 'coffee'], 'local_cafe'],
-  [['bakery'], 'bakery_dining'],
-  [['bar', 'night', 'drinks'], 'local_bar'],
-  [['attraction', 'museum', 'landmark', 'sightseeing'], 'museum'],
-  [['park', 'nature'], 'park'],
-  [['shopping', 'store', 'mall'], 'shopping_bag'],
-  [['transit', 'subway', 'train', 'bus', 'transport'], 'directions_transit'],
-  [['airport', 'flight'], 'flight'],
-  [['activity', 'sport', 'activities'], 'confirmation_number'],
-];
-
-function getCategoryIcon(stop) {
-  if (stop.type === 'hotel_checkin' || stop.type === 'hotel_checkout') return 'hotel';
-  const key = (stop.category || stop.categoryIcon || '').toLowerCase();
-  for (const [keywords, icon] of CATEGORY_ICON_MAP) {
-    if (keywords.some(k => key.includes(k))) return icon;
-  }
-  return 'place';
-}
-
-function formatDateShort(dateStr) {
-  if (!dateStr) return '';
-  const d = new Date(dateStr.replace(/-/g, '/'));
-  if (isNaN(d)) return dateStr;
-  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
-}
-
-function calculateDays(startDate, endDate) {
-  if (!startDate || !endDate) return 0;
-  const s = new Date(startDate.replace(/-/g, '/'));
-  const e = new Date(endDate.replace(/-/g, '/'));
-  if (isNaN(s) || isNaN(e)) return 0;
-  return Math.max(0, Math.round((e - s) / 86400000) + 1);
-}
 
 function Chip({ bg, color, border, icon, label, onClick, title }) {
   return (

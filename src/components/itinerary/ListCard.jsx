@@ -5,9 +5,15 @@ import { useApp } from '../../context/AppContext';
 import DeleteConfirm from './DeleteConfirm';
 import HotelLine from './HotelLine';
 import { supabase } from '../../lib/supabase';
+import { useEditOperations } from '../../context/EditOperationsContext';
 
-export default memo(function ListCard(props) {
-  const { stop, dayId, dayColor, onDelete, onTitleChange, onItemChange, onItemToggle, onAddItem, onDeleteItem, onUpdateStop, pendingFocusId, setPendingFocusId, inHotelStay } = props;
+export default memo(function ListCard({ stop, dayId, dayColor, inHotelStay }) {
+  const {
+    onDeleteList: onDelete, onUpdateListTitle: onTitleChange,
+    onUpdateListItem: onItemChange, onToggleListItem: onItemToggle,
+    onAddListItem: onAddItem, onDeleteListItem: onDeleteItem,
+    onUpdateStop, pendingFocusId, setPendingFocusId,
+  } = useEditOperations();
   const { state, dispatch } = useApp();
   const { t } = useI18n();
   const [focusIndex, setFocusIndex] = useState(null);

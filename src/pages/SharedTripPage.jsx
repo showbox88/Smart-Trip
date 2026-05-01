@@ -4,52 +4,8 @@ import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
 import { useTrips } from '../hooks/useTrips';
 import { useI18n } from '../context/I18nContext';
-
-function formatDateShort(dateStr) {
-  if (!dateStr) return '';
-  const d = new Date(dateStr.replace(/-/g, '/'));
-  if (isNaN(d)) return dateStr;
-  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
-}
-
-function calculateDays(startDate, endDate) {
-  if (!startDate || !endDate) return 0;
-  const s = new Date(startDate.replace(/-/g, '/'));
-  const e = new Date(endDate.replace(/-/g, '/'));
-  if (isNaN(s) || isNaN(e)) return 0;
-  return Math.max(0, Math.round((e - s) / 86400000) + 1);
-}
-
-const CATEGORY_ICON_MAP = [
-  [['lodging', 'hotel', 'accommodation', '酒店', '住宿'], 'hotel'],
-  [['restaurant', 'food', '餐厅', '餐饮'], 'restaurant'],
-  [['cafe', 'coffee', '咖啡'], 'local_cafe'],
-  [['bakery', 'bread'], 'bakery_dining'],
-  [['bar', 'night'], 'local_bar'],
-  [['attraction', 'museum', 'landmark', '景点', '博物馆'], 'museum'],
-  [['park', 'nature', '公园'], 'park'],
-  [['shopping', 'store', 'mall', '购物'], 'shopping_bag'],
-  [['transit', 'subway', 'train', 'bus', '交通'], 'directions_transit'],
-  [['airport', 'flight', '机场'], 'flight'],
-  [['activity', 'sport', 'run'], 'directions_run'],
-  [['spa', 'health'], 'spa'],
-];
-
-function getCategoryIcon(stop) {
-  if (stop.type === 'hotel_checkin' || stop.type === 'hotel_checkout') return 'hotel';
-  if (!stop.category) return 'place';
-  const key = stop.category.toLowerCase();
-  for (const [keywords, icon] of CATEGORY_ICON_MAP) {
-    if (keywords.some(k => key.includes(k))) return icon;
-  }
-  return 'place';
-}
-
-function getHotelBadge(type) {
-  if (type === 'hotel_checkin') return { label: 'Check-in', color: 'var(--st-color-hotel-checkin)' };
-  if (type === 'hotel_checkout') return { label: 'Check-out', color: 'var(--st-color-status-soon)' };
-  return null;
-}
+import { formatDateShort, calculateDays } from '../utils/formatters';
+import { getCategoryMaterialIcon as getCategoryIcon, getHotelBadge } from '../utils/categoryHelpers';
 
 export default function SharedTripPage() {
   const { token } = useParams();

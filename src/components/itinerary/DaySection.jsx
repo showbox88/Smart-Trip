@@ -12,27 +12,21 @@ import HotelLine from './HotelLine';
 import TransportCard from './TransportCard';
 import TransportCardModal from './TransportCardModal';
 import { getHotelContextForDay } from '../../utils/stayHelpers';
+import { useEditOperations } from '../../context/EditOperationsContext';
 
 export default memo(function DaySection({
   day, dayIndex, trip,
   isCollapsed, onToggleCollapse,
-  onAddStop, onDeleteStop, onToggleTransitMode,
-  onAddNote, onAddList, onAddTransport, onAddActivity,
-  onDeleteNote, onUpdateNoteContent,
-  onDeleteList, onUpdateListTitle, onUpdateListItem, onToggleListItem, onAddListItem, onDeleteListItem,
-  onColorChange, onEditDay, onDeleteDay, onUpdateDay, onUpdateStop,
-  onOpenTimePicker,
-  onOpenExpense,
-  onOpenStayInfo,
-  onChangePhoto,
-  onToggleHotelTransitMode,
   draggingStopId,
   onDragPointerDown, onDragPointerMove, onDragPointerUp,
-  onFocusStop,
-  pendingFocusId, setPendingFocusId,
-  onSwapPlanB, onAddPlanBAlternative, onRemovePlanBAlternative,
+  onColorChange, onEditDay, onDeleteDay, onUpdateDay,
   pendingTransportEdit, onClearPendingTransportEdit,
 }) {
+  const {
+    onAddStop, onToggleHotelTransitMode,
+    onAddNote, onAddList, onAddTransport, onAddActivity,
+    onUpdateStop,
+  } = useEditOperations();
   const { t, language } = useI18n();
   const [insertingAfterStopId, setInsertingAfterStopId] = useState(null);
   const [editingTransport, setEditingTransport] = useState(null); // { stop, dayId }
@@ -147,7 +141,6 @@ export default memo(function DaySection({
       card = (
         <TransportCard
           stop={stop} dayId={day.id} dayColor={activeColor}
-          onDelete={onDeleteStop}
           onEdit={(s, dId) => setEditingTransport({ stop: s, dayId: dId })}
           inHotelStay={inHotelStay}
         />
@@ -156,9 +149,6 @@ export default memo(function DaySection({
       card = (
         <NoteCard
           stop={stop} dayId={day.id} dayColor={activeColor}
-          onDelete={onDeleteNote} onContentChange={onUpdateNoteContent}
-          onUpdateStop={onUpdateStop}
-          pendingFocusId={pendingFocusId} setPendingFocusId={setPendingFocusId}
           inHotelStay={inHotelStay}
         />
       );
@@ -166,11 +156,6 @@ export default memo(function DaySection({
       card = (
         <ListCard
           stop={stop} dayId={day.id} dayColor={activeColor}
-          onDelete={onDeleteList} onTitleChange={onUpdateListTitle} onItemChange={onUpdateListItem}
-          onItemToggle={onToggleListItem} onAddItem={onAddListItem}
-          onDeleteItem={onDeleteListItem}
-          onUpdateStop={onUpdateStop}
-          pendingFocusId={pendingFocusId} setPendingFocusId={setPendingFocusId}
           inHotelStay={inHotelStay}
         />
       );
@@ -183,22 +168,7 @@ export default memo(function DaySection({
           nextStop={nextPoiStop}
           dayWeekdayIdx={dayWeekdayIdx}
           isToday={isToday}
-          onDelete={onDeleteStop}
-          onChangePhoto={onChangePhoto}
-          onToggleTransitMode={onToggleTransitMode}
-          onOpenTimePicker={onOpenTimePicker}
-          onOpenExpense={onOpenExpense}
-          onOpenStayInfo={onOpenStayInfo}
-          onUpdateStop={onUpdateStop}
-          onAddStop={(dId, afterId) => setInsertingAfterStopId(afterId)}
-          onAddNote={onAddNote}
-          onAddList={onAddList}
-          onAddTransport={onAddTransport}
-          onAddActivity={onAddActivity}
-          onFocusStop={onFocusStop}
-          onSwapPlanB={onSwapPlanB}
-          onAddPlanBAlternative={onAddPlanBAlternative}
-          onRemovePlanBAlternative={onRemovePlanBAlternative}
+          onInsertAfter={(afterId) => setInsertingAfterStopId(afterId)}
           inHotelStay={inHotelStay}
         />
       );
@@ -228,9 +198,6 @@ export default memo(function DaySection({
                 onAddStop?.(dayId, placeId, stop.id);
                 setInsertingAfterStopId(null);
               }}
-              onAddNote={onAddNote}
-              onAddList={onAddList}
-              onAddActivity={onAddActivity}
               autoFocus
               onClose={() => setInsertingAfterStopId(null)}
               inHotelStay={inHotelStay}
@@ -369,11 +336,6 @@ export default memo(function DaySection({
 
             <AddStopRow
               dayId={day.id}
-              onAddStop={onAddStop}
-              onAddNote={onAddNote}
-              onAddList={onAddList}
-              onAddTransport={onAddTransport}
-              onAddActivity={onAddActivity}
               inHotelStay={!!(hotelContext.stay && (hotelContext.isCinOnly || hotelContext.isBetween))}
             />
           </div>

@@ -5,7 +5,7 @@ import { useApp } from '../../context/AppContext';
 import { useTrips } from '../../hooks/useTrips';
 import { useTheme } from '../../theme';
 import { calculateDays, formatCurrency, isCountableStop } from '../../utils/formatters';
-import { getCompactStyleComponent } from './CompactCardStyles';
+import { getCompactStyleComponent } from './card-styles';
 
 function getStatus(trip, t) {
   const today = new Date().toISOString().split('T')[0];

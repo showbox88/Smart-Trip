@@ -5,8 +5,13 @@ import { useApp } from '../../context/AppContext';
 import DeleteConfirm from './DeleteConfirm';
 import HotelLine from './HotelLine';
 import { supabase } from '../../lib/supabase';
+import { useEditOperations } from '../../context/EditOperationsContext';
 
-export default memo(function NoteCard({ stop, dayId, dayColor, onDelete, onContentChange, onUpdateStop, pendingFocusId, setPendingFocusId, inHotelStay }) {
+export default memo(function NoteCard({ stop, dayId, dayColor, inHotelStay }) {
+  const {
+    onDeleteNote: onDelete, onUpdateNoteContent: onContentChange,
+    onUpdateStop, pendingFocusId, setPendingFocusId,
+  } = useEditOperations();
   const { state, dispatch } = useApp();
   const { t } = useI18n();
   const textareaRef = useRef(null);
@@ -45,6 +50,11 @@ export default memo(function NoteCard({ stop, dayId, dayColor, onDelete, onConte
     if (diff > 50) setRotation(prev => prev - 180);
     else if (diff < -50) setRotation(prev => prev + 180);
     touchStartX.current = null;
+  };
+
+  const isEvent = stop.isEvent === true;
+  const toggleEventMode = () => {
+    onUpdateStop?.(dayId, stop.id, { isEvent: !isEvent });
   };
 
   const basePath = `${state.user?.id}/${state.activeTripId}/${stop.id}/attachments`;
@@ -98,19 +108,21 @@ export default memo(function NoteCard({ stop, dayId, dayColor, onDelete, onConte
 
           {/* Front face */}
           <div
-            className="note-list-card-front"
+            className={`note-list-card-front note-mode-${isEvent ? 'event' : 'reminder'}`}
             onMouseEnter={() => dispatch({ type: 'SET_HOVERED_STOP', payload: stop.id })}
             onMouseLeave={() => dispatch({ type: 'SET_HOVERED_STOP', payload: null })}
             style={{
-              background: state.hoveredStopId === stop.id ? 'rgba(255,255,255,0.04)' : '#0a0c10',
+              background: state.hoveredStopId === stop.id ? 'rgba(255,255,255,0.04)' : (isEvent ? '#0a0c10' : 'rgba(10,12,16,0.55)'),
               border: '1px dashed var(--md-sys-color-outline)',
               borderColor: state.hoveredStopId === stop.id ? 'var(--md-sys-color-primary)' : 'rgba(255,255,255,0.05)',
               borderRadius: '0.75rem',
               padding: '0.75rem var(--note-card-px) 2.5rem',
               position: 'relative',
-              transition: 'background 0.25s, border-color 0.25s, box-shadow 0.25s, transform 0.25s',
-              transform: state.hoveredStopId === stop.id ? 'translateX(4px)' : 'none',
+              transition: 'background 0.25s, border-color 0.25s, box-shadow 0.25s, transform 0.25s, opacity 0.25s',
+              transform: state.hoveredStopId === stop.id ? 'translateX(4px)' : (isEvent ? 'none' : 'translateX(12px)'),
               boxShadow: state.hoveredStopId === stop.id ? '0 20px 40px rgba(0,0,0,0.6)' : 'none',
+              opacity: isEvent ? 1 : 0.72,
+              filter: isEvent ? 'none' : 'saturate(0.6)',
             }}
           >
             <div className="drag-handle left-handle" title={t('common.drag_to_reorder') || 'Drag to reorder'}>
@@ -121,7 +133,33 @@ export default memo(function NoteCard({ stop, dayId, dayColor, onDelete, onConte
             </div>
 
             <DeleteConfirm onDelete={() => onDelete?.(dayId, stop.id)} />
-            <span className="material-symbols-outlined" style={{ fontSize: '14px', color: 'var(--st-color-text-muted)', marginBottom: '0.25rem', display: 'block' }}>sticky_note_2</span>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '14px', color: 'var(--st-color-text-muted)' }}>sticky_note_2</span>
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); toggleEventMode(); }}
+                title={isEvent
+                  ? (t('itinerary.note_event_tooltip') || 'Event — counted as a stop. Click to switch to Reminder.')
+                  : (t('itinerary.note_reminder_tooltip') || 'Reminder — not counted. Click to switch to Event.')}
+                aria-label={isEvent ? 'Note mode: Event' : 'Note mode: Reminder'}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 4,
+                  background: isEvent ? 'rgba(59,130,246,0.12)' : 'rgba(148,163,184,0.10)',
+                  color: isEvent ? '#60a5fa' : 'var(--st-color-text-muted)',
+                  border: `1px solid ${isEvent ? 'rgba(59,130,246,0.35)' : 'rgba(148,163,184,0.25)'}`,
+                  borderRadius: 999,
+                  padding: '2px 8px',
+                  fontSize: 11,
+                  cursor: 'pointer',
+                  lineHeight: 1,
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 13 }}>
+                  {isEvent ? 'schedule' : 'push_pin'}
+                </span>
+                {isEvent ? (t('itinerary.note_event') || 'Event') : (t('itinerary.note_reminder') || 'Reminder')}
+              </button>
+            </div>
             <textarea
               ref={textareaRef}
               defaultValue={stop.content || ''}

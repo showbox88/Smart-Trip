@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useState, useRef } from 'react';
+import { useEffect, useCallback, useState, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getIsTouch } from '../../hooks/useDeviceType';
 import { useTripEditor } from '../../hooks/useTripEditor';
@@ -20,6 +20,7 @@ import ExpenseModal from '../modals/ExpenseModal';
 import StayInfoModal from '../modals/StayInfoModal';
 import { useI18n } from '../../context/I18nContext';
 import TodayScheduleModal from './TodayScheduleModal';
+import { EditOperationsProvider } from '../../context/EditOperationsContext';
 
 function scrollToNewStop(id, attempts = 0) {
   const el = document.querySelector(`.id-${id}`);
@@ -297,6 +298,45 @@ export default function ItineraryView({ tripId, isDayMode = false, date = null }
     mapPanelRef.current?.focusAndOpen(stopId);
   }, [mapPanelRef]);
 
+  const editOps = useMemo(() => ({
+    onAddStop: handleAddStop,
+    onDeleteStop: handleDeleteStop,
+    onUpdateStop: updateStop,
+    onChangePhoto: handleChangePhoto,
+    onToggleTransitMode: toggleTransitMode,
+    onToggleHotelTransitMode: toggleHotelTransitMode,
+    onOpenTimePicker: handleOpenTimePicker,
+    onOpenExpense: handleOpenExpense,
+    onOpenStayInfo: handleOpenStayInfo,
+    onFocusStop: handleFocusStop,
+    onAddNote: handleAddNote,
+    onAddList: handleAddList,
+    onAddTransport: handleAddTransport,
+    onAddActivity: handleAddActivity,
+    onDeleteNote: handleDeleteNote,
+    onDeleteList: handleDeleteList,
+    onUpdateNoteContent: updateNoteContent,
+    onUpdateListTitle: updateListTitle,
+    onUpdateListItem: updateListItem,
+    onToggleListItem: toggleListItem,
+    onAddListItem: addListItem,
+    onDeleteListItem: deleteListItem,
+    onSwapPlanB: swapPlanB,
+    onAddPlanBAlternative: addPlanBAlternative,
+    onRemovePlanBAlternative: removePlanBAlternative,
+    pendingFocusId,
+    setPendingFocusId,
+  }), [
+    handleAddStop, handleDeleteStop, updateStop, handleChangePhoto,
+    toggleTransitMode, toggleHotelTransitMode, handleOpenTimePicker,
+    handleOpenExpense, handleOpenStayInfo, handleFocusStop,
+    handleAddNote, handleAddList, handleAddTransport, handleAddActivity,
+    handleDeleteNote, handleDeleteList, updateNoteContent, updateListTitle,
+    updateListItem, toggleListItem, addListItem, deleteListItem,
+    swapPlanB, addPlanBAlternative, removePlanBAlternative,
+    pendingFocusId, setPendingFocusId,
+  ]);
+
   if (!trip) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: 'var(--md-sys-color-on-surface-variant)' }}>
@@ -370,6 +410,7 @@ export default function ItineraryView({ tripId, isDayMode = false, date = null }
           </div>
         )}
 
+        <EditOperationsProvider value={editOps}>
         <div className="itinerary-timeline" ref={timelineRef} style={{ padding: 0 }}>
           {trip.days.map((day, dayIndex) => (
             <DaySection
@@ -379,24 +420,6 @@ export default function ItineraryView({ tripId, isDayMode = false, date = null }
               trip={trip}
               isCollapsed={!!collapsedDays[day.id]}
               onToggleCollapse={() => handleToggleDayCollapse(day.id)}
-              onAddStop={handleAddStop}
-              onDeleteStop={handleDeleteStop}
-              onEditStop={handleEditStop}
-              onToggleTransitMode={toggleTransitMode}
-              onToggleHotelTransitMode={toggleHotelTransitMode}
-              onAddNote={handleAddNote}
-              onAddList={handleAddList}
-              onAddTransport={handleAddTransport}
-              onAddActivity={handleAddActivity}
-              onDeleteNote={handleDeleteNote}
-              onUpdateNoteContent={updateNoteContent}
-              onUpdateListTitle={updateListTitle}
-              onDeleteList={handleDeleteList}
-              onUpdateListItem={updateListItem}
-              onToggleListItem={toggleListItem}
-              onAddListItem={addListItem}
-              onDeleteListItem={deleteListItem}
-              onMoveStop={moveStop}
               draggingStopId={draggingStopId}
               onDragPointerDown={onDragPointerDown}
               onDragPointerMove={onDragPointerMove}
@@ -405,22 +428,12 @@ export default function ItineraryView({ tripId, isDayMode = false, date = null }
               onEditDay={handleEditDay}
               onDeleteDay={handleDeleteDay}
               onUpdateDay={updateDay}
-              onUpdateStop={updateStop}
-              onOpenTimePicker={handleOpenTimePicker}
-              onOpenExpense={handleOpenExpense}
-              onOpenStayInfo={handleOpenStayInfo}
-              onChangePhoto={handleChangePhoto}
-              onFocusStop={handleFocusStop}
-              pendingFocusId={pendingFocusId}
-              setPendingFocusId={setPendingFocusId}
               pendingTransportEdit={pendingTransportEdit}
               onClearPendingTransportEdit={() => setPendingTransportEdit(null)}
-              onSwapPlanB={swapPlanB}
-              onAddPlanBAlternative={addPlanBAlternative}
-              onRemovePlanBAlternative={removePlanBAlternative}
             />
           ))}
         </div>
+        </EditOperationsProvider>
       </section>
 
       <MapPanel

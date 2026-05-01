@@ -1,0 +1,35 @@
+/* ════════════════════════════════════════════════════════════
+ *  Utility Classes — Common layout patterns
+ *  Used across multiple components to reduce inline styles
+ * ════════════════════════════════════════════════════════════ */
+
+/* ── Flex Layout ── */
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.flex-col {
+  display: flex;
+  flex-direction: column;
+}
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* ── Text ── */
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Overlay ── */
+.backdrop-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+}

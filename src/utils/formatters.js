@@ -111,10 +111,76 @@ export function calculateDays(start, end) {
 /**
  * 判断一个 stop 是否应被计入 stop 总数
  * 地点类（location、hotel、activity）= 计数
- * 内容类（note、list、transport）= 不计数
+ * 内容类（list、transport）= 不计数
+ * note：仅当 isEvent === true 时计数（UI 创建默认 event；MCP/历史数据默认 reminder，不计数）
  */
 export function isCountableStop(stop) {
   const t = stop?.type;
-  return !t || t === 'location' || t === 'hotel_checkin' || t === 'hotel_checkout' || t === 'activity';
+  if (!t) return true;
+  if (t === 'location' || t === 'hotel_checkin' || t === 'hotel_checkout' || t === 'activity') return true;
+  if (t === 'note' && stop.isEvent === true) return true;
+  return false;
+}
+
+/* ── Consolidated from SharedTripPage / TripHeader / TodayScheduleModal ── */
+
+export function formatDateShort(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr.replace(/-/g, '/'));
+  if (isNaN(d)) return dateStr;
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+export function formatDateRange(startStr, endStr) {
+  try {
+    const o = { month: 'short', day: 'numeric', year: 'numeric' };
+    const a = new Date(startStr.replace(/-/g, '/')).toLocaleDateString('en-US', o);
+    if (!endStr) return a;
+    return `${a} – ${new Date(endStr.replace(/-/g, '/')).toLocaleDateString('en-US', o)}`;
+  } catch { return ''; }
+}
+
+export function formatTodayLabel() {
+  const d = new Date();
+  return d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
+}
+
+/* ── Consolidated from MobileItineraryView ── */
+
+export function formatTime12h(stop) {
+  if (!stop.time) return null;
+  const [hS, mS] = stop.time.split(':');
+  const h24 = parseInt(hS, 10), m = parseInt(mS, 10) || 0;
+  if (isNaN(h24)) return null;
+  const p = stop.period || (h24 >= 12 ? 'PM' : 'AM');
+  const h12 = h24 === 0 ? 12 : h24 > 12 ? h24 - 12 : h24;
+  return `${h12}:${String(m).padStart(2, '0')} ${p}`;
+}
+
+export function formatDurationCompact(sec) {
+  const n = typeof sec === 'string' ? parseInt(sec, 10) : sec;
+  if (!n || isNaN(n)) return null;
+  const h = Math.floor(n / 3600);
+  const m = Math.max(1, Math.round((n % 3600) / 60));
+  if (h > 0) return `${h} hr ${m} min`;
+  return `${m} min`;
+}
+
+export function priceTier(stop) {
+  const v = stop.expense != null ? parseFloat(stop.expense) : parseFloat(stop.price || 0);
+  if (isNaN(v) || v < 0) return null;
+  if (v === 0) return 'Free';
+  if (v <= 15) return '$';
+  if (v <= 50) return '$$';
+  if (v <= 150) return '$$$';
+  return '$$$$';
+}
+
+export function stopDisplayName(s) {
+  return s.location || s.title || s.address || '';
+}
+
+export function isVisibleStop(s) {
+  return !s.type || s.type === 'location' || s.type === 'activity';
 }
 

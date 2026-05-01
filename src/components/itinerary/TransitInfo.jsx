@@ -4,19 +4,8 @@ import { useI18n } from '../../context/I18nContext';
 import { useApp } from '../../context/AppContext';
 import { useTheme } from '../../theme';
 import { formatDistance, formatDuration } from '../../utils/formatters';
-import { fetchTransitAlternatives } from '../../utils/transitHelpers';
+import { fetchTransitAlternatives, getStepIcon } from '../../utils/transitHelpers';
 import HotelLine from './HotelLine';
-
-function getStepIcon(step) {
-  if (step.travelMode === 'WALKING') return 'directions_walk';
-  const vt = (step.vehicleType || '').toUpperCase();
-  if (vt === 'SUBWAY' || vt === 'METRO_RAIL') return 'directions_subway';
-  if (vt.includes('BUS') || vt === 'TROLLEYBUS') return 'directions_bus';
-  if (vt.includes('TRAIN') || vt === 'RAIL' || vt === 'MONORAIL') return 'train';
-  if (vt === 'TRAM' || vt === 'CABLE_CAR') return 'tram';
-  if (vt === 'FERRY') return 'directions_boat';
-  return 'directions_transit';
-}
 
 // Compact summary of transit lines for a route: e.g. "2호선 → 3호선"
 function getRouteSummary(route) {
