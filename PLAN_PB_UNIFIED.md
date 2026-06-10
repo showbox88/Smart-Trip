@@ -7,6 +7,8 @@
 > 愿景：平时和旅行中都用 phone-bridge（Claude 对话）记录；随时可以打开本 UI
 > （`https://dashboard-server.tail4cfa2.ts.net:8451`）浏览和手动增改，两边读写**同一个 PocketBase**，
 > 由现有 Notion 双向同步把数据带到 Notion。
+> **定位（2026-06-10 确认）：本 UI 是 phone-bridge 的一个外加功能**——phone-bridge 是录入主入口，
+> UI 是其数据"旅行切片"的可视化壳 + 旅途快捷操作面板；文档挂 phone-bridge 生态，代码仓库保持分离。
 
 ---
 
