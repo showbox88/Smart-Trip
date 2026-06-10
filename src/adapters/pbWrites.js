@@ -256,9 +256,14 @@ export async function syncDayStopsToPb(date, nextStops) {
       patch.photos = [next.photo, ...existing.filter(p => p !== next.photo)];
     }
 
-    // 3) 备注：ExpenseModal 会同时改 note，保持一致
+    // 3) 备注：只填空、不覆盖——ExpenseModal 保存时会连带把"描述"写进 stop.note，
+    //    曾把 phone-bridge 写的备注盖掉（2026-06-10 实测）。描述已存在 expense 记录上，不丢。
     if (next.note !== undefined && next.note !== prev.note) {
-      patch.note = next.note;
+      if (!prev.note) {
+        patch.note = next.note;
+      } else {
+        console.warn('[pbWrites] stop 已有备注，跳过覆盖:', prev.note, '→', next.note);
+      }
     }
 
     if (Object.keys(patch).length > 0) {
