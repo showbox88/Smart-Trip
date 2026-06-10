@@ -1,13 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useI18n } from '../../context/I18nContext';
 
+// 每类给一组 Places API 类型（单一类型太窄：如 ALDI 是 supermarket，不是 shopping_mall）
 const CATEGORIES = [
-  { id: 'all',         icon: 'apps',              type: null,                          label_key: 'map.checkin_cat_all' },
-  { id: 'dining',      icon: 'restaurant',         type: 'restaurant',                  label_key: 'map.category_dining' },
-  { id: 'cafe',        icon: 'local_cafe',         type: 'cafe',                        label_key: 'map.checkin_cat_cafe' },
-  { id: 'attractions', icon: 'museum',             type: 'tourist_attraction',          label_key: 'map.category_attractions' },
-  { id: 'shopping',    icon: 'shopping_bag',       type: 'shopping_mall',               label_key: 'map.checkin_cat_shopping' },
-  { id: 'lodging',     icon: 'hotel',              type: 'lodging',                     label_key: 'map.category_lodging' },
+  { id: 'all',         icon: 'apps',              types: null,                         label_key: 'map.checkin_cat_all' },
+  { id: 'dining',      icon: 'restaurant',         types: ['restaurant', 'bakery', 'bar', 'meal_takeaway', 'fast_food_restaurant'], label_key: 'map.category_dining' },
+  { id: 'cafe',        icon: 'local_cafe',         types: ['cafe', 'coffee_shop'],      label_key: 'map.checkin_cat_cafe' },
+  { id: 'attractions', icon: 'museum',             types: ['tourist_attraction', 'museum', 'art_gallery', 'amusement_park', 'zoo', 'historical_landmark', 'park'], label_key: 'map.category_attractions' },
+  { id: 'shopping',    icon: 'shopping_bag',       types: ['shopping_mall', 'supermarket', 'grocery_store', 'convenience_store', 'department_store', 'clothing_store', 'market'], label_key: 'map.checkin_cat_shopping' },
+  { id: 'lodging',     icon: 'hotel',              types: ['lodging', 'hotel', 'motel', 'bed_and_breakfast', 'guest_house'], label_key: 'map.category_lodging' },
 ];
 
 const RADIUS = 250; // metres（100 米在室内 GPS 漂移下经常空列表，2026-06-10 放宽）
@@ -48,7 +49,7 @@ export default function NearbyCheckinPanel({ mapInstance, userLocation, existing
           center: new mapsApi.maps.LatLng(userLocation.lat, userLocation.lng),
           radius: RADIUS,
         },
-        ...(cat?.type ? { includedTypes: [cat.type] } : {}),
+        ...(cat?.types?.length ? { includedTypes: cat.types } : {}),
         maxResultCount: 20,
       };
       const { places: results } = await Place.searchNearby(request);
