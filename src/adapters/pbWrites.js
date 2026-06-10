@@ -168,6 +168,39 @@ function deviceTz() {
   }
 }
 
+/**
+ * Google place types → PB 中文分类
+ * 返回 { stopCat: stops.categories 取值之一|null, locType: locations.type 取值 }
+ */
+function googleTypesToPb(placeTypes = []) {
+  const T = new Set(placeTypes);
+  const has = (...keys) => keys.some(k => T.has(k));
+  if (has('cafe', 'coffee_shop', 'tea_house')) return { stopCat: '餐厅', locType: '咖啡馆' };
+  if (has('restaurant', 'food', 'bakery', 'bar', 'meal_takeaway', 'meal_delivery', 'fast_food_restaurant')) {
+    return { stopCat: '餐厅', locType: '餐馆' };
+  }
+  if (has('lodging', 'hotel', 'motel', 'resort_hotel', 'bed_and_breakfast', 'guest_house')) {
+    return { stopCat: '酒店', locType: '酒店' };
+  }
+  if (has('supermarket', 'grocery_store', 'convenience_store', 'market')) {
+    return { stopCat: '购物', locType: '超市' };
+  }
+  if (has('shopping_mall', 'department_store', 'clothing_store', 'store', 'shoe_store', 'electronics_store')) {
+    return { stopCat: '购物', locType: '商场' };
+  }
+  if (has('tourist_attraction', 'museum', 'art_gallery', 'amusement_park', 'zoo', 'aquarium',
+          'historical_landmark', 'church', 'temple', 'place_of_worship', 'landmark')) {
+    return { stopCat: '体验', locType: '景点' };
+  }
+  if (has('park', 'national_park', 'campground', 'natural_feature', 'hiking_area', 'beach')) {
+    return { stopCat: '体验', locType: '户外' };
+  }
+  if (has('airport', 'train_station', 'subway_station', 'transit_station', 'bus_station', 'light_rail_station')) {
+    return { stopCat: '交通', locType: '机场/车站' };
+  }
+  return { stopCat: null, locType: '其他' };
+}
+
 /** 复用或新建 locations 记录（去重优先级：google_place_id > 名称），返回 record id */
 async function findOrCreateLocation(next) {
   const name = (next.location || '').trim();
@@ -196,7 +229,7 @@ async function findOrCreateLocation(next) {
       phone: next.phone || '',
       lat: next.lat || 0,
       lng: next.lng || 0,
-      type: '其他',
+      type: googleTypesToPb(next.placeTypes).locType,
       timezone: deviceTz(),
       google_place_id: next.placeId || '',
     });
@@ -221,6 +254,13 @@ async function createPbStop(dayRaw, date, next, dayTz = '') {
   const locationId = await findOrCreateLocation(next);
   const photo = await cachePhotoIfGoogle(next.photo, `stops/${next.id}`);
 
+  // 分类：打卡标记 + Google 类型映射的中文分类（如 餐厅/体验/交通）
+  const { stopCat } = googleTypesToPb(next.placeTypes);
+  const categories = [
+    ...(next.checkedIn ? ['打卡'] : []),
+    ...(stopCat ? [stopCat] : []),
+  ];
+
   return pb.collection('stops').create({
     name: next.location || 'Unnamed',
     date: `${date} 00:00:00.000Z`,
@@ -228,7 +268,7 @@ async function createPbStop(dayRaw, date, next, dayTz = '') {
     trip: dayRaw.trip || '',
     location: locationId,
     stop_type: next.type || 'location',
-    categories: next.checkedIn ? ['打卡'] : [],
+    categories,
     note: next.note || '',
     checkin,
     planned_at: plannedAt,
