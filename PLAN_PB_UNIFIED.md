@@ -152,7 +152,11 @@
 - [ ] `VITE_PB_LOGIN=on` 重新构建 + VM 端 `PB_INJECT_TOKEN=off` + 重启服务
 - [ ] 手机/电脑各登录一次（PB token 会留在浏览器 localStorage，之后免输）
 
-### 后续展望（不在本计划内）
+### 后续展望（不在本计划内，已记录待启动）
+- **双向互通入口（UI ⇄ phone-bridge 融合）**：分三步走，做到哪步看体验
+  1. *互跳按钮*（几乎零成本）：本 UI 导航栏加 phone-bridge 入口；phone-bridge 界面加"打开行程 UI"入口（两边都是 tailnet 网页，`<a>` 即可）
+  2. *带上下文跳转*：phone-bridge 聊到某天/某行程时给出深链（`:8451/day/2026-06-04`、`/trip-v2/<id>`）；UI 的 stop/day 上加"在 phone-bridge 里继续聊"并预填上下文
+  3. *深度融合*（远期）：UI 内嵌 phone-bridge 对话面板，或 phone-bridge 内嵌行程时间线视图——共用同一个 PB，数据层天然打通，只是壳的问题
 - journal/todos/foods 在 UI 里的更多展示
 - PWA 安装（手机桌面图标）、离线缓存
 
