@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "dev:pb": "vite --mode pb",
+    "build:pb-vm": "vite build --mode pb-vm",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
