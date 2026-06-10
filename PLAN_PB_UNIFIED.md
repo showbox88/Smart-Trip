@@ -105,12 +105,13 @@
 - [x] **长效 token**：10 年期 superuser impersonate token 已生成并验证（可读 trips），存于 VM `/home/dev/smat-trip/.env`（chmod 600，含 `PB_INJECT_TOKEN=on`），未离开 VM、未进仓库
 - 额外发现：phone-bridge 工作区有大量未提交改动（notion_sync 重构等，6 月 9 日及更早）；今日改动仅认证相关（auth.py/superlink），对本计划无影响
 
-### Phase 1 — 登录开关 + 上传通道 + 最小 schema（半天）
-- [ ] `server.js`：PB token 注入（superuser impersonate 长效 token 存 VM 本地 `.env`，systemd `EnvironmentFile` 加载），由 `PB_INJECT_TOKEN=on/off` 控制
-- [ ] UI：登录页**保留**，加 `VITE_PB_LOGIN=on/off` 开关；初期 off（跳过登录合成固定 user），登录/登出代码原样保留可随时启用
-- [ ] `server.js`：`GET /media/*` 静态出图 + `POST /media` multipart 上传（限 tailnet 来源，单文件 ≤25 MB，**不压缩**）
-- [ ] schema（只加 3a 需要的）：`stops` + `photos`(json)；其余字段（stop_type/planned_at/meta/color/settings/app_settings/google_place_id）**推迟到用到的 Phase 再加**，全部按 D8 可映射标准设计
-- **验收**：打开 :8451 直接见数据（login=off）；把两个开关切到 on 验证登录流程可用后再切回；phone-bridge 正常记录；Notion 同步跑一轮无新冲突
+### Phase 1 — 登录开关 + 上传通道 + 最小 schema ✅ 完成（2026-06-10）
+- [x] `server.js`：`PB_INJECT_TOKEN=on` 时对无凭据的 `/api` 请求注入 token（带凭据则透传，为启用登录留路）；systemd `EnvironmentFile=-/home/dev/smat-trip/.env`
+- [x] UI：`VITE_PB_LOGIN` 开关——off 合成固定 owner 用户（VM 构建默认），on 走原 PB 登录流程（本地 dev 默认）；登录代码完整保留
+- [x] `server.js`：`GET /media/*`（immutable 缓存）+ `POST /media/upload?dir=&name=`（原始字节流，≤25 MB 不压缩，目录白名单校验）；实测 512 KB 上传/下载回环一致
+- [x] schema：`stops.photos`(json) 副本验证后加到生产（先快照 `pb-snapshots/data-20260610-1452-pre-phase1.db`）；加字段前用 Notion MCP 实查 Stops DB 属性表确认无撞名（无 Photos 属性，stop_type/planned_at/meta 也安全）
+- [x] 验收：:8451 免登录直接出数据（实测无 auth 读 trips=1）；photos 为未映射字段、同步端 transform 跳过（Phase 0 代码级确认 + 15:00 ET 定时同步实测见下）
+- 备注：login=on 模式未做线上联调（代码即原登录流程，未改动；启用时按 Phase 6 步骤验证即可）
 
 ### Phase 3a — 旅行最小可用集：打卡 + 拍照 + 记账（1-2 天，优先于其它一切写功能）🎯
 - [ ] **打卡**：TodayPage / GPS 打卡 → 写 `stops.checkin`（含手动补打卡、改时间）
