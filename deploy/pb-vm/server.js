@@ -39,6 +39,9 @@ const MIME = {
 };
 
 const server = http.createServer((req, res) => {
+  // 访问日志（journalctl -u smat-trip 可见），用于排查"请求到底有没有到这"
+  console.log(`${new Date().toISOString()} ${req.method} ${req.url.split('?')[0]}`);
+
   // ── /api/* → PocketBase 同源代理（含 SSE 流式响应） ──
   if (req.url.startsWith('/api/')) {
     const proxyReq = http.request(
