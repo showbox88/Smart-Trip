@@ -140,10 +140,10 @@
 - **验收**：UI 改一条 → phone-bridge 里能看到；phone-bridge 记一条 → UI 刷新可见；下一轮 Notion 同步无冲突堆积
 - **回滚**：`VITE_PB_WRITES` 开关随时退回 3a 范围或全只读
 
-### Phase 4 — media 备份 + 收尾（半天）
-- [ ] `/home/dev/smat-trip/media/` 备份：加 systemd timer，每天 rsync 到 CT 103（与 PB 副本同机），或并入周归档脚本一起加密上传 Oracle
-- [ ] `app_settings` collection + 主题/语言持久化（UI 偏好不再依赖 Supabase）
-- [ ] 文档：本仓库 ARCHITECTURE.md 增补 PB 模式章节；infrastructure 仓库更新 dashboard-server.md（media 路径/备份/上传端点）
+### Phase 4 — media 备份 + 收尾（部分完成 2026-06-10）
+- [x] media 备份：`smat-trip-media-backup.timer` 每天 02:00 rsync `/home/dev/smat-trip/media/` → CT 103 `/var/lib/pb-replica/media/`（复用 litestream SSH key，Persistent 补跑）；首跑已验证 4 张照片落地。**TODO 后续**：并入 CT 103 周归档加密上 Oracle
+- [ ] `app_settings` collection → **推迟**：主题/语言目前 localStorage 单设备保存够用，等需要跨设备同步偏好再做
+- [x] 文档：phone-bridge 仓库 `docs/smat-trip-ui/`（README/ARCHITECTURE/PLAN）已建并推送；infrastructure dashboard-server.md 已更新（服务表 + Serve 表 + 备份表）
 - [ ] 视情况：`feature/pb-datasource` 是否转正为长期分支（**不动 main 的原则不变**，建议长期双轨：main=Supabase 演示版，pb 分支=自用版）
 
 ### Phase 5 — Notion 映射上线（半天，3a/3b 跑稳之后）
