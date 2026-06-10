@@ -97,13 +97,13 @@
 > 每个 Phase 独立验收、可暂停；**写生产 PB 的操作（Phase 1 起）前都先做一次手动快照**
 > （`litestream snapshot` 或直接 cp data.db，5 分钟内可回滚）。
 
-### Phase 0 — 验证与排雷（半天，零风险，只读+测试库）
-- [ ] 在本地起一个 **PB 测试副本**（从 CT 103 副本 restore 或 scp data.db），后续所有 schema 实验先在副本做
-- [ ] 实测 `days.pb.js` hook 是否破坏 days 更新；结论：改绑 expenses / 删除 / 确认无害
-- [ ] 实测 Notion sync 对未映射新字段的行为（副本库做不了端到端，就在生产加一个无害测试字段 `_probe` 观察一轮同步后删除）
-- [ ] 摸清 smart-trip-mcp（VM 200）写 stops/locations 的字段约定，写进本文档附录，保证 UI 写入遵守同一约定
-- [ ] 生成 PB superuser 长效 impersonate token 并验证（Phase 1 免登录的前提）
-- **验收**：上述 5 项都有书面结论，更新本计划打勾
+### Phase 0 — 验证与排雷 ✅ 完成（2026-06-10）
+- [x] **测试副本**：dashboard-server `127.0.0.1:8092`（`/home/dev/pb-test/`，今日快照 + days hook + probe 测试管理员，nohup 运行）。后续 schema/写入实验先在这做
+- [x] **days hook 无害**：副本实测 PATCH days 返回 200——PB 对 `set()` 不存在的字段静默忽略，写支持不受阻。**但 hook 等于白跑**：没有任何服务端逻辑算 expenses.amount_usd（实测 POST expense → amount_usd=0）。→ **3a 决定：UI 写 expense 时自己算 `amount_usd = rate>0 ? amount*rate : amount`**（与现有 26 条数据一致）；建议（不代劳）phone-bridge 仓库把 hook 从 days 改绑 expenses
+- [x] **sync 对未映射字段安全**：transform.py 实读——新字段若在 Notion 端无对应属性则 `continue` 跳过，双向都不受影响。**注意**：存在蛇形命名自动匹配（PB 字段名 = Notion 属性名 snake_case 即自动同步），**Phase 1 加字段前必须先对一遍目标 Notion DB 的属性名**，避免意外撞名（如 stops 加 `photos` 前先确认 Notion stops DB 没有 Photos 属性，否则改名 `photo_paths`）
+- [x] **字段约定**（合同 = `mcp_pb/SMARTNOTE_PROMPT.md`）：2026-06-03 起 days=纯日级容器（name/date/weather/note），原子事件全在 stops（挂 stop.day），金额全在 expenses（stops 不再有 amount/currency/rate）；timezone 列有统一解析规则；写入方是通用 CRUD（mcp_pb pb_create/pb_update）。**与本计划的映射方案完全一致，无冲突**
+- [x] **长效 token**：10 年期 superuser impersonate token 已生成并验证（可读 trips），存于 VM `/home/dev/smat-trip/.env`（chmod 600，含 `PB_INJECT_TOKEN=on`），未离开 VM、未进仓库
+- 额外发现：phone-bridge 工作区有大量未提交改动（notion_sync 重构等，6 月 9 日及更早）；今日改动仅认证相关（auth.py/superlink），对本计划无影响
 
 ### Phase 1 — 登录开关 + 上传通道 + 最小 schema（半天）
 - [ ] `server.js`：PB token 注入（superuser impersonate 长效 token 存 VM 本地 `.env`，systemd `EnvironmentFile` 加载），由 `PB_INJECT_TOKEN=on/off` 控制
