@@ -208,6 +208,8 @@ export function useTripPlaceAdd(trip, state, tripId, applyUpdate, computeTransit
         placeTypes: placeData.types || [],
         placeId,
         openingHours: placeData.openingHours || [],
+        // useNow = 实时打卡（GPS/附近打卡面板），直接标记已打卡
+        ...(useNow ? { checkedIn: true, checkinTime: timeStr } : {}),
       };
 
       insertStopIntoDay(day, newStop, afterStopId);

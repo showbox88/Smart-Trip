@@ -115,6 +115,71 @@ async function upsertStopExpense(rawStop, { amount, uiCategory, description }) {
   }
 }
 
+// ── 新建 stop（DayPage 附近打卡 / 行程内添加地点） ──────
+
+// UI 本地 id（s<timestamp>）→ PB record id 的会话内映射，防止重复创建
+const _localToPbId = new Map();
+const _pendingCreates = new Set();
+
+function deviceTz() {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+  } catch {
+    return '';
+  }
+}
+
+/** 按名称复用或新建 locations 记录，返回 record id（失败返回 ''） */
+async function findOrCreateLocation(next) {
+  const name = (next.location || '').trim();
+  if (!name) return '';
+  try {
+    const found = await pb.collection('locations').getFullList({
+      filter: pb.filter('name = {:name}', { name }),
+    });
+    if (found.length > 0) return found[0].id;
+    const rec = await pb.collection('locations').create({
+      name,
+      address: next.address || '',
+      city: next.city || '',
+      phone: next.phone || '',
+      lat: next.lat || 0,
+      lng: next.lng || 0,
+      type: '其他',
+      timezone: deviceTz(),
+    });
+    return rec.id;
+  } catch (e) {
+    console.warn('[pbWrites] locations find/create failed:', e.message);
+    return '';
+  }
+}
+
+/** 在 PB 创建 stop（打卡创建的带 checkin + 打卡分类） */
+async function createPbStop(dayRaw, date, next) {
+  const tz = deviceTz();
+  const checkin = next.checkedIn
+    ? (next.time ? wallTimeToUtcIso(date, next.time, next.period, tz) : new Date().toISOString())
+    : '';
+  const locationId = await findOrCreateLocation(next);
+
+  return pb.collection('stops').create({
+    name: next.location || 'Unnamed',
+    date: `${date} 00:00:00.000Z`,
+    day: dayRaw.id,
+    trip: dayRaw.trip || '',
+    location: locationId,
+    categories: next.checkedIn ? ['打卡'] : [],
+    note: next.note || '',
+    checkin,
+    actual_lat: next.lat || 0,
+    actual_lng: next.lng || 0,
+    timezone: tz,
+    // Google 图片暂存外链 URL；3b 会改为代理下载缓存到 /media
+    photos: next.photo ? [next.photo] : null,
+  });
+}
+
 // ── 差量同步器 ──────────────────────────────────────────
 
 /**
@@ -143,12 +208,28 @@ export async function syncDayStopsToPb(date, nextStops) {
   let wrote = false;
 
   for (const next of nextStops) {
-    const prev = prevById[next.id];
+    // 本地 id（s<ts>，本会话内创建过）→ 解析成 PB id
+    const resolvedId = _localToPbId.get(next.id) || next.id;
+    const prev = prevById[resolvedId];
+
     if (!prev) {
-      console.warn('[pbWrites] 新建 stop 属于 3b，跳过:', next.location || next.id);
+      // PB 没有这条 → 新建（DayPage 附近打卡 / 添加地点）
+      if (_pendingCreates.has(next.id)) continue; // 防抖期间的重复保存
+      _pendingCreates.add(next.id);
+      try {
+        const rec = await createPbStop(day, date, next);
+        _localToPbId.set(next.id, rec.id);
+        wrote = true;
+        console.info('[pbWrites] 已创建 stop:', next.location, '→', rec.id);
+      } catch (e) {
+        console.error('[pbWrites] 创建 stop 失败:', next.location, e.message);
+      } finally {
+        _pendingCreates.delete(next.id);
+      }
       continue;
     }
-    const raw = rawById[next.id];
+
+    const raw = rawById[resolvedId];
     const patch = {};
 
     // 1) 打卡：checkedIn / checkinTime / time 变化 → stops.checkin
@@ -181,7 +262,7 @@ export async function syncDayStopsToPb(date, nextStops) {
     }
 
     if (Object.keys(patch).length > 0) {
-      await pb.collection('stops').update(next.id, patch);
+      await pb.collection('stops').update(resolvedId, patch);
       wrote = true;
     }
 
