@@ -4,8 +4,10 @@ import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
 import { useTheme } from '../theme';
 import { normalizeTripRow } from './useTripsV2';
+import { IS_PB } from '../lib/dataSource';
+import { useAuthPb } from './pb/useAuthPb';
 
-export function useAuth() {
+function useAuthSupabase() {
   const { state, dispatch } = useApp();
   const { setLanguage } = useI18n();
   const { setUserId: setThemeUserId } = useTheme();
@@ -128,3 +130,6 @@ export function useAuth() {
 
   return { user: state.user, isLoading: state.isLoading, signIn, signUp, signOut, signInWithGoogle };
 }
+
+// 数据源在构建时确定，模块级选择不违反 hooks 规则
+export const useAuth = IS_PB ? useAuthPb : useAuthSupabase;

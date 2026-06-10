@@ -6,6 +6,8 @@ import { deleteFilesFromSupabase } from '../utils/uploadHelpers';
 import { DEFAULT_TRIP_THUMB } from '../utils/tripFactory';
 import { isAdmin } from '../utils/admin';
 import { isCountableStop } from '../utils/formatters';
+import { IS_PB } from '../lib/dataSource';
+import { useTripsV2Pb } from './pb/useTripsV2Pb';
 
 /**
  * useTripsV2 — v2 Trip 元数据 + trip_days 关联管理
@@ -13,7 +15,7 @@ import { isCountableStop } from '../utils/formatters';
  * Trip 只是一个标签/过滤器，不存储行程内容。
  * 行程内容存在 days_v2，通过 trip_days 关联。
  */
-export function useTripsV2() {
+function useTripsV2Supabase() {
   const { state, dispatch } = useApp();
   const { loadDaysForTrip } = useDays();
 
@@ -290,6 +292,9 @@ export function useTripsV2() {
     clearShareToken,
   };
 }
+
+// 数据源在构建时确定，模块级选择不违反 hooks 规则
+export const useTripsV2 = IS_PB ? useTripsV2Pb : useTripsV2Supabase;
 
 // ── 内部工具 ────────────────────────────────────────────
 

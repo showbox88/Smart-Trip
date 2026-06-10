@@ -2,6 +2,8 @@ import { useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
 import { isAdmin } from '../utils/admin';
+import { IS_PB } from '../lib/dataSource';
+import { useDaysPb } from './pb/useDaysPb';
 
 /**
  * useDays — v2 Day-Centric Architecture
@@ -9,7 +11,7 @@ import { isAdmin } from '../utils/admin';
  * Day 是客观事实，全局唯一（user_id + date）。
  * 负责 days_v2 表的所有读写操作。
  */
-export function useDays() {
+function useDaysSupabase() {
   const { state, dispatch } = useApp();
 
   /**
@@ -257,6 +259,9 @@ export function useDays() {
     deleteDay,
   };
 }
+
+// 数据源在构建时确定，模块级选择不违反 hooks 规则
+export const useDays = IS_PB ? useDaysPb : useDaysSupabase;
 
 // ── 内部工具 ────────────────────────────────────────────
 
