@@ -113,12 +113,14 @@
 - [x] 验收：:8451 免登录直接出数据（实测无 auth 读 trips=1）；photos 为未映射字段、同步端 transform 跳过（Phase 0 代码级确认 + 15:00 ET 定时同步实测见下）
 - 备注：login=on 模式未做线上联调（代码即原登录流程，未改动；启用时按 Phase 6 步骤验证即可）
 
-### Phase 3a — 旅行最小可用集：打卡 + 拍照 + 记账（1-2 天，优先于其它一切写功能）🎯
-- [ ] **打卡**：TodayPage / GPS 打卡 → 写 `stops.checkin`（含手动补打卡、改时间）
-- [ ] **拍照**：stop 卡片上传照片（手机原图直传）→ `POST /media` → 路径 append 进 `stops.photos`(json)；StopImage/Lightbox 显示
-- [ ] **记账**：ExpenseModal → 新建/编辑 `expenses`（description/amount/currency/rate/date + stop/day/trip 关联，amount_usd 由现有 hook 计算——**依赖 Phase 0 排雷结论**）
-- [ ] 写开关 `VITE_PB_WRITES`（默认开这三项，其余仍 no-op）
-- **验收（真实场景演练）**：手机上走一遍"到店打卡 → 拍照上传 → 记一笔消费"，PB/phone-bridge/Notion 三处数据正确；UI 浏览不回归
+### Phase 3a — 旅行最小可用集：打卡 + 拍照 + 记账 🚀 已上线（2026-06-10），待真机演练验收
+- [x] **打卡**：TodayPage 手动/GPS 打卡、TimePicker 改时间、取消打卡 → `stops.checkin`（墙上时间按 stop 时区转 UTC，单测覆盖纽约夏令时/马德里冬令时/台北跨日）
+- [x] **拍照**：StopCard 上传原图 → `POST /media/upload` → 路径写 `stops.photos`（最新在前）；读侧 photo/photos 回显，行程卡片相册/费用合计同步变真
+- [x] **记账**：ExpenseModal → `expenses` upsert（USD、amount_usd 客户端计算、UI 类别→中文类别映射、关联 stop/day/trip、source=手动）；stop.price 显示该 stop 费用合计
+- [x] 实现方式：所有 UI 写入汇聚到 `saveDayToDB`/`updateDayStops` → `syncDayStopsToPb` 差量写入器，只 PATCH 变化字段；新建/删除 stop 等 3b 操作警告跳过
+- [x] 写开关 `VITE_PB_WRITES=off` 可整体退回只读
+- [x] 服务端验证：经 :8451 免登录代理实测 stop PATCH（checkin+photos）、expense create/delete 全部成功并已还原
+- [ ] **验收（待你真机演练）**：手机走一遍"到店打卡 → 拍照上传 → 记一笔消费"，PB/phone-bridge/Notion 三处数据正确；UI 浏览不回归
 
 ### Phase 2 — 读适配完善（1 天，3a 之后做）
 - [ ] categories/stop_type → UI 卡片类型与图标完整映射（含酒店线、交通卡）
