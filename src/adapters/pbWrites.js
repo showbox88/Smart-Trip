@@ -159,6 +159,12 @@ export async function syncDayStopsToPb(date, nextStops) {
       patch.checkin = next.time
         ? wallTimeToUtcIso(date, next.time, next.period, raw.timezone)
         : new Date().toISOString();
+      // stop 没有时区时补上当前设备时区（SMARTNOTE 约定：有 timezone 列的行要带时区）
+      if (!raw.timezone) {
+        try {
+          patch.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        } catch { /* 老浏览器拿不到就算了 */ }
+      }
     } else if (!isChecked && wasChecked) {
       patch.checkin = '';
     }

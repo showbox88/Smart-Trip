@@ -52,6 +52,8 @@ export function pbDate(s) {
 
 /**
  * PB 时间戳（UTC）→ { time: "h:mm", period: "AM"|"PM" }（stop 所在时区的当地时间）
+ * timezone 为空时回退到浏览器本地时区（与写入侧 wallTimeToUtcIso 对称），
+ * 不能回退 UTC——否则 phone-bridge 没写时区的打卡会显示错 N 小时。
  */
 function pbTimeParts(isoStr, timezone) {
   if (!isoStr) return { time: '', period: 'AM' };
@@ -59,19 +61,24 @@ function pbTimeParts(isoStr, timezone) {
   if (isNaN(d)) return { time: '', period: 'AM' };
 
   let h, m;
-  try {
-    const parts = new Intl.DateTimeFormat('en-US', {
-      timeZone: timezone || 'UTC',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: false,
-    }).formatToParts(d);
-    h = parseInt(parts.find(p => p.type === 'hour')?.value, 10);
-    m = parts.find(p => p.type === 'minute')?.value || '00';
-    if (h === 24) h = 0;
-  } catch {
-    h = d.getUTCHours();
-    m = String(d.getUTCMinutes()).padStart(2, '0');
+  if (!timezone) {
+    h = d.getHours();
+    m = String(d.getMinutes()).padStart(2, '0');
+  } else {
+    try {
+      const parts = new Intl.DateTimeFormat('en-US', {
+        timeZone: timezone,
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: false,
+      }).formatToParts(d);
+      h = parseInt(parts.find(p => p.type === 'hour')?.value, 10);
+      m = parts.find(p => p.type === 'minute')?.value || '00';
+      if (h === 24) h = 0;
+    } catch {
+      h = d.getHours();
+      m = String(d.getMinutes()).padStart(2, '0');
+    }
   }
 
   const period = h >= 12 ? 'PM' : 'AM';
