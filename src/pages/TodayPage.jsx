@@ -144,6 +144,7 @@ export default function TodayPage() {
         date: dayData.date,
         color: dayData.color,
         stops: merged,
+        _partial: true, // 子集：不写 sort_order
       }).catch(err => console.warn('[TodayPage] save failed:', err));
       return;
     }

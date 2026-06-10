@@ -137,6 +137,7 @@ export function normalizePbStop(s) {
     openingHours: [],
     checkedIn: !!s.checkin,
     checkinTime: s.checkin ? time : undefined,
+    sortOrder: s.sort_order || 0,
     // 保留 PB 原始引用，便于调试 / 后续写支持
     pbStopId: s.id,
     pbLocationId: s.location || null,
@@ -149,13 +150,21 @@ export function normalizePbDay(d, stopsByDayId) {
   const date = pbDate(d.date);
   const pbStops = stopsByDayId[d.id] || [];
   const stops = pbStops.map(normalizePbStop);
-  // 有时间的在前按时间排，无时间的保持原顺序在后
-  stops.sort((a, b) => {
-    if (!a.time && !b.time) return 0;
-    if (!a.time) return 1;
-    if (!b.time) return -1;
-    return to24h(a) - to24h(b);
-  });
+  const hasManualOrder = stops.some(s => s.sortOrder > 0);
+  if (hasManualOrder) {
+    // 手动排过序：sort_order 优先（没排过的排后面按时间）
+    stops.sort((a, b) =>
+      (a.sortOrder || 9999) - (b.sortOrder || 9999) || to24h(a) - to24h(b)
+    );
+  } else {
+    // 有时间的在前按时间排，无时间的保持原顺序在后
+    stops.sort((a, b) => {
+      if (!a.time && !b.time) return 0;
+      if (!a.time) return 1;
+      if (!b.time) return -1;
+      return to24h(a) - to24h(b);
+    });
+  }
 
   return {
     id: d.id,

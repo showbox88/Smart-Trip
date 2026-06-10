@@ -121,7 +121,7 @@ async function upsertStopExpense(rawStop, { amount, uiCategory, description }) {
 const META_OMIT = new Set([
   'id', 'type', 'location', 'address', 'city', 'phone', 'time', 'period',
   'note', 'price', 'expenseCategory', 'lat', 'lng', 'photo', 'photos',
-  'checkedIn', 'checkinTime', 'category',
+  'checkedIn', 'checkinTime', 'category', 'sortOrder',
   'pbStopId', 'pbLocationId', 'pbCategories',
 ]);
 
@@ -279,11 +279,13 @@ export async function deletePbStops(uiIds) {
 // ── 差量同步器 ──────────────────────────────────────────
 
 /**
- * 对比某天 UI 提交的 stops 与 PB 当前状态，把 3a 范围内的变化写回 PB。
+ * 对比某天 UI 提交的 stops 与 PB 当前状态，把变化写回 PB。
  * @param {string} date  "YYYY-MM-DD"
- * @param {object[]} nextStops  UI 形状的 stop 数组（可以只是当天的子集）
+ * @param {object[]} nextStops  UI 形状的 stop 数组
+ * @param {object} opts  { partial }: true = 子集（如 TodayPage 只传 location 类），
+ *                       不写顺序、不视缺失为移出
  */
-export async function syncDayStopsToPb(date, nextStops) {
+export async function syncDayStopsToPb(date, nextStops, opts = {}) {
   if (!PB_WRITES) {
     console.warn('[pbWrites] VITE_PB_WRITES=off，跳过写入');
     return;
@@ -304,11 +306,26 @@ export async function syncDayStopsToPb(date, nextStops) {
   for (const s of rawStops) rawById[s.id] = s;
 
   let wrote = false;
+  let position = 0;
 
   for (const next of nextStops) {
+    position += 1;
     // 本地 id（s<ts>，本会话内创建过）→ 解析成 PB id
     const resolvedId = _localToPbId.get(next.id) || next.id;
-    const prev = prevById[resolvedId];
+    let prev = prevById[resolvedId];
+
+    // 跨天拖拽：这条 stop 在 PB 里存在但挂在别的天 → 改挂靠，绝不能新建副本
+    if (!prev && rawById[resolvedId]) {
+      const movedRaw = rawById[resolvedId];
+      await pb.collection('stops').update(resolvedId, {
+        day: day.id,
+        trip: day.trip || '',
+        date: `${date} 00:00:00.000Z`,
+      });
+      wrote = true;
+      console.info('[pbWrites] stop 移动到', date, ':', next.location);
+      prev = normalizePbStop(movedRaw);
+    }
 
     if (!prev) {
       // PB 没有这条 → 新建（DayPage 附近打卡 / 添加地点）
@@ -320,6 +337,9 @@ export async function syncDayStopsToPb(date, nextStops) {
           || '';
         const rec = await createPbStop(day, date, next, dayTz);
         _localToPbId.set(next.id, rec.id);
+        if (!opts.partial) {
+          await pb.collection('stops').update(rec.id, { sort_order: position });
+        }
         wrote = true;
         console.info('[pbWrites] 已创建 stop:', next.location, '→', rec.id);
       } catch (e) {
@@ -374,6 +394,11 @@ export async function syncDayStopsToPb(date, nextStops) {
     const prevMeta = (raw.meta && typeof raw.meta === 'object' && !Array.isArray(raw.meta)) ? raw.meta : {};
     if (JSON.stringify(nextMeta) !== JSON.stringify(prevMeta)) {
       patch.meta = nextMeta;
+    }
+
+    // 2.6) 手动顺序：全量同步时按数组位置持久化（partial 子集不写，防止 TodayPage 扰动）
+    if (!opts.partial && (raw.sort_order || 0) !== position) {
+      patch.sort_order = position;
     }
 
     // 3) 备注：只填空、不覆盖——ExpenseModal 保存时会连带把"描述"写进 stop.note，

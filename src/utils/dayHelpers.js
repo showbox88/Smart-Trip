@@ -14,7 +14,8 @@ import { IS_PB } from '../lib/dataSource';
 export async function saveDayToDB(userId, day) {
   if (IS_PB) {
     const { syncDayStopsToPb } = await import('../adapters/pbWrites');
-    await syncDayStopsToPb(day.date, day.stops || []);
+    // day._partial = stops 只是子集（TodayPage 只传 location 类），不写顺序
+    await syncDayStopsToPb(day.date, day.stops || [], { partial: !!day._partial });
     return;
   }
 
