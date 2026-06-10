@@ -1,8 +1,9 @@
 import { createPortal } from 'react-dom';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
 import { formatCurrency } from '../../utils/formatters';
 import { getCategoryMaterialIcon as getCategoryIcon } from '../../utils/categoryHelpers';
+import { uploadToSupabase } from '../../utils/uploadHelpers';
 import TimePickerModal from '../modals/TimePickerModal';
 import ExpenseModal from '../modals/ExpenseModal';
 
@@ -10,6 +11,24 @@ export default function StopCheckinCard({ stop, isCurrent, dayDate, onCheckin })
   const { state } = useApp();
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [showExpense, setShowExpense] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const handlePhotoFile = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // 允许连续选择同一文件
+    if (!file) return;
+    try {
+      setUploading(true);
+      const url = await uploadToSupabase(file, 'trip-media', { dir: `stops/${stop.id}` });
+      onCheckin(stop.id, { photo: url });
+    } catch (err) {
+      console.error('[StopCheckinCard] photo upload failed:', err);
+      alert(`Upload failed: ${err.message}`);
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const price = parseFloat(stop.price) || 0;
   const hotelBadge =
@@ -93,15 +112,34 @@ export default function StopCheckinCard({ stop, isCurrent, dayDate, onCheckin })
             )}
           </div>
 
-          {/* Thumbnail */}
-          {stop.photo && (
-            <div style={{
+          {/* Thumbnail — 点击上传/更换照片（手机会弹相机/相册选择） */}
+          <button
+            onClick={() => !uploading && fileInputRef.current?.click()}
+            title={stop.photo ? 'Change photo' : 'Add photo'}
+            style={{
               width: 52, height: 52, borderRadius: 10, overflow: 'hidden', flexShrink: 0,
-              opacity: stop.checkedIn ? 0.6 : 1,
-            }}>
+              padding: 0, cursor: uploading ? 'wait' : 'pointer',
+              border: stop.photo ? 'none' : '1px dashed rgba(255,255,255,0.18)',
+              background: stop.photo ? 'transparent' : 'rgba(255,255,255,0.03)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              opacity: uploading ? 0.5 : stop.checkedIn && stop.photo ? 0.6 : 1,
+            }}
+          >
+            {stop.photo ? (
               <img src={stop.photo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            </div>
-          )}
+            ) : (
+              <span className="material-symbols-outlined" style={{
+                fontSize: 20, color: 'var(--st-color-text-muted)',
+              }}>{uploading ? 'hourglass_top' : 'add_a_photo'}</span>
+            )}
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            style={{ display: 'none' }}
+            onChange={handlePhotoFile}
+          />
         </div>
 
         {/* ── Bottom: action buttons ── */}
