@@ -77,10 +77,16 @@ export function useDaysPb() {
   }, [dispatch]);
 
   const updateDayStops = useCallback(async (date, stops) => {
-    console.warn(READONLY_MSG);
     const day = state.days[date];
     if (!day) return;
     dispatch({ type: 'UPSERT_DAY', payload: { ...day, stops } });
+    // Phase 3a：差量写 PB（打卡/照片/备注/记账），其余字段警告跳过
+    try {
+      const { syncDayStopsToPb } = await import('../../adapters/pbWrites');
+      await syncDayStopsToPb(date, stops);
+    } catch (e) {
+      console.error('[useDaysPb] updateDayStops sync error:', e.message);
+    }
   }, [state.days, dispatch]);
 
   const updateDayMeta = useCallback(async (date, updates) => {

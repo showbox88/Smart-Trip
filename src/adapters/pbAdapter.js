@@ -14,10 +14,11 @@ let _cache = null;
 
 export async function loadPbData(force = false) {
   if (_cache && !force) return _cache;
-  const [trips, days, stops] = await Promise.all([
+  const [trips, days, stops, expenses] = await Promise.all([
     pb.collection('trips').getFullList({ sort: '-created' }),
     pb.collection('days').getFullList({ sort: 'date' }),
     pb.collection('stops').getFullList({ expand: 'location', sort: 'date' }),
+    pb.collection('expenses').getFullList({ sort: 'date' }),
   ]);
 
   // stops 按 day id 分组
@@ -27,7 +28,14 @@ export async function loadPbData(force = false) {
     (stopsByDayId[s.day] ||= []).push(s);
   }
 
-  _cache = { trips, days, stops, stopsByDayId };
+  // expenses 按 stop id 分组（stop 卡片显示费用合计）
+  const expensesByStopId = {};
+  for (const e of expenses) {
+    if (!e.stop) continue;
+    (expensesByStopId[e.stop] ||= []).push(e);
+  }
+
+  _cache = { trips, days, stops, expenses, stopsByDayId, expensesByStopId };
   return _cache;
 }
 
@@ -38,7 +46,7 @@ export function clearPbCache() {
 // ── 单条记录映射 ────────────────────────────────────────
 
 /** PB 日期 "2026-10-25 00:00:00.000Z" → "2026-10-25" */
-function pbDate(s) {
+export function pbDate(s) {
   return s ? String(s).slice(0, 10) : null;
 }
 
@@ -71,6 +79,13 @@ function pbTimeParts(isoStr, timezone) {
   return { time: `${h12}:${m}`, period };
 }
 
+// PB expense_category → ExpenseModal 的 UI 类别（显示用）
+const PB_CATEGORY_TO_UI = {
+  '交通': 'transport', '餐饮': 'dining', '购物/日用': 'shopping',
+  '住宿': 'stay', '门票': 'sightseeing', '娱乐': 'activities',
+  '旅行': 'other', '订阅服务': 'other', '代付': 'other', '其他': 'other',
+};
+
 /** PB stop（含 expand.location）→ 前端 stop 对象 */
 export function normalizePbStop(s) {
   const loc = s.expand?.location || null;
@@ -79,6 +94,11 @@ export function normalizePbStop(s) {
   const lat = s.actual_lat || loc?.lat || null;
   const lng = s.actual_lng || loc?.lng || null;
   const categories = Array.isArray(s.categories) ? s.categories : [];
+  const photos = Array.isArray(s.photos) ? s.photos : [];
+
+  // 该 stop 关联的费用（USD 合计，对应 V2 的 stop.price 语义）
+  const expenses = _cache?.expensesByStopId?.[s.id] || [];
+  const totalUsd = expenses.reduce((sum, e) => sum + (parseFloat(e.amount_usd) || 0), 0);
 
   return {
     id: s.id,
@@ -91,10 +111,12 @@ export function normalizePbStop(s) {
     time,
     period,
     note: s.note || '',
-    price: '0',
+    price: totalUsd > 0 ? String(Math.round(totalUsd * 100) / 100) : '0',
+    expenseCategory: expenses.length ? (PB_CATEGORY_TO_UI[expenses[0].expense_category] || 'other') : undefined,
     lat,
     lng,
-    photo: null,
+    photo: photos[0] || null,
+    photos,
     rating: null,
     placeTypes: [],
     openingHours: [],
@@ -144,11 +166,16 @@ export function normalizePbTrip(t, days, stopsByDayId) {
   const tripDays = days.filter(d => d.trip === t.id);
 
   let stopsCount = 0;
+  let totalCost = 0;
   const citySet = new Set();
   const cityCoordMap = {};
+  const stopPhotos = [];
   for (const d of tripDays) {
     for (const s of (stopsByDayId[d.id] || []).map(normalizePbStop)) {
       if (isCountableStop(s)) stopsCount++;
+      const price = parseFloat(s.price);
+      if (!isNaN(price) && price > 0) totalCost += price;
+      if (s.photo && !stopPhotos.includes(s.photo)) stopPhotos.push(s.photo);
       if (s.city && isCountableStop(s)) {
         citySet.add(s.city);
         if (s.lat && s.lng && !cityCoordMap[s.city]) {
@@ -169,10 +196,10 @@ export function normalizePbTrip(t, days, stopsByDayId) {
     share_token: null,
     created_at: t.created,
     stopsCount,
-    totalCost: 0,
+    totalCost,
     cities: [...citySet],
     citiesWithCoords: Object.values(cityCoordMap),
-    stopPhotos: [],
+    stopPhotos,
   };
 }
 
@@ -206,8 +233,8 @@ export async function getPbDaysInRange(startDate, endDate) {
     .map(d => normalizePbDay(d, stopsByDayId));
 }
 
-export async function getPbDayByDate(date) {
-  const { days, stopsByDayId } = await loadPbData();
+export async function getPbDayByDate(date, force = false) {
+  const { days, stopsByDayId } = await loadPbData(force);
   const d = days.find(x => pbDate(x.date) === date);
   return d ? normalizePbDay(d, stopsByDayId) : null;
 }

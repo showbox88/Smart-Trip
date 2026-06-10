@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
 import { supabase } from '../lib/supabase';
+import { IS_PB } from '../lib/dataSource';
 import { saveDayToDB } from '../utils/dayHelpers';
 import { formatCurrency, formatTodayLabel } from '../utils/formatters';
 import { useGpsCheckin } from '../hooks/useGpsCheckin';
@@ -88,12 +89,23 @@ export default function TodayPage() {
   useEffect(() => {
     if (!state.user) return;
     setLoading(true);
-    supabase
-      .from('days_v2')
-      .select('id, date, title, color, stops_data')
-      .eq('user_id', state.user.id)
-      .eq('date', today)
-      .maybeSingle()
+
+    const fetchDay = IS_PB
+      ? import('../adapters/pbAdapter')
+          .then(({ getPbDayByDate }) => getPbDayByDate(today, true))
+          .then(day => ({
+            data: day ? { id: day.id, date: day.date, title: day.title, color: day.color, stops_data: day.stops } : null,
+            error: null,
+          }))
+          .catch(e => ({ data: null, error: e }))
+      : supabase
+          .from('days_v2')
+          .select('id, date, title, color, stops_data')
+          .eq('user_id', state.user.id)
+          .eq('date', today)
+          .maybeSingle();
+
+    fetchDay
       .then(({ data, error }) => {
         if (error) console.warn('[TodayPage] load failed:', error.message);
         if (data) {
@@ -124,6 +136,18 @@ export default function TodayPage() {
     if (!dayData) return;
     setStops(prev => prev.map(s => s.id === stopId ? { ...s, ...patch } : s));
 
+    // PB 模式：saveDayToDB 是差量同步，传当前(已过滤的)stops 子集即可，未提及的 stop 不受影响
+    if (IS_PB) {
+      const merged = stops.map(s => s.id === stopId ? { ...s, ...patch } : s);
+      saveDayToDB(state.user.id, {
+        id: dayData.id,
+        date: dayData.date,
+        color: dayData.color,
+        stops: merged,
+      }).catch(err => console.warn('[TodayPage] save failed:', err));
+      return;
+    }
+
     const { data } = await supabase
       .from('days_v2')
       .select('stops_data')
@@ -140,7 +164,7 @@ export default function TodayPage() {
       color: dayData.color,
       stops: allStops,
     }).catch(err => console.warn('[TodayPage] save failed:', err));
-  }, [dayData, state.user]);
+  }, [dayData, state.user, stops]);
 
   // ── GPS proximity notifications ───────────────────────────────
   const handleNearby = useCallback((stop) => {

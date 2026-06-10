@@ -110,7 +110,7 @@ export function useStopCardState(stop, dayId, userId, t, callbacks) {
     const file = e.target.files?.[0];
     if (!file) return;
     try {
-      const publicUrl = await uploadToSupabase(file);
+      const publicUrl = await uploadToSupabase(file, 'trip-media', { dir: `stops/${stop.id}` });
       handleSelectPhoto(publicUrl);
     } catch (err) {
       console.error('[StopCard] Upload error:', err);
