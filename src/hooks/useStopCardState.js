@@ -77,9 +77,15 @@ export function useStopCardState(stop, dayId, userId, t, callbacks) {
 
   const handlePhotoClick = useCallback(async (e) => {
     e.stopPropagation();
-    if (!stop.placeId || typeof google === 'undefined') return;
     if (showPhotoPicker) { setShowPhotoPicker(false); return; }
     setShowPhotoPicker(true);
+    // 没有 Google placeId（如 PB/phone-bridge 创建的 stop）或没加载 Maps SDK：
+    // 仍打开选图弹窗，只是不拉 Google 图片，只提供本地上传
+    if (!stop.placeId || typeof google === 'undefined') {
+      setPlacePhotos([]);
+      setLoadingPhotos(false);
+      return;
+    }
     setLoadingPhotos(true);
     try {
       const { allowed } = await checkApiAllowed('place_details', userId);
