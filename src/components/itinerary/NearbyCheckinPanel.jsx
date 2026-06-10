@@ -10,7 +10,7 @@ const CATEGORIES = [
   { id: 'lodging',     icon: 'hotel',              type: 'lodging',                     label_key: 'map.category_lodging' },
 ];
 
-const RADIUS = 100; // metres
+const RADIUS = 250; // metres（100 米在室内 GPS 漂移下经常空列表，2026-06-10 放宽）
 
 /**
  * NearbyCheckinPanel

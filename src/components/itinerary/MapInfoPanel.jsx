@@ -115,7 +115,7 @@ function FavoritesTab({ favorites, loading, trip, onSelectPlace, onAddToDay, onT
   );
 }
 
-export default function MapInfoPanel({ placeId, onClose, onAddToDay, onSelectPlace }) {
+export default function MapInfoPanel({ placeId, onClose, onAddToDay, onSelectPlace, isDayMode = false, dayId = null }) {
   const { t } = useI18n();
   const { state } = useApp();
   const userId = state.user?.id || null;
@@ -314,7 +314,11 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay, onSelectPla
               <div style={{ marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                 <button
                   ref={addBtnRef}
-                  onClick={() => openDayPicker(null, addBtnRef.current)}
+                  onClick={() => {
+                    // 日模式（DayPage 地图）：天就是当前这天，直接添加，不弹日期选择器
+                    if (isDayMode && dayId) { handleAddToDay(dayId); return; }
+                    openDayPicker(null, addBtnRef.current);
+                  }}
                   style={{
                     background: 'var(--md-sys-color-primary)', color: 'white', border: 'none', borderRadius: '8px',
                     padding: '0.4rem 14px', fontWeight: 800, fontSize: '0.75rem', cursor: 'pointer',
@@ -560,7 +564,10 @@ export default function MapInfoPanel({ placeId, onClose, onAddToDay, onSelectPla
               loading={favLoading}
               trip={trip}
               onSelectPlace={(pid) => { onSelectPlace?.(pid); setActiveTab('about'); }}
-              onAddToDay={(pid, btnEl) => openDayPicker(pid, btnEl)}
+              onAddToDay={(pid, btnEl) => {
+                if (isDayMode && dayId) { onAddToDay?.(dayId, pid); return; }
+                openDayPicker(pid, btnEl);
+              }}
               onToggleFavorite={toggleFavorite}
               t={t}
             />

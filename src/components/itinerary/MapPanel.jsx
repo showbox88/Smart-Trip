@@ -1232,6 +1232,8 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [], is
             }}
             onAddToDay={onAddToDay}
             onSelectPlace={setSelectedPlaceId}
+            isDayMode={isDayMode}
+            dayId={dayId}
           />
         )}
 
