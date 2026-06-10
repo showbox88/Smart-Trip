@@ -122,7 +122,7 @@
 - [x] 实现方式：所有 UI 写入汇聚到 `saveDayToDB`/`updateDayStops` → `syncDayStopsToPb` 差量写入器，只 PATCH 变化字段；新建/删除 stop 等 3b 操作警告跳过
 - [x] 写开关 `VITE_PB_WRITES=off` 可整体退回只读
 - [x] 服务端验证：经 :8451 免登录代理实测 stop PATCH（checkin+photos）、expense create/delete 全部成功并已还原
-- [ ] **验收（待你真机演练）**：手机走一遍"到店打卡 → 拍照上传 → 记一笔消费"，PB/phone-bridge/Notion 三处数据正确；UI 浏览不回归
+- [x] **验收（2026-06-10 真机演练通过）**：双向全通——phone-bridge 建的 stop 在 UI 打卡/传照片/记账 ✅；UI 附近打卡新建 stop（含 locations 复用、checkin、Google 图片）✅。过程中修了 4 个问题：photo picker 的 placeId 闸门、空时区显示成 UTC、新建 stop 被 3b 跳过、ExpenseModal 覆盖 stop 备注（已改为只填空）。Notion 端待次日 03:00 同步后顺带确认
 
 ### Phase 2 — 读适配完善（1 天，3a 之后做）
 - [ ] categories/stop_type → UI 卡片类型与图标完整映射（含酒店线、交通卡）
