@@ -144,7 +144,7 @@
 
 ### Phase 4 — media 备份 + 收尾（部分完成 2026-06-10）
 - [x] media 备份：`smat-trip-media-backup.timer` 每天 02:00 rsync `/home/dev/smat-trip/media/` → CT 103 `/var/lib/pb-replica/media/`（复用 litestream SSH key，Persistent 补跑）；首跑已验证 4 张照片落地。**TODO 后续**：并入 CT 103 周归档加密上 Oracle
-- [ ] `app_settings` collection → **推迟**：主题/语言目前 localStorage 单设备保存够用，等需要跨设备同步偏好再做
+- [x] `app_settings` collection（2026-06-10 补做）：key 唯一 + value json；跨设备记住**语言 / 主题（含自定义主题与配色覆盖）/ 地图黑夜模式**；localStorage 仍作本地秒开缓存；该 collection 不进 Notion 同步（sync_config 未注册）
 - [x] 文档：phone-bridge 仓库 `docs/smat-trip-ui/`（README/ARCHITECTURE/PLAN）已建并推送；infrastructure dashboard-server.md 已更新（服务表 + Serve 表 + 备份表）
 - [ ] 视情况：`feature/pb-datasource` 是否转正为长期分支（**不动 main 的原则不变**，建议长期双轨：main=Supabase 演示版，pb 分支=自用版）
 
