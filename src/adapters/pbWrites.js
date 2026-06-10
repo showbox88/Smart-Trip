@@ -156,8 +156,9 @@ async function findOrCreateLocation(next) {
 }
 
 /** 在 PB 创建 stop（打卡创建的带 checkin + 打卡分类） */
-async function createPbStop(dayRaw, date, next) {
-  const tz = deviceTz();
+async function createPbStop(dayRaw, date, next, dayTz = '') {
+  // 打卡 = 人就在现场，用设备时区；规划添加 = 用当天既有时区上下文兜底设备时区
+  const tz = next.checkedIn ? deviceTz() : (dayTz || deviceTz());
   const checkin = next.checkedIn
     ? (next.time ? wallTimeToUtcIso(date, next.time, next.period, tz) : new Date().toISOString())
     : '';
@@ -244,7 +245,10 @@ export async function syncDayStopsToPb(date, nextStops) {
       if (_pendingCreates.has(next.id)) continue; // 防抖期间的重复保存
       _pendingCreates.add(next.id);
       try {
-        const rec = await createPbStop(day, date, next);
+        const dayTz = day.timezone
+          || (stopsByDayId[day.id] || []).map(s => s.timezone).find(Boolean)
+          || '';
+        const rec = await createPbStop(day, date, next, dayTz);
         _localToPbId.set(next.id, rec.id);
         wrote = true;
         console.info('[pbWrites] 已创建 stop:', next.location, '→', rec.id);
