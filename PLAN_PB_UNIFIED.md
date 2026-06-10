@@ -1,7 +1,8 @@
 # 计划书：Smat Trip UI × Phone Bridge 共用 PocketBase
 
-> 状态：**草案 v2（2026-06-10）— 已吸收第一轮意见，等待最终审定**
-> v2 变更：①去掉登录（代理持 token）②图片存 VM 文件夹、PB 只存路径 ③新增 Phase 3a 最小可用集（打卡+拍照+记账）
+> 状态：**草案 v3（2026-06-10）— 已吸收两轮意见，等待最终审定**
+> v2 变更：①免登录（代理持 token）②图片存 VM 文件夹、PB 只存路径 ③新增 Phase 3a 最小可用集（打卡+拍照+记账）
+> v3 变更：①登录页**保留不删**，初期用开关停用，后期可一键启用做第二层防护 ②新字段**将来要同步 Notion**，字段设计按可映射标准来，初期不映射 ③照片不压缩存原图；Google 地点图片下载缓存到 media，手机照片直传
 > 分支：`feature/pb-datasource`（已有只读版，本计划是它的延续）
 > 愿景：平时和旅行中都用 phone-bridge（Claude 对话）记录；随时可以打开本 UI
 > （`https://dashboard-server.tail4cfa2.ts.net:8451`）浏览和手动增改，两边读写**同一个 PocketBase**，
@@ -82,14 +83,14 @@
 
 | # | 问题 | 决定（v2） | 说明 |
 |---|---|---|---|
-| **D1** | 鉴权 | ✅ **已定：去掉登录页**。`server.js` 代理在 VM 上持有 PB superuser token（存 `/home/dev/smat-trip/.env`，不进仓库），对 `/api` 请求自动注入 Authorization；浏览器端零凭据，打开即用 | 单人内部使用，安全边界 = Tailscale（:8451 tailnet-only）。UI 侧 `useAuthPb` 改为直接放行（合成一个固定 user 对象）。代价：tailnet 上任何设备都可读写 PB——你的 tailnet 只有自己的设备，可接受 |
-| **D2** | 新照片存哪里 | ✅ **已定：VM 文件夹 + PB 存路径**。文件落 `/home/dev/smat-trip/media/<collection>/<recordId>/xxx.jpg`，`server.js` 增加 `GET /media/*`（静态出图）和 `POST /media`（multipart 上传，返回路径）；路径字符串写进 PB 的 photos(json) 字段 | PB 数据库保持轻量；days/trips/locations 已有 photos json 字段可直接用，stops 需加一个 photos(json)。**注意**：media 文件夹不在 Litestream 链路里，需补一条备份（见 §5 风险表新增项） |
+| **D1** | 鉴权 | ✅ **已定（v3 修订）：登录页保留，双模式开关**。<br>**初期（login=off）**：UI 跳过登录直接进入，代理注入 PB token，浏览器零凭据。<br>**后期（login=on）**：登录页启用，走 PB 真实认证（代理停止注入，浏览器持自己的 token），形成 Tailscale 之外的第二层防护 | 登录代码不删除，由两个联动开关控制：UI 侧 `VITE_PB_LOGIN`（构建时）+ 代理侧 `PB_INJECT_TOKEN`（VM env，决定是否注入）。**两个开关必须同步切换**：注入开着时登录形同虚设，注入关着时不登录就没数据 |
+| **D2** | 新照片存哪里 | ✅ **已定（v3 细化）：VM 文件夹 + PB 存路径，不压缩存原图**。两类来源：<br>① **手机上传**：multipart 直传 `POST /media`，原图保存（单文件 ≤25 MB，VM 磁盘 49 GB 现用 9 GB，足够）<br>② **Google 地点图片**：添加地点时由代理服务器**下载一份缓存**到 `media/locations/<id>/`（Google photo URL 含 API key 且会失效，不能存外链） | 路径写进 PB photos(json)。文件布局 `/home/dev/smat-trip/media/<collection>/<recordId>/<时间戳>_<原名>.jpg`。media 不在 Litestream 链路里，需补备份（§5 风险表） |
 | **D3** | 旧 Supabase 图片/设置 | ✅ **默认不迁**。旧图片是 demo 性质；设置（主题/语言）在 app_settings 里重配即可。如果之后发现有舍不得的图，再单独 restore 一次导出 | 省一天工作量；Supabase 项目保持 INACTIVE 不动 |
 | **D4** | 一天多行程（trip_days 多对多）要不要保留？ | **放弃多对多，接受 PB 的 day.trip 单关系**（v1 无异议，默认采纳） | 你的真实使用是一条时间线；多对多是旧 demo 需求。UI 里"把天挂到行程"操作改成设置 day.trip |
 | **D5** | UI 的 7 种卡片类型（location/hotel×2/activity/note/list/transport）怎么落到 stops？ | stops 加 **`stop_type` select 字段**（默认 location），categories 继续做展示分类；hotel 入住/退房、交通卡的扩展属性放新 **`meta(json)` 字段** | 关系型拆表（V3 教训）不再犯；一个 json 兜住卡片差异化数据，Notion 不映射它 |
 | **D6** | UI 的"计划时间"用哪个字段？ | stops 加 **`planned_at`(date)**；`reserved` 保持"预约确认时间"语义不动 | reserved/checkin 语义是 phone-bridge 在用的，不能挪用 |
 | **D7** | 费用：UI 的 stop.price 怎么办？ | UI 费用读写全部走 **`expenses`**（"记一笔钱"进 3a 最小集，已确认） | 比单 price 字段强得多（多币种+USD 折算现成）；ExpenseModal 已有 UI 雏形 |
-| **D8** | 新增字段要不要同步到 Notion？ | **第一期一律不映射**（不改 sync_config），跑稳后按需挑（如 stop_type） | 把 Notion 同步当黑盒保护起来，是本计划最大的风险隔离措施 |
+| **D8** | 新增字段要不要同步到 Notion？ | ✅ **已定（v3 修订）：将来要同步，初期不映射**。新字段全部按"未来可映射"标准设计：用 sync 引擎已支持的类型（text/date/select/json→rich_text），命名跟现有风格一致；待 3a/3b 跑稳后追加 **Phase 5：Notion 映射上线**（改 sync_config.field_map_overrides + Notion 端建属性 + 试同步） | 初期不映射依然是风险隔离措施；但字段设计时就为映射留好路，避免将来返工改字段类型 |
 
 ## 4. 分阶段实施计划
 
@@ -104,16 +105,16 @@
 - [ ] 生成 PB superuser 长效 impersonate token 并验证（Phase 1 免登录的前提）
 - **验收**：上述 5 项都有书面结论，更新本计划打勾
 
-### Phase 1 — 免登录改造 + 最小 schema（半天）
-- [ ] `server.js`：PB token 注入（superuser impersonate 长效 token 存 VM 本地 `.env`，systemd `EnvironmentFile` 加载）；`/api` 请求自动带 Authorization
-- [ ] `server.js`：`GET /media/*` 静态出图 + `POST /media` multipart 上传（限 tailnet 来源，单文件 ≤20 MB）
-- [ ] UI：去掉登录页（PB 模式下 `useAuthPb` 直接合成固定 user），signOut 隐藏
-- [ ] schema（只加 3a 需要的）：`stops` + `photos`(json)；其余字段（stop_type/planned_at/meta/color/settings/app_settings/google_place_id）**推迟到 Phase 2/3 用到时再加**
-- **验收**：打开 :8451 无登录直接见数据；phone-bridge 正常记录；Notion 同步跑一轮无新冲突
+### Phase 1 — 登录开关 + 上传通道 + 最小 schema（半天）
+- [ ] `server.js`：PB token 注入（superuser impersonate 长效 token 存 VM 本地 `.env`，systemd `EnvironmentFile` 加载），由 `PB_INJECT_TOKEN=on/off` 控制
+- [ ] UI：登录页**保留**，加 `VITE_PB_LOGIN=on/off` 开关；初期 off（跳过登录合成固定 user），登录/登出代码原样保留可随时启用
+- [ ] `server.js`：`GET /media/*` 静态出图 + `POST /media` multipart 上传（限 tailnet 来源，单文件 ≤25 MB，**不压缩**）
+- [ ] schema（只加 3a 需要的）：`stops` + `photos`(json)；其余字段（stop_type/planned_at/meta/color/settings/app_settings/google_place_id）**推迟到用到的 Phase 再加**，全部按 D8 可映射标准设计
+- **验收**：打开 :8451 直接见数据（login=off）；把两个开关切到 on 验证登录流程可用后再切回；phone-bridge 正常记录；Notion 同步跑一轮无新冲突
 
 ### Phase 3a — 旅行最小可用集：打卡 + 拍照 + 记账（1-2 天，优先于其它一切写功能）🎯
 - [ ] **打卡**：TodayPage / GPS 打卡 → 写 `stops.checkin`（含手动补打卡、改时间）
-- [ ] **拍照**：stop 卡片上传照片 → `POST /media` → 路径 append 进 `stops.photos`(json)；StopImage/Lightbox 显示
+- [ ] **拍照**：stop 卡片上传照片（手机原图直传）→ `POST /media` → 路径 append 进 `stops.photos`(json)；StopImage/Lightbox 显示
 - [ ] **记账**：ExpenseModal → 新建/编辑 `expenses`（description/amount/currency/rate/date + stop/day/trip 关联，amount_usd 由现有 hook 计算——**依赖 Phase 0 排雷结论**）
 - [ ] 写开关 `VITE_PB_WRITES`（默认开这三项，其余仍 no-op）
 - **验收（真实场景演练）**：手机上走一遍"到店打卡 → 拍照上传 → 记一笔消费"，PB/phone-bridge/Notion 三处数据正确；UI 浏览不回归
@@ -130,6 +131,7 @@
 逐个开启（每开一个先在测试副本演练）：
 - [ ] Day：改 note/color；stop 排序（加 planned_at 字段）
 - [ ] Stop：新建（含 locations 去重——按 google_place_id/osm_id/名称+坐标）、改名/备注/时间、删除；stop_type/meta 字段补齐（酒店/交通卡）
+- [ ] 新建地点时 Google 图片由代理下载缓存到 `media/locations/<id>/`（不存带 key 的外链）
 - [ ] Trip：改标题/日期/状态/封面（thumb 路径走 /media），新建行程，把天挂进行程（day.trip）
 - **验收**：UI 改一条 → phone-bridge 里能看到；phone-bridge 记一条 → UI 刷新可见；下一轮 Notion 同步无冲突堆积
 - **回滚**：`VITE_PB_WRITES` 开关随时退回 3a 范围或全只读
@@ -140,9 +142,18 @@
 - [ ] 文档：本仓库 ARCHITECTURE.md 增补 PB 模式章节；infrastructure 仓库更新 dashboard-server.md（media 路径/备份/上传端点）
 - [ ] 视情况：`feature/pb-datasource` 是否转正为长期分支（**不动 main 的原则不变**，建议长期双轨：main=Supabase 演示版，pb 分支=自用版）
 
+### Phase 5 — Notion 映射上线（半天，3a/3b 跑稳之后）
+- [ ] 挑选要同步的新字段（候选：stop_type、planned_at、photos 路径列表、trips.settings 不同步）
+- [ ] Notion 端对应 DB 建属性 → `sync_config.field_map_overrides` 增加映射 → 手动触发一轮同步观察
+- [ ] 连续 3 天无冲突堆积后视为稳定
+- **回滚**：从 field_map_overrides 删掉映射即可，PB 数据不受影响
+
+### Phase 6 — 启用登录（10 分钟，想开就开）
+- [ ] `VITE_PB_LOGIN=on` 重新构建 + VM 端 `PB_INJECT_TOKEN=off` + 重启服务
+- [ ] 手机/电脑各登录一次（PB token 会留在浏览器 localStorage，之后免输）
+
 ### 后续展望（不在本计划内）
 - journal/todos/foods 在 UI 里的更多展示
-- 把 stop_type 等字段纳入 Notion 映射
 - PWA 安装（手机桌面图标）、离线缓存
 
 ## 5. 风险清单
@@ -158,18 +169,18 @@
 
 ## 6. 决策记录与遗留问题
 
-**已定（2026-06-10 第一轮反馈）**：
-- D1 ✅ 免登录（代理持 token，浏览器零凭据）
-- D2 ✅ 图片存 VM 文件夹 `/home/dev/smat-trip/media/`，PB 只存路径
+**已定（两轮反馈，2026-06-10）**：
+- D1 ✅ 登录页保留、双开关控制；初期关闭（代理注入 token），后期一键启用做第二层防护
+- D2 ✅ 图片存 VM 文件夹 `/home/dev/smat-trip/media/`，PB 只存路径；**不压缩存原图**；Google 地点图片下载缓存、手机照片直传
 - D3 ✅ 旧 Supabase 不迁（图片、设置都不要了）
 - D7 ✅ 费用走 expenses；优先级确认：**3a = 打卡 + 拍照 + 记账 + 浏览（已有）**
+- D8 ✅ 新字段将来要同步 Notion（Phase 5），初期不映射，字段设计按可映射标准
 
 **遗留小问题（不阻塞开工，执行中顺手确认）**：
 1. D4 一天多行程：默认放弃多对多，如有异议在 Phase 3b 前提出
-2. 照片要不要压缩后上传（省流量/磁盘）还是存原图？默认：原图 ≤20 MB，超出前端压一档
-3. media 备份去 CT 103 还是只进周归档？默认：每日 rsync CT 103
+2. media 备份去 CT 103 还是只进周归档？默认：每日 rsync CT 103
 
-**执行顺序**：Phase 0（排雷）→ 1（免登录+上传通道）→ **3a（打卡/拍照/记账）**→ 2（读适配补全）→ 3b（完整写）→ 4（备份+收尾）
+**执行顺序**：Phase 0（排雷）→ 1（登录开关+上传通道）→ **3a（打卡/拍照/记账）**→ 2（读适配补全）→ 3b（完整写）→ 4（备份+收尾）→ 5（Notion 映射）→ 6（启用登录，随时）
 
 ---
 *计划书审定后，按上述顺序执行；每完成一个 Phase 在此文档打勾并记录日期。*
