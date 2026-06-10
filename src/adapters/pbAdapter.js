@@ -101,7 +101,9 @@ export function normalizePbStop(s) {
   const lat = s.actual_lat || loc?.lat || null;
   const lng = s.actual_lng || loc?.lng || null;
   const categories = Array.isArray(s.categories) ? s.categories : [];
-  const photos = Array.isArray(s.photos) ? s.photos : [];
+  // stop 自己的照片优先，location 主数据的照片（Notion/外链）作兜底
+  const locPhotos = Array.isArray(loc?.photos) ? loc.photos : [];
+  const photos = [...(Array.isArray(s.photos) ? s.photos : []), ...locPhotos];
 
   // 该 stop 关联的费用（USD 合计，对应 V2 的 stop.price 语义）
   const expenses = _cache?.expensesByStopId?.[s.id] || [];
@@ -111,7 +113,9 @@ export function normalizePbStop(s) {
     id: s.id,
     type: 'location',
     location: s.name || loc?.name || '',
-    desc: categories.join(' · '),
+    desc: '',
+    // 中文分类直接喂给 getCategoryMaterialIcon（映射表含中文关键词）
+    category: categories.join(' '),
     address: loc?.address || '',
     city: loc?.city || '',
     phone: loc?.phone || '',
@@ -176,13 +180,16 @@ export function normalizePbTrip(t, days, stopsByDayId) {
   let totalCost = 0;
   const citySet = new Set();
   const cityCoordMap = {};
-  const stopPhotos = [];
+  // trip 自身的 photos json（Notion 同步来的外链）排在相册最前
+  const stopPhotos = (Array.isArray(t.photos) ? t.photos : []).filter(Boolean);
   for (const d of tripDays) {
     for (const s of (stopsByDayId[d.id] || []).map(normalizePbStop)) {
       if (isCountableStop(s)) stopsCount++;
       const price = parseFloat(s.price);
       if (!isNaN(price) && price > 0) totalCost += price;
-      if (s.photo && !stopPhotos.includes(s.photo)) stopPhotos.push(s.photo);
+      for (const p of s.photos || []) {
+        if (p && !stopPhotos.includes(p)) stopPhotos.push(p);
+      }
       if (s.city && isCountableStop(s)) {
         citySet.add(s.city);
         if (s.lat && s.lng && !cityCoordMap[s.city]) {
@@ -195,7 +202,7 @@ export function normalizePbTrip(t, days, stopsByDayId) {
   return {
     id: t.id,
     title: t.title || '',
-    thumb: DEFAULT_TRIP_THUMB,
+    thumb: stopPhotos[0] || DEFAULT_TRIP_THUMB,
     startDate: pbDate(t.date_start),
     endDate: pbDate(t.date_end),
     settings: t.status ? { status: t.status } : {},

@@ -17,6 +17,11 @@ const CATEGORY_ICON_MAP = [
   [['airport', 'flight', '机场'], 'flight'],
   [['activity', 'sport', 'run', 'activities'], 'confirmation_number'],
   [['spa', 'health'], 'spa'],
+  // PocketBase / phone-bridge 的中文分类（SMARTNOTE 约定）
+  [['打卡', '签到'], 'where_to_vote'],
+  [['体验'], 'attractions'],
+  [['笔记'], 'description'],
+  [['超市'], 'shopping_cart'],
 ];
 
 export function getCategoryMaterialIcon(stop) {
