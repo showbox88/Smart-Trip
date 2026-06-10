@@ -90,10 +90,23 @@ export function useDaysPb() {
   }, [state.days, dispatch]);
 
   const updateDayMeta = useCallback(async (date, updates) => {
-    console.warn(READONLY_MSG);
     const day = state.days[date];
     if (!day) return;
     dispatch({ type: 'UPSERT_DAY', payload: { ...day, ...updates } });
+    // 3b：title→days.name（清空则回落日期本身），color→days.color
+    try {
+      const { pb } = await import('../../lib/pb');
+      const { clearPbCache } = await import('../../adapters/pbAdapter');
+      const patch = {};
+      if (updates.title !== undefined) patch.name = updates.title || date;
+      if (updates.color !== undefined) patch.color = updates.color || '';
+      if (Object.keys(patch).length > 0 && !String(day.id).startsWith('pb-local-')) {
+        await pb.collection('days').update(day.id, patch);
+        clearPbCache();
+      }
+    } catch (e) {
+      console.error('[useDaysPb] updateDayMeta sync error:', e.message);
+    }
   }, [state.days, dispatch]);
 
   const deleteDay = useCallback(async (date) => {

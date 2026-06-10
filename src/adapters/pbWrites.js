@@ -115,6 +115,45 @@ async function upsertStopExpense(rawStop, { amount, uiCategory, description }) {
   }
 }
 
+// ── meta 提取：卡片差异化字段统一进 stops.meta(json) ────
+
+// 这些键有独立 PB 落点或属于派生/瞬态数据，不进 meta
+const META_OMIT = new Set([
+  'id', 'type', 'location', 'address', 'city', 'phone', 'time', 'period',
+  'note', 'price', 'expenseCategory', 'lat', 'lng', 'photo', 'photos',
+  'checkedIn', 'checkinTime', 'category',
+  'pbStopId', 'pbLocationId', 'pbCategories',
+]);
+
+export function pickStopMeta(stop) {
+  const meta = {};
+  for (const [k, v] of Object.entries(stop)) {
+    if (META_OMIT.has(k)) continue;
+    if (v === undefined || v === null) continue;
+    if (Array.isArray(v) && v.length === 0) continue;
+    if (k === 'desc' && !v) continue;
+    meta[k] = v;
+  }
+  return meta;
+}
+
+// ── Google 图片：服务端下载缓存（外链带 key 且会过期） ──
+
+const GOOGLE_PHOTO_RE = /^https:\/\/[^/]*(googleapis|googleusercontent|ggpht|gstatic)\.com\//;
+
+async function cachePhotoIfGoogle(photoUrl, dir) {
+  if (!photoUrl || !GOOGLE_PHOTO_RE.test(photoUrl)) return photoUrl;
+  try {
+    const res = await fetch(`/media/cache?dir=${encodeURIComponent(dir)}&url=${encodeURIComponent(photoUrl)}`);
+    if (!res.ok) throw new Error(`cache ${res.status}`);
+    const { path } = await res.json();
+    return path;
+  } catch (e) {
+    console.warn('[pbWrites] Google 图片缓存失败，保留外链:', e.message);
+    return photoUrl;
+  }
+}
+
 // ── 新建 stop（DayPage 附近打卡 / 行程内添加地点） ──────
 
 // UI 本地 id（s<timestamp>）→ PB record id 的会话内映射，防止重复创建
@@ -129,15 +168,27 @@ function deviceTz() {
   }
 }
 
-/** 按名称复用或新建 locations 记录，返回 record id（失败返回 ''） */
+/** 复用或新建 locations 记录（去重优先级：google_place_id > 名称），返回 record id */
 async function findOrCreateLocation(next) {
   const name = (next.location || '').trim();
   if (!name) return '';
   try {
+    if (next.placeId) {
+      const byPlace = await pb.collection('locations').getFullList({
+        filter: pb.filter('google_place_id = {:pid}', { pid: next.placeId }),
+      });
+      if (byPlace.length > 0) return byPlace[0].id;
+    }
     const found = await pb.collection('locations').getFullList({
       filter: pb.filter('name = {:name}', { name }),
     });
-    if (found.length > 0) return found[0].id;
+    if (found.length > 0) {
+      // 老记录补 google_place_id（便于以后精确去重）
+      if (next.placeId && !found[0].google_place_id) {
+        pb.collection('locations').update(found[0].id, { google_place_id: next.placeId }).catch(() => {});
+      }
+      return found[0].id;
+    }
     const rec = await pb.collection('locations').create({
       name,
       address: next.address || '',
@@ -147,6 +198,7 @@ async function findOrCreateLocation(next) {
       lng: next.lng || 0,
       type: '其他',
       timezone: deviceTz(),
+      google_place_id: next.placeId || '',
     });
     return rec.id;
   } catch (e) {
@@ -162,7 +214,12 @@ async function createPbStop(dayRaw, date, next, dayTz = '') {
   const checkin = next.checkedIn
     ? (next.time ? wallTimeToUtcIso(date, next.time, next.period, tz) : new Date().toISOString())
     : '';
+  // 规划添加的时间落 planned_at（计划时间），打卡时间落 checkin
+  const plannedAt = !next.checkedIn && next.time
+    ? wallTimeToUtcIso(date, next.time, next.period, tz)
+    : '';
   const locationId = await findOrCreateLocation(next);
+  const photo = await cachePhotoIfGoogle(next.photo, `stops/${next.id}`);
 
   return pb.collection('stops').create({
     name: next.location || 'Unnamed',
@@ -170,14 +227,25 @@ async function createPbStop(dayRaw, date, next, dayTz = '') {
     day: dayRaw.id,
     trip: dayRaw.trip || '',
     location: locationId,
+    stop_type: next.type || 'location',
     categories: next.checkedIn ? ['打卡'] : [],
     note: next.note || '',
     checkin,
+    planned_at: plannedAt,
     actual_lat: next.lat || 0,
     actual_lng: next.lng || 0,
     timezone: tz,
-    // Google 图片暂存外链 URL；3b 会改为代理下载缓存到 /media
-    photos: next.photo ? [next.photo] : null,
+    photos: photo ? [photo] : null,
+    meta: pickStopMeta(next),
+  });
+}
+
+/** PB 没有这一天时按需创建（懒创建，只在第一次真实写入时发生） */
+async function createPbDay(date) {
+  return pb.collection('days').create({
+    name: date,
+    date: `${date} 00:00:00.000Z`,
+    timezone: '',
   });
 }
 
@@ -222,10 +290,12 @@ export async function syncDayStopsToPb(date, nextStops) {
   }
 
   const { days, stops: rawStops, stopsByDayId } = await loadPbData();
-  const day = days.find(d => pbDate(d.date) === date);
+  let day = days.find(d => pbDate(d.date) === date);
   if (!day) {
-    console.warn('[pbWrites] PB 中没有这一天，新建 day 属于 3b，跳过:', date);
-    return;
+    // 懒创建：第一次对这一天真实写入时才在 PB 建 day
+    day = await createPbDay(date);
+    days.push(day);
+    console.info('[pbWrites] 已创建 day:', date, '→', day.id);
   }
 
   const prevById = {};
@@ -281,10 +351,29 @@ export async function syncDayStopsToPb(date, nextStops) {
       patch.checkin = '';
     }
 
-    // 2) 照片：photo 变化 → 追加进 stops.photos（最新在前，保留历史）
+    // 2) 照片：photo 变化 → 追加进 stops.photos（最新在前，保留历史；Google 外链先缓存）
     if (next.photo && next.photo !== prev.photo) {
+      const stored = await cachePhotoIfGoogle(next.photo, `stops/${resolvedId}`);
       const existing = Array.isArray(raw.photos) ? raw.photos : [];
-      patch.photos = [next.photo, ...existing.filter(p => p !== next.photo)];
+      if (!existing.includes(stored)) {
+        patch.photos = [stored, ...existing.filter(p => p !== stored)];
+      }
+    }
+
+    // 2.5) 改名 / 计划时间 / 卡片类型 / meta（3b）
+    if (next.location && next.location !== prev.location) {
+      patch.name = next.location;
+    }
+    if (!isChecked && next.time && next.time !== prev.time) {
+      patch.planned_at = wallTimeToUtcIso(date, next.time, next.period, raw.timezone);
+    }
+    if (next.type && next.type !== (raw.stop_type || 'location')) {
+      patch.stop_type = next.type;
+    }
+    const nextMeta = pickStopMeta(next);
+    const prevMeta = (raw.meta && typeof raw.meta === 'object' && !Array.isArray(raw.meta)) ? raw.meta : {};
+    if (JSON.stringify(nextMeta) !== JSON.stringify(prevMeta)) {
+      patch.meta = nextMeta;
     }
 
     // 3) 备注：只填空、不覆盖——ExpenseModal 保存时会连带把"描述"写进 stop.note，

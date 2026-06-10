@@ -117,7 +117,8 @@ function handleMedia(req, res) {
     res.end(JSON.stringify(obj));
   };
 
-  if (req.method === 'GET') {
+  // 静态出图（/media/cache 是 API 端点，须先排除，见下方分支）
+  if (req.method === 'GET' && !req.url.startsWith('/media/cache')) {
     const urlPath = decodeURIComponent(req.url.split('?')[0]).slice('/media'.length);
     const filePath = path.join(MEDIA_DIR, path.normalize(urlPath).replace(/^(\.\.[/\\])+/, ''));
     if (!filePath.startsWith(MEDIA_DIR)) return json(403, { message: 'Forbidden' });
@@ -130,6 +131,55 @@ function handleMedia(req, res) {
       });
       fs.createReadStream(filePath).pipe(res);
     });
+  }
+
+  // GET /media/cache?dir=locations/<id>&url=<google photo url>
+  // 服务端下载 Google 图片缓存到本地（外链带 API key 且会过期，不能存外链）
+  if (req.method === 'GET' && req.url.startsWith('/media/cache')) {
+    const q = new URL(req.url, 'http://x').searchParams;
+    const dir = (q.get('dir') || '').trim();
+    const srcUrl = q.get('url') || '';
+    if (!/^[a-z0-9_]+\/[a-zA-Z0-9_-]+$/.test(dir)) return json(400, { message: 'bad dir' });
+    let u;
+    try { u = new URL(srcUrl); } catch { return json(400, { message: 'bad url' }); }
+    // 仅允许 Google 图片域，防 SSRF（参考 music-station net_guard 教训）
+    const ALLOWED_HOSTS = /(^|\.)googleapis\.com$|(^|\.)googleusercontent\.com$|(^|\.)ggpht\.com$|(^|\.)gstatic\.com$/;
+    if (u.protocol !== 'https:' || !ALLOWED_HOSTS.test(u.hostname)) {
+      return json(403, { message: 'host not allowed' });
+    }
+    const destDir = path.join(MEDIA_DIR, dir);
+    fs.mkdirSync(destDir, { recursive: true });
+    const fileName = `${Date.now()}_google.jpg`;
+    const destPath = path.join(destDir, fileName);
+    const https = require('https');
+    const fetchTo = (url, redirectsLeft) => {
+      https.get(url, (gres) => {
+        if (gres.statusCode >= 301 && gres.statusCode <= 308 && gres.headers.location && redirectsLeft > 0) {
+          gres.resume();
+          try {
+            const next = new URL(gres.headers.location, url);
+            if (next.protocol !== 'https:' || !ALLOWED_HOSTS.test(next.hostname)) {
+              return json(403, { message: 'redirect host not allowed' });
+            }
+            return fetchTo(next.href, redirectsLeft - 1);
+          } catch { return json(502, { message: 'bad redirect' }); }
+        }
+        if (gres.statusCode !== 200) {
+          gres.resume();
+          return json(502, { message: `upstream ${gres.statusCode}` });
+        }
+        const out = fs.createWriteStream(destPath);
+        let received = 0;
+        gres.on('data', (c) => {
+          received += c.length;
+          if (received > MAX_UPLOAD) { out.destroy(); fs.unlink(destPath, () => {}); gres.destroy(); }
+        });
+        gres.pipe(out);
+        out.on('finish', () => json(200, { path: `/media/${dir}/${fileName}`, size: received }));
+        out.on('error', (e) => json(500, { message: e.message }));
+      }).on('error', (e) => json(502, { message: e.message }));
+    };
+    return fetchTo(u.href, 3);
   }
 
   if (req.method === 'POST' && req.url.startsWith('/media/upload')) {

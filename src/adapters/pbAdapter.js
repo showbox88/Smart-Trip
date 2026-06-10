@@ -96,7 +96,10 @@ const PB_CATEGORY_TO_UI = {
 /** PB stop（含 expand.location）→ 前端 stop 对象 */
 export function normalizePbStop(s) {
   const loc = s.expand?.location || null;
-  const { time, period } = pbTimeParts(s.checkin || s.reserved, s.timezone);
+  // 显示时间优先级：实际打卡 > 计划时间 > 预约时间
+  const { time, period } = pbTimeParts(s.checkin || s.planned_at || s.reserved, s.timezone);
+  // meta = 卡片差异化字段（stayId/交通/清单等），先铺开，已映射字段在后面覆盖
+  const meta = (s.meta && typeof s.meta === 'object' && !Array.isArray(s.meta)) ? s.meta : {};
   // lat/lng == 0 视为未知坐标
   const lat = s.actual_lat || loc?.lat || null;
   const lng = s.actual_lng || loc?.lng || null;
@@ -110,12 +113,13 @@ export function normalizePbStop(s) {
   const totalUsd = expenses.reduce((sum, e) => sum + (parseFloat(e.amount_usd) || 0), 0);
 
   return {
+    ...meta,
     id: s.id,
-    type: 'location',
+    type: s.stop_type || 'location',
     location: s.name || loc?.name || '',
-    desc: '',
+    desc: meta.desc || '',
     // 中文分类直接喂给 getCategoryMaterialIcon（映射表含中文关键词）
-    category: categories.join(' '),
+    category: meta.category || categories.join(' '),
     address: loc?.address || '',
     city: loc?.city || '',
     phone: loc?.phone || '',
@@ -158,7 +162,7 @@ export function normalizePbDay(d, stopsByDayId) {
     user_id: 'pb',
     date,
     title: d.name && d.name !== date ? d.name : null,
-    color: '#5b7a99',
+    color: d.color || '#5b7a99',
     stops,
     created_at: d.created,
   };
@@ -205,8 +209,9 @@ export function normalizePbTrip(t, days, stopsByDayId) {
     thumb: stopPhotos[0] || DEFAULT_TRIP_THUMB,
     startDate: pbDate(t.date_start),
     endDate: pbDate(t.date_end),
-    settings: t.status ? { status: t.status } : {},
-    status: t.status || null,
+    settings: t.status ? { status: PB_STATUS_TO_UI[t.status] || t.status } : {},
+    status: t.status ? (PB_STATUS_TO_UI[t.status] || t.status) : null,
+    pbStatus: t.status || null,
     share_token: null,
     created_at: t.created,
     stopsCount,
@@ -216,6 +221,13 @@ export function normalizePbTrip(t, days, stopsByDayId) {
     stopPhotos,
   };
 }
+
+// PB 行程状态（5 态）→ UI 三态
+export const PB_STATUS_TO_UI = {
+  Planning: 'planned', Booked: 'planned',
+  Ongoing: 'ongoing',
+  Done: 'completed', Cancelled: 'completed',
+};
 
 // ── 查询接口（hooks 调用） ──────────────────────────────
 
