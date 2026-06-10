@@ -180,6 +180,33 @@ async function createPbStop(dayRaw, date, next) {
   });
 }
 
+/**
+ * 删除 PB stops（UI 删除按钮显式调用——不能从差量"缺失"推断删除，
+ * 因为 TodayPage 等场景传来的本来就是当天 stops 的子集）。
+ * 关联的 expenses 故意保留（消费记录不应随 stop 静默消失）。
+ */
+export async function deletePbStops(uiIds) {
+  if (!PB_WRITES) {
+    console.warn('[pbWrites] VITE_PB_WRITES=off，跳过删除');
+    return;
+  }
+  let deleted = 0;
+  for (const uiId of uiIds) {
+    const id = _localToPbId.get(uiId) || uiId;
+    // 本会话新建但还没写入 PB 的本地 stop（s<timestamp>）没有 PB 记录可删
+    if (/^s\d+$/.test(id)) continue;
+    try {
+      await pb.collection('stops').delete(id);
+      deleted++;
+      _localToPbId.delete(uiId);
+    } catch (e) {
+      if (e?.status !== 404) console.error('[pbWrites] 删除 stop 失败:', id, e.message);
+    }
+  }
+  if (deleted > 0) clearPbCache();
+  console.info(`[pbWrites] 已删除 ${deleted} 个 stop`);
+}
+
 // ── 差量同步器 ──────────────────────────────────────────
 
 /**

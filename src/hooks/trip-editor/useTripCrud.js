@@ -4,6 +4,7 @@
 
 import { useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
+import { IS_PB } from '../../lib/dataSource';
 import {
   DEFAULT_DAY_COLORS,
   findDayById,
@@ -89,6 +90,7 @@ export function useTripCrud(withTripUpdate, computeTransitData, state, dispatch,
 
   const deleteStop = useCallback((dayId, stopId) => {
     const photoPathsToDelete = [];
+    const deletedStopIds = [];
     const collectPhotos = (stop) => {
       if (stop?.photo && stop.photo.includes('trip-media')) {
         const fileName = stop.photo.split('/').pop().split('?')[0];
@@ -103,16 +105,26 @@ export function useTripCrud(withTripUpdate, computeTransitData, state, dispatch,
       const stop = findStopById(day, stopId);
       if (stop?.stayId) {
         updated.days.forEach((tripDay) => {
-          tripDay.stops.forEach((s) => { if (s.stayId === stop.stayId) collectPhotos(s); });
+          tripDay.stops.forEach((s) => {
+            if (s.stayId === stop.stayId) { collectPhotos(s); deletedStopIds.push(s.id); }
+          });
           tripDay.stops = tripDay.stops.filter((item) => item.stayId !== stop.stayId);
         });
       } else {
         collectPhotos(stop);
+        deletedStopIds.push(stopId);
         day.stops = day.stops.filter((item) => item.id !== stopId);
       }
 
       return updated;
     });
+
+    // PB 模式：显式删除 PB 记录（差量同步器无法从"缺失"推断删除）
+    if (IS_PB && deletedStopIds.length > 0) {
+      import('../../adapters/pbWrites')
+        .then(({ deletePbStops }) => deletePbStops(deletedStopIds))
+        .catch((err) => console.warn('[deleteStop] PB delete failed:', err));
+    }
 
     if (updateResult?.updated) {
       computeTransitData(dayId, updateResult.updated);
