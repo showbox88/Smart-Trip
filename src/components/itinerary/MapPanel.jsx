@@ -7,6 +7,8 @@ import MapSearchBox from './MapSearchBox';
 import NearbyCheckinPanel from './NearbyCheckinPanel';
 import { getTripStayMap, isHotelStop } from '../../utils/stayHelpers';
 import { drawTransportLine, drawTransitSteps, fetchAndDrawRoute, TRANSPORT_MODES } from '../../utils/mapRouteDrawing';
+import { IS_PB } from '../../lib/dataSource';
+import { getPbSettingSync, savePbSetting } from '../../adapters/pbSettings';
 
 const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [], isDayMode = false, dayId = null, existingPlaceIds = [] }, ref) {
   const { state } = useApp();
@@ -22,7 +24,19 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [], is
   const prevFocusDayIdsRef = useRef([]); // track previous focusDayIds to avoid redundant fitBounds
   const [mapReady, setMapReady] = useState(!!window.googleMapsReady);
   const [mapInited, setMapInited] = useState(false); // triggers re-render after map instance created
-  const [darkMode, setDarkMode] = useState(layoutVariant !== 'clean' && layoutVariant !== 'mobile');
+  const [darkMode, setDarkMode] = useState(() => {
+    // PB 模式：优先用云端记住的偏好（pbSettings 启动时已加载）
+    if (IS_PB) {
+      const saved = getPbSettingSync('map_dark');
+      if (saved !== null && saved !== undefined) return !!saved;
+    }
+    return layoutVariant !== 'clean' && layoutVariant !== 'mobile';
+  });
+  const darkModeInitRef = useRef(true);
+  useEffect(() => {
+    if (darkModeInitRef.current) { darkModeInitRef.current = false; return; }
+    if (IS_PB) savePbSetting('map_dark', darkMode);
+  }, [darkMode]);
   const [selectedPlaceId, setSelectedPlaceId] = useState(null);
   const selectedPlaceIdRef = useRef(null);
   const lastCloseTimeRef = useRef(0);

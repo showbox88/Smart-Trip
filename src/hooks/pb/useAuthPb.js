@@ -2,8 +2,10 @@ import { useEffect, useCallback } from 'react';
 import { pb } from '../../lib/pb';
 import { PB_LOGIN } from '../../lib/dataSource';
 import { useApp } from '../../context/AppContext';
+import { useI18n } from '../../context/I18nContext';
 import { useTheme } from '../../theme';
 import { getPbTrips } from '../../adapters/pbAdapter';
+import { loadPbSettings, getPbSettingSync } from '../../adapters/pbSettings';
 
 // 免登录模式下的固定用户（单人内部使用；isAdmin 按 email 判断所以保留真实邮箱）
 const NO_LOGIN_USER = {
@@ -21,6 +23,7 @@ const NO_LOGIN_USER = {
  */
 export function useAuthPb() {
   const { state, dispatch } = useApp();
+  const { setLanguage } = useI18n();
   const { setUserId: setThemeUserId } = useTheme();
 
   useEffect(() => {
@@ -62,13 +65,19 @@ export function useAuthPb() {
     return unsubscribe;
   }, [dispatch, setThemeUserId]);
 
-  // 登录后加载 trips
+  // 登录后加载 trips + UI 偏好（语言等；主题由 ThemeContext 经 themeStorage 自行走 PB）
   useEffect(() => {
     if (!state.user) return;
     getPbTrips()
       .then(trips => dispatch({ type: 'SET_TRIPS_V2', payload: trips }))
       .catch(e => console.error('[useAuthPb] load trips error:', e.message));
-  }, [state.user?.id, dispatch]);
+    loadPbSettings()
+      .then(() => {
+        const lang = getPbSettingSync('language');
+        if (lang) setLanguage(lang);
+      })
+      .catch(() => {});
+  }, [state.user?.id, dispatch, setLanguage]);
 
   const signIn = useCallback(async (email, password) => {
     try {

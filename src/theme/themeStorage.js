@@ -6,6 +6,9 @@
  * Supabase is the source of truth for cross-device sync.
  */
 
+import { IS_PB } from '../lib/dataSource';
+import { getPbSettingSync, savePbSetting, loadPbSettings } from '../adapters/pbSettings';
+
 const LS_THEME_KEY = 'st-active-theme';
 const LS_THEME_ID_KEY = 'st-active-theme-id';
 
@@ -61,6 +64,10 @@ export function clearCachedTheme() {
  * @returns {string|null} theme ID
  */
 export async function fetchActiveThemeId(supabase, userId) {
+  if (IS_PB) {
+    await loadPbSettings();
+    return getPbSettingSync('active_theme_id', null);
+  }
   try {
     const { data, error } = await supabase
       .from('profiles')
@@ -81,6 +88,11 @@ export async function fetchActiveThemeId(supabase, userId) {
  * @returns {object|null} theme JSON
  */
 export async function fetchThemeById(supabase, themeId) {
+  if (IS_PB) {
+    await loadPbSettings();
+    const themes = getPbSettingSync('custom_themes', {});
+    return themes?.[themeId] || null;
+  }
   try {
     const { data, error } = await supabase
       .from('themes')
@@ -101,6 +113,10 @@ export async function fetchThemeById(supabase, themeId) {
  * @param {string} themeId
  */
 export async function saveActiveThemeId(supabase, userId, themeId) {
+  if (IS_PB) {
+    await savePbSetting('active_theme_id', themeId);
+    return;
+  }
   try {
     await supabase
       .from('profiles')
@@ -117,6 +133,14 @@ export async function saveActiveThemeId(supabase, userId, themeId) {
  * @returns {{ id: string }|null}
  */
 export async function saveTheme(supabase, { authorId, name, description, themeData, isPublic = false }) {
+  if (IS_PB) {
+    await loadPbSettings();
+    const themes = { ...(getPbSettingSync('custom_themes', {}) || {}) };
+    const id = `pbt_${Date.now()}`;
+    themes[id] = themeData;
+    await savePbSetting('custom_themes', themes);
+    return { id };
+  }
   try {
     const { data, error } = await supabase
       .from('themes')
@@ -149,6 +173,10 @@ export async function saveTheme(supabase, { authorId, name, description, themeDa
  * @returns {object} e.g. { primary: '#adc6ff', background: '#0d1324' }
  */
 export async function fetchThemeOverrides(supabase, userId) {
+  if (IS_PB) {
+    await loadPbSettings();
+    return getPbSettingSync('theme_overrides', {}) || {};
+  }
   try {
     const { data, error } = await supabase
       .from('profiles')
@@ -169,6 +197,10 @@ export async function fetchThemeOverrides(supabase, userId) {
  * @param {object} overrides - e.g. { primary: '#adc6ff' }
  */
 export async function saveThemeOverrides(supabase, userId, overrides) {
+  if (IS_PB) {
+    await savePbSetting('theme_overrides', overrides);
+    return;
+  }
   try {
     await supabase
       .from('profiles')
@@ -185,6 +217,7 @@ export async function saveThemeOverrides(supabase, userId, overrides) {
  * @returns {Array}
  */
 export async function fetchPublicThemes(supabase, limit = 50) {
+  if (IS_PB) return []; // 单人模式没有主题广场
   try {
     const { data, error } = await supabase
       .from('themes')

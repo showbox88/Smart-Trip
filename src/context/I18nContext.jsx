@@ -41,6 +41,13 @@ export function I18nProvider({ children }) {
     if (bundles[lang]) {
       setLanguageState(lang);
       localStorage.setItem('smart-trip-lang', lang);
+      // PB 模式：跨设备记住语言（fire-and-forget）
+      import('../lib/dataSource').then(({ IS_PB }) => {
+        if (!IS_PB) return;
+        import('../adapters/pbSettings').then(({ savePbSetting, getPbSettingSync }) => {
+          if (getPbSettingSync('language') !== lang) savePbSetting('language', lang);
+        });
+      });
     }
   }, []);
 
