@@ -140,8 +140,15 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [], is
     }
   }, [darkMode]);
 
-  // Sync dark mode when theme layout changes
+  // Sync dark mode when theme layout *changes* (not on mount — initial value
+  // already chosen by useState + pbSettings; this effect would otherwise
+  // clobber the saved preference). PB mode: never auto-sync from layout,
+  // user pref is the source of truth.
+  const lastLayoutRef = useRef(layoutVariant);
   useEffect(() => {
+    if (lastLayoutRef.current === layoutVariant) return; // skip mount
+    lastLayoutRef.current = layoutVariant;
+    if (IS_PB) return; // PB 模式：层级变化不覆盖用户偏好
     setDarkMode(layoutVariant !== 'clean' && layoutVariant !== 'mobile');
   }, [layoutVariant]);
 
