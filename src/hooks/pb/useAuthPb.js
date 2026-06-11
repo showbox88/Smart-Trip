@@ -79,12 +79,20 @@ export function useAuthPb() {
       .catch(() => {});
   }, [state.user?.id, dispatch, setLanguage]);
 
-  const signIn = useCallback(async (email, password) => {
-    try {
-      return await pb.collection('_superusers').authWithPassword(email, password);
-    } catch {
-      return await pb.collection('users').authWithPassword(email, password);
+  const signIn = useCallback(async (_email, passphrase) => {
+    // 走代理 gate：浏览器只发口令；代理校验后返回真 PB token + 记录
+    const res = await fetch('/auth/gate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ passphrase }),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.message || `登录失败 (${res.status})`);
     }
+    const { token, record } = await res.json();
+    pb.authStore.save(token, record);
+    return { token, record };
   }, []);
 
   const signUp = useCallback(async () => {

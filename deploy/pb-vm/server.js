@@ -24,6 +24,7 @@ const MEDIA_DIR = process.env.MEDIA_DIR || path.join(__dirname, 'media');
 const PB_TOKEN = process.env.PB_TOKEN || '';
 const INJECT = process.env.PB_INJECT_TOKEN === 'on' && PB_TOKEN;
 const MAX_UPLOAD = 25 * 1024 * 1024; // 25 MB，原图不压缩
+const UI_PASSPHRASE = process.env.UI_PASSPHRASE || ''; // 用户记得住的口令；空 = 禁用 gate
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -48,6 +49,11 @@ const MIME = {
 const server = http.createServer((req, res) => {
   // 访问日志（journalctl -u smat-trip 可见），用于排查"请求到底有没有到这"
   console.log(`${new Date().toISOString()} ${req.method} ${req.url.split('?')[0]}`);
+
+  // ── /auth/gate：口令验证 → 返回 PB token + 用户记录（浏览器写 authStore） ──
+  if (req.method === 'POST' && req.url === '/auth/gate') {
+    return handleAuthGate(req, res);
+  }
 
   // ── /api/* → PocketBase 同源代理（含 SSE 流式响应） ──
   if (req.url.startsWith('/api/')) {
@@ -217,6 +223,64 @@ function handleMedia(req, res) {
   return json(405, { message: 'Method not allowed' });
 }
 
+/**
+ * /auth/gate — UI 口令网关
+ * 浏览器 POST { passphrase: "..." }
+ * 成功：返回 { token: <PB superuser token>, record: <superuser record> }，
+ *       浏览器 pb.authStore.save(token, record) 即可作为真 PB 凭据。
+ * 失败：401（含 1 秒延迟，简易限速）
+ */
+function handleAuthGate(req, res) {
+  const crypto = require('crypto');
+  const reply = (code, obj) => {
+    res.writeHead(code, { 'content-type': 'application/json' });
+    res.end(JSON.stringify(obj));
+  };
+  if (!UI_PASSPHRASE || !PB_TOKEN) {
+    return reply(503, { message: 'gate not configured (UI_PASSPHRASE / PB_TOKEN missing)' });
+  }
+  let body = '';
+  let received = 0;
+  req.on('data', (c) => {
+    received += c.length;
+    if (received > 4096) { req.destroy(); reply(413, { message: 'too large' }); return; }
+    body += c.toString('utf8');
+  });
+  req.on('end', () => {
+    let pass = '';
+    try { pass = String(JSON.parse(body)?.passphrase || ''); } catch { return reply(400, { message: 'bad json' }); }
+    const a = Buffer.from(pass);
+    const b = Buffer.from(UI_PASSPHRASE);
+    const ok = a.length === b.length && crypto.timingSafeEqual(a, b);
+    if (!ok) {
+      setTimeout(() => reply(401, { message: 'wrong passphrase' }), 1000);
+      return;
+    }
+    // 口令对 → 用 PB_TOKEN 拉 superuser 自身记录，连同 token 一并返回
+    let userId = '';
+    try {
+      const payload = JSON.parse(Buffer.from(PB_TOKEN.split('.')[1], 'base64').toString('utf8'));
+      userId = payload.id;
+    } catch { return reply(500, { message: 'bad PB_TOKEN' }); }
+    const opts = {
+      host: PB_HOST, port: PB_PORT, method: 'GET',
+      path: `/api/collections/_superusers/records/${encodeURIComponent(userId)}`,
+      headers: { 'Authorization': PB_TOKEN, host: `${PB_HOST}:${PB_PORT}` },
+    };
+    http.get(opts, (pbRes) => {
+      let buf = '';
+      pbRes.on('data', (c) => { buf += c.toString('utf8'); });
+      pbRes.on('end', () => {
+        if (pbRes.statusCode !== 200) return reply(502, { message: `PB ${pbRes.statusCode}` });
+        try {
+          const record = JSON.parse(buf);
+          reply(200, { token: PB_TOKEN, record });
+        } catch { reply(502, { message: 'bad PB response' }); }
+      });
+    }).on('error', (e) => reply(502, { message: e.message }));
+  });
+}
+
 server.listen(PORT, '127.0.0.1', () => {
-  console.log(`[smat-trip] listening on 127.0.0.1:${PORT}, dist=${DIST}, pb=${PB_HOST}:${PB_PORT}, media=${MEDIA_DIR}, inject=${INJECT ? 'on' : 'off'}`);
+  console.log(`[smat-trip] listening on 127.0.0.1:${PORT}, dist=${DIST}, pb=${PB_HOST}:${PB_PORT}, media=${MEDIA_DIR}, inject=${INJECT ? 'on' : 'off'}, gate=${UI_PASSPHRASE ? 'on' : 'off'}`);
 });

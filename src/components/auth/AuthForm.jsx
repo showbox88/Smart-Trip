@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useI18n } from '../../context/I18nContext';
+import { IS_PB } from '../../lib/dataSource';
 
 export default function AuthForm() {
   const { t } = useI18n();
@@ -20,7 +21,8 @@ export default function AuthForm() {
     setLoading(true);
     try {
       if (tab === 'signin') {
-        await signIn(email, password);
+        // PB 模式：email 不用，signIn 只看 password（= 口令）
+        await signIn(IS_PB ? '_' : email, password);
       } else {
         await signUp(email, password);
       }
@@ -48,8 +50,8 @@ export default function AuthForm() {
           <div className="login-logo">Smart<span>Trip</span></div>
           <div className="login-tagline">{t('auth.tagline')}</div>
 
-          <button 
-            className="auth-btn-google" 
+          {!IS_PB && <button
+            className="auth-btn-google"
             type="button"
             onClick={() => signInWithGoogle()}
           >
@@ -60,13 +62,13 @@ export default function AuthForm() {
               <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.01l3.69 2.87c.86-2.59 3.28-4.5 6.13-4.5z" fill="#EA4335"/>
             </svg>
             {t('auth.google_login')}
-          </button>
+          </button>}
 
-          <div className="auth-divider">
+          {!IS_PB && <div className="auth-divider">
             <span>{t('auth.or')}</span>
-          </div>
+          </div>}
 
-          <div className="auth-tabs" style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--md-sys-color-outline)' }}>
+          {!IS_PB && <div className="auth-tabs" style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--md-sys-color-outline)' }}>
             <div
               className={`auth-tab${tab === 'signin' ? ' active' : ''}`}
               onClick={() => setTab('signin')}
@@ -81,10 +83,10 @@ export default function AuthForm() {
             >
               {t('auth.register')}
             </div>
-          </div>
+          </div>}
 
           <form onSubmit={handleSubmit}>
-            <div className="auth-form-group">
+            {!IS_PB && <div className="auth-form-group">
               <label htmlFor="login-email">{t('auth.email')}</label>
               <div className="auth-input-wrapper">
                 <span className="material-symbols-outlined auth-input-icon">mail</span>
@@ -99,10 +101,10 @@ export default function AuthForm() {
                   autoComplete="email"
                 />
               </div>
-            </div>
+            </div>}
 
-            <div className="auth-form-group" style={{ marginTop: '1rem' }}>
-              <label htmlFor="login-password">{t('auth.password')}</label>
+            <div className="auth-form-group" style={{ marginTop: IS_PB ? 0 : '1rem' }}>
+              <label htmlFor="login-password">{IS_PB ? '口令' : t('auth.password')}</label>
               <div className="auth-input-wrapper">
                 <span className="material-symbols-outlined auth-input-icon">lock</span>
                 <input
