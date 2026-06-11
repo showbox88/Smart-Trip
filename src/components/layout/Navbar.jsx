@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../hooks/useAuth';
@@ -27,6 +27,27 @@ export default function Navbar() {
   // Captured at dropdown-open time so age strings are stable across re-renders.
   // eslint-disable-next-line react-hooks/purity, react-hooks/exhaustive-deps -- Date.now() refresh keyed off bellOpen is intentional
   const nowMs = useMemo(() => Date.now(), [bellOpen]);
+  // Click-outside-to-close for bell + user dropdowns. We listen on mousedown
+  // (not click) so the close happens before any subsequent button click fires —
+  // avoids needing per-button stopPropagation hacks.
+  const bellRef = useRef(null);
+  const userRef = useRef(null);
+  useEffect(() => {
+    if (!bellOpen && !dropdownOpen) return undefined;
+    const onDocMouseDown = (e) => {
+      if (bellOpen && bellRef.current && !bellRef.current.contains(e.target)) {
+        setBellOpen(false);
+      }
+      if (dropdownOpen && userRef.current && !userRef.current.contains(e.target)) {
+        setDropdownOpen(false);
+        // Collapse any inner submenus so reopening starts clean.
+        setLangMenuOpen(false);
+        setThemeMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', onDocMouseDown);
+    return () => document.removeEventListener('mousedown', onDocMouseDown);
+  }, [bellOpen, dropdownOpen]);
 
   const groupedThemes = useMemo(() => {
     const groups = {};
@@ -70,7 +91,7 @@ export default function Navbar() {
       <div className="nav-right">
         {state.user && (
           <>
-            <div className="bell-container" style={{ position: 'relative' }}>
+            <div className="bell-container" ref={bellRef} style={{ position: 'relative' }}>
               <button
                 className="nav-icon-btn"
                 onClick={() => setBellOpen((v) => !v)}
@@ -165,7 +186,7 @@ export default function Navbar() {
                 </div>
               )}
             </div>
-            <div className="user-profile-container">
+            <div className="user-profile-container" ref={userRef}>
               <div
                 className="user-avatar"
                 onClick={() => setDropdownOpen(v => !v)}
