@@ -15,6 +15,13 @@ const NO_LOGIN_USER = {
   avatar: null,
 };
 
+// UI 显示别名映射：把 PB 真实账号映射成对外显示的名字/邮箱。
+// 只影响 state.user 的 name/email 显示；PB authStore.record、token、
+// API 调用、isAdmin 判断（若按 record.email）全部不变。
+const DISPLAY_ALIAS = {
+  'sdk@phone-bridge.local': { name: 'Showbox', email: 'showbox88@gmail.com' },
+};
+
 /**
  * useAuthPb — PocketBase 数据源的认证（UI 不变，走 PB 登录）
  *
@@ -36,12 +43,13 @@ export function useAuthPb() {
     }
 
     const applyRecord = (record) => {
+      const alias = DISPLAY_ALIAS[record.email] || {};
       dispatch({
         type: 'SET_USER',
         payload: {
           id: record.id,
-          email: record.email,
-          name: record.name || record.email?.split('@')[0] || 'PB User',
+          email: alias.email || record.email,
+          name: alias.name || record.name || record.email?.split('@')[0] || 'PB User',
           avatar: null,
         },
       });
