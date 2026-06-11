@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { pb } from '../lib/pb';
 import { useApp } from '../context/AppContext';
+import { useSystemAlerts } from '../hooks/useSystemAlerts';
 import { isAdmin } from '../utils/admin';
 import { Navigate } from 'react-router-dom';
 import { fetchRouteDuration } from '../utils/transitHelpers';
@@ -27,11 +29,6 @@ export default function AdminPage() {
   // Repair state
   const [repairLog, setRepairLog] = useState([]);
   const [repairingTripId, setRepairingTripId] = useState(null);
-
-  // Security check
-  if (!isAdmin(state.user)) {
-    return <Navigate to="/" replace />;
-  }
 
   useEffect(() => {
     if (activeTab === 'itineraries') loadAllTrips();
@@ -282,75 +279,91 @@ export default function AdminPage() {
   // ── API monitoring helpers ─────────────────────────────────
 
   const API_TYPES = ['places_search', 'place_details', 'directions'];
+  const API_SWITCH_KEYS = ['places_search_enabled', 'place_details_enabled', 'directions_enabled'];
 
   const loadApiData = async () => {
-    // Load settings
-    const { data: settings } = await supabase.from('system_settings').select('key, value');
+    // settings
+    const settings = await pb.collection('system_settings').getFullList();
     const map = {};
-    settings?.forEach(s => { map[s.key] = s.value; });
+    settings.forEach((s) => { map[s.key] = s.value; });
     setApiSettings(map);
     setApiLimitInputs({
-      daily_api_limit: map.daily_api_limit ?? 200,
+      daily_api_limit:    map.daily_api_limit ?? 200,
       per_2min_api_limit: map.per_2min_api_limit ?? 20,
     });
 
-    // Load stats
+    // stats
     const startOfDay = new Date(); startOfDay.setHours(0, 0, 0, 0);
-    const twoMinAgo = new Date(Date.now() - 2 * 60 * 1000);
+    const twoMinAgo  = new Date(Date.now() - 2 * 60 * 1000);
+    const pbTime = (d) => d.toISOString().replace('T', ' ');
 
     const stats = {};
     await Promise.all(API_TYPES.map(async (type) => {
-      const [{ count: today }, { count: recent }, { count: totalBlocked }] = await Promise.all([
-        supabase.from('api_logs').select('*', { count: 'exact', head: true })
-          .eq('api_type', type).eq('status', 'success').gte('created_at', startOfDay.toISOString()),
-        supabase.from('api_logs').select('*', { count: 'exact', head: true })
-          .eq('api_type', type).eq('status', 'success').gte('created_at', twoMinAgo.toISOString()),
-        supabase.from('api_logs').select('*', { count: 'exact', head: true })
-          .eq('api_type', type).eq('status', 'blocked').gte('created_at', startOfDay.toISOString()),
+      const [todayRes, recentRes, blockedRes] = await Promise.all([
+        pb.collection('api_logs').getList(1, 1, {
+          filter: `api_type="${type}" && status="success" && created>="${pbTime(startOfDay)}"`,
+        }),
+        pb.collection('api_logs').getList(1, 1, {
+          filter: `api_type="${type}" && status="success" && created>="${pbTime(twoMinAgo)}"`,
+        }),
+        pb.collection('api_logs').getList(1, 1, {
+          filter: `api_type="${type}" && status="blocked" && created>="${pbTime(startOfDay)}"`,
+        }),
       ]);
-      stats[type] = { today: today || 0, recent: recent || 0, blocked: totalBlocked || 0 };
+      stats[type] = {
+        today:   todayRes.totalItems,
+        recent:  recentRes.totalItems,
+        blocked: blockedRes.totalItems,
+      };
     }));
     setApiStats(stats);
 
     // Recent logs
-    const { data: logs } = await supabase.from('api_logs')
-      .select('api_type, status, created_at')
-      .order('created_at', { ascending: false })
-      .limit(50);
-    setApiLogs(logs || []);
+    const logs = await pb.collection('api_logs').getList(1, 50, { sort: '-created' });
+    setApiLogs(logs.items.map((l) => ({
+      api_type:   l.api_type,
+      status:     l.status,
+      created_at: l.created,
+    })));
   };
 
   const toggleApiSwitch = async (key, currentValue) => {
-    const newValue = currentValue === true || currentValue === 'true' ? 'false' : 'true';
+    const newValue = (currentValue === true || currentValue === 'true') ? 'false' : 'true';
     setApiSaving(true);
-    await supabase.from('system_settings')
-      .update({ value: newValue, updated_at: new Date().toISOString() })
-      .eq('key', key);
+    try {
+      const rec = await pb.collection('system_settings').getFirstListItem(`key="${key}"`);
+      await pb.collection('system_settings').update(rec.id, { value: newValue });
+    } catch {
+      // If row missing (shouldn't happen given seed), create it
+      await pb.collection('system_settings').create({ key, value: newValue });
+    }
     await loadApiData();
     setApiSaving(false);
+  };
+
+  const upsertSetting = async (key, value) => {
+    try {
+      const rec = await pb.collection('system_settings').getFirstListItem(`key="${key}"`);
+      await pb.collection('system_settings').update(rec.id, { value });
+    } catch {
+      await pb.collection('system_settings').create({ key, value });
+    }
   };
 
   const saveLimits = async () => {
     setApiSaving(true);
     await Promise.all([
-      supabase.from('system_settings').update({ value: String(apiLimitInputs.daily_api_limit), updated_at: new Date().toISOString() }).eq('key', 'daily_api_limit'),
-      supabase.from('system_settings').update({ value: String(apiLimitInputs.per_2min_api_limit), updated_at: new Date().toISOString() }).eq('key', 'per_2min_api_limit'),
+      upsertSetting('daily_api_limit',    String(apiLimitInputs.daily_api_limit)),
+      upsertSetting('per_2min_api_limit', String(apiLimitInputs.per_2min_api_limit)),
     ]);
     await loadApiData();
     setApiSaving(false);
   };
 
-  const API_SWITCH_KEYS = ['places_search_enabled', 'place_details_enabled', 'directions_enabled'];
-
   const toggleAllApis = async (enable) => {
     setApiSaving(true);
     const value = enable ? 'true' : 'false';
-    await Promise.all(
-      API_SWITCH_KEYS.map(key =>
-        supabase.from('system_settings')
-          .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' })
-      )
-    );
+    await Promise.all(API_SWITCH_KEYS.map((key) => upsertSetting(key, value)));
     await loadApiData();
     setApiSaving(false);
   };
@@ -447,9 +460,46 @@ export default function AdminPage() {
     setRepairingTripId(null);
   };
 
+  const { alerts, unackCount, markAllAck } = useSystemAlerts();
+
+  // Security check
+  if (!isAdmin(state.user)) {
+    return <Navigate to="/" replace />;
+  }
 
   return (
     <div className="admin-page">
+      {unackCount > 0 && (
+        <div style={{
+          background: 'rgba(239,68,68,0.12)',
+          border: '1px solid rgba(239,68,68,0.4)',
+          borderRadius: 12,
+          padding: '12px 16px',
+          marginBottom: 16,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+        }}>
+          <span className="material-symbols-outlined" style={{ color: '#ef4444', fontSize: 24 }}>warning</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 700, color: '#ef4444' }}>
+              ⚠️ {unackCount} 个未确认的 API 闸门告警
+            </div>
+            <div style={{ fontSize: 13, color: 'var(--md-sys-color-on-surface-variant)', marginTop: 2 }}>
+              最近一条：{alerts[0]?.api_type} —{' '}
+              {({ 'disabled':'管理员关闭', 'daily_limit':'触发日限额', '2min_limit':'触发 2 分钟限额' })[alerts[0]?.reason] || alerts[0]?.reason}
+              （{alerts[0]?.count} 次）
+            </div>
+          </div>
+          <button
+            onClick={markAllAck}
+            style={{
+              background: '#ef4444', color: '#fff', border: 'none',
+              padding: '8px 14px', borderRadius: 8, cursor: 'pointer', fontWeight: 600,
+            }}
+          >全部标记已读</button>
+        </div>
+      )}
       <header>
         <div>
           <h1>Admin Dashboard</h1>
