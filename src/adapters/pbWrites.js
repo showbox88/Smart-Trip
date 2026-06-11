@@ -340,6 +340,26 @@ export async function syncDayStopsToPb(date, nextStops, opts = {}) {
     console.info('[pbWrites] 已创建 day:', date, '→', day.id);
   }
 
+  // day 级字段（color / title）差量写
+  const dayPatch = opts.dayPatch || {};
+  const dayUpdate = {};
+  if (dayPatch.color !== undefined && dayPatch.color !== (day.color || '')) {
+    dayUpdate.color = dayPatch.color || '';
+  }
+  if (dayPatch.title !== undefined) {
+    const desiredName = dayPatch.title || date;
+    if (desiredName !== day.name) dayUpdate.name = desiredName;
+  }
+  if (Object.keys(dayUpdate).length > 0) {
+    try {
+      const updated = await pb.collection('days').update(day.id, dayUpdate);
+      Object.assign(day, updated);
+      clearPbCache();
+    } catch (e) {
+      console.error('[pbWrites] day 字段更新失败:', e.message);
+    }
+  }
+
   const prevById = {};
   for (const s of stopsByDayId[day.id] || []) prevById[s.id] = normalizePbStop(s);
   const rawById = {};
