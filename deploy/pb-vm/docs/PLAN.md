@@ -154,9 +154,10 @@
 - [ ] 连续 3 天无冲突堆积后视为稳定
 - **回滚**：从 field_map_overrides 删掉映射即可，PB 数据不受影响
 
-### Phase 6 — 启用登录（10 分钟，想开就开）
-- [ ] `VITE_PB_LOGIN=on` 重新构建 + VM 端 `PB_INJECT_TOKEN=off` + 重启服务
-- [ ] 手机/电脑各登录一次（PB token 会留在浏览器 localStorage，之后免输）
+### Phase 6 — 启用登录 ✅ 已上线（2026-06-10）
+- [x] `VITE_PB_LOGIN=on` 重新构建 + VM `.env` 把 `PB_INJECT_TOKEN` 切 off + 重启服务
+- [x] 验证：tailnet 无凭据访问 `/api/collections/trips/records` 返回 403（防护到位）；登录端点可达
+- [ ] 你在手机/电脑各登录一次（PB superuser 账号：`showbox88@gmail.com` + PB 管理员密码；token 写浏览器 localStorage，下次免输）
 
 ### 后续展望（不在本计划内，已记录待启动）
 - **双向互通入口（UI ⇄ phone-bridge 融合）**：分三步走，做到哪步看体验
