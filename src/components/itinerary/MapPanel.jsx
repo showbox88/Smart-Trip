@@ -8,7 +8,7 @@ import NearbyCheckinPanel from './NearbyCheckinPanel';
 import { getTripStayMap, isHotelStop } from '../../utils/stayHelpers';
 import { drawTransportLine, drawTransitSteps, fetchAndDrawRoute, TRANSPORT_MODES } from '../../utils/mapRouteDrawing';
 import { IS_PB } from '../../lib/dataSource';
-import { getPbSettingSync, savePbSetting } from '../../adapters/pbSettings';
+import { getPbSettingSync, savePbSetting, onPbSettingsReady, isPbSettingsLoaded } from '../../adapters/pbSettings';
 
 const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [], isDayMode = false, dayId = null, existingPlaceIds = [] }, ref) {
   const { state } = useApp();
@@ -25,16 +25,26 @@ const MapPanel = forwardRef(function MapPanel({ onAddToDay, focusDayIds = [], is
   const [mapReady, setMapReady] = useState(!!window.googleMapsReady);
   const [mapInited, setMapInited] = useState(false); // triggers re-render after map instance created
   const [darkMode, setDarkMode] = useState(() => {
-    // PB 模式：优先用云端记住的偏好（pbSettings 启动时已加载）
-    if (IS_PB) {
+    if (IS_PB && isPbSettingsLoaded()) {
       const saved = getPbSettingSync('map_dark');
       if (saved !== null && saved !== undefined) return !!saved;
     }
     return layoutVariant !== 'clean' && layoutVariant !== 'mobile';
   });
+  // pbSettings 异步加载完成后再同步一次（首次挂载时偏好可能还没到）
+  const darkModeUserTouchedRef = useRef(false);
+  useEffect(() => {
+    if (!IS_PB) return;
+    return onPbSettingsReady(() => {
+      if (darkModeUserTouchedRef.current) return; // 用户已经手动切过，不要被云端覆盖
+      const saved = getPbSettingSync('map_dark');
+      if (saved !== null && saved !== undefined) setDarkMode(!!saved);
+    });
+  }, []);
   const darkModeInitRef = useRef(true);
   useEffect(() => {
     if (darkModeInitRef.current) { darkModeInitRef.current = false; return; }
+    darkModeUserTouchedRef.current = true;
     if (IS_PB) savePbSetting('map_dark', darkMode);
   }, [darkMode]);
   const [selectedPlaceId, setSelectedPlaceId] = useState(null);

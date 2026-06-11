@@ -10,6 +10,7 @@ import { pb } from '../lib/pb';
 
 let _cache = null; // { key: { id, value } }
 let _loading = null;
+const _subs = new Set(); // 加载完成后的回调（用于让组件重读偏好）
 
 export async function loadPbSettings(force = false) {
   if (_cache && !force) return _cache;
@@ -18,6 +19,7 @@ export async function loadPbSettings(force = false) {
     .then((rows) => {
       _cache = {};
       for (const r of rows) _cache[r.key] = { id: r.id, value: r.value };
+      _subs.forEach((cb) => { try { cb(); } catch { /* ignore */ } });
       return _cache;
     })
     .catch((e) => {
@@ -26,6 +28,17 @@ export async function loadPbSettings(force = false) {
     })
     .finally(() => { _loading = null; });
   return _loading;
+}
+
+/** 偏好加载完后回调（不管成败都会触发一次）；返回取消订阅函数 */
+export function onPbSettingsReady(cb) {
+  if (_cache) { cb(); return () => {}; }
+  _subs.add(cb);
+  return () => _subs.delete(cb);
+}
+
+export function isPbSettingsLoaded() {
+  return _cache !== null;
 }
 
 /** 同步读（需 loadPbSettings 已完成；未加载时返回 fallback） */
