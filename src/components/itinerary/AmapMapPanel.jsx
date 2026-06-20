@@ -109,7 +109,7 @@ const AmapMapPanel = forwardRef(function AmapMapPanel(
 
   return (
     <section className="map-view">
-      <div className="map-placeholder" style={{ position: 'relative', overflow: 'hidden', background: '#eaebd8', width: '100%', height: '100%' }}>
+      <div className="map-placeholder" id="mock-map-container" style={{ position: 'relative', overflow: 'hidden', background: '#eaebd8', width: '100%', height: '100%' }}>
         <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
         {!mapReady && (
           <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
