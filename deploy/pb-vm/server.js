@@ -148,8 +148,8 @@ function handleMedia(req, res) {
     if (!/^[a-z0-9_]+\/[a-zA-Z0-9_-]+$/.test(dir)) return json(400, { message: 'bad dir' });
     let u;
     try { u = new URL(srcUrl); } catch { return json(400, { message: 'bad url' }); }
-    // 仅允许 Google 图片域，防 SSRF（参考 music-station net_guard 教训）
-    const ALLOWED_HOSTS = /(^|\.)googleapis\.com$|(^|\.)googleusercontent\.com$|(^|\.)ggpht\.com$|(^|\.)gstatic\.com$/;
+    // 仅允许 Google + 高德 图片域，防 SSRF（参考 music-station net_guard 教训）
+    const ALLOWED_HOSTS = /(^|\.)googleapis\.com$|(^|\.)googleusercontent\.com$|(^|\.)ggpht\.com$|(^|\.)gstatic\.com$|(^|\.)amap\.com$|(^|\.)autonavi\.com$/;
     if (u.protocol !== 'https:' || !ALLOWED_HOSTS.test(u.hostname)) {
       return json(403, { message: 'host not allowed' });
     }
