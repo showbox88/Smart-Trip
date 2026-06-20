@@ -1,7 +1,7 @@
 import { useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCheckIn } from '../hooks/useCheckIn';
-import MapPanel from '../components/itinerary/MapPanel';
+import MapPanel from '../components/itinerary/ProviderMapPanel';
 
 /**
  * MapPage — 独立地图打卡页（今日打卡）

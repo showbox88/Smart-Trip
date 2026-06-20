@@ -1,5 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useI18n } from '../../context/I18nContext';
+import { isAmap } from '../../providers/mapProvider';
+import { amapTypeForCategory } from '../../utils/amapCategories';
+import { wgs84ToGcj02 } from '../../utils/coord';
 
 // 每类给一组 Places API 类型（单一类型太窄：如 ALDI 是 supermarket，不是 shopping_mall）
 const CATEGORIES = [
@@ -34,6 +37,40 @@ export default function NearbyCheckinPanel({ mapInstance, userLocation, existing
   const [addingId, setAddingId] = useState(null);
   // 搜索附近地点
   const searchNearby = useCallback(async (categoryId) => {
+    // 高德分支:不依赖 Google 地图实例,用 AMap.PlaceSearch 周边搜索
+    if (isAmap()) {
+      if (!window.AMap || !userLocation) return;
+      setLoading(true);
+      setPlaces([]);
+      try {
+        const g = wgs84ToGcj02(userLocation.lat, userLocation.lng); // 中心转 GCJ-02
+        const type = amapTypeForCategory(categoryId);
+        const search = new window.AMap.PlaceSearch({ pageSize: 20, type });
+        const pois = await new Promise((resolve) => {
+          search.searchNearBy('', [g.lng, g.lat], RADIUS, (status, result) => {
+            if (status === 'complete' && result.poiList) resolve(result.poiList.pois || []);
+            else resolve([]);
+          });
+        });
+        setPlaces(pois.map((p) => ({
+          place_id: p.id,          // 复用现有渲染字段名;高德里即 amap_poi_id
+          amap_poi_id: p.id,
+          name: p.name,
+          vicinity: p.address || '',
+          rating: undefined,
+          geometry: { location: { lat: p.location.lat, lng: p.location.lng } }, // GCJ-02
+          types: p.type ? p.type.split(';') : [],
+          _gcj: { lat: p.location.lat, lng: p.location.lng },
+        })));
+      } catch (err) {
+        console.warn('[NearbyCheckinPanel] amap searchNearBy failed:', err);
+        setPlaces([]);
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
     const mapsApi = globalThis.google;
     if (!mapInstance || !mapsApi || !userLocation) return;
 
@@ -74,11 +111,13 @@ export default function NearbyCheckinPanel({ mapInstance, userLocation, existing
     searchNearby(activeCategory);
   }, [activeCategory, searchNearby]);
 
-  const handleAdd = useCallback(async (placeId) => {
-    if (!placeId || addingId) return;
-    setAddingId(placeId);
+  const handleAdd = useCallback(async (place) => {
+    const id = place.place_id;
+    if (!id || addingId) return;
+    setAddingId(id);
     try {
-      await onAddPlace?.(placeId);
+      // 高德模式传整个 POI 对象(含 amap_poi_id + GCJ-02 坐标);Google 模式传 placeId
+      await onAddPlace?.(isAmap() ? place : id);
     } finally {
       setAddingId(null);
     }
@@ -165,7 +204,6 @@ export default function NearbyCheckinPanel({ mapInstance, userLocation, existing
           const added = isAdded(placeId);
           const isAdding = addingId === placeId;
           const rating = place.rating;
-          const dist = place.distance; // may be undefined from nearbySearch
 
           return (
             <div
@@ -212,7 +250,7 @@ export default function NearbyCheckinPanel({ mapInstance, userLocation, existing
 
               {/* Add button */}
               <button
-                onClick={() => !added && handleAdd(placeId)}
+                onClick={() => !added && handleAdd(place)}
                 disabled={added || isAdding}
                 style={{
                   flexShrink: 0,

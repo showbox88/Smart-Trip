@@ -14,6 +14,7 @@ import { useTripTransit } from './trip-editor/useTripTransit';
 import { useTripCrud } from './trip-editor/useTripCrud';
 import { useTripContent } from './trip-editor/useTripContent';
 import { useTripPlaceAdd } from './trip-editor/useTripPlaceAdd';
+import { useAmapPlaceAdd } from './trip-editor/useAmapPlaceAdd';
 import { useTripPlanB } from './trip-editor/useTripPlanB';
 import { useTripStay } from './trip-editor/useTripStay';
 import { useTripMetadata } from './trip-editor/useTripMetadata';
@@ -68,6 +69,15 @@ export function useTripEditor(tripId) {
   } = useTripContent(withTripUpdate, insertStop, updateStop);
 
   const { addStopFromPlace } = useTripPlaceAdd(trip, state, tripId, applyUpdate, computeTransitData);
+  const { addStopFromAmapPoi } = useAmapPlaceAdd(trip, state, tripId, applyUpdate, computeTransitData);
+
+  // 按 payload 类型分流:对象 = 高德 POI;字符串 = Google placeId
+  const addStopToDay = useCallback(async (dayId, payload, afterStopId = null, useNow = false) => {
+    if (payload && typeof payload === 'object') {
+      return addStopFromAmapPoi(dayId, payload, afterStopId, useNow);
+    }
+    return addStopFromPlace(dayId, payload, afterStopId, useNow);
+  }, [addStopFromPlace, addStopFromAmapPoi]);
 
   const { addPlanBAlternative, removePlanBAlternative, swapPlanB } =
     useTripPlanB(trip, state, tripId, withTripUpdate, applyUpdate, computeTransitData);
@@ -110,7 +120,7 @@ export function useTripEditor(tripId) {
     toggleListItem,
     addListItem,
     deleteListItem,
-    addStopFromPlace,
+    addStopFromPlace: addStopToDay,
     addActivity,
     updateTripMetadata,
     toggleTransitMode,

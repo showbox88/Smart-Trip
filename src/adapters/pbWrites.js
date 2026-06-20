@@ -232,6 +232,7 @@ async function findOrCreateLocation(next) {
       type: googleTypesToPb(next.placeTypes).locType,
       timezone: deviceTz(),
       google_place_id: next.placeId || '',
+      amap_poi_id: next.amap_poi_id || '',
     });
     return rec.id;
   } catch (e) {

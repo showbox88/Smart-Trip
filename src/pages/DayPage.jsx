@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useI18n } from '../context/I18nContext';
 import { useCheckIn } from '../hooks/useCheckIn';
 import ItineraryView from '../components/itinerary/ItineraryView';
-import MapPanel from '../components/itinerary/MapPanel';
+import MapPanel from '../components/itinerary/ProviderMapPanel';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 
 /**

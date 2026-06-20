@@ -25,7 +25,7 @@ import ConfirmModal from '../../modals/ConfirmModal';
 import TimePickerModal from '../../modals/TimePickerModal';
 import ExpenseModal from '../../modals/ExpenseModal';
 import PlanBPanel from '../PlanBPanel';
-import MapPanel from '../MapPanel';
+import MapPanel from '../ProviderMapPanel';
 import TripCardMenu from '../../shared/TripCardMenu';
 import MobileHero from './MobileHero';
 import MobileDayStrip from './MobileDayStrip';

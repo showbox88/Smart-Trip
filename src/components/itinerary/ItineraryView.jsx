@@ -9,7 +9,7 @@ import { useTheme } from '../../theme';
 import TripHeader from './TripHeader';
 import TripSidebar from './TripSidebar';
 import DaySection from './DaySection';
-import MapPanel from './MapPanel';
+import MapPanel from './ProviderMapPanel';
 import ConfirmModal from '../modals/ConfirmModal';
 import ShareModal from '../modals/ShareModal';
 import StopEditModal from '../modals/StopEditModal';
