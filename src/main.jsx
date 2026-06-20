@@ -7,9 +7,15 @@ import { AppProvider } from './context/AppContext';
 import { ThemeProvider } from './theme';
 import App from './App';
 import { loadGoogleMaps } from './utils/googleMapsLoader';
+import { loadAmap } from './utils/amapLoader';
+import { isAmap } from './providers/mapProvider';
 
-// Initialize Google Maps
-loadGoogleMaps();
+// 按设备偏好二选一加载地图 SDK(不同时加载两套)
+if (isAmap()) {
+  loadAmap();
+} else {
+  loadGoogleMaps();
+}
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

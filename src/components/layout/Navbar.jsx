@@ -7,6 +7,7 @@ import { useI18n } from '../../context/I18nContext';
 import { useTheme } from '../../theme';
 import { PRESET_THEMES } from '../../theme/presetThemes';
 import { isAdmin } from '../../utils/admin';
+import { getMapProvider, setMapProvider } from '../../providers/mapProvider';
 
 const LAYOUT_GROUPS = [
   { key: 'glass', label: 'Glass', icon: 'blur_on' },
@@ -24,6 +25,16 @@ export default function Navbar() {
   const [themeMenuOpen, setThemeMenuOpen] = useState(false);
   const [bellOpen, setBellOpen] = useState(false);
   const { alerts, unackCount, markAck, markAllAck } = useSystemAlerts();
+
+  // 地图服务商切换(localStorage 按设备);切换需重载以加载对应 SDK
+  const switchMapProvider = (next) => {
+    if (getMapProvider() === next) { setDropdownOpen(false); return; }
+    setMapProvider(next);
+    if (window.confirm(next === 'amap'
+      ? '切换到高德地图?页面将刷新。' : '切换回 Google 地图?页面将刷新。')) {
+      window.location.reload();
+    }
+  };
   // Captured at dropdown-open time so age strings are stable across re-renders.
   // eslint-disable-next-line react-hooks/purity, react-hooks/exhaustive-deps -- Date.now() refresh keyed off bellOpen is intentional
   const nowMs = useMemo(() => Date.now(), [bellOpen]);
@@ -293,6 +304,30 @@ export default function Navbar() {
                         })}
                       </div>
                     )}
+                  </div>
+                  {/* 地图服务商 */}
+                  <div style={{ padding: '6px 12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: 'var(--md-sys-color-on-surface)' }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--st-color-text-muted)' }}>map</span>
+                      {t('nav.map_provider') || '地图服务商'}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', gap: '6px', padding: '0 12px 8px' }}>
+                    {['google', 'amap'].map((p) => (
+                      <button
+                        key={p}
+                        onClick={() => switchMapProvider(p)}
+                        style={{
+                          flex: 1, padding: '6px 8px', borderRadius: '8px', cursor: 'pointer',
+                          border: '1px solid rgba(255,255,255,0.12)',
+                          background: getMapProvider() === p ? 'var(--md-sys-color-primary)' : 'transparent',
+                          color: getMapProvider() === p ? 'white' : 'var(--md-sys-color-on-surface)',
+                          fontSize: '0.8rem', fontWeight: 600,
+                        }}
+                      >
+                        {p === 'google' ? 'Google' : '高德'}
+                      </button>
+                    ))}
                   </div>
                   {isAdmin(state.user) && (
                     <button
