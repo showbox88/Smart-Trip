@@ -19,6 +19,10 @@ export function useAmapPlaceAdd(trip, state, tripId, applyUpdate, computeTransit
     const day = findDayById(updated, dayId);
     if (!day) return null;
 
+    // 同一高德 POI 重复打卡守卫(对齐 useTripPlaceAdd 的 placeId 去重)
+    const aid = poi.amap_poi_id || poi.place_id || '';
+    if (aid && day.stops.some((s) => s.amap_poi_id && s.amap_poi_id === aid)) return null;
+
     // 实时打卡时间(镜像 useTripPlaceAdd 的 useNow 逻辑);非实时给个默认值
     let timeStr = '09:00';
     let period = 'AM';

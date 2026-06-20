@@ -212,13 +212,22 @@ async function findOrCreateLocation(next) {
       });
       if (byPlace.length > 0) return byPlace[0].id;
     }
+    if (next.amap_poi_id) {
+      const byAmap = await pb.collection('locations').getFullList({
+        filter: pb.filter('amap_poi_id = {:aid}', { aid: next.amap_poi_id }),
+      });
+      if (byAmap.length > 0) return byAmap[0].id;
+    }
     const found = await pb.collection('locations').getFullList({
       filter: pb.filter('name = {:name}', { name }),
     });
     if (found.length > 0) {
-      // 老记录补 google_place_id（便于以后精确去重）
+      // 老记录补 google_place_id / amap_poi_id（便于以后精确去重）
       if (next.placeId && !found[0].google_place_id) {
         pb.collection('locations').update(found[0].id, { google_place_id: next.placeId }).catch(() => {});
+      }
+      if (next.amap_poi_id && !found[0].amap_poi_id) {
+        pb.collection('locations').update(found[0].id, { amap_poi_id: next.amap_poi_id }).catch(() => {});
       }
       return found[0].id;
     }

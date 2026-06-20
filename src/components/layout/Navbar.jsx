@@ -29,9 +29,10 @@ export default function Navbar() {
   // 地图服务商切换(localStorage 按设备);切换需重载以加载对应 SDK
   const switchMapProvider = (next) => {
     if (getMapProvider() === next) { setDropdownOpen(false); return; }
-    setMapProvider(next);
+    // 仅在用户确认后才写偏好并重载;取消则不留下陈旧 provider
     if (window.confirm(next === 'amap'
       ? '切换到高德地图?页面将刷新。' : '切换回 Google 地图?页面将刷新。')) {
+      setMapProvider(next);
       window.location.reload();
     }
   };

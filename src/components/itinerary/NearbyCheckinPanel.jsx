@@ -52,7 +52,7 @@ export default function NearbyCheckinPanel({ mapInstance, userLocation, existing
             else resolve([]);
           });
         });
-        setPlaces(pois.map((p) => ({
+        setPlaces(pois.filter((p) => p.location).map((p) => ({
           place_id: p.id,          // 复用现有渲染字段名;高德里即 amap_poi_id
           amap_poi_id: p.id,
           name: p.name,
