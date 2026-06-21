@@ -42,6 +42,19 @@ const AmapMapPanel = forwardRef(function AmapMapPanel(
     });
   }, [mapReady]);
 
+  // 容器从隐藏(mobile plan 模式 display:none / 0×0)切到可见时,
+  // 高德缓存了 0 尺寸不会自动重绘 → ResizeObserver 触发 map.resize()
+  useEffect(() => {
+    if (!mapReady || !mapRef.current) return;
+    const el = mapRef.current;
+    const ro = new ResizeObserver(() => {
+      const m = mapInstanceRef.current;
+      if (m && el.offsetWidth > 0 && el.offsetHeight > 0) m.resize();
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [mapReady]);
+
   // 画 stop 标记 + fitView
   useEffect(() => {
     const map = mapInstanceRef.current;
