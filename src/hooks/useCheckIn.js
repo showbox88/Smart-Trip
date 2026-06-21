@@ -105,7 +105,7 @@ export function useCheckIn(date) {
 
   const existingPlaceIds = useMemo(() => {
     const vTrip = state.trips.find(t => t.id === virtualTripId);
-    return (vTrip?.days?.[0]?.stops || []).map(s => s.placeId).filter(Boolean);
+    return (vTrip?.days?.[0]?.stops || []).flatMap(s => [s.placeId, s.amap_poi_id]).filter(Boolean);
   }, [state.trips, virtualTripId]);
 
   const handleAddToDay = useCallback(async (dayIdArg, placeId, useNow = false) => {

@@ -443,7 +443,7 @@ export default function ItineraryView({ tripId, isDayMode = false, date = null }
         isDayMode={isDayMode}
         dayId={isDayMode ? trip?.days?.[0]?.id : null}
         existingPlaceIds={isDayMode
-          ? (trip?.days?.[0]?.stops || []).map(s => s.placeId).filter(Boolean)
+          ? (trip?.days?.[0]?.stops || []).flatMap(s => [s.placeId, s.amap_poi_id]).filter(Boolean)
           : []
         }
       />
