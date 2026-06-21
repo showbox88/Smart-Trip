@@ -17,6 +17,7 @@ const AmapMapPanel = forwardRef(function AmapMapPanel(
   const markersRef = useRef([]);
   const locationMarkerRef = useRef(null);
   const [mapReady, setMapReady] = useState(!!window.amapReady);
+  const [mapInited, setMapInited] = useState(false); // 地图实例已建(触发依赖它的 effect 重跑)
   const [userLocation, setUserLocation] = useState(null); // WGS-84 {lat,lng}
   const [showCheckinPanel, setShowCheckinPanel] = useState(false);
 
@@ -33,23 +34,26 @@ const AmapMapPanel = forwardRef(function AmapMapPanel(
     tick();
   }, []);
 
-  // 建图
-  useEffect(() => {
-    if (!mapReady || !mapRef.current || mapInstanceRef.current) return;
-    mapInstanceRef.current = new window.AMap.Map(mapRef.current, {
-      zoom: 11,
-      center: [116.397, 39.909], // 高德是 [lng,lat];默认北京(高德只覆盖中国)
-    });
-  }, [mapReady]);
-
-  // 容器从隐藏(mobile plan 模式 display:none / 0×0)切到可见时,
-  // 高德缓存了 0 尺寸不会自动重绘 → ResizeObserver 触发 map.resize()
+  // 建图:必须等容器“可见且有尺寸”再 new AMap.Map ——
+  // 高德 2.0 是 WebGL 地图,在 0×0 / display:none 的容器里初始化会渲染失败,
+  // 事后 resize() 也救不回(mobile plan 模式会 display:none 隐藏 .map-view)。
+  // 策略:可见则立即建;不可见用 ResizeObserver 等它变可见再建;已建则尺寸变化时 resize() 重绘。
   useEffect(() => {
     if (!mapReady || !mapRef.current) return;
     const el = mapRef.current;
+    const createIfVisible = () => {
+      if (mapInstanceRef.current) return;
+      if (el.offsetWidth === 0 || el.offsetHeight === 0) return;
+      mapInstanceRef.current = new window.AMap.Map(el, {
+        zoom: 11,
+        center: [116.397, 39.909], // [lng,lat];默认北京(高德只覆盖中国)
+      });
+      setMapInited(true);
+    };
+    createIfVisible();
     const ro = new ResizeObserver(() => {
-      const m = mapInstanceRef.current;
-      if (m && el.offsetWidth > 0 && el.offsetHeight > 0) m.resize();
+      if (!mapInstanceRef.current) createIfVisible();
+      else if (el.offsetWidth > 0 && el.offsetHeight > 0) mapInstanceRef.current.resize();
     });
     ro.observe(el);
     return () => ro.disconnect();
@@ -83,7 +87,7 @@ const AmapMapPanel = forwardRef(function AmapMapPanel(
       map.setFitView(markers, false, [60, 60, 60, 60]);
     }
     markersRef.current = markers;
-  }, [activeTrip, focusDayIds, mapReady]);
+  }, [activeTrip, focusDayIds, mapReady, mapInited]);
 
   // isDayMode:自动定位 + 打卡面板
   useEffect(() => {
@@ -110,7 +114,7 @@ const AmapMapPanel = forwardRef(function AmapMapPanel(
         console.warn('[AmapMapPanel] autoLocate error:', e);
       }
     })();
-  }, [isDayMode, mapReady]);
+  }, [isDayMode, mapReady, mapInited]);
 
   // ref 接口(本期最小:focusStop 平移到该 stop)
   const focusStop = useCallback((stopId) => {
