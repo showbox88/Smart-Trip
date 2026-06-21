@@ -37,8 +37,8 @@ const AmapMapPanel = forwardRef(function AmapMapPanel(
   useEffect(() => {
     if (!mapReady || !mapRef.current || mapInstanceRef.current) return;
     mapInstanceRef.current = new window.AMap.Map(mapRef.current, {
-      zoom: 12,
-      center: [139.6917, 35.6895], // 高德是 [lng,lat]
+      zoom: 11,
+      center: [116.397, 39.909], // 高德是 [lng,lat];默认北京(高德只覆盖中国)
     });
   }, [mapReady]);
 
