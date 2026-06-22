@@ -2,7 +2,10 @@ import { useEffect, useRef, useState, useMemo, useImperativeHandle, forwardRef, 
 import { useApp } from '../../context/AppContext';
 import { useI18n } from '../../context/I18nContext';
 import NearbyCheckinPanel from './NearbyCheckinPanel';
+import AmapSearchBox from './AmapSearchBox';
+import AmapPlaceCard from './AmapPlaceCard';
 import { wgs84ToGcj02 } from '../../utils/coord';
+import { amapPoiToPlace } from '../../utils/amapPoi';
 import { isHotelStop } from '../../utils/stayHelpers';
 
 // 高德底图 + stop 标记 + 我的位置 + 周边打卡。与 MapPanel 同 props/ref 接口子集。
@@ -20,6 +23,7 @@ const AmapMapPanel = forwardRef(function AmapMapPanel(
   const [mapInited, setMapInited] = useState(false); // 地图实例已建(触发依赖它的 effect 重跑)
   const [userLocation, setUserLocation] = useState(null); // WGS-84 {lat,lng}
   const [showCheckinPanel, setShowCheckinPanel] = useState(false);
+  const [selectedPlace, setSelectedPlace] = useState(null); // 搜索/点选选中的地点
 
   const activeTrip = useMemo(
     () => state.trips.find((tr) => tr.id === state.activeTripId),
@@ -116,6 +120,25 @@ const AmapMapPanel = forwardRef(function AmapMapPanel(
     })();
   }, [isDayMode, mapReady, mapInited]);
 
+  // 点地图 POI → searchNearBy 取最近 POI → 弹卡片(点空白不弹)
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!mapInited || !map) return;
+    const onMapClick = (e) => {
+      const lng = e.lnglat?.getLng ? e.lnglat.getLng() : e.lnglat?.lng;
+      const lat = e.lnglat?.getLat ? e.lnglat.getLat() : e.lnglat?.lat;
+      if (lng == null || lat == null) return;
+      const ps = new window.AMap.PlaceSearch({ pageSize: 1 });
+      ps.searchNearBy('', [lng, lat], 50, (status, result) => {
+        const poi = status === 'complete' && result.poiList?.pois?.[0];
+        const place = poi && amapPoiToPlace(poi);
+        if (place) setSelectedPlace(place);
+      });
+    };
+    map.on('click', onMapClick);
+    return () => map.off('click', onMapClick);
+  }, [mapInited]);
+
   // ref 接口(本期最小:focusStop 平移到该 stop)
   const focusStop = useCallback((stopId) => {
     const map = mapInstanceRef.current;
@@ -136,6 +159,29 @@ const AmapMapPanel = forwardRef(function AmapMapPanel(
             </div>
           </div>
         )}
+        {mapInited && (
+          <AmapSearchBox
+            leftOffset={isDayMode ? 56 : 15}
+            onSelect={(place) => {
+              const m = mapInstanceRef.current;
+              if (m && place._gcj) m.setZoomAndCenter(16, [place._gcj.lng, place._gcj.lat]);
+              setSelectedPlace(place);
+            }}
+          />
+        )}
+
+        {selectedPlace && (
+          <AmapPlaceCard
+            place={selectedPlace}
+            canAdd={!!dayId}
+            onAdd={async (place) => {
+              if (dayId) await onAddToDay?.(dayId, place, false); // 规划加入,非实时打卡
+              setSelectedPlace(null);
+            }}
+            onClose={() => setSelectedPlace(null)}
+          />
+        )}
+
         {isDayMode && showCheckinPanel && userLocation && mapInstanceRef.current && (
           <NearbyCheckinPanel
             mapInstance={mapInstanceRef.current}

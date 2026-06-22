@@ -13,7 +13,7 @@ export function loadAmap() {
 
   const script = document.createElement('script');
   // 一次性带上本期要用的插件:PlaceSearch
-  script.src = `https://webapi.amap.com/maps?v=2.0&key=${key}&plugin=AMap.PlaceSearch`;
+  script.src = `https://webapi.amap.com/maps?v=2.0&key=${key}&plugin=AMap.PlaceSearch,AMap.AutoComplete`;
   script.async = true;
   script.onload = () => {
     window.amapReady = true;
