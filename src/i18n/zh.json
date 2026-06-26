@@ -240,7 +240,21 @@
         "take_photo": "拍照",
         "choose_photo": "从相册选择",
         "no_attachments": "还没有附件，点上方按钮添加",
-        "punch_in": "打卡此时"
+        "punch_in": "打卡此时",
+        "view_budget": "预算"
+    },
+    "budget": {
+        "title": "开销与预算",
+        "subtitle": "本行程预算与实际花费",
+        "total_budget": "预算",
+        "total_spent": "已花",
+        "remaining": "剩余",
+        "budget": "预算",
+        "spent": "已花",
+        "unbudgeted": "未列预算",
+        "no_spend": "暂无花费",
+        "loading": "加载预算...",
+        "load_error": "预算数据加载失败"
     },
     "auth": {
         "tagline": "开启您的全球智能旅行规划之旅",

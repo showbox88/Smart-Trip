@@ -239,7 +239,21 @@
         "take_photo": "Take Photo",
         "choose_photo": "Choose from Library",
         "no_attachments": "No attachments yet. Tap above to add.",
-        "punch_in": "Punch In"
+        "punch_in": "Punch In",
+        "view_budget": "Budget"
+    },
+    "budget": {
+        "title": "Expenses & Budget",
+        "subtitle": "Budget vs. actual spend for this trip",
+        "total_budget": "Budget",
+        "total_spent": "Spent",
+        "remaining": "Remaining",
+        "budget": "Budget",
+        "spent": "Spent",
+        "unbudgeted": "Unbudgeted",
+        "no_spend": "No spending yet",
+        "loading": "Loading budget...",
+        "load_error": "Failed to load budget data"
     },
     "auth": {
         "tagline": "Start your smart travel planning journey globally",
