@@ -12,6 +12,7 @@ import SharedTripPage from './pages/SharedTripPage';
 import CalendarPage from './pages/CalendarPage';
 import TodayPage from './pages/TodayPage';
 import MapPage from './pages/MapPage';
+import BudgetPage from './pages/BudgetPage';
 import { isAdmin } from './utils/admin';
 import BottomNav from './components/layout/BottomNav';
 import EmergencyButton from './components/emergency/EmergencyButton';
@@ -58,6 +59,7 @@ export default function App() {
           <Route path="/today" element={<TodayPage />} />
           <Route path="/map" element={<MapPage />} />
           <Route path="/day/:date" element={<DayPage />} />
+          <Route path="/budget/:tripId" element={<BudgetPage />} />
           {isAdmin(state.user) && <Route path="/admin" element={<AdminPage />} />}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
