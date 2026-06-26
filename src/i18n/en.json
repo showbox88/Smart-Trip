@@ -251,6 +251,7 @@
         "budget": "Budget",
         "spent": "Spent",
         "unbudgeted": "Unbudgeted",
+        "refund": "Refund",
         "no_spend": "No spending yet",
         "loading": "Loading budget...",
         "load_error": "Failed to load budget data"

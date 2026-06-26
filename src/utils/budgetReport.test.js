@@ -42,6 +42,14 @@ describe('buildBudgetReport', () => {
     expect(r.totalSpent).toBeCloseTo(2010.19, 2);
     expect(r.totalRemaining).toBeCloseTo(4781.81, 2);
   });
+
+  it('每个分类带 items 明细(amountUsd/isRefund),退款标记正确', () => {
+    expect(byCat['机票'].items).toHaveLength(2);
+    expect(byCat['住宿'].items).toHaveLength(2);
+    const refund = byCat['住宿'].items.find(i => i.isRefund);
+    expect(refund.amountUsd).toBe(50);
+    expect(byCat['餐饮'].items.map(i => i.amountUsd)).toEqual([80]);
+  });
 });
 
 describe('buildBudgetReport — spec 验收数字', () => {

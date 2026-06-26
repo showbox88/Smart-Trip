@@ -20,10 +20,21 @@ export function buildBudgetReport(data, tripId) {
   }
 
   const spentByCategory = {};
+  const itemsByCategory = {};
   for (const e of expenses) {
     const cat = e.expense_category || '其他';
     const amt = parseFloat(e.amount_usd) || 0;
     spentByCategory[cat] = (spentByCategory[cat] || 0) + (e.type === TYPE_REFUND ? -amt : amt);
+    (itemsByCategory[cat] ||= []).push({
+      date: e.date ? String(e.date).slice(0, 10) : '',
+      description: e.description || '',
+      amountUsd: amt,
+      isRefund: e.type === TYPE_REFUND,
+    });
+  }
+  // 每个分类内按日期升序
+  for (const cat in itemsByCategory) {
+    itemsByCategory[cat].sort((a, b) => (a.date || '').localeCompare(b.date || ''));
   }
 
   const allCats = new Set([...Object.keys(budgetByCategory), ...Object.keys(spentByCategory)]);
@@ -38,6 +49,7 @@ export function buildBudgetReport(data, tripId) {
       remaining: budget - spent,
       usedPct: budget > 0 ? spent / budget : null,
       unbudgeted,
+      items: itemsByCategory[cat] || [],
       sortOrder: unbudgeted ? 9999 : (sortByCategory[cat] ?? 9999),
     };
   });

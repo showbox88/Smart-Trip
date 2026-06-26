@@ -252,6 +252,7 @@
         "budget": "预算",
         "spent": "已花",
         "unbudgeted": "未列预算",
+        "refund": "退款",
         "no_spend": "暂无花费",
         "loading": "加载预算...",
         "load_error": "预算数据加载失败"
