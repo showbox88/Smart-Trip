@@ -46,6 +46,8 @@ export default function TripCard({ trip, isList = false, isCompact = false, onEd
 
   const handleOpen = () => navigate(`/trip-v2/${trip.id}`);
 
+  const handleOpenBudget = (e) => { if (e) e.stopPropagation(); setMenuOpen(false); navigate(`/budget/${trip.id}`); };
+
   const handleDelete = async (e) => {
     e.stopPropagation();
     setMenuOpen(false);
@@ -83,6 +85,7 @@ export default function TripCard({ trip, isList = false, isCompact = false, onEd
         onEdit={onEdit}
         onShare={onShare}
         onDelete={handleDelete}
+        onOpenBudget={handleOpenBudget}
       />
     );
   }
@@ -120,6 +123,9 @@ export default function TripCard({ trip, isList = false, isCompact = false, onEd
             }}>⋮</button>
             {menuOpen && (
               <div className="menu-dropdown" style={{ right: 0, top: '2rem', transform: 'none', zIndex: 100, display: 'flex' }}>
+                <button title={t('itinerary.view_budget') || 'Budget'} onClick={(e) => { e.stopPropagation(); setMenuOpen(false); handleOpenBudget(e); }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>payments</span>
+                </button>
                 <button title={t('itinerary.edit_trip') || 'Edit Trip Info'} onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onEdit?.(trip); }}>
                   <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>edit</span>
                 </button>
@@ -289,6 +295,9 @@ export default function TripCard({ trip, isList = false, isCompact = false, onEd
       </div>
       {menuOpen && (
         <div className="menu-dropdown" style={{ right: '1rem', top: '3.5rem', transform: 'none', display: 'flex', zIndex: 20 }}>
+          <button title={t('itinerary.view_budget') || 'Budget'} onClick={(e) => { e.stopPropagation(); setMenuOpen(false); handleOpenBudget(e); }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>payments</span>
+          </button>
           <button title={t('itinerary.edit_trip') || 'Edit Trip Info'} onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onEdit?.(trip); }}>
             <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>edit</span>
           </button>

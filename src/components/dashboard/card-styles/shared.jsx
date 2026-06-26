@@ -3,7 +3,7 @@
  */
 
 // Shared menu button (three-dot dropdown) used by all card variants
-export function MenuBtn({ menuOpen, onMenuToggle, onEdit, onShare, onDelete, trip, t, size = 22, color, bg = 'transparent', setMenuOpen }) {
+export function MenuBtn({ menuOpen, onMenuToggle, onEdit, onShare, onDelete, onOpenBudget, trip, t, size = 22, color, bg = 'transparent', setMenuOpen }) {
   return (
     <div style={{ position: 'relative' }}>
       <button className="menu-dots" onClick={onMenuToggle} style={{
@@ -16,6 +16,9 @@ export function MenuBtn({ menuOpen, onMenuToggle, onEdit, onShare, onDelete, tri
       }}>⋮</button>
       {menuOpen && (
         <div className="menu-dropdown" style={{ right: 0, top: `${size + 4}px`, transform: 'none', zIndex: 100, display: 'flex' }}>
+          <button title={t('itinerary.view_budget') || 'Budget'} onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onOpenBudget?.(trip); }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>payments</span>
+          </button>
           <button title={t('itinerary.edit_trip') || 'Edit Trip Info'} onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onEdit?.(trip); }}>
             <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>edit</span>
           </button>

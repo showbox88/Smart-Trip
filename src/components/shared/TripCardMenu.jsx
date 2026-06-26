@@ -5,7 +5,7 @@
  */
 
 export default function TripCardMenu({
-  open, onToggle, onEdit, onShare, onDelete, t,
+  open, onToggle, onEdit, onShare, onDelete, onOpenBudget, t,
   triggerStyle,   // override styles for the ⋮ button
   dropdownStyle,  // override position/direction of the dropdown
   triggerIcon,    // 'more_vert' (default) or 'more_horiz'
@@ -37,6 +37,12 @@ export default function TripCardMenu({
           zIndex: 100,
           ...dropdownStyle,
         }}>
+          <button
+            title={t('itinerary.view_budget') || 'Budget'}
+            onClick={(e) => { e.stopPropagation(); onOpenBudget?.(); }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 20 }}>payments</span>
+          </button>
           <button
             title={t('itinerary.edit_trip') || 'Edit Trip'}
             onClick={(e) => { e.stopPropagation(); onEdit(); }}
