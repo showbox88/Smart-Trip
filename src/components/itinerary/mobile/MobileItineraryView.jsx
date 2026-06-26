@@ -266,7 +266,7 @@ export default function MobileItineraryView({ tripId }) {
             onEdit={() => { setEditTrip(true); setMenu(false); }}
             onShare={() => { setShare(true); setMenu(false); }}
             onDelete={doDelete}
-            onOpenBudget={() => nav(`/budget/${trip.id}`)}
+            onOpenBudget={() => nav(`/budget/${trip._realTripId || trip.id}`)}
             t={t}
             triggerIcon="more_horiz"
             triggerStyle={{ position: 'absolute', top: 9, right: 16, zIndex: 20 }}
