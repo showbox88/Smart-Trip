@@ -131,6 +131,9 @@ export default function TripHeader({ trip, onDeleteTrip, onEditTrip, onShareTrip
             <button title={t('itinerary.today_schedule') || 'Today\'s Schedule'} onClick={() => { onShowSchedule?.(); setShowMenu(false); }}>
               <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>today</span>
             </button>
+            <button title={t('itinerary.view_budget') || 'Budget'} onClick={() => { navigate(`/budget/${trip.id}`); setShowMenu(false); }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>payments</span>
+            </button>
             <button title={t('itinerary.edit_trip') || 'Edit Trip Info'} onClick={() => { onEditTrip?.(); setShowMenu(false); }}>
               <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>edit</span>
             </button>
@@ -383,6 +386,9 @@ export default function TripHeader({ trip, onDeleteTrip, onEditTrip, onShareTrip
                 <div className="menu-dropdown active" style={{ top: '2rem', right: 0 }}>
                   <button title={t('itinerary.today_schedule') || 'Today\'s Schedule'} onClick={() => { onShowSchedule?.(); setShowMenu(false); }}>
                     <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>today</span>
+                  </button>
+                  <button title={t('itinerary.view_budget') || 'Budget'} onClick={() => { navigate(`/budget/${trip.id}`); setShowMenu(false); }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>payments</span>
                   </button>
                   <button title={t('itinerary.edit_trip') || 'Edit Trip Info'} onClick={() => { onEditTrip?.(); setShowMenu(false); }}>
                     <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>edit</span>
