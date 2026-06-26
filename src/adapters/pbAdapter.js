@@ -1,6 +1,7 @@
 import { pb } from '../lib/pb';
 import { DEFAULT_TRIP_THUMB } from '../utils/tripFactory';
 import { isCountableStop } from '../utils/formatters';
+import { buildBudgetReport } from '../utils/budgetReport';
 
 /**
  * pbAdapter — 把 PocketBase 的 trips / days / stops / locations
@@ -14,11 +15,12 @@ let _cache = null;
 
 export async function loadPbData(force = false) {
   if (_cache && !force) return _cache;
-  const [trips, days, stops, expenses] = await Promise.all([
+  const [trips, days, stops, expenses, budgets] = await Promise.all([
     pb.collection('trips').getFullList({ sort: '-created' }),
     pb.collection('days').getFullList({ sort: 'date' }),
     pb.collection('stops').getFullList({ expand: 'location', sort: 'date' }),
     pb.collection('expenses').getFullList({ sort: 'date' }),
+    pb.collection('budgets').getFullList({ sort: 'sort_order' }),
   ]);
 
   // stops 按 day id 分组
@@ -35,7 +37,7 @@ export async function loadPbData(force = false) {
     (expensesByStopId[e.stop] ||= []).push(e);
   }
 
-  _cache = { trips, days, stops, expenses, stopsByDayId, expensesByStopId };
+  _cache = { trips, days, stops, expenses, budgets, stopsByDayId, expensesByStopId };
   return _cache;
 }
 
@@ -272,4 +274,10 @@ export async function getPbDayByDate(date, force = false) {
   const { days, stopsByDayId } = await loadPbData(force);
   const d = days.find(x => pbDate(x.date) === date);
   return d ? normalizePbDay(d, stopsByDayId) : null;
+}
+
+/** 某 trip 的预算报告(force 时强制重拉,见 spec §2 刷新策略) */
+export async function getPbBudgetReport(tripId, force = false) {
+  const { budgets, expenses } = await loadPbData(force);
+  return buildBudgetReport({ budgets, expenses }, tripId);
 }
