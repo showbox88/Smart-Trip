@@ -8,8 +8,6 @@ import AddStopRow from './AddStopRow';
 import { EditOperationsProvider } from '../../context/EditOperationsContext';
 
 const ROW = 72;          // 每格高度（时间格 / stop 卡共用，中线对齐）
-const DRUM_H = 288;      // 滚筒可视高度 = 4 格
-const PAD = (DRUM_H - ROW) / 2;
 const STEP = 5;          // 时间轴粒度：5 分钟
 
 // 生成一天的 5 分钟时间格
@@ -37,8 +35,8 @@ export default function TodayScheduleModal({ trip, onUpdateStop, editOps, onClos
   const nowSlot = Math.round(nowMin / STEP) * STEP;
   const todayStr = now.toISOString().slice(0, 10);
 
-  // 有 location stop 的天
-  const days = (trip?.days || []).filter(d => (d.stops || []).some(isLocationStop));
+  // 全部行程天（日期条覆盖每一天，空天也能加地点）
+  const days = trip?.days || [];
 
   const initialDayId = (() => {
     const todayDay = days.find(d => dayDateStr(d) === todayStr);
@@ -48,6 +46,17 @@ export default function TodayScheduleModal({ trip, onUpdateStop, editOps, onClos
   const [selDayId, setSelDayId] = useState(initialDayId);
   const [selStopIdx, setSelStopIdx] = useState(0);
   const [selMin, setSelMin] = useState(nowSlot);
+
+  // 手机：底部抽屉 + 更矮的滚筒（3 格）；桌面：居中卡片（4 格）
+  const [isNarrow, setIsNarrow] = useState(() => typeof window !== 'undefined' && window.matchMedia('(max-width: 520px)').matches);
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 520px)');
+    const h = (e) => setIsNarrow(e.matches);
+    mq.addEventListener('change', h);
+    return () => mq.removeEventListener('change', h);
+  }, []);
+  const DRUM_H = isNarrow ? ROW * 3 : ROW * 4;
+  const PAD = (DRUM_H - ROW) / 2;
 
   const timeRef = useRef(null);
   const stopRef = useRef(null);
@@ -65,17 +74,19 @@ export default function TodayScheduleModal({ trip, onUpdateStop, editOps, onClos
     ? `${pad2(now.getHours() % 12 || 12)}:${pad2(now.getMinutes())} ${now.getHours() >= 12 ? 'PM' : 'AM'}`
     : (() => { const p = minToParts(selMin); return `${p.time} ${p.period}`; })();
 
-  // 初始定位：时间轴停在现在
-  useEffect(() => {
-    if (timeRef.current) timeRef.current.scrollTop = (nowSlot / STEP) * ROW;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const hasStops = stops.length > 0;
 
-  // 换天：stop 滚筒回顶
+  // 打开 / 换天：stop 滚筒回顶、时间轴对准“现在”（滚筒挂载后才生效）
   useEffect(() => {
-    if (stopRef.current) stopRef.current.scrollTop = 0;
+    const raf = requestAnimationFrame(() => {
+      if (stopRef.current) stopRef.current.scrollTop = 0;
+      if (timeRef.current) timeRef.current.scrollTop = (nowSlot / STEP) * ROW;
+    });
     setSelStopIdx(0);
-  }, [selDayId]);
+    setSelMin(nowSlot);
+    return () => cancelAnimationFrame(raf);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selDayId, hasStops]);
 
   const onTimeScroll = useCallback(() => {
     clearTimeout(timeTimer.current);
@@ -119,17 +130,21 @@ export default function TodayScheduleModal({ trip, onUpdateStop, editOps, onClos
       style={{
         position: 'fixed', inset: 0, zIndex: 3000,
         background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem',
+        display: 'flex', alignItems: isNarrow ? 'flex-end' : 'center', justifyContent: 'center',
+        padding: isNarrow ? 0 : '1rem',
       }}
       onClick={onClose}
     >
       <div
         style={{
-          width: '100%', maxWidth: '440px',
+          width: '100%', maxWidth: isNarrow ? '100%' : '440px',
+          maxHeight: isNarrow ? '94vh' : 'calc(100vh - 2rem)',
           background: 'var(--md-sys-color-surface)',
           border: '1px solid var(--md-sys-color-outline)',
-          borderRadius: '20px', overflow: 'hidden',
+          borderRadius: isNarrow ? '22px 22px 0 0' : '20px',
+          overflow: 'hidden',
           display: 'flex', flexDirection: 'column',
+          paddingBottom: isNarrow ? 'env(safe-area-inset-bottom, 0px)' : 0,
         }}
         onClick={e => e.stopPropagation()}
       >
@@ -149,8 +164,8 @@ export default function TodayScheduleModal({ trip, onUpdateStop, editOps, onClos
           </button>
         </div>
 
-        {/* Day strip */}
-        {days.length > 1 && (
+        {/* Day strip — 始终显示，覆盖全部行程天 */}
+        {days.length >= 1 && (
           <div style={{ display: 'flex', gap: '0.4rem', padding: '0.6rem 1.1rem', overflowX: 'auto', scrollbarWidth: 'none', borderBottom: '1px solid var(--md-sys-color-outline)' }}>
             {days.map((d) => {
               const idx = (trip?.days || []).findIndex(x => x.id === d.id);
@@ -329,16 +344,16 @@ export default function TodayScheduleModal({ trip, onUpdateStop, editOps, onClos
                 </a>
               )}
             </div>
-
-            {/* Add stop — 筒底 */}
-            {editOps && selDay && (
-              <div style={{ padding: '0.2rem 1.1rem 1rem' }}>
-                <EditOperationsProvider value={editOps}>
-                  <AddStopRow dayId={selDay.id} />
-                </EditOperationsProvider>
-              </div>
-            )}
           </>
+        )}
+
+        {/* Add stop — 始终可加（空的那天也能加地点） */}
+        {editOps && selDay && (
+          <div style={{ padding: '0.5rem 1.1rem 1rem' }}>
+            <EditOperationsProvider value={editOps}>
+              <AddStopRow dayId={selDay.id} />
+            </EditOperationsProvider>
+          </div>
         )}
       </div>
     </div>,
