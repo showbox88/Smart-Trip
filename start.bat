@@ -38,7 +38,7 @@ start "Vite Dev Server" cmd /k "cd /d "%~dp0" && npm run dev -- --host"
 timeout /t 3 /nobreak >nul
 
 echo [2/2] Starting Capacitor livereload...
-start "Capacitor Livereload" cmd /k "cd /d "%~dp0" && npx cap run android --livereload --external"
+start "Capacitor Livereload" cmd /k "cd /d "%~dp0" && npx cap run android --live-reload --host 10.0.2.2 --port 5173"
 
 echo.
 echo ============================================
