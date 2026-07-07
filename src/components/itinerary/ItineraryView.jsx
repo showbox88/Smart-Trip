@@ -507,6 +507,7 @@ export default function ItineraryView({ tripId, isDayMode = false, date = null }
         <TodayScheduleModal
           trip={trip}
           onUpdateStop={updateStop}
+          editOps={editOps}
           onClose={() => setShowScheduleModal(false)}
         />
       )}

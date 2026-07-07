@@ -6,6 +6,8 @@ import { formatCurrency, formatDateShort, calculateDays } from '../../utils/form
 import { getCategoryMaterialIcon as getCategoryIcon } from '../../utils/categoryHelpers';
 import TimePickerModal from '../modals/TimePickerModal';
 import ExpenseModal from '../modals/ExpenseModal';
+import AddStopRow from './AddStopRow';
+import { EditOperationsProvider } from '../../context/EditOperationsContext';
 
 function Chip({ bg, color, border, icon, label, onClick, title }) {
   return (
@@ -29,7 +31,29 @@ function Chip({ bg, color, border, icon, label, onClick, title }) {
   );
 }
 
-export default function TodayScheduleModal({ trip, onUpdateStop, onClose }) {
+function ActionBtn({ icon, label, color, solid, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        display: 'inline-flex', alignItems: 'center', gap: '4px',
+        background: solid ? color : 'transparent',
+        color: solid ? '#fff' : color,
+        border: `1px solid ${solid ? color : 'var(--md-sys-color-outline)'}`,
+        borderRadius: '7px', padding: '3px 10px',
+        fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap',
+        transition: 'opacity 0.15s',
+      }}
+      onMouseEnter={e => { e.currentTarget.style.opacity = '0.82'; }}
+      onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
+    >
+      <span className="material-symbols-outlined" style={{ fontSize: '14px', fontVariationSettings: solid ? "'FILL' 1" : undefined }}>{icon}</span>
+      {label}
+    </button>
+  );
+}
+
+export default function TodayScheduleModal({ trip, onUpdateStop, editOps, onClose }) {
   const { t } = useI18n();
   const { state } = useApp();
   const [editingTime, setEditingTime] = useState(null);
@@ -43,6 +67,20 @@ export default function TodayScheduleModal({ trip, onUpdateStop, onClose }) {
   const days = (trip?.days || []).filter(day =>
     (day.stops || []).some(isLocationStop)
   );
+
+  // ── 打卡 / 跳过（软删除）——都走 onUpdateStop 差量持久化 ──
+  const checkInNow = (dayId, stop) => {
+    const now = new Date();
+    const h = now.getHours();
+    const m = now.getMinutes();
+    const period = h >= 12 ? 'PM' : 'AM';
+    const displayH = h % 12 || 12;
+    const timeStr = `${String(displayH).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    // 打卡时若还没跳过状态则清掉；记录真实时间
+    onUpdateStop(dayId, stop.id, { checkedIn: true, time: timeStr, period, checkinTime: timeStr, skipped: false });
+  };
+  const undoCheckIn = (dayId, stop) => onUpdateStop(dayId, stop.id, { checkedIn: false, checkinTime: undefined });
+  const setSkipped = (dayId, stop, skipped) => onUpdateStop(dayId, stop.id, { skipped, ...(skipped ? { checkedIn: false, checkinTime: undefined } : {}) });
 
   return [createPortal(
     <>
@@ -167,6 +205,8 @@ export default function TodayScheduleModal({ trip, onUpdateStop, onClose }) {
                   {/* Stop cards */}
                   {stops.map((stop, stopIdx) => {
                     const price = parseFloat(stop.price) || 0;
+                    const checkedIn = !!stop.checkedIn;
+                    const skipped = !!stop.skipped;
                     const hotelBadge =
                       stop.type === 'hotel_checkin' ? { label: 'Check-in', color: 'var(--st-color-hotel-checkin)' } :
                       stop.type === 'hotel_checkout' ? { label: 'Check-out', color: 'var(--st-color-status-soon)' } : null;
@@ -178,12 +218,15 @@ export default function TodayScheduleModal({ trip, onUpdateStop, onClose }) {
                       <div
                         key={stop.id || stopIdx}
                         style={{
-                          background: 'var(--md-sys-color-surface-variant)',
-                          border: '1px solid var(--md-sys-color-outline)',
+                          background: checkedIn ? 'rgba(16,185,129,0.06)' : 'var(--md-sys-color-surface-variant)',
+                          border: `1px solid ${checkedIn ? 'rgba(16,185,129,0.35)' : 'var(--md-sys-color-outline)'}`,
+                          borderLeft: `3px solid ${checkedIn ? 'var(--st-color-hotel-checkin)' : skipped ? 'var(--st-color-text-muted)' : 'transparent'}`,
                           borderRadius: '12px',
                           padding: '0.75rem 0.85rem',
                           marginBottom: '0.45rem',
                           display: 'flex', alignItems: 'flex-start', gap: '0.65rem',
+                          opacity: skipped ? 0.5 : 1,
+                          transition: 'opacity 0.15s, background 0.15s, border-color 0.15s',
                         }}
                       >
                         {/* Left: text content */}
@@ -197,9 +240,23 @@ export default function TodayScheduleModal({ trip, onUpdateStop, onClose }) {
                             }}>
                               {getCategoryIcon(stop)}
                             </span>
-                            <span style={{ fontWeight: 700, fontSize: '0.88rem', lineHeight: 1.3, color: 'var(--md-sys-color-on-surface)' }}>
+                            <span style={{
+                              fontWeight: 700, fontSize: '0.88rem', lineHeight: 1.3, color: 'var(--md-sys-color-on-surface)',
+                              textDecoration: skipped ? 'line-through' : 'none',
+                            }}>
                               {stop.location || stop.name || 'Unnamed stop'}
                             </span>
+                            {checkedIn && (
+                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', fontSize: '0.62rem', fontWeight: 700, color: 'var(--st-color-hotel-checkin)', background: 'rgba(16,185,129,0.14)', border: '1px solid rgba(16,185,129,0.35)', borderRadius: '4px', padding: '1px 5px', flexShrink: 0 }}>
+                                <span className="material-symbols-outlined" style={{ fontSize: '11px', fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                                {t('itinerary.checked_in') || '已打卡'}{stop.checkinTime ? ` ${stop.checkinTime}` : ''}
+                              </span>
+                            )}
+                            {skipped && !checkedIn && (
+                              <span style={{ fontSize: '0.62rem', fontWeight: 700, color: 'var(--st-color-text-muted)', background: 'rgba(255,255,255,0.06)', border: '1px solid var(--md-sys-color-outline)', borderRadius: '4px', padding: '1px 5px', flexShrink: 0 }}>
+                                {t('itinerary.skipped') || '已跳过'}
+                              </span>
+                            )}
                             {hotelBadge && (
                               <span style={{ fontSize: '0.62rem', fontWeight: 700, color: hotelBadge.color, background: `${hotelBadge.color}22`, border: `1px solid ${hotelBadge.color}44`, borderRadius: '4px', padding: '1px 5px', flexShrink: 0 }}>
                                 {hotelBadge.label}
@@ -269,6 +326,41 @@ export default function TodayScheduleModal({ trip, onUpdateStop, onClose }) {
                               </a>
                             )}
                           </div>
+
+                          {/* Row 4: 打卡 / 跳过 / 恢复 */}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
+                            {skipped ? (
+                              <ActionBtn
+                                icon="restart_alt"
+                                label={t('itinerary.restore') || '恢复'}
+                                color="var(--md-sys-color-primary)"
+                                onClick={() => setSkipped(day.id, stop, false)}
+                              />
+                            ) : checkedIn ? (
+                              <ActionBtn
+                                icon="undo"
+                                label={t('itinerary.undo_checkin') || '撤销打卡'}
+                                color="var(--st-color-text-muted)"
+                                onClick={() => undoCheckIn(day.id, stop)}
+                              />
+                            ) : (
+                              <>
+                                <ActionBtn
+                                  icon="check_circle"
+                                  label={t('itinerary.check_in') || '打卡'}
+                                  color="var(--st-color-hotel-checkin)"
+                                  solid
+                                  onClick={() => checkInNow(day.id, stop)}
+                                />
+                                <ActionBtn
+                                  icon="cancel"
+                                  label={t('itinerary.mark_skipped') || '没去'}
+                                  color="var(--st-color-text-muted)"
+                                  onClick={() => setSkipped(day.id, stop, true)}
+                                />
+                              </>
+                            )}
+                          </div>
                         </div>
 
                         {/* Right: thumbnail */}
@@ -280,6 +372,15 @@ export default function TodayScheduleModal({ trip, onUpdateStop, onClose }) {
                       </div>
                     );
                   })}
+
+                  {/* 添加 stop（复用行程编辑的地点搜索） */}
+                  {editOps && (
+                    <div style={{ paddingTop: '0.25rem' }}>
+                      <EditOperationsProvider value={editOps}>
+                        <AddStopRow dayId={day.id} />
+                      </EditOperationsProvider>
+                    </div>
+                  )}
                 </div>
               );
             })}
