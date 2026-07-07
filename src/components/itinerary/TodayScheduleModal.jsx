@@ -144,7 +144,7 @@ export default function TodayScheduleModal({ trip, onUpdateStop, editOps, onClos
       style={{
         position: 'fixed', inset: 0, zIndex: 3000,
         background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)',
-        display: 'flex', alignItems: isNarrow ? 'flex-end' : 'center', justifyContent: 'center',
+        display: 'flex', alignItems: isNarrow ? 'stretch' : 'center', justifyContent: 'center',
         padding: isNarrow ? 0 : '1rem',
       }}
       onClick={onClose}
@@ -152,8 +152,8 @@ export default function TodayScheduleModal({ trip, onUpdateStop, editOps, onClos
       <div
         style={{
           width: '100%', maxWidth: isNarrow ? '100%' : '440px',
-          height: isNarrow ? '100dvh' : 'auto',
-          maxHeight: isNarrow ? '100dvh' : 'calc(100vh - 2rem)',
+          height: isNarrow ? '100%' : 'auto',
+          maxHeight: isNarrow ? '100%' : 'calc(100vh - 2rem)',
           background: 'var(--md-sys-color-surface)',
           border: isNarrow ? 'none' : '1px solid var(--md-sys-color-outline)',
           borderRadius: isNarrow ? '0' : '20px',
@@ -166,7 +166,7 @@ export default function TodayScheduleModal({ trip, onUpdateStop, editOps, onClos
         {/* Header */}
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '0.85rem 1.1rem', borderBottom: '1px solid var(--md-sys-color-outline)',
+          padding: '0.85rem 1.1rem', borderBottom: '1px solid var(--md-sys-color-outline)', flexShrink: 0,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
             <span className="material-symbols-outlined" style={{ color: 'var(--md-sys-color-primary)', fontSize: '20px' }}>route</span>
@@ -181,7 +181,7 @@ export default function TodayScheduleModal({ trip, onUpdateStop, editOps, onClos
 
         {/* Day strip — 始终显示，覆盖全部行程天 */}
         {days.length >= 1 && (
-          <div style={{ display: 'flex', gap: '0.4rem', padding: '0.6rem 1.1rem', overflowX: 'auto', scrollbarWidth: 'none', borderBottom: '1px solid var(--md-sys-color-outline)' }}>
+          <div style={{ display: 'flex', gap: '0.4rem', padding: '0.6rem 1.1rem', overflowX: 'auto', scrollbarWidth: 'none', borderBottom: '1px solid var(--md-sys-color-outline)', flexShrink: 0 }}>
             {days.map((d) => {
               const idx = (trip?.days || []).findIndex(x => x.id === d.id);
               const active = d.id === selDay?.id;
@@ -214,7 +214,7 @@ export default function TodayScheduleModal({ trip, onUpdateStop, editOps, onClos
         ) : (
           <>
             {/* Column labels */}
-            <div style={{ display: 'flex', gap: '10px', padding: '0.5rem 1.1rem 0' }}>
+            <div style={{ display: 'flex', gap: '10px', padding: '0.5rem 1.1rem 0', flexShrink: 0 }}>
               <span style={{ width: '84px', textAlign: 'center', fontSize: '0.66rem', color: 'var(--st-color-text-muted)' }}>{t('itinerary.time') || '时间'}</span>
               <span style={{ flex: 1, fontSize: '0.66rem', color: 'var(--st-color-text-muted)' }}>{t('itinerary.place') || '地点'}</span>
             </div>
@@ -329,7 +329,7 @@ export default function TodayScheduleModal({ trip, onUpdateStop, editOps, onClos
             </div>
 
             {/* Contextual action bar */}
-            <div style={{ padding: '0.75rem 1.1rem 0.4rem', borderTop: '1px solid var(--md-sys-color-outline)', display: 'flex', gap: '0.5rem' }}>
+            <div style={{ padding: '0.75rem 1.1rem 0.4rem', borderTop: '1px solid var(--md-sys-color-outline)', display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
               {centeredStop && !centeredStop.checkedIn && !centeredStop.skipped && (
                 <>
                   <button onClick={doCheckIn} style={btnStyle('#fff', 'var(--st-color-hotel-checkin)', true)}>
@@ -371,7 +371,7 @@ export default function TodayScheduleModal({ trip, onUpdateStop, editOps, onClos
 
         {/* Add stop — 始终可加（空的那天也能加地点） */}
         {editOps && selDay && (
-          <div style={{ padding: '0.5rem 1.1rem 1rem' }}>
+          <div style={{ padding: '0.5rem 1.1rem 1rem', flexShrink: 0 }}>
             <EditOperationsProvider value={editOps}>
               <AddStopRow dayId={selDay.id} />
             </EditOperationsProvider>
