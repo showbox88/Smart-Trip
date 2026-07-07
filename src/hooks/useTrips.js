@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { useApp } from '../context/AppContext';
 import { deleteFilesFromSupabase } from '../utils/uploadHelpers';
 import { saveDayToDB } from '../utils/dayHelpers';
+import { IS_PB } from '../lib/dataSource';
 
 export function useTrips() {
   const { state, dispatch } = useApp();
@@ -79,6 +80,29 @@ export function useTrips() {
     // v2: 新架构行程拦截 — days 存到 days_v2，trip 元数据已在 useTripsV2 管理
     if (trip._isV2) {
       const realTripId = trip._realTripId;
+
+      // PB 模式：每天都走差量同步（按 date+trip 懒创建 day 并回填 trip 关联）。
+      // 占位天在此路径下也能落库——修复"新 trip 加 stop 后回来是空"的 bug。
+      if (IS_PB) {
+        await Promise.all(
+          (trip.days || []).map(async (day) => {
+            // 空占位天不写，避免为新 trip 的每个日期建空 day
+            if (day._isPlaceholder && !day.stops?.length) return;
+            await saveDayToDB(state.user.id, {
+              id: day._dayId || day.id,
+              date: day.date,
+              title: day.title,
+              color: day.color,
+              stops: day.stops || [],
+              _tripId: realTripId,
+            });
+          })
+        );
+        const isNew = !state.trips.find(t => t.id === trip.id);
+        dispatch({ type: 'SET_TRIPS', payload: isNew ? [trip, ...state.trips] : state.trips.map(t => t.id === trip.id ? trip : t) });
+        return;
+      }
+
       let tripChanged = false;
       const updatedDays = await Promise.all(
         (trip.days || []).map(async (day) => {

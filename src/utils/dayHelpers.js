@@ -17,6 +17,7 @@ export async function saveDayToDB(userId, day) {
     // day._partial = stops 只是子集（TodayPage 只传 location 类），不写顺序
     await syncDayStopsToPb(day.date, day.stops || [], {
       partial: !!day._partial,
+      tripId: day._tripId || '',
       dayPatch: {
         // 用 undefined 表示"不动该字段"，空串/null 表示清空
         color: day.color !== undefined ? day.color : undefined,

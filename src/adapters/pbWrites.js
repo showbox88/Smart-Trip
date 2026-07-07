@@ -291,11 +291,13 @@ async function createPbStop(dayRaw, date, next, dayTz = '') {
 }
 
 /** PB 没有这一天时按需创建（懒创建，只在第一次真实写入时发生） */
-async function createPbDay(date) {
+async function createPbDay(date, tripId = '') {
   return pb.collection('days').create({
     name: date,
     date: `${date} 00:00:00.000Z`,
     timezone: '',
+    // 关联到所属 trip（缺失会变成孤儿 day，重新进 trip 时按 trip 过滤读不出来）
+    ...(tripId ? { trip: tripId } : {}),
   });
 }
 
@@ -342,12 +344,17 @@ export async function syncDayStopsToPb(date, nextStops, opts = {}) {
   }
 
   const { days, stops: rawStops, stopsByDayId } = await loadPbData();
-  let day = days.find(d => pbDate(d.date) === date);
+  const tripId = opts.tripId || '';
+  // 有 tripId 时按 trip + 日期定位（避免多个 trip 同一天串号）；
+  // 无 tripId（如 TodayPage 打卡）保持按日期全局定位的旧行为
+  let day = tripId
+    ? days.find(d => pbDate(d.date) === date && d.trip === tripId)
+    : days.find(d => pbDate(d.date) === date);
   if (!day) {
-    // 懒创建：第一次对这一天真实写入时才在 PB 建 day
-    day = await createPbDay(date);
+    // 懒创建：第一次对这一天真实写入时才在 PB 建 day（回填 trip 关联）
+    day = await createPbDay(date, tripId);
     days.push(day);
-    console.info('[pbWrites] 已创建 day:', date, '→', day.id);
+    console.info('[pbWrites] 已创建 day:', date, '→', day.id, tripId ? `(trip ${tripId})` : '(无 trip)');
   }
 
   // day 级字段（color / title）差量写
