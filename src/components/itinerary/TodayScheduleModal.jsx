@@ -55,8 +55,10 @@ export default function TodayScheduleModal({ trip, onUpdateStop, editOps, onClos
     mq.addEventListener('change', h);
     return () => mq.removeEventListener('change', h);
   }, []);
-  const DRUM_H = isNarrow ? ROW * 3 : ROW * 4;
-  const PAD = (DRUM_H - ROW) / 2;
+  // 滚筒高度：手机满屏时 flex 填充剩余空间，用 ResizeObserver 实测；桌面固定 4 格
+  const pickerRef = useRef(null);
+  const [drumH, setDrumH] = useState(ROW * 4);
+  const PAD = (drumH - ROW) / 2;
 
   const timeRef = useRef(null);
   const stopRef = useRef(null);
@@ -87,6 +89,18 @@ export default function TodayScheduleModal({ trip, onUpdateStop, editOps, onClos
     return () => cancelAnimationFrame(raf);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selDayId, hasStops]);
+
+  // 实测滚筒容器高度（手机满屏时随可用空间变化）
+  useEffect(() => {
+    const el = pickerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver((entries) => {
+      const h = entries[0]?.contentRect?.height || 0;
+      if (h > 0) setDrumH(h);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [hasStops, isNarrow]);
 
   const onTimeScroll = useCallback(() => {
     clearTimeout(timeTimer.current);
@@ -138,10 +152,11 @@ export default function TodayScheduleModal({ trip, onUpdateStop, editOps, onClos
       <div
         style={{
           width: '100%', maxWidth: isNarrow ? '100%' : '440px',
-          maxHeight: isNarrow ? '94vh' : 'calc(100vh - 2rem)',
+          height: isNarrow ? '100dvh' : 'auto',
+          maxHeight: isNarrow ? '100dvh' : 'calc(100vh - 2rem)',
           background: 'var(--md-sys-color-surface)',
-          border: '1px solid var(--md-sys-color-outline)',
-          borderRadius: isNarrow ? '22px 22px 0 0' : '20px',
+          border: isNarrow ? 'none' : '1px solid var(--md-sys-color-outline)',
+          borderRadius: isNarrow ? '0' : '20px',
           overflow: 'hidden',
           display: 'flex', flexDirection: 'column',
           paddingBottom: isNarrow ? 'env(safe-area-inset-bottom, 0px)' : 0,
@@ -205,7 +220,7 @@ export default function TodayScheduleModal({ trip, onUpdateStop, editOps, onClos
             </div>
 
             {/* Dual drum picker */}
-            <div style={{ position: 'relative', height: `${DRUM_H}px`, display: 'flex', gap: '10px', padding: '0 1.1rem' }}>
+            <div ref={pickerRef} style={{ position: 'relative', flex: isNarrow ? '1 1 auto' : '0 0 auto', height: isNarrow ? 'auto' : `${ROW * 4}px`, minHeight: isNarrow ? 0 : undefined, display: 'flex', gap: '10px', padding: '0 1.1rem' }}>
               {/* Center selection band */}
               <div style={{
                 position: 'absolute', left: '1.1rem', right: '1.1rem', top: '50%', transform: 'translateY(-50%)',
@@ -258,6 +273,7 @@ export default function TodayScheduleModal({ trip, onUpdateStop, editOps, onClos
                 {stops.map((stop) => {
                   const checkedIn = !!stop.checkedIn;
                   const skipped = !!stop.skipped;
+                  const price = parseFloat(stop.price) || 0;
                   return (
                     <div key={stop.id} style={{
                       height: `${ROW}px`, scrollSnapAlign: 'center',
@@ -290,6 +306,12 @@ export default function TodayScheduleModal({ trip, onUpdateStop, editOps, onClos
                           {skipped && !checkedIn && (
                             <span style={{ fontSize: '0.6rem', fontWeight: 700, color: 'var(--st-color-text-muted)', background: 'rgba(255,255,255,0.06)', border: '1px solid var(--md-sys-color-outline)', borderRadius: '4px', padding: '0 5px' }}>
                               {t('itinerary.skipped') || '已跳过'}
+                            </span>
+                          )}
+                          {price > 0 && (
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', fontSize: '0.6rem', fontWeight: 700, color: 'var(--md-sys-color-tertiary)', background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.28)', borderRadius: '4px', padding: '0 5px' }}>
+                              <span className="material-symbols-outlined" style={{ fontSize: '10px' }}>payments</span>
+                              {stop.price}
                             </span>
                           )}
                         </div>
