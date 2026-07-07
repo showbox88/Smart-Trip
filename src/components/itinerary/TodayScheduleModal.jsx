@@ -1,409 +1,346 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { useApp } from '../../context/AppContext';
 import { useI18n } from '../../context/I18nContext';
-import { formatCurrency, formatDateShort, calculateDays } from '../../utils/formatters';
+import { formatDateShort } from '../../utils/formatters';
 import { getCategoryMaterialIcon as getCategoryIcon } from '../../utils/categoryHelpers';
-import TimePickerModal from '../modals/TimePickerModal';
 import ExpenseModal from '../modals/ExpenseModal';
 import AddStopRow from './AddStopRow';
 import { EditOperationsProvider } from '../../context/EditOperationsContext';
 
-function Chip({ bg, color, border, icon, label, onClick, title }) {
-  return (
-    <span
-      onClick={onClick}
-      title={title}
-      style={{
-        display: 'inline-flex', alignItems: 'center', gap: '3px',
-        background: bg, color, border: `1px solid ${border}`,
-        borderRadius: '6px', padding: '2px 7px',
-        fontSize: '0.7rem', fontWeight: 700, whiteSpace: 'nowrap',
-        cursor: onClick ? 'pointer' : 'default',
-        transition: onClick ? 'opacity 0.15s' : undefined,
-      }}
-      onMouseEnter={e => { if (onClick) e.currentTarget.style.opacity = '0.8'; }}
-      onMouseLeave={e => { if (onClick) e.currentTarget.style.opacity = '1'; }}
-    >
-      <span className="material-symbols-outlined" style={{ fontSize: '11px' }}>{icon}</span>
-      {label}
-    </span>
-  );
-}
+const ROW = 72;          // 每格高度（时间格 / stop 卡共用，中线对齐）
+const DRUM_H = 288;      // 滚筒可视高度 = 4 格
+const PAD = (DRUM_H - ROW) / 2;
+const STEP = 5;          // 时间轴粒度：5 分钟
 
-function ActionBtn({ icon, label, color, solid, onClick }) {
-  return (
-    <button
-      onClick={onClick}
-      style={{
-        display: 'inline-flex', alignItems: 'center', gap: '4px',
-        background: solid ? color : 'transparent',
-        color: solid ? '#fff' : color,
-        border: `1px solid ${solid ? color : 'var(--md-sys-color-outline)'}`,
-        borderRadius: '7px', padding: '3px 10px',
-        fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap',
-        transition: 'opacity 0.15s',
-      }}
-      onMouseEnter={e => { e.currentTarget.style.opacity = '0.82'; }}
-      onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
-    >
-      <span className="material-symbols-outlined" style={{ fontSize: '14px', fontVariationSettings: solid ? "'FILL' 1" : undefined }}>{icon}</span>
-      {label}
-    </button>
-  );
+// 生成一天的 5 分钟时间格
+const TIME_SLOTS = [];
+for (let m = 0; m < 1440; m += STEP) TIME_SLOTS.push(m);
+
+const pad2 = (n) => String(n).padStart(2, '0');
+// 分钟 → { time(12h), period }
+function minToParts(min) {
+  const h = Math.floor(min / 60) % 24;
+  const m = min % 60;
+  const period = h >= 12 ? 'PM' : 'AM';
+  const dh = h % 12 || 12;
+  return { time: `${pad2(dh)}:${pad2(m)}`, period };
 }
+const isLocationStop = (s) => !s.type || s.type === 'location' || s.type === 'hotel_checkin' || s.type === 'hotel_checkout';
+const dayDateStr = (d) => String(d?.date || '').slice(0, 10);
 
 export default function TodayScheduleModal({ trip, onUpdateStop, editOps, onClose }) {
   const { t } = useI18n();
-  const { state } = useApp();
-  const [editingTime, setEditingTime] = useState(null);
   const [editingExpense, setEditingExpense] = useState(null);
 
-  const today = new Date().toISOString().slice(0, 10);
-  const dayCount = calculateDays(trip?.startDate, trip?.endDate);
+  const now = new Date();
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const nowSlot = Math.round(nowMin / STEP) * STEP;
+  const todayStr = now.toISOString().slice(0, 10);
 
-  const isLocationStop = (s) => !s.type || s.type === 'location' || s.type === 'hotel_checkin' || s.type === 'hotel_checkout';
+  // 有 location stop 的天
+  const days = (trip?.days || []).filter(d => (d.stops || []).some(isLocationStop));
 
-  const days = (trip?.days || []).filter(day =>
-    (day.stops || []).some(isLocationStop)
-  );
+  const initialDayId = (() => {
+    const todayDay = days.find(d => dayDateStr(d) === todayStr);
+    return (todayDay || days[0])?.id || null;
+  })();
 
-  // ── 打卡 / 跳过（软删除）——都走 onUpdateStop 差量持久化 ──
-  const checkInNow = (dayId, stop) => {
-    const now = new Date();
-    const h = now.getHours();
-    const m = now.getMinutes();
-    const period = h >= 12 ? 'PM' : 'AM';
-    const displayH = h % 12 || 12;
-    const timeStr = `${String(displayH).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-    // 打卡时若还没跳过状态则清掉；记录真实时间
-    onUpdateStop(dayId, stop.id, { checkedIn: true, time: timeStr, period, checkinTime: timeStr, skipped: false });
+  const [selDayId, setSelDayId] = useState(initialDayId);
+  const [selStopIdx, setSelStopIdx] = useState(0);
+  const [selMin, setSelMin] = useState(nowSlot);
+
+  const timeRef = useRef(null);
+  const stopRef = useRef(null);
+  const timeTimer = useRef(null);
+  const stopTimer = useRef(null);
+
+  const selDay = days.find(d => d.id === selDayId) || days[0] || null;
+  const stops = selDay ? (selDay.stops || []).filter(isLocationStop) : [];
+  const selDayIsToday = dayDateStr(selDay) === todayStr;
+  const centeredStop = stops[selStopIdx] || null;
+
+  // 时间轴停在“现在”那一格 && 选中天是今天 → 打卡取精确到分钟的当前时间
+  const atNow = selDayIsToday && selMin === nowSlot;
+  const checkinLabel = atNow
+    ? `${pad2(now.getHours() % 12 || 12)}:${pad2(now.getMinutes())} ${now.getHours() >= 12 ? 'PM' : 'AM'}`
+    : (() => { const p = minToParts(selMin); return `${p.time} ${p.period}`; })();
+
+  // 初始定位：时间轴停在现在
+  useEffect(() => {
+    if (timeRef.current) timeRef.current.scrollTop = (nowSlot / STEP) * ROW;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // 换天：stop 滚筒回顶
+  useEffect(() => {
+    if (stopRef.current) stopRef.current.scrollTop = 0;
+    setSelStopIdx(0);
+  }, [selDayId]);
+
+  const onTimeScroll = useCallback(() => {
+    clearTimeout(timeTimer.current);
+    timeTimer.current = setTimeout(() => {
+      const idx = Math.round((timeRef.current?.scrollTop || 0) / ROW);
+      setSelMin(TIME_SLOTS[Math.max(0, Math.min(TIME_SLOTS.length - 1, idx))]);
+    }, 90);
+  }, []);
+
+  const onStopScroll = useCallback(() => {
+    clearTimeout(stopTimer.current);
+    stopTimer.current = setTimeout(() => {
+      const idx = Math.round((stopRef.current?.scrollTop || 0) / ROW);
+      setSelStopIdx(Math.max(0, Math.min(stops.length - 1, idx)));
+    }, 90);
+  }, [stops.length]);
+
+  const doCheckIn = () => {
+    if (!centeredStop || !selDay) return;
+    let time, period;
+    if (atNow) {
+      const h = now.getHours(), m = now.getMinutes();
+      period = h >= 12 ? 'PM' : 'AM';
+      time = `${pad2(h % 12 || 12)}:${pad2(m)}`;
+    } else {
+      const p = minToParts(selMin); time = p.time; period = p.period;
+    }
+    onUpdateStop(selDay.id, centeredStop.id, { checkedIn: true, time, period, checkinTime: time, skipped: false });
   };
-  const undoCheckIn = (dayId, stop) => onUpdateStop(dayId, stop.id, { checkedIn: false, checkinTime: undefined });
-  const setSkipped = (dayId, stop, skipped) => onUpdateStop(dayId, stop.id, { skipped, ...(skipped ? { checkedIn: false, checkinTime: undefined } : {}) });
+  const undoCheckIn = () => centeredStop && selDay && onUpdateStop(selDay.id, centeredStop.id, { checkedIn: false, checkinTime: undefined });
+  const setSkip = (skipped) => centeredStop && selDay && onUpdateStop(selDay.id, centeredStop.id, { skipped, ...(skipped ? { checkedIn: false, checkinTime: undefined } : {}) });
+
+  const navUrl = centeredStop?.address
+    ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(centeredStop.address)}${centeredStop.placeId ? `&destination_place_id=${centeredStop.placeId}` : ''}`
+    : null;
+
+  const fadeMask = 'linear-gradient(to bottom, transparent, #000 24%, #000 76%, transparent)';
 
   return [createPortal(
-    <>
+    <div
+      style={{
+        position: 'fixed', inset: 0, zIndex: 3000,
+        background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem',
+      }}
+      onClick={onClose}
+    >
       <div
         style={{
-          position: 'fixed', inset: 0, zIndex: 3000,
-          background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)',
-          display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
-          overflowY: 'auto', padding: '2rem 1rem',
+          width: '100%', maxWidth: '440px',
+          background: 'var(--md-sys-color-surface)',
+          border: '1px solid var(--md-sys-color-outline)',
+          borderRadius: '20px', overflow: 'hidden',
+          display: 'flex', flexDirection: 'column',
         }}
-        onClick={onClose}
+        onClick={e => e.stopPropagation()}
       >
-        <div
-          style={{ width: '100%', maxWidth: '720px' }}
-          onClick={e => e.stopPropagation()}
-        >
-          {/* ── Sticky header ── */}
-          <div style={{
-            position: 'sticky', top: 0, zIndex: 10,
-            background: 'var(--md-sys-color-surface)',
-            borderBottom: '1px solid var(--md-sys-color-outline)',
-            padding: '0.75rem 1.5rem',
-            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-            borderRadius: '16px 16px 0 0',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span className="material-symbols-outlined" style={{ color: 'var(--md-sys-color-primary)', fontSize: '20px' }}>travel_explore</span>
-              <span style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--md-sys-color-on-surface)' }}>
-                {t('itinerary.today_schedule') || '今日行程表'}
-              </span>
-            </div>
-            <button
-              onClick={onClose}
-              style={{ background: 'none', border: 'none', color: 'var(--st-color-text-muted)', cursor: 'pointer', padding: '4px' }}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>close</span>
-            </button>
+        {/* Header */}
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '0.85rem 1.1rem', borderBottom: '1px solid var(--md-sys-color-outline)',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
+            <span className="material-symbols-outlined" style={{ color: 'var(--md-sys-color-primary)', fontSize: '20px' }}>route</span>
+            <span style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--md-sys-color-on-surface)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {trip?.title || (t('itinerary.today_schedule') || '今日行程表')}
+            </span>
           </div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--st-color-text-muted)', cursor: 'pointer', padding: '4px', flexShrink: 0 }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>close</span>
+          </button>
+        </div>
 
-          {/* ── Content ── */}
-          <div style={{
-            background: 'var(--md-sys-color-surface)',
-            borderRadius: '0 0 16px 16px',
-            padding: '0 1.5rem 1.5rem',
-          }}>
-            {/* Trip header card */}
-            <div style={{
-              background: 'var(--md-sys-color-surface-variant)',
-              border: '1px solid var(--md-sys-color-outline)',
-              borderRadius: '16px',
-              padding: '1.25rem',
-              display: 'flex', alignItems: 'center', gap: '1.25rem',
-              margin: '1.25rem 0 1.5rem',
-            }}>
-              <div style={{
-                width: '64px', height: '64px', borderRadius: '12px', flexShrink: 0,
-                background: trip?.thumb ? `url(${trip.thumb}) center/cover no-repeat` : 'rgba(255,255,255,0.05)',
-                border: '1px solid var(--md-sys-color-outline)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                {!trip?.thumb && <span className="material-symbols-outlined" style={{ opacity: 0.2 }}>image</span>}
-              </div>
-              <div>
-                <h2 style={{ margin: '0 0 0.35rem', fontSize: '1.25rem', lineHeight: 1.2, color: 'var(--md-sys-color-on-surface)' }}>
-                  {trip?.title}
-                </h2>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                  {(trip?.startDate || trip?.endDate) && (
-                    <span style={{ color: 'var(--st-color-text-muted)', fontSize: '0.85rem' }}>
-                      {formatDateShort(trip.startDate)}{trip.endDate ? ` — ${formatDateShort(trip.endDate)}` : ''}
-                    </span>
-                  )}
-                  {dayCount > 0 && (
-                    <span style={{
-                      background: 'rgba(255,255,255,0.07)', border: '1px solid var(--md-sys-color-outline)',
-                      borderRadius: '6px', padding: '1px 8px', fontSize: '0.8rem', color: 'var(--st-color-text-muted)',
-                    }}>
-                      {dayCount} days
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {days.length === 0 && (
-              <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--st-color-text-muted)' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '40px', display: 'block', marginBottom: '8px', opacity: 0.3 }}>event_busy</span>
-                <div style={{ fontSize: '0.88rem' }}>暂无行程</div>
-              </div>
-            )}
-
-            {days.map((day, _i) => {
-              const tripDayIndex = (trip?.days || []).findIndex(d => d.id === day.id);
-              const stops = (day.stops || []).filter(isLocationStop);
-              if (!stops.length) return null;
-
+        {/* Day strip */}
+        {days.length > 1 && (
+          <div style={{ display: 'flex', gap: '0.4rem', padding: '0.6rem 1.1rem', overflowX: 'auto', scrollbarWidth: 'none', borderBottom: '1px solid var(--md-sys-color-outline)' }}>
+            {days.map((d) => {
+              const idx = (trip?.days || []).findIndex(x => x.id === d.id);
+              const active = d.id === selDay?.id;
+              const isToday = dayDateStr(d) === todayStr;
               return (
-                <div key={day.id} style={{ marginBottom: '1.5rem' }}>
-                  {/* Day header */}
-                  <div style={{
-                    display: 'flex', alignItems: 'center', gap: '0.6rem',
-                    marginBottom: '0.75rem', padding: '0.6rem 1rem',
-                    background: 'var(--md-sys-color-surface-variant)', border: '1px solid var(--md-sys-color-outline)',
-                    borderRadius: '10px',
-                  }}>
-                    <div style={{ width: 10, height: 10, borderRadius: '50%', background: day.color || 'var(--md-sys-color-primary)', flexShrink: 0 }} />
-                    <span style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--md-sys-color-on-surface)' }}>
-                      Day {tripDayIndex + 1}
-                    </span>
-                    {day.date && (
-                      <span style={{ color: 'var(--st-color-text-muted)', fontSize: '0.85rem' }}>
-                        — {formatDateShort(day.date)}
-                      </span>
-                    )}
-                    {day.title && (
-                      <span style={{ color: 'var(--st-color-text-muted)', fontSize: '0.85rem', fontStyle: 'italic' }}>
-                        · {day.title}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Stop cards */}
-                  {stops.map((stop, stopIdx) => {
-                    const price = parseFloat(stop.price) || 0;
-                    const checkedIn = !!stop.checkedIn;
-                    const skipped = !!stop.skipped;
-                    const hotelBadge =
-                      stop.type === 'hotel_checkin' ? { label: 'Check-in', color: 'var(--st-color-hotel-checkin)' } :
-                      stop.type === 'hotel_checkout' ? { label: 'Check-out', color: 'var(--st-color-status-soon)' } : null;
-                    const navUrl = stop.address
-                      ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(stop.address)}${stop.placeId ? `&destination_place_id=${stop.placeId}` : ''}`
-                      : null;
-
-                    return (
-                      <div
-                        key={stop.id || stopIdx}
-                        style={{
-                          background: checkedIn ? 'rgba(16,185,129,0.06)' : 'var(--md-sys-color-surface-variant)',
-                          border: `1px solid ${checkedIn ? 'rgba(16,185,129,0.35)' : 'var(--md-sys-color-outline)'}`,
-                          borderLeft: `3px solid ${checkedIn ? 'var(--st-color-hotel-checkin)' : skipped ? 'var(--st-color-text-muted)' : 'transparent'}`,
-                          borderRadius: '12px',
-                          padding: '0.75rem 0.85rem',
-                          marginBottom: '0.45rem',
-                          display: 'flex', alignItems: 'flex-start', gap: '0.65rem',
-                          opacity: skipped ? 0.5 : 1,
-                          transition: 'opacity 0.15s, background 0.15s, border-color 0.15s',
-                        }}
-                      >
-                        {/* Left: text content */}
-                        <div style={{ flex: 1, minWidth: 0 }}>
-
-                          {/* Row 1: icon + name + badge + rating */}
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', marginBottom: '0.2rem', flexWrap: 'wrap' }}>
-                            <span className="material-symbols-outlined" style={{
-                              fontSize: '14px', color: 'var(--md-sys-color-primary)',
-                              fontVariationSettings: "'FILL' 1", flexShrink: 0, lineHeight: 1,
-                            }}>
-                              {getCategoryIcon(stop)}
-                            </span>
-                            <span style={{
-                              fontWeight: 700, fontSize: '0.88rem', lineHeight: 1.3, color: 'var(--md-sys-color-on-surface)',
-                              textDecoration: skipped ? 'line-through' : 'none',
-                            }}>
-                              {stop.location || stop.name || 'Unnamed stop'}
-                            </span>
-                            {checkedIn && (
-                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', fontSize: '0.62rem', fontWeight: 700, color: 'var(--st-color-hotel-checkin)', background: 'rgba(16,185,129,0.14)', border: '1px solid rgba(16,185,129,0.35)', borderRadius: '4px', padding: '1px 5px', flexShrink: 0 }}>
-                                <span className="material-symbols-outlined" style={{ fontSize: '11px', fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-                                {t('itinerary.checked_in') || '已打卡'}{stop.checkinTime ? ` ${stop.checkinTime}` : ''}
-                              </span>
-                            )}
-                            {skipped && !checkedIn && (
-                              <span style={{ fontSize: '0.62rem', fontWeight: 700, color: 'var(--st-color-text-muted)', background: 'rgba(255,255,255,0.06)', border: '1px solid var(--md-sys-color-outline)', borderRadius: '4px', padding: '1px 5px', flexShrink: 0 }}>
-                                {t('itinerary.skipped') || '已跳过'}
-                              </span>
-                            )}
-                            {hotelBadge && (
-                              <span style={{ fontSize: '0.62rem', fontWeight: 700, color: hotelBadge.color, background: `${hotelBadge.color}22`, border: `1px solid ${hotelBadge.color}44`, borderRadius: '4px', padding: '1px 5px', flexShrink: 0 }}>
-                                {hotelBadge.label}
-                              </span>
-                            )}
-                            {stop.rating && (
-                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', flexShrink: 0 }}>
-                                <span style={{ color: 'var(--st-color-status-soon)', fontSize: '11px', lineHeight: 1 }}>★</span>
-                                <span style={{ color: 'var(--md-sys-color-on-surface-variant)', fontSize: '0.7rem', fontWeight: 700 }}>{stop.rating}</span>
-                              </span>
-                            )}
-                          </div>
-
-                          {/* Row 2: address */}
-                          {stop.address && (
-                            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '3px', marginBottom: '0.35rem' }}>
-                              <span className="material-symbols-outlined" style={{ fontSize: '11px', color: 'var(--st-color-category-food)', flexShrink: 0, marginTop: '2px' }}>location_on</span>
-                              <span style={{
-                                color: 'var(--st-color-text-muted)', fontSize: '0.71rem', lineHeight: 1.45,
-                                display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
-                              }}>
-                                {stop.address}
-                              </span>
-                            </div>
-                          )}
-
-                          {/* Row 3: chips */}
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', flexWrap: 'wrap' }}>
-                            {/* Time chip — clickable */}
-                            <Chip
-                              bg={stop.time ? 'rgba(249,115,22,0.1)' : 'rgba(255,255,255,0.05)'}
-                              color={stop.time ? 'var(--st-color-category-food)' : 'var(--st-color-text-muted)'}
-                              border={stop.time ? 'rgba(249,115,22,0.25)' : 'rgba(255,255,255,0.08)'}
-                              icon="schedule"
-                              label={stop.time ? `${stop.time}${stop.period ? ` ${stop.period}` : ''}` : '--:--'}
-                              onClick={() => setEditingTime({ stop, dayId: day.id, dayDate: day.date })}
-                              title="点击修改时间 / Check In"
-                            />
-
-                            {/* Expense chip — always shown */}
-                            <Chip
-                              bg={price > 0 ? 'rgba(16,185,129,0.1)' : 'rgba(255,255,255,0.04)'}
-                              color={price > 0 ? 'var(--md-sys-color-tertiary)' : '#475569'}
-                              border={price > 0 ? 'rgba(16,185,129,0.25)' : 'rgba(255,255,255,0.07)'}
-                              icon="payments"
-                              label={price > 0 ? String(stop.price) : '0'}
-                              onClick={() => setEditingExpense({ stop, dayId: day.id })}
-                              title="点击修改消费"
-                            />
-
-                            {/* Navigate */}
-                            {navUrl && (
-                              <a
-                                href={navUrl}
-                                target="_blank"
-                                rel="noreferrer"
-                                style={{
-                                  display: 'inline-flex', alignItems: 'center', gap: '3px',
-                                  background: 'rgba(59,130,246,0.1)', color: 'var(--md-sys-color-primary)',
-                                  border: '1px solid rgba(59,130,246,0.25)',
-                                  borderRadius: '6px', padding: '2px 7px',
-                                  fontSize: '0.7rem', fontWeight: 700, textDecoration: 'none', whiteSpace: 'nowrap',
-                                }}
-                              >
-                                <span className="material-symbols-outlined" style={{ fontSize: '11px' }}>near_me</span>
-                                Navigate
-                              </a>
-                            )}
-                          </div>
-
-                          {/* Row 4: 打卡 / 跳过 / 恢复 */}
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
-                            {skipped ? (
-                              <ActionBtn
-                                icon="restart_alt"
-                                label={t('itinerary.restore') || '恢复'}
-                                color="var(--md-sys-color-primary)"
-                                onClick={() => setSkipped(day.id, stop, false)}
-                              />
-                            ) : checkedIn ? (
-                              <ActionBtn
-                                icon="undo"
-                                label={t('itinerary.undo_checkin') || '撤销打卡'}
-                                color="var(--st-color-text-muted)"
-                                onClick={() => undoCheckIn(day.id, stop)}
-                              />
-                            ) : (
-                              <>
-                                <ActionBtn
-                                  icon="check_circle"
-                                  label={t('itinerary.check_in') || '打卡'}
-                                  color="var(--st-color-hotel-checkin)"
-                                  solid
-                                  onClick={() => checkInNow(day.id, stop)}
-                                />
-                                <ActionBtn
-                                  icon="cancel"
-                                  label={t('itinerary.mark_skipped') || '没去'}
-                                  color="var(--st-color-text-muted)"
-                                  onClick={() => setSkipped(day.id, stop, true)}
-                                />
-                              </>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Right: thumbnail */}
-                        {stop.photo && (
-                          <div style={{ width: '64px', height: '64px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0, border: '1px solid var(--md-sys-color-outline)' }}>
-                            <img src={stop.photo} alt={stop.location || stop.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-
-                  {/* 添加 stop（复用行程编辑的地点搜索） */}
-                  {editOps && (
-                    <div style={{ paddingTop: '0.25rem' }}>
-                      <EditOperationsProvider value={editOps}>
-                        <AddStopRow dayId={day.id} />
-                      </EditOperationsProvider>
-                    </div>
-                  )}
-                </div>
+                <button
+                  key={d.id}
+                  onClick={() => setSelDayId(d.id)}
+                  style={{
+                    flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px',
+                    padding: '5px 11px', borderRadius: '10px', cursor: 'pointer',
+                    border: `1px solid ${active ? 'var(--md-sys-color-primary)' : 'var(--md-sys-color-outline)'}`,
+                    background: active ? 'var(--md-sys-color-primary)' : 'transparent',
+                    color: active ? '#fff' : 'var(--md-sys-color-on-surface-variant)',
+                  }}
+                >
+                  <span style={{ fontSize: '0.78rem', fontWeight: 700 }}>Day {idx + 1}</span>
+                  <span style={{ fontSize: '0.6rem', opacity: 0.85 }}>{isToday ? (t('itinerary.today') || '今天') : formatDateShort(d.date)}</span>
+                </button>
               );
             })}
           </div>
-        </div>
+        )}
+
+        {stops.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--st-color-text-muted)' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '40px', display: 'block', marginBottom: '8px', opacity: 0.3 }}>event_busy</span>
+            <div style={{ fontSize: '0.88rem' }}>{t('itinerary.no_stops_today') || '这天还没有地点'}</div>
+          </div>
+        ) : (
+          <>
+            {/* Column labels */}
+            <div style={{ display: 'flex', gap: '10px', padding: '0.5rem 1.1rem 0' }}>
+              <span style={{ width: '84px', textAlign: 'center', fontSize: '0.66rem', color: 'var(--st-color-text-muted)' }}>{t('itinerary.time') || '时间'}</span>
+              <span style={{ flex: 1, fontSize: '0.66rem', color: 'var(--st-color-text-muted)' }}>{t('itinerary.place') || '地点'}</span>
+            </div>
+
+            {/* Dual drum picker */}
+            <div style={{ position: 'relative', height: `${DRUM_H}px`, display: 'flex', gap: '10px', padding: '0 1.1rem' }}>
+              {/* Center selection band */}
+              <div style={{
+                position: 'absolute', left: '1.1rem', right: '1.1rem', top: '50%', transform: 'translateY(-50%)',
+                height: `${ROW}px`, borderTop: '1px solid rgba(91,155,255,0.5)', borderBottom: '1px solid rgba(91,155,255,0.5)',
+                background: 'rgba(91,155,255,0.06)', borderRadius: '10px', pointerEvents: 'none', zIndex: 3,
+              }} />
+
+              {/* Time drum */}
+              <div
+                ref={timeRef}
+                onScroll={onTimeScroll}
+                style={{
+                  width: '84px', overflowY: 'scroll', scrollSnapType: 'y mandatory', scrollbarWidth: 'none',
+                  WebkitMaskImage: fadeMask, maskImage: fadeMask,
+                }}
+              >
+                <div style={{ height: `${PAD}px` }} />
+                {TIME_SLOTS.map((m) => {
+                  const p = minToParts(m);
+                  const isNowSlot = selDayIsToday && m === nowSlot;
+                  const quarter = m % 15 === 0;
+                  return (
+                    <div key={m} style={{
+                      height: `${ROW}px`, scrollSnapAlign: 'center',
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      <span style={{
+                        fontSize: quarter ? '1.05rem' : '0.9rem',
+                        fontWeight: quarter ? 700 : 500,
+                        fontVariantNumeric: 'tabular-nums',
+                        color: quarter ? 'var(--md-sys-color-on-surface)' : 'var(--st-color-text-muted)',
+                      }}>{p.time}</span>
+                      {isNowSlot && <span style={{ fontSize: '0.55rem', color: 'var(--st-color-category-food)', letterSpacing: '1px', marginTop: '1px' }}>{t('itinerary.now') || '现在'}</span>}
+                    </div>
+                  );
+                })}
+                <div style={{ height: `${PAD}px` }} />
+              </div>
+
+              {/* Stop drum */}
+              <div
+                ref={stopRef}
+                onScroll={onStopScroll}
+                style={{
+                  flex: 1, overflowY: 'scroll', scrollSnapType: 'y mandatory', scrollbarWidth: 'none',
+                  WebkitMaskImage: fadeMask, maskImage: fadeMask,
+                }}
+              >
+                <div style={{ height: `${PAD}px` }} />
+                {stops.map((stop) => {
+                  const checkedIn = !!stop.checkedIn;
+                  const skipped = !!stop.skipped;
+                  return (
+                    <div key={stop.id} style={{
+                      height: `${ROW}px`, scrollSnapAlign: 'center',
+                      display: 'flex', alignItems: 'center', gap: '9px', padding: '0 4px',
+                      opacity: skipped ? 0.5 : 1,
+                    }}>
+                      <div style={{
+                        width: '38px', height: '38px', borderRadius: '10px', flexShrink: 0,
+                        background: stop.photo ? `url(${stop.photo}) center/cover no-repeat` : 'rgba(255,255,255,0.05)',
+                        border: `1px solid ${checkedIn ? 'var(--st-color-hotel-checkin)' : 'var(--md-sys-color-outline)'}`,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}>
+                        {!stop.photo && (
+                          <span className="material-symbols-outlined" style={{ fontSize: '18px', color: checkedIn ? 'var(--st-color-hotel-checkin)' : 'var(--md-sys-color-primary)', fontVariationSettings: "'FILL' 1" }}>
+                            {getCategoryIcon(stop)}
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--md-sys-color-on-surface)', textDecoration: skipped ? 'line-through' : 'none' }}>
+                            {stop.location || stop.name || 'Unnamed stop'}
+                          </span>
+                          {checkedIn && (
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', fontSize: '0.6rem', fontWeight: 700, color: 'var(--st-color-hotel-checkin)', background: 'rgba(16,185,129,0.14)', border: '1px solid rgba(16,185,129,0.35)', borderRadius: '4px', padding: '0 5px' }}>
+                              <span className="material-symbols-outlined" style={{ fontSize: '10px', fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                              {stop.checkinTime || (t('itinerary.checked_in') || '已打卡')}
+                            </span>
+                          )}
+                          {skipped && !checkedIn && (
+                            <span style={{ fontSize: '0.6rem', fontWeight: 700, color: 'var(--st-color-text-muted)', background: 'rgba(255,255,255,0.06)', border: '1px solid var(--md-sys-color-outline)', borderRadius: '4px', padding: '0 5px' }}>
+                              {t('itinerary.skipped') || '已跳过'}
+                            </span>
+                          )}
+                        </div>
+                        {stop.address && (
+                          <div style={{ fontSize: '0.68rem', color: 'var(--st-color-text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: '2px' }}>
+                            <span className="material-symbols-outlined" style={{ fontSize: '11px', verticalAlign: '-1px', color: 'var(--st-color-category-food)' }}>location_on</span> {stop.address}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+                <div style={{ height: `${PAD}px` }} />
+              </div>
+            </div>
+
+            {/* Contextual action bar */}
+            <div style={{ padding: '0.75rem 1.1rem 0.4rem', borderTop: '1px solid var(--md-sys-color-outline)', display: 'flex', gap: '0.5rem' }}>
+              {centeredStop && !centeredStop.checkedIn && !centeredStop.skipped && (
+                <>
+                  <button onClick={doCheckIn} style={btnStyle('#fff', 'var(--st-color-hotel-checkin)', true)}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '18px', fontVariationSettings: "'FILL' 1" }}>where_to_vote</span>
+                    {`${checkinLabel} ${t('itinerary.check_in') || '打卡'}`}
+                  </button>
+                  <button onClick={() => setSkip(true)} style={btnStyle('var(--st-color-text-muted)')}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>cancel</span>
+                    {t('itinerary.mark_skipped') || '不去'}
+                  </button>
+                </>
+              )}
+              {centeredStop && centeredStop.checkedIn && (
+                <>
+                  <button onClick={undoCheckIn} style={btnStyle('var(--st-color-text-muted)')}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>undo</span>
+                    {t('itinerary.undo_checkin') || '撤销打卡'}
+                  </button>
+                  <button onClick={() => setEditingExpense({ stop: centeredStop, dayId: selDay.id })} style={btnStyle('var(--md-sys-color-tertiary)')}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>payments</span>
+                    {t('itinerary.edit_expense') || '改消费'}
+                  </button>
+                </>
+              )}
+              {centeredStop && centeredStop.skipped && (
+                <button onClick={() => setSkip(false)} style={btnStyle('var(--md-sys-color-primary)')}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>restart_alt</span>
+                  {t('itinerary.restore') || '恢复'}
+                </button>
+              )}
+              {navUrl && (
+                <a href={navUrl} target="_blank" rel="noreferrer" style={{ ...btnStyle('var(--md-sys-color-primary)'), flex: '0 0 auto', textDecoration: 'none' }} title={t('itinerary.navigate') || 'Navigate'}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>near_me</span>
+                </a>
+              )}
+            </div>
+
+            {/* Add stop — 筒底 */}
+            {editOps && selDay && (
+              <div style={{ padding: '0.2rem 1.1rem 1rem' }}>
+                <EditOperationsProvider value={editOps}>
+                  <AddStopRow dayId={selDay.id} />
+                </EditOperationsProvider>
+              </div>
+            )}
+          </>
+        )}
       </div>
-
-    </>,
-    document.body
-  ),
-
-  // Sub-modals rendered in separate portals at z-index 4500 (above main modal at 3000)
-  editingTime && createPortal(
-    <div style={{ position: 'fixed', inset: 0, zIndex: 4500 }}>
-      <TimePickerModal
-        stop={editingTime.stop}
-        dayDate={editingTime.dayDate}
-        onSave={(patch) => {
-          onUpdateStop(editingTime.dayId, editingTime.stop.id, patch);
-          setEditingTime(null);
-        }}
-        onClose={() => setEditingTime(null)}
-      />
     </div>,
     document.body
   ),
@@ -421,5 +358,16 @@ export default function TodayScheduleModal({ trip, onUpdateStop, editOps, onClos
     </div>,
     document.body
   ),
-];
+  ];
+}
+
+function btnStyle(color, solidBg, solid) {
+  return {
+    flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
+    padding: '10px', borderRadius: '12px', cursor: 'pointer',
+    background: solid ? solidBg : 'transparent',
+    color: solid ? color : color,
+    border: `1px solid ${solid ? solidBg : 'var(--md-sys-color-outline)'}`,
+    fontSize: '0.8rem', fontWeight: 700, whiteSpace: 'nowrap',
+  };
 }
