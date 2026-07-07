@@ -28,6 +28,8 @@ export default function MobileStopRow({
   const tm = formatTime12h(stop);
   const isDragging = draggingStopId === stop.id;
   const rot = cardRotation[stop.id] || 0;
+  const checkedIn = !!stop.checkedIn;
+  const skipped = !!stop.skipped;
 
   return (
     <div
@@ -60,7 +62,11 @@ export default function MobileStopRow({
           <div style={{
             width: '100%', background: '#fff', borderRadius: 14, padding: '8px 6px',
             display: 'flex', gap: 8, alignItems: 'flex-start',
-            border: 'none', textAlign: 'left', position: 'relative',
+            border: 'none',
+            // 打卡=绿色左边条，跳过=灰色左边条
+            borderLeft: checkedIn ? '3px solid #10b981' : skipped ? '3px solid #C7C7CC' : 'none',
+            textAlign: 'left', position: 'relative',
+            opacity: skipped ? 0.55 : 1,
             backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden',
             boxShadow: isDragging
               ? '0 12px 32px rgba(0,0,0,0.35)'
@@ -86,9 +92,21 @@ export default function MobileStopRow({
               }} style={{
                 fontSize: 14, fontWeight: 600, color: '#000', lineHeight: 1.3,
                 marginBottom: 4, cursor: 'pointer',
+                textDecoration: skipped ? 'line-through' : 'none',
                 display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
               }}>{nm}</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
+                {checkedIn && (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2, fontSize: 11, fontWeight: 700, color: '#0a8f5f', background: 'rgba(16,185,129,0.12)', borderRadius: 6, padding: '1px 6px' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 12, fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                    {stop.checkinTime || (t('itinerary.checked_in') || '已打卡')}
+                  </span>
+                )}
+                {skipped && !checkedIn && (
+                  <span style={{ fontSize: 11, fontWeight: 700, color: '#8E8E93', background: '#F2F2F7', borderRadius: 6, padding: '1px 6px' }}>
+                    {t('itinerary.skipped') || '已跳过'}
+                  </span>
+                )}
                 {stop.rating > 0 && (
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2, fontSize: 11, fontWeight: 500, color: '#3C3C43' }}>
                     <span style={{ color: '#FF3B30', fontSize: 12 }}>★</span>

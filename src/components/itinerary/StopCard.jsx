@@ -85,6 +85,8 @@ export default React.memo(function StopCard({
   const isClean = layoutVariant === 'clean';
   const isBlossom = themeId === 'blossom';
   const isActivity = stop.type === 'activity';
+  const checkedIn = !!stop.checkedIn;
+  const skipped = !!stop.skipped;
 
   const {
     showPlanB, setShowPlanB,
@@ -242,7 +244,11 @@ export default React.memo(function StopCard({
               borderTop: `1px solid ${baseColor}`,
               borderRight: `1px solid ${baseColor}`,
               borderBottom: `1px solid ${baseColor}`,
-              borderLeft: isActivity ? '3px solid #26a69a' : `1px solid ${baseColor}`,
+              // 打卡=绿色左边框，跳过=灰色左边框，其次活动=青色
+              borderLeft: checkedIn ? '3px solid var(--st-color-hotel-checkin)'
+                : skipped ? '3px solid var(--st-color-text-muted)'
+                : isActivity ? '3px solid #26a69a'
+                : `1px solid ${baseColor}`,
               borderRadius: '1.2rem',
               padding: 'var(--stop-card-p) var(--stop-card-p) 2.8rem',
               transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -251,7 +257,9 @@ export default React.memo(function StopCard({
               position: 'relative',
               display: 'flex',
               flexDirection: 'column',
-              minHeight: '100px'
+              minHeight: '100px',
+              // 跳过的 stop 整体灰化
+              opacity: skipped ? 0.55 : 1,
             }; })()}
           >
             {/* 移动端专用的拖拽边缘把手（左右各一个，方便双手操作） */}
@@ -358,9 +366,20 @@ export default React.memo(function StopCard({
               <div className="stop-card-left-column" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                 {/* Title Row: pin + name + category badge + rating */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.4rem', flexWrap: 'wrap' }}>
-                  <h4 className="rich-stop-card-title" style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: 'var(--md-sys-color-on-surface)', letterSpacing: '-0.02em' }}>
+                  <h4 className="rich-stop-card-title" style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: 'var(--md-sys-color-on-surface)', letterSpacing: '-0.02em', textDecoration: skipped ? 'line-through' : 'none' }}>
                     {stop.location}
                   </h4>
+                  {checkedIn && (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontSize: '0.68rem', fontWeight: 700, color: 'var(--st-color-hotel-checkin)', background: 'rgba(16,185,129,0.14)', border: '1px solid rgba(16,185,129,0.35)', borderRadius: '5px', padding: '1px 7px', flexShrink: 0 }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: '13px', fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                      {t('itinerary.checked_in') || '已打卡'}{stop.checkinTime ? ` ${stop.checkinTime}` : ''}
+                    </span>
+                  )}
+                  {skipped && !checkedIn && (
+                    <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--st-color-text-muted)', background: 'rgba(255,255,255,0.06)', border: '1px solid var(--md-sys-color-outline)', borderRadius: '5px', padding: '1px 7px', flexShrink: 0 }}>
+                      {t('itinerary.skipped') || '已跳过'}
+                    </span>
+                  )}
                   {/* Category icon after name — all layouts */}
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }} title={stop.category ? (t(stop.category) !== stop.category ? t(stop.category) : stop.category) : t('map.place_default')}>
                     {(() => {
