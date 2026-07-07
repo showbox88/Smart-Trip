@@ -48,6 +48,8 @@ export default function TripCard({ trip, isList = false, isCompact = false, onEd
 
   const handleOpenBudget = (e) => { if (e) e.stopPropagation(); setMenuOpen(false); navigate(`/budget/${trip.id}`); };
 
+  const handleOpenSchedule = (e) => { if (e) e.stopPropagation(); setMenuOpen(false); navigate(`/trip-v2/${trip.id}`, { state: { openSchedule: true } }); };
+
   const handleDelete = async (e) => {
     e.stopPropagation();
     setMenuOpen(false);
@@ -295,6 +297,9 @@ export default function TripCard({ trip, isList = false, isCompact = false, onEd
       </div>
       {menuOpen && (
         <div className="menu-dropdown" style={{ right: '1rem', top: '3.5rem', transform: 'none', display: 'flex', zIndex: 20 }}>
+          <button title={t('itinerary.today_schedule') || "Today's Schedule"} onClick={(e) => { e.stopPropagation(); handleOpenSchedule(e); }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>today</span>
+          </button>
           <button title={t('itinerary.view_budget') || 'Budget'} onClick={(e) => { e.stopPropagation(); setMenuOpen(false); handleOpenBudget(e); }}>
             <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>payments</span>
           </button>

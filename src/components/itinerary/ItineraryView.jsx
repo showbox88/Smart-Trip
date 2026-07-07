@@ -1,5 +1,5 @@
 import { useEffect, useCallback, useState, useRef, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { getIsTouch } from '../../hooks/useDeviceType';
 import { useTripEditor } from '../../hooks/useTripEditor';
 import { useTimelineDrag } from '../../hooks/useTimelineDrag';
@@ -48,9 +48,11 @@ export default function ItineraryView({ tripId, isDayMode = false, date = null }
   const isBlossom = themeId === 'blossom';
   const isPortraitTouch = usePortraitTouch();
   const navigate = useNavigate();
+  const location = useLocation();
   const { deleteTrip } = useTrips();
   const [showShareModal, setShowShareModal] = useState(false);
-  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  // 首页卡片菜单点"今日行程表"→ navigate 带 state.openSchedule 进来，初始即打开
+  const [showScheduleModal, setShowScheduleModal] = useState(() => !!location.state?.openSchedule);
   const [pendingTransportEdit, setPendingTransportEdit] = useState(null); // { stopId, dayId }
   const {
     trip,
