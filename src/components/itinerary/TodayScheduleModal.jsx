@@ -64,6 +64,14 @@ export default function TodayScheduleModal({ trip, onUpdateStop, editOps, onClos
   const stopRef = useRef(null);
   const timeTimer = useRef(null);
   const stopTimer = useRef(null);
+  const dayStripRef = useRef(null);
+
+  // 桌面端：日期条用鼠标滚轮横向滚动（手机/触控板横滑仍走原生）
+  const onDayStripWheel = useCallback((e) => {
+    const el = dayStripRef.current;
+    if (!el || el.scrollWidth <= el.clientWidth) return;
+    if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) el.scrollLeft += e.deltaY;
+  }, []);
 
   const selDay = days.find(d => d.id === selDayId) || days[0] || null;
   const stops = selDay ? (selDay.stops || []).filter(isLocationStop) : [];
@@ -101,6 +109,17 @@ export default function TodayScheduleModal({ trip, onUpdateStop, editOps, onClos
     ro.observe(el);
     return () => ro.disconnect();
   }, [hasStops, isNarrow]);
+
+  // 选中天变化时，把它滚到日期条可见区域中间（点到被截断的天也顺手）
+  useEffect(() => {
+    const el = dayStripRef.current;
+    if (!el) return;
+    const raf = requestAnimationFrame(() => {
+      const btn = el.querySelector('[data-active="true"]');
+      if (btn) btn.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [selDayId]);
 
   const onTimeScroll = useCallback(() => {
     clearTimeout(timeTimer.current);
@@ -181,7 +200,7 @@ export default function TodayScheduleModal({ trip, onUpdateStop, editOps, onClos
 
         {/* Day strip — 始终显示，覆盖全部行程天 */}
         {days.length >= 1 && (
-          <div style={{ display: 'flex', gap: '0.4rem', padding: '0.6rem 1.1rem', overflowX: 'auto', scrollbarWidth: 'none', borderBottom: '1px solid var(--md-sys-color-outline)', flexShrink: 0 }}>
+          <div ref={dayStripRef} onWheel={onDayStripWheel} style={{ display: 'flex', gap: '0.4rem', padding: '0.6rem 1.1rem', overflowX: 'auto', scrollbarWidth: 'none', borderBottom: '1px solid var(--md-sys-color-outline)', flexShrink: 0 }}>
             {days.map((d) => {
               const idx = (trip?.days || []).findIndex(x => x.id === d.id);
               const active = d.id === selDay?.id;
@@ -189,6 +208,7 @@ export default function TodayScheduleModal({ trip, onUpdateStop, editOps, onClos
               return (
                 <button
                   key={d.id}
+                  data-active={active ? 'true' : undefined}
                   onClick={() => setSelDayId(d.id)}
                   style={{
                     flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px',
